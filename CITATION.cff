@@ -1,0 +1,38 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below, and cite the dataset it was built on."
+title: "Sixth-Finger BCI: calibration-efficient decoding of a novel motor-imagery command"
+version: 0.1.0
+date-released: 2026-12-12
+license: MIT
+authors:
+  - family-names: Singh
+    given-names: Rajveer
+    affiliation: "Maharaja Surajmal Institute of Technology, Delhi"
+  - family-names: Yadav
+    given-names: Vivek
+    affiliation: "Maharaja Surajmal Institute of Technology, Delhi"
+  - family-names: Dahiya
+    given-names: Ansh
+    affiliation: "Maharaja Surajmal Institute of Technology, Delhi"
+references:
+  - type: dataset
+    title: "A multi-paradigm and longitudinal EEG dataset including the sixth-finger and affected-hand motor imagery of stroke patients"
+    authors:
+      - family-names: Wang
+        given-names: Zhuang
+      - family-names: Liu
+        given-names: Yuan
+      - name: "et al."
+    doi: 10.6084/m9.figshare.30509165
+    license: CC-BY-4.0
+  - type: article
+    title: "A multi-paradigm and longitudinal EEG dataset including the 'sixth-finger' and 'affected-hand' motor imagery of stroke patients"
+    authors:
+      - family-names: Wang
+        given-names: Zhuang
+      - name: "et al."
+    journal: "Scientific Data"
+    volume: 13
+    start: 1109
+    year: 2026
+    doi: 10.1038/s41597-026-07787-y
