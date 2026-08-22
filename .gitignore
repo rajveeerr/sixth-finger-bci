@@ -1,0 +1,77 @@
+# Data: never commit EEG recordings or derived arrays (download with `make data`)
+data/*
+!data/README.md
+*.zip
+*.mat
+*.set
+*.fdt
+*.edf
+*.fif
+*.npz
+*.npy
+*.h5
+*.hdf5
+*.zarr/
+
+# Model weights and run outputs (small summaries are whitelisted below)
+models/*
+!models/README.md
+*.pt
+*.pth
+*.ckpt
+results/runs/
+results/cache/
+mlruns/
+wandb/
+
+# The demo ships its own small bundle; it is rebuilt by `make demo-bundle`
+!web/public/demo/**
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.ipynb_checkpoints/
+*.egg-info/
+build/
+dist/
+.coverage
+htmlcov/
+
+# Node
+node_modules/
+web/dist/
+web/test-results/
+web/playwright-report/
+.vite/
+
+# LaTeX build products
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.synctex.gz
+*.toc
+*.lof
+*.lot
+paper/build/
+report/build/
+
+# Editors and OS
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.swp
+
+# Secrets
+.env
+.env.*
+!.env.example
+kaggle.json
