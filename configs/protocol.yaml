@@ -1,0 +1,54 @@
+# Evaluation protocol. Mirrors the frozen protocol document; changes after the prereg-v1 tag
+# must be logged as deviations.
+
+tasks:
+  T1_ah_vs_sf: [affected_hand, sixth_finger]
+  T2_rest_ah_sf: [rest, affected_hand, sixth_finger]
+  T3_sf_vs_rest: [rest, sixth_finger]
+
+within_session:
+  protocols: [paper_replica, cv_leakfree, loro, chrono]
+  cv_folds: 10
+  cv_repeats: 10
+  chrono_train_runs: ["01", "02"]
+  chrono_test_runs: ["03", "04"]
+
+calibration:
+  confirmatory_session: pre
+  replication_session: post
+  pool_runs: ["01", "02"]
+  test_runs: ["03", "04"]
+  k_grid: [0, 1, 2, 3, 5, 10, 15, 20]
+  draws_classical: 10
+  draws_deep: 5
+  seed_base: 0
+  chrono_draw: true
+  trial_seconds: 14.0
+  scenarios:
+    S1_new_user:
+      description: "k AH + k SF trials and the REST windows of exactly those trials"
+      full_classes: []
+      budget_classes: [affected_hand, sixth_finger]
+    S2_new_command:
+      description: "all AH trials of the pool and their REST windows, plus k SF trials and theirs"
+      full_classes: [affected_hand]
+      budget_classes: [sixth_finger]
+  eval_tasks: [T2_rest_ah_sf, T3_sf_vs_rest]
+
+cross_subject:
+  pretrain_validation_subjects: 3
+
+dev_subjects: [sub-01, sub-03]
+
+metrics:
+  primary: bal_acc
+  report: [bal_acc, acc, f1_macro, kappa, sf_recall, sf_precision, auc_sf]
+  usable_threshold_2class: 0.70
+  usable_threshold_3class: [0.60, 0.70]
+
+stats:
+  alpha: 0.05
+  correction: holm
+  bootstrap_resamples: 10000
+  bootstrap_seed: 12345
+  friedman_k: [2, 5, 10, 20]
