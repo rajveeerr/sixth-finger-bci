@@ -18,6 +18,8 @@ calibration:
   replication_session: post
   pool_runs: ["01", "02"]
   test_runs: ["03", "04"]
+  # 20 means "every available trial": a class can have fewer than 20 in runs 01-02 after
+  # boundary drops, so k is capped per subject and the value actually used is stored as k_used.
   k_grid: [0, 1, 2, 3, 5, 10, 15, 20]
   draws_classical: 10
   draws_deep: 5
