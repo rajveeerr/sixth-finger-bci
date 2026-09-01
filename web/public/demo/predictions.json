@@ -1,0 +1,246 @@
+{
+ "schema_version": 1,
+ "model_sha256": "f15f2e05a480a89ffcdb8d08a62e15a40e9f7a154897b6101750bda3730680e5",
+ "items": [
+  {
+   "trial": 0,
+   "window": "rest",
+   "probs": [
+    1.0,
+    0.0,
+    0.0
+   ],
+   "label_id": 0
+  },
+  {
+   "trial": 0,
+   "window": "imagery",
+   "probs": [
+    0.0,
+    0.99999,
+    0.0
+   ],
+   "label_id": 1
+  },
+  {
+   "trial": 1,
+   "window": "rest",
+   "probs": [
+    0.99996,
+    2e-05,
+    3e-05
+   ],
+   "label_id": 0
+  },
+  {
+   "trial": 1,
+   "window": "imagery",
+   "probs": [
+    0.0,
+    5e-05,
+    0.99995
+   ],
+   "label_id": 2
+  },
+  {
+   "trial": 2,
+   "window": "rest",
+   "probs": [
+    1.0,
+    0.0,
+    0.0
+   ],
+   "label_id": 0
+  },
+  {
+   "trial": 2,
+   "window": "imagery",
+   "probs": [
+    0.0,
+    0.99999,
+    1e-05
+   ],
+   "label_id": 1
+  },
+  {
+   "trial": 3,
+   "window": "rest",
+   "probs": [
+    1.0,
+    0.0,
+    0.0
+   ],
+   "label_id": 0
+  },
+  {
+   "trial": 3,
+   "window": "imagery",
+   "probs": [
+    0.0,
+    6e-05,
+    0.99994
+   ],
+   "label_id": 2
+  },
+  {
+   "trial": 4,
+   "window": "rest",
+   "probs": [
+    1.0,
+    0.0,
+    0.0
+   ],
+   "label_id": 0
+  },
+  {
+   "trial": 4,
+   "window": "imagery",
+   "probs": [
+    0.0,
+    0.99999,
+    0.0
+   ],
+   "label_id": 1
+  },
+  {
+   "trial": 5,
+   "window": "rest",
+   "probs": [
+    1.0,
+    0.0,
+    0.0
+   ],
+   "label_id": 0
+  },
+  {
+   "trial": 5,
+   "window": "imagery",
+   "probs": [
+    0.0,
+    7e-05,
+    0.99993
+   ],
+   "label_id": 2
+  },
+  {
+   "trial": 6,
+   "window": "rest",
+   "probs": [
+    1.0,
+    0.0,
+    0.0
+   ],
+   "label_id": 0
+  },
+  {
+   "trial": 6,
+   "window": "imagery",
+   "probs": [
+    0.0,
+    0.99999,
+    1e-05
+   ],
+   "label_id": 1
+  },
+  {
+   "trial": 7,
+   "window": "rest",
+   "probs": [
+    0.99998,
+    2e-05,
+    0.0
+   ],
+   "label_id": 0
+  },
+  {
+   "trial": 7,
+   "window": "imagery",
+   "probs": [
+    0.0,
+    7e-05,
+    0.99993
+   ],
+   "label_id": 2
+  },
+  {
+   "trial": 8,
+   "window": "rest",
+   "probs": [
+    1.0,
+    0.0,
+    0.0
+   ],
+   "label_id": 0
+  },
+  {
+   "trial": 8,
+   "window": "imagery",
+   "probs": [
+    1e-05,
+    0.99998,
+    1e-05
+   ],
+   "label_id": 1
+  },
+  {
+   "trial": 9,
+   "window": "rest",
+   "probs": [
+    1.0,
+    0.0,
+    0.0
+   ],
+   "label_id": 0
+  },
+  {
+   "trial": 9,
+   "window": "imagery",
+   "probs": [
+    0.0,
+    6e-05,
+    0.99994
+   ],
+   "label_id": 2
+  },
+  {
+   "trial": 10,
+   "window": "rest",
+   "probs": [
+    1.0,
+    0.0,
+    0.0
+   ],
+   "label_id": 0
+  },
+  {
+   "trial": 10,
+   "window": "imagery",
+   "probs": [
+    0.0,
+    0.99998,
+    2e-05
+   ],
+   "label_id": 1
+  },
+  {
+   "trial": 11,
+   "window": "rest",
+   "probs": [
+    1.0,
+    0.0,
+    0.0
+   ],
+   "label_id": 0
+  },
+  {
+   "trial": 11,
+   "window": "imagery",
+   "probs": [
+    0.0,
+    6e-05,
+    0.99994
+   ],
+   "label_id": 2
+  }
+ ]
+}
