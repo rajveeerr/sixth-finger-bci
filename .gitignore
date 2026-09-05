@@ -75,3 +75,6 @@ report/build/
 .env.*
 !.env.example
 kaggle.json
+
+# TypeScript incremental build info
+*.tsbuildinfo
