@@ -1,0 +1,34 @@
+\section{Introduction}
+% Outline (structure.md): why MI-BCIs matter -> calibration problem -> sixth-finger
+% paradigm and dataset -> gap -> numbered contributions.
+
+A brain--computer interface (BCI) translates measured brain activity into commands for
+an external device~\cite{wolpaw2002}. In motor-imagery (MI) BCIs the user imagines a
+movement, which weakens the sensorimotor mu and beta rhythms over the motor
+cortex~\cite{pfurtscheller1999,pfurtscheller2001}; a decoder learns to recognise these
+changes from the electroencephalogram (EEG). MI-BCIs are studied for stroke
+rehabilitation~\cite{cervera2018,biasiucci2018} and, more recently, for human motor
+augmentation, where users learn to control an extra robotic digit~\cite{kieliba2021,eden2022}.
+
+EEG patterns differ between people and between sessions, so every new user must first
+record labelled calibration trials~\cite{lotte2015}. Transfer learning reduces this
+burden by reusing data from other users~\cite{he2020,zanini2018,wu2022review}. The
+problem is sharper for a novel command: a ``sixth finger'' has no natural motor
+representation to build on. Wang et al.\ introduced sixth-finger motor imagery and
+showed that it produces stronger event-related desynchronisation than imagery of a
+natural limb~\cite{wang2024jbhi,wang2024tnsre}, and released a longitudinal dataset of
+stroke patients performing both kinds of imagery~\cite{wang2026dataset}.
+
+% Gap and contributions: finalise after results (P13).
+In this work we ask how much calibration a decoder needs before it recognises the
+sixth-finger command, and whether transfer reduces it. Our contributions are:
+\begin{enumerate}
+  \item a leakage-free re-benchmark of the published dataset, together with an
+        integrity audit that identified duplicated recordings;
+  \item a pre-registered calibration study for a new user and for a new command,
+        comparing from-scratch decoders with Riemannian and deep transfer methods;
+  \item exploratory analyses of hemisphere mirroring, cross-session stability and
+        electrode count; and
+  \item open code and a real-time demonstrator in which decoded intent drives a 3D
+        hand with a robotic sixth finger.
+\end{enumerate}
