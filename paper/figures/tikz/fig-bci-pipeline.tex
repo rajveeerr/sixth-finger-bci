@@ -1,0 +1,15 @@
+\documentclass[border=4pt]{standalone}
+\input{style}
+\begin{document}
+\begin{tikzpicture}[node distance=7mm]
+  \node[real] (intent) {Motor imagery\\\scriptsize rest / hand / sixth finger};
+  \node[real, right=of intent] (eeg) {EEG\\\scriptsize 40 ch, 250 Hz};
+  \node[real, right=of eeg] (pre) {Windows\\\scriptsize 1--5 s after cue};
+  \node[real, right=of pre] (dec) {Decoder\\\scriptsize CSP / Riemannian / EEGNet};
+  \node[real, right=of dec] (cmd) {Command\\\scriptsize IDLE / GRASP / SIXTH};
+  \node[sim, right=of cmd] (hand) {3D hand\\\scriptsize + robotic finger};
+  \foreach \a/\b in {intent/eeg, eeg/pre, pre/dec, dec/cmd, cmd/hand} \draw[flow] (\a) -- (\b);
+  \node[lbl, below=2mm of dec, align=center] (cal) {calibration: k trials of the new user\\+ data of other patients (transfer)};
+  \draw[dflow] (cal) -- (dec);
+\end{tikzpicture}
+\end{document}

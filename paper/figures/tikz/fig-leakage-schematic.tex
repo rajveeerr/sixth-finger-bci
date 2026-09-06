@@ -1,0 +1,21 @@
+\documentclass[border=4pt]{standalone}
+\input{style}
+\begin{document}
+\begin{tikzpicture}[node distance=4mm]
+  % published protocol
+  \node[font=\small\bfseries] (t1) {Published protocol (leaky)};
+  \node[box, below=of t1, draw=cred, fill=cred!10] (a1) {all trials of a session\\\scriptsize train + test together};
+  \node[box, below=of a1, draw=cred, fill=cred!10] (a2) {fit CSP filters};
+  \node[box, below=of a2] (a3) {split into 10 folds};
+  \node[box, below=of a3] (a4) {train classifier, test};
+  \foreach \a/\b in {a1/a2, a2/a3, a3/a4} \draw[flow] (\a) -- (\b);
+  \node[lbl, right=1mm of a2, text=cred, align=left] {test trials\\shape the filters};
+  % leak-free
+  \node[font=\small\bfseries, right=42mm of t1] (t2) {Leakage-free protocol};
+  \node[box, below=of t2] (b1) {all trials of a session};
+  \node[box, below=of b1] (b2) {split by trial / run};
+  \node[box, below=of b2, draw=cgreen, fill=cgreen!10] (b3) {fit CSP + classifier\\\scriptsize on training folds only};
+  \node[box, below=of b3] (b4) {test on held-out fold};
+  \foreach \a/\b in {b1/b2, b2/b3, b3/b4} \draw[flow] (\a) -- (\b);
+\end{tikzpicture}
+\end{document}

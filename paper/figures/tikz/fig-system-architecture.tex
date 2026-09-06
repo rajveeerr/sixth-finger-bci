@@ -1,0 +1,17 @@
+\documentclass[border=4pt]{standalone}
+\input{style}
+\begin{document}
+\begin{tikzpicture}[node distance=6mm and 9mm]
+  \node[real] (data) {Public EEG dataset\\\scriptsize figshare, CC BY 4.0};
+  \node[real, right=of data] (pipe) {Research pipeline\\\scriptsize Python: MNE, pyRiemann, braindecode};
+  \node[real, right=of pipe] (res) {Results\\\scriptsize benchmark, calibration curves};
+  \node[real, below=of pipe] (bundle) {Demo bundle\\\scriptsize ONNX model + held-out trials};
+  \node[sim, below left=of bundle] (server) {Inference server\\\scriptsize FastAPI, onnxruntime};
+  \node[sim, below right=of bundle] (web) {Web app\\\scriptsize React, three.js};
+  \node[future, below=of web] (ort) {in-browser ONNX\\\scriptsize fallback};
+  \draw[flow] (data) -- (pipe); \draw[flow] (pipe) -- (res); \draw[flow] (pipe) -- node[lbl, right] {export} (bundle);
+  \draw[flow] (bundle) -- (server); \draw[flow] (bundle) -- (web);
+  \draw[flow, cblue] (server) -- node[lbl, below] {WebSocket: EEG, predictions} (web);
+  \draw[dflow] (web) -- (ort);
+\end{tikzpicture}
+\end{document}
