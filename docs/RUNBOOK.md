@@ -1,0 +1,151 @@
+# Runbook
+
+How to install, run, test and verify every part of the project, what each
+command should print, and how to tell that it worked. Commands are run from
+the repository root unless stated otherwise.
+
+The column **Available** says from which project phase a command does real
+work; before that it prints a message naming the phase that implements it.
+
+## 1. One-time setup
+
+| Step | Command | Expected result |
+|------|---------|-----------------|
+| System tools (macOS) | `brew install uv git node@22 tectonic` | tools on PATH |
+| System tools (Linux/WSL2) | see the install lines in `_workspace/plan/phases/P00-environment.md` (development copy) or: `curl -LsSf https://astral.sh/uv/install.sh \| sh` plus Node 22 and git | tools on PATH |
+| Everything else | `make setup` | Python env (`.venv`), git hooks, server env, web packages; ends without errors (first run 3–6 min) |
+| Check the environment | `uv run sixthfinger doctor` | python 3.12, numpy 2.5.3, mne 1.13.2, scikit-learn 1.9.1, pyriemann 0.12, torch 2.14.1, braindecode 1.8.1, accelerator `mps`/`cuda`/`cpu`, disk free, data and cache status |
+
+Two `FutureWarning` lines about a montage name from braindecode's EEGPT
+module are harmless.
+
+## 2. Data
+
+| Step | Command | Available | Expected result | How to know it worked |
+|------|---------|-----------|-----------------|-----------------------|
+| Download + verify | `make data` | now | downloads `processeddata.zip` (3.5 GB, resumable), checks md5 `7a3138c1…`, unzips, verifies, deletes the zip | `data/processed/` has 268 `.mat` files |
+| Re-verify | `make verify-data` | now | `OK: 268 .mat files, sizes match processeddata_listing.tsv` | exit code 0 |
+| Integrity audit | `make audit` | P02 | writes `results/audit/inventory.csv`, `event_flags.csv`, `near_duplicates.csv`, `raw_crc_duplicates.csv`, `audit_report.md` | sub-02 post/follow pairs at r ≥ 0.9; 8 duplicate groups in the raw archive |
+| Cut windows | `make epochs` (subset: `make epochs SUBJECTS=sub-01,sub-03`) | P03 | `data/derived/epochs/*.npz` (66 files), `metadata.parquet`, `manifest.json`, `results/audit/epoch_counts.csv` | ≈ 10 500 windows of shape (40, 1000); `doctor` shows 66 cached session files |
+
+If the download stops, run `make data` again; it resumes. Never use figshare's
+"Download all".
+
+## 3. Tests and quality checks
+
+| What | Command | Expected result |
+|------|---------|-----------------|
+| Everything CI runs | `make check` | ruff `All checks passed!`, all files formatted, Python tests pass, server tests pass, web lint/typecheck/tests/build pass |
+| Python unit tests only | `make test` | all pass (synthetic data, no download needed) |
+| Tests that need the real data | `make test-real` | pass once data and cache exist |
+| Lint / auto-format | `make lint` / `make format` | clean |
+| Server tests | `uv run --project server pytest -q server/tests` | `20 passed` at setup (more later) |
+| Web unit tests | `npm --prefix web run test` | all pass |
+| Web type check / lint / build | `npm --prefix web run typecheck`, `run lint`, `run build` | no errors; `web/dist/` created |
+| Browser tests | `npx --prefix web playwright install chromium` (once), then `make e2e` | all pass |
+
+The leakage guarantees are tested in `tests/test_leakage.py` (P05): a test
+trial in training, the target subject in source data, or the linked subjects
+sub-21/sub-22 split across train and test all make the tests fail, and a
+label-permutation test checks that shuffled labels give chance accuracy.
+
+## 4. Experiments
+
+All experiments are YAML files in `configs/experiments/` and run with one
+command. Runs are resumable: running the same command again skips finished
+units. Full scores go to `results/runs/<experiment>/scores.parquet`
+(not committed); summaries and figures are produced by the scripts below.
+
+| Experiment | Command | Available | Where it runs | Time (approx.) |
+|------------|---------|-----------|---------------|----------------|
+| Smoke test | `uv run sixthfinger run configs/experiments/smoke.yaml --subjects sub-01,sub-03` | P05 | Mac | < 1 min |
+| RQ1 re-benchmark | `uv run sixthfinger run configs/experiments/rq1_benchmark.yaml` | P06 | Mac | 1–4 h |
+| Deep baselines | `uv run sixthfinger run configs/experiments/dl_baselines.yaml` | P07 | Mac (chrono) / Kaggle (loro) | 6 h Mac |
+| Leave-one-subject-out pre-training | Kaggle notebook `notebooks/kaggle/run_experiment.ipynb` with `pretrain_loso.yaml` | P07 | Kaggle GPU | 2–8 h |
+| RQ2 calibration, new user | `uv run sixthfinger run configs/experiments/rq2_calib_s1.yaml` (classical) + Kaggle for EEGNet methods | P08 | Mac + Kaggle | overnight + GPU hours |
+| RQ3 calibration, new command | same with `rq3_calib_s2.yaml` | P08 | Mac + Kaggle | same |
+| RQ4 studies | `rq4_mirror.yaml`, `rq4_longitudinal.yaml`, `rq4_channels.yaml` | P09 | Mac | hours |
+
+Quick versions for debugging: add `--quick` (small k grid, two draws) and
+`--subjects sub-01,sub-03`.
+
+Summaries and figures:
+
+| Command | Available | Output |
+|---------|-----------|--------|
+| `uv run python scripts/make_eda_figures.py --session pre --out docs/figures` | P04 | `docs/figures/eda_*` |
+| `uv run python scripts/summarise_rq1.py` | P06 | `results/summary/rq1_*`, `docs/figures/rq1_*` |
+| `uv run python scripts/summarise_calibration.py --experiment rq2_calib_s1` | P08 | `results/summary/rq2_*`, `docs/figures/rq2_*` |
+| `uv run python scripts/summarise_rq4.py` | P09 | `results/summary/rq4_*`, `docs/figures/rq4_*` |
+
+How to verify a result: every row of every scores file carries `git_sha`,
+`config_hash` and `data_manifest_sha`. To reproduce, check out that commit,
+make sure `data/derived/epochs/manifest.json` has the same hash, and re-run
+the experiment: classical methods give identical numbers.
+
+## 5. Demo
+
+| Step | Command | Available | Expected result |
+|------|---------|-----------|-----------------|
+| Server only | `make server` | now (synthetic bundle) | `http://localhost:8000/health` → `{"status":"ok", …, "synthetic": true}` until P10, then `false` |
+| Server info | `curl -s localhost:8000/api/info` | now | channels, classes, model, number of trials |
+| Web only | `make web` | now (placeholder UI) | `http://localhost:5173` shows the layout |
+| Both | `make demo` | now; full demo after P11 | server on :8000, web on :5173 |
+| Rebuild the bundle from the trained model | `make demo-bundle` | P10 | `web/public/demo/` with the real model and held-out trials, < 25 MB |
+| Browser-only preview (no server) | `npm --prefix web run build && npm --prefix web run preview` | P11 | `http://localhost:4173`; badge shows "in-browser" |
+| Live demo | web: `https://<project>.vercel.app`; server: `https://<hf-user>-sixth-finger-bci.hf.space/health` | P12 | badge "server" (after the free server wakes) |
+
+How to verify the demo is honest and working:
+
+1. The badge shows the data source (server / in-browser / replay).
+2. Each prediction shows the instructed class next to the decoded class.
+3. The trials in the bundle were never used for training (the bundle builder
+   asserts this; `results/summary/demo_model.json` records the subject and method).
+4. Stop the server while the page is open: the badge switches to "in-browser"
+   within a few seconds and the demo continues.
+
+## 6. Paper and report
+
+| Step | Command | Available | Expected result |
+|------|---------|-----------|-----------------|
+| Paper PDF | `make paper` | now (skeleton) | `paper/build/main.pdf`; red TBD markers until results exist |
+| Paper numbers | `uv run python scripts/make_paper_numbers.py` | P13 | regenerates `paper/generated/numbers.tex` |
+| Report PDF | `make report` | now (skeleton) | `report/build/main.pdf` |
+| Report as Word | `make -C report docx` (needs `brew install pandoc`) | now | `report/build/report.docx` |
+
+## 7. Reproducing everything from scratch
+
+```sh
+git clone <repository> sixth-finger-bci && cd sixth-finger-bci
+make setup
+make data
+make epochs
+make check
+uv run sixthfinger run configs/experiments/rq1_benchmark.yaml
+uv run python scripts/summarise_rq1.py
+# then the calibration experiments (section 4) and the demo (section 5)
+```
+
+Expected: classical results identical to the committed summaries; deep-learning
+results within small run-to-run differences (GPU arithmetic is not bit-exact).
+
+## 8. Troubleshooting
+
+| Symptom | Fix |
+|---------|-----|
+| `uv: command not found` | open a new terminal; on Linux `source ~/.local/bin/env` |
+| `ModuleNotFoundError: sixthfinger` | prefix commands with `uv run` |
+| `md5 mismatch` during `make data` | delete the partial zip in `data/raw/figshare/` and run `make data` again |
+| Not enough disk space | about 8 GB needed at peak for the data; `uv cache prune` frees space |
+| `Epoch cache was built with different settings` | run `make epochs` again |
+| Server tests: `No module named 'app'` | update; `server/pyproject.toml` must contain `pythonpath = ["."]` |
+| Web: `npm warn EBADENGINE` on Node 23 | use Node 22 (LTS); it works but warns |
+| Browser demo stuck on "connecting" | the server is asleep or not running; the app falls back after 2 s, check the browser console |
+| `tectonic: command not found` | `brew install tectonic`, or build on Overleaf |
+
+## 9. Live URLs
+
+To be filled in phase P12:
+
+- Web demo: TBD
+- Inference server: TBD
