@@ -18,7 +18,7 @@ HAS_REPORT := $(wildcard report/Makefile)
 HAS_BOOT   := $(wildcard _workspace/tools/bootstrap.sh)
 
 .PHONY: help setup data verify-data audit epochs test test-real lint format check \
-        server web demo e2e paper report doctor clean
+        server web demo e2e figures paper report doctor clean
 
 help: ## List targets
 	@grep -hE '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  \033[36m%-12s\033[0m %s\n", $$1, $$2}'
@@ -121,6 +121,10 @@ ifneq ($(HAS_WEB),)
 else
 	@echo "--- web/ does not exist yet (phase P11)"
 endif
+
+figures: ## Compile the TikZ diagrams in paper/figures/tikz to PDF
+	@command -v tectonic >/dev/null || { echo "Tectonic not installed: see phase P00"; exit 1; }
+	cd paper/figures/tikz && for f in fig-*.tex; do tectonic -X compile $$f --outdir .. || exit 1; done
 
 paper: ## Build paper/main.pdf with Tectonic
 ifneq ($(HAS_PAPER),)
