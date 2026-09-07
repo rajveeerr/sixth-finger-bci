@@ -20,6 +20,13 @@ natural limb~\cite{wang2024jbhi,wang2024tnsre}, and released a longitudinal data
 stroke patients performing both kinds of imagery~\cite{wang2026dataset}.
 
 % Gap and contributions: finalise after results (P13).
+\begin{figure*}[t]
+  \centering
+  \includegraphics[width=\textwidth]{figures/fig-bci-pipeline.pdf}
+  \caption{The pipeline studied in this work. Motor imagery of rest, the affected hand or a robotic sixth finger is recorded as EEG, cut into 4\,s windows and decoded into a command that drives a 3D hand. Calibration uses $k$ trials of the new user and, for transfer methods, data of other patients.}
+  \label{fig:pipeline}
+\end{figure*}
+
 In this work we ask how much calibration a decoder needs before it recognises the
 sixth-finger command, and whether transfer reduces it. Our contributions are:
 \begin{enumerate}

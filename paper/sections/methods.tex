@@ -1,3 +1,19 @@
 \section{Methods}
 % Outline: see _workspace/skills/research-paper/references/structure.md
+% A. Tasks and scenarios  B. Decoders (table)  C. Transfer methods  D. Protocols  E. Metrics and statistics  F. Implementation
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\columnwidth]{figures/fig-leakage-schematic.pdf}
+  \caption{Published versus leakage-free evaluation. Fitting CSP filters on all trials before cross-validation lets test trials shape the features.}
+  \label{fig:leakage}
+\end{figure}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\columnwidth]{figures/fig-calibration-protocol.pdf}
+  \caption{Calibration protocol. For each target patient, $k$ trials per class are drawn from runs 1--2 and the decoder is tested on runs 3--4. Transfer methods additionally use data from the other patients.}
+  \label{fig:calibration}
+\end{figure}
+
 \TBD{P13}
