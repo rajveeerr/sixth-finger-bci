@@ -11,6 +11,14 @@
 \usepackage{xcolor}
 \usepackage[hidelinks]{hyperref}
 \usepackage{cite}
+\usepackage{listings}
+\usepackage{qrcode}
+\usepackage{titlesec}
+% Common GGSIPU format: chapter headings 14 pt bold uppercase (confirm with the department).
+\titleformat{\chapter}[display]{\normalfont\fontsize{14}{17}\selectfont\bfseries\centering}{CHAPTER \thechapter}{6pt}{\MakeUppercase}
+\titlespacing*{\chapter}{0pt}{0pt}{18pt}
+\lstset{basicstyle=\ttfamily\footnotesize, frame=single, breaklines=true, columns=fullflexible}
+\graphicspath{{../paper/figures/}{../docs/figures/}{figures/}}
 \onehalfspacing
 
 \input{../paper/generated/numbers}
@@ -32,18 +40,13 @@
 \pagenumbering{arabic}
 \input{chapters/01-introduction}
 \input{chapters/02-literature-review}
-\input{chapters/03-problem-and-objectives}
-\input{chapters/04-dataset}
-\input{chapters/05-methodology}
-\input{chapters/06-system-design}
-\input{chapters/07-implementation}
-\input{chapters/08-results}
-\input{chapters/09-discussion}
-\input{chapters/10-conclusion}
+\input{chapters/03-methodology-and-system}
+\input{chapters/04-results-and-discussion}
+\input{chapters/05-conclusion}
 
 \bibliographystyle{IEEEtran}
 \bibliography{../paper/references}
 
 \appendix
-\input{chapters/appendix-a-reproducibility}
+\input{chapters/appendices}
 \end{document}
