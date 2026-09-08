@@ -23,3 +23,10 @@ footer { padding: 12px 20px; font-size: 12px; color: var(--muted); }
 @media (max-width: 900px) {
   main { grid-template-columns: 1fr; }
 }
+
+.real-limb { margin: 12px 20px 0; font-size: 14px; }
+.real-limb summary { cursor: pointer; font-weight: 600; }
+.real-limb table { width: 100%; border-collapse: collapse; margin: 8px 0; }
+.real-limb td, .real-limb th { text-align: left; padding: 4px 6px; border-bottom: 1px solid #2a3b57; }
+.real-limb tr[data-kind="sim"] td:first-child { color: var(--sixth); }
+.muted { color: var(--muted); }
