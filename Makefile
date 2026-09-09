@@ -18,7 +18,7 @@ HAS_REPORT := $(wildcard report/Makefile)
 HAS_BOOT   := $(wildcard _workspace/tools/bootstrap.sh)
 
 .PHONY: help setup data verify-data audit epochs test test-real lint format check \
-        server web demo e2e figures paper report doctor clean
+        server web demo e2e figures paper report doctor health clean
 
 help: ## List targets
 	@grep -hE '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  \033[36m%-12s\033[0m %s\n", $$1, $$2}'
@@ -49,6 +49,11 @@ else ifneq ($(HAS_WEB),)
 else
 	@echo "--- no web/ yet, skipping"
 endif
+
+health: ## Everything that must stay green: the CI gate, data integrity and the environment
+	$(MAKE) check
+	@if [ -d data/processed ]; then $(MAKE) verify-data; else echo "--- no data yet (make data)"; fi
+	$(UV) run sixthfinger doctor
 
 doctor: ## Versions, accelerator, disk space and data status
 	$(UV) run sixthfinger doctor
