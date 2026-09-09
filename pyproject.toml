@@ -20,7 +20,10 @@ dependencies = [
     "pymatreader==1.3.2",
     "scikit-learn==1.9.1",
     "pyriemann==0.12",
-    "torch==2.14.1",
+    # torchaudio (required by braindecode) stops at 2.11; torch must match it or
+    # braindecode fails to import on Linux.
+    "torch==2.11.0",
+    "torchaudio==2.11.0",
     "braindecode==1.8.1",
     "onnx==1.23.1",
     "onnxruntime==1.30.0",
@@ -61,6 +64,7 @@ packages = ["src/sixthfinger"]
 # which is ~10x smaller than the default CUDA build. macOS and Windows use PyPI.
 [tool.uv.sources]
 torch = [{ index = "pytorch-cpu", marker = "sys_platform == 'linux'" }]
+torchaudio = [{ index = "pytorch-cpu", marker = "sys_platform == 'linux'" }]
 
 [[tool.uv.index]]
 name = "pytorch-cpu"

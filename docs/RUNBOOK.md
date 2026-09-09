@@ -14,7 +14,7 @@ work; before that it prints a message naming the phase that implements it.
 | System tools (macOS) | `brew install uv git node@22 tectonic` | tools on PATH |
 | System tools (Linux/WSL2) | see the install lines in `_workspace/plan/phases/P00-environment.md` (development copy) or: `curl -LsSf https://astral.sh/uv/install.sh \| sh` plus Node 22 and git | tools on PATH |
 | Everything else | `make setup` | Python env (`.venv`), git hooks, server env, web packages; ends without errors (first run 3–6 min) |
-| Check the environment | `uv run sixthfinger doctor` | python 3.12, numpy 2.5.3, mne 1.13.2, scikit-learn 1.9.1, pyriemann 0.12, torch 2.14.1, braindecode 1.8.1, accelerator `mps`/`cuda`/`cpu`, disk free, data and cache status |
+| Check the environment | `uv run sixthfinger doctor` | python 3.12, numpy 2.5.3, mne 1.13.2, scikit-learn 1.9.1, pyriemann 0.12, torch 2.11.0, braindecode 1.8.1, accelerator `mps`/`cuda`/`cpu`, disk free, data and cache status |
 
 Two `FutureWarning` lines about a montage name from braindecode's EEGPT
 module are harmless.
