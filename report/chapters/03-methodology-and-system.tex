@@ -1,6 +1,19 @@
 \chapter{Research Methodology and System Design}
 % Sources: report-material 04, 05, 06, 07 and _workspace/research/from-demo-to-real-limb.md
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.62\textwidth]{fig-methodology-flowchart.pdf}
+  \caption{Overview of the research methodology.}
+  \label{fig:method}
+\end{figure}
+
 \section{Dataset and Integrity Audit}
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.55\textwidth]{montage_40.pdf}
+  \caption{The 40 analysis electrodes (10--10 system positions); sensorimotor channels highlighted.}
+  \label{fig:montage}
+\end{figure}
 \begin{figure}[h]
   \centering
   \includegraphics[width=\textwidth]{fig-trial-timeline.pdf}
@@ -11,6 +24,12 @@
 \section{Data Preparation}
 \TBD{P14}
 \section{Decoders}
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=\textwidth]{fig-eegnet-architecture.pdf}
+  \caption{EEGNet as used in this work, for a 40-channel, 4-second input.}
+  \label{fig:eegnet}
+\end{figure}
 \TBD{P14}
 \section{Transfer Learning Methods}
 \TBD{P14}
@@ -39,6 +58,12 @@
 \end{figure}
 \TBD{P14}
 \section{Demonstrator Design}
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.75\textwidth]{fig-fallback-states.pdf}
+  \caption{Selection of the data source in the web demonstrator: the live server, in-browser inference, or replay of offline predictions.}
+  \label{fig:fallback}
+\end{figure}
 \TBD{P14}
 \section{From Demonstrator to a Physical Limb}
 \begin{figure}[h]
