@@ -1,0 +1,17 @@
+\documentclass[border=4pt]{standalone}
+\input{style}
+\begin{document}
+\begin{tikzpicture}[node distance=10mm and 16mm, every node/.append style={minimum width=26mm}]
+  \node[box] (conn) {connecting};
+  \node[real, right=of conn] (srv) {server\\\scriptsize FastAPI stream};
+  \node[box, below=of conn] (load) {loading browser\\\scriptsize model + trials};
+  \node[sim, right=of load] (br) {in-browser\\\scriptsize onnxruntime-web};
+  \node[future, below=of load] (rep) {replay\\\scriptsize offline predictions};
+  \draw[flow] (conn) -- node[lbl, above] {hello $<$ 2 s} (srv);
+  \draw[flow] (conn) -- node[lbl, left] {timeout} (load);
+  \draw[flow] (srv.south west) -- node[lbl, pos=0.35, below right, align=left] {closed or\\5 s silent} (load.north east);
+  \draw[flow] (load) -- node[lbl, above] {ready} (br);
+  \draw[flow] (load) -- node[lbl, left] {wasm fails} (rep);
+  \draw[dflow] (br.east) -- ++(8mm,0) |- node[lbl, pos=0.25, right] {retry} ($(conn.north)+(0,7mm)$) -- (conn.north);
+\end{tikzpicture}
+\end{document}

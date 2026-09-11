@@ -1,0 +1,14 @@
+\documentclass[border=4pt]{standalone}
+\input{style}
+\begin{document}
+\begin{tikzpicture}[node distance=4mm, every node/.append style={minimum width=24mm, minimum height=15mm}]
+  \node[real] (in) {Input window\\\scriptsize 1 $\times$ 40 ch $\times$ 1000\\\scriptsize (4 s at 250 Hz)};
+  \node[box, right=of in] (t) {Temporal conv\\\scriptsize 8 filters, 64 taps\\\scriptsize = band-pass filters};
+  \node[box, right=of t] (s) {Depthwise spatial\\\scriptsize 2 per filter $\to$ 16\\\scriptsize = learned CSP-like};
+  \node[box, right=of s] (p1) {BN, ELU\\\scriptsize avg-pool 4\\\scriptsize dropout};
+  \node[box, right=of p1] (sep) {Separable conv\\\scriptsize 16 filters\\\scriptsize pool 8, dropout};
+  \node[box, draw=cgreen, fill=cgreen!10, right=of sep] (out) {Classifier\\\scriptsize 3 classes\\\scriptsize REST / AH / SF};
+  \foreach \a/\b in {in/t, t/s, s/p1, p1/sep, sep/out} \draw[flow] (\a) -- (\b);
+  \node[lbl, below=2mm of s, minimum height=0pt, minimum width=0pt] {3\,235 weights in total (braindecode 1.8.1)};
+\end{tikzpicture}
+\end{document}

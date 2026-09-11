@@ -1,0 +1,21 @@
+\documentclass[border=4pt]{standalone}
+\input{style}
+\begin{document}
+\begin{tikzpicture}[node distance=5mm and 6mm, every node/.append style={minimum width=30mm}]
+  \node[real] (data) {Public dataset\\\scriptsize 24 stroke patients};
+  \node[real, below=of data] (audit) {Integrity audit\\\scriptsize duplicates, events, rank};
+  \node[real, below=of audit] (win) {4 s windows\\\scriptsize REST / AH / SF};
+  \node[real, below=of win] (eda) {Neurophysiology check\\\scriptsize ERD maps};
+  \node[box, draw=cgreen, fill=cgreen!10, below=of eda] (prereg) {Evaluation framework\\\scriptsize leakage guard + pre-registration};
+  \node[box, below left=7mm and -2mm of prereg] (rq1) {RQ1 re-benchmark\\\scriptsize published vs leak-free};
+  \node[box, below=7mm of prereg] (rq2) {RQ2/RQ3 calibration\\\scriptsize scratch vs transfer, k trials};
+  \node[box, below right=7mm and -2mm of prereg] (rq4) {RQ4 exploratory\\\scriptsize mirroring, stability, channels};
+  \node[box, below=of rq2] (stats) {Statistics\\\scriptsize Wilcoxon + Holm, CIs, ALC};
+  \node[sim, below left=6mm and 2mm of stats] (demo) {Demonstrator\\\scriptsize ONNX, server, 3D hand};
+  \node[sim, below right=6mm and 2mm of stats] (paper) {Paper and report\\\scriptsize numbers generated};
+  \foreach \a/\b in {data/audit, audit/win, win/eda, eda/prereg} \draw[flow] (\a) -- (\b);
+  \draw[flow] (prereg) -- (rq1); \draw[flow] (prereg) -- (rq2); \draw[flow] (prereg) -- (rq4);
+  \draw[flow] (rq1) |- (stats); \draw[flow] (rq2) -- (stats); \draw[flow] (rq4) |- (stats);
+  \draw[flow] (stats) -- (demo); \draw[flow] (stats) -- (paper);
+\end{tikzpicture}
+\end{document}
