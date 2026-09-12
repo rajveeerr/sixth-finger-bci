@@ -4,7 +4,17 @@ repos:
     hooks:
       - id: check-added-large-files
         args: ["--maxkb=5000"]
-        exclude: ^web/public/demo/
+        exclude: ^web/public/demo/|^report/slides/[^/]+\.pdf$
+      # The demo bundle (model + held-out trials) may be up to 25 MB.
+      - id: check-added-large-files
+        name: check demo bundle size (25 MB)
+        args: ["--maxkb=25000"]
+        files: ^web/public/demo/
+      # The final slides as PDF may be up to 20 MB. Videos never go into git.
+      - id: check-added-large-files
+        name: check slide PDFs (20 MB)
+        args: ["--maxkb=20000"]
+        files: ^report/slides/[^/]+\.pdf$
       - id: check-yaml
       - id: check-toml
       - id: check-merge-conflict

@@ -12,7 +12,7 @@ work; before that it prints a message naming the phase that implements it.
 | Step | Command | Expected result |
 |------|---------|-----------------|
 | System tools (macOS) | `brew install uv git node@22 tectonic` | tools on PATH |
-| System tools (Linux/WSL2) | see the install lines in `_workspace/plan/phases/P00-environment.md` (development copy) or: `curl -LsSf https://astral.sh/uv/install.sh \| sh` plus Node 22 and git | tools on PATH |
+| System tools (Linux/WSL2) | `curl -LsSf https://astral.sh/uv/install.sh \| sh`, then Node 22 (e.g. `curl -fsSL https://deb.nodesource.com/setup_22.x \| sudo -E bash - && sudo apt-get install -y nodejs`), git, and optionally Tectonic for the PDFs | tools on PATH |
 | Everything else | `make setup` | Python env (`.venv`), git hooks, server env, web packages; ends without errors (first run 3–6 min) |
 | Check the environment | `uv run sixthfinger doctor` | python 3.12, numpy 2.5.3, mne 1.13.2, scikit-learn 1.9.1, pyriemann 0.12, torch 2.11.0, braindecode 1.8.1, accelerator `mps`/`cuda`/`cpu`, disk free, data and cache status |
 
@@ -39,7 +39,7 @@ If the download stops, run `make data` again; it resumes. Never use figshare's
 | Python unit tests only | `make test` | all pass (synthetic data, no download needed) |
 | Tests that need the real data | `make test-real` | pass once data and cache exist |
 | Lint / auto-format | `make lint` / `make format` | clean |
-| Server tests | `uv run --project server pytest -q server/tests` | `20 passed` at setup (more later) |
+| Server tests | `uv run --project server pytest -q server/tests` | `23 passed` at setup (more later) |
 | Web unit tests | `npm --prefix web run test` | all pass |
 | Web type check / lint / build | `npm --prefix web run typecheck`, `run lint`, `run build` | no errors; `web/dist/` created |
 | Browser tests | `npx --prefix web playwright install chromium` (once), then `make e2e` | all pass |
@@ -79,9 +79,21 @@ Summaries and figures:
 | `uv run python scripts/summarise_rq4.py` | P09 | `results/summary/rq4_*`, `docs/figures/rq4_*` |
 
 How to verify a result: every row of every scores file carries `git_sha`,
-`config_hash` and `data_manifest_sha`. To reproduce, check out that commit,
-make sure `data/derived/epochs/manifest.json` has the same hash, and re-run
-the experiment: classical methods give identical numbers.
+`config_hash` and `data_manifest_sha`. Runs made on the development machine
+record the commit of the private development history; runs made on Kaggle
+(which clones this repository) record a commit of this repository. Every
+commit here carries a git note (`refs/notes/devsha`) listing the development
+commits it corresponds to, so either kind of `git_sha` leads to a commit you can
+check out:
+
+```sh
+git fetch origin refs/notes/devsha:refs/notes/devsha
+git log --notes=devsha --format='%h %N' | grep <git_sha>   # prints the commit to check out
+```
+
+Check out that commit, make sure `data/derived/epochs/manifest.json` has the
+same hash, and re-run the experiment: classical methods give identical
+numbers.
 
 ## 5. Demo
 
@@ -94,6 +106,7 @@ the experiment: classical methods give identical numbers.
 | Rebuild the bundle from the trained model | `make demo-bundle` | P10 | `web/public/demo/` with the real model and held-out trials, < 25 MB |
 | Browser-only preview (no server) | `npm --prefix web run build && npm --prefix web run preview` | P11 | `http://localhost:4173`; badge shows "in-browser" |
 | Live demo | web: `https://<project>.vercel.app`; server: `https://<hf-user>-sixth-finger-bci.hf.space/health` | P12 | badge "server" (after the free server wakes) |
+| Backup video | not in git (videos are never committed); link in §9 | P12 | a 2-minute screen recording of the demo |
 
 How to verify the demo is honest and working:
 
@@ -102,7 +115,8 @@ How to verify the demo is honest and working:
 3. The trials in the bundle were never used for training (the bundle builder
    asserts this; `results/summary/demo_model.json` records the subject and method).
 4. Stop the server while the page is open: the badge switches to "in-browser"
-   within a few seconds and the demo continues.
+   within a few seconds and the demo continues. Pausing does not: a paused
+   stream sends a `status` heartbeat every 2 s.
 
 ## 6. Paper and report
 
@@ -139,7 +153,7 @@ results within small run-to-run differences (GPU arithmetic is not bit-exact).
 | Not enough disk space | about 8 GB needed at peak for the data; `uv cache prune` frees space |
 | `Epoch cache was built with different settings` | run `make epochs` again |
 | Server tests: `No module named 'app'` | update; `server/pyproject.toml` must contain `pythonpath = ["."]` |
-| Web: `npm warn EBADENGINE` on Node 23 | use Node 22 (LTS); it works but warns |
+| Web: `npm warn EBADENGINE` | a Node version below 22; install Node 22 (LTS) |
 | Browser demo stuck on "connecting" | the server is asleep or not running; the app falls back after 2 s, check the browser console |
 | `tectonic: command not found` | `brew install tectonic`, or build on Overleaf |
 
@@ -149,3 +163,4 @@ To be filled in phase P12:
 
 - Web demo: TBD
 - Inference server: TBD
+- Backup demo video (shared drive): TBD
