@@ -27,6 +27,9 @@ class Settings:
     max_streams: int = 8
     chunk_samples: int = 20
     hop_seconds: float = 0.5
+    # While paused no data flows; a status message this often keeps client
+    # watchdogs (5 s of silence = server lost) from firing.
+    heartbeat_seconds: float = 2.0
 
     @classmethod
     def from_env(cls) -> "Settings":

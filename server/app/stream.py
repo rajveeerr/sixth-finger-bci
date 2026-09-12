@@ -79,8 +79,18 @@ class PacingClock:
         self._reanchor()
         self._resumed.set()
 
-    async def wait_until(self, data_time: float) -> None:
-        await self._resumed.wait()
+    async def wait_until(
+        self,
+        data_time: float,
+        on_paused: Callable[[], Awaitable[None]] | None = None,
+        heartbeat_seconds: float = 2.0,
+    ) -> None:
+        while not self._resumed.is_set():
+            try:
+                await asyncio.wait_for(self._resumed.wait(), heartbeat_seconds)
+            except TimeoutError:
+                if on_paused is not None:
+                    await on_paused()
         delay = self._anchor_wall + (data_time - self._anchor_data) / self.speed - self._loop.time()
         if delay > 0:
             await asyncio.sleep(delay)
@@ -99,8 +109,10 @@ class StreamSession:
         chunk_samples: int = 20,
         hop_seconds: float = 0.5,
         max_speed: float = 8.0,
+        heartbeat_seconds: float = 2.0,
     ) -> None:
         self.bundle = bundle
+        self.heartbeat_seconds = heartbeat_seconds
         self.decoder = decoder
         self.mode = mode
         self.max_speed = max_speed
@@ -157,6 +169,11 @@ class StreamSession:
             clock.resume()
         else:
             return {"type": "error", "message": f"unknown control message {kind!r}"}
+        return self._status()
+
+    def _status(self) -> Message:
+        clock = self._clock
+        assert clock is not None
         return {"type": "status", "paused": clock.paused, "speed": clock.speed}
 
     def _prediction(
@@ -244,7 +261,11 @@ class StreamSession:
                 await self._emit_event(events[next_event], index, data, truth_name, send)
                 next_event += 1
             stop = min(pos + self.chunk, info.n_samples)
-            await clock.wait_until(base_time + stop / self.sfreq)
+            await clock.wait_until(
+                base_time + stop / self.sfreq,
+                on_paused=lambda: send(self._status()),
+                heartbeat_seconds=self.heartbeat_seconds,
+            )
             if self._jump_to is not None:
                 return True
             chunk = data[self.display_idx, pos : stop : self.decimation]

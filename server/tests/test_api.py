@@ -123,3 +123,71 @@ def test_origin_allow_list(bundle_dir):
         ):
             ws.receive_json()
         assert refused.value.code == 1008
+
+
+def test_paused_stream_sends_heartbeats(bundle_dir):
+    settings = Settings(bundle_dir=bundle_dir, max_speed=1.0, heartbeat_seconds=0.05)
+    with (
+        TestClient(create_app(settings)) as client,
+        client.websocket_connect("/ws/stream") as ws,
+    ):
+        assert ws.receive_json()["type"] == "hello"
+        ws.send_json({"type": "pause"})
+        statuses = 0
+        for _ in range(200):
+            message = ws.receive_json()
+            if message["type"] == "status" and message["paused"]:
+                statuses += 1
+                if statuses == 3:  # the control reply plus at least two heartbeats
+                    break
+        assert statuses == 3
+
+
+def _serve(settings: Settings):
+    """A real uvicorn server on a free port: TestClient does not show what browsers see."""
+    import socket
+    import threading
+    import time
+
+    import uvicorn
+
+    with socket.socket() as sock:
+        sock.bind(("127.0.0.1", 0))
+        port = sock.getsockname()[1]
+    server = uvicorn.Server(
+        uvicorn.Config(create_app(settings), host="127.0.0.1", port=port, log_level="error")
+    )
+    thread = threading.Thread(target=server.run, daemon=True)
+    thread.start()
+    for _ in range(200):
+        if server.started:
+            break
+        time.sleep(0.05)
+    return server, thread, port
+
+
+@pytest.mark.parametrize(
+    ("overrides", "origin", "code"),
+    [
+        ({"allowed_origins": ["https://demo.example"]}, "https://evil.example", 1008),
+        ({"max_streams": 0}, None, 1013),
+    ],
+)
+def test_refusals_reach_a_real_client_as_close_codes(bundle_dir, overrides, origin, code):
+    import asyncio
+
+    import websockets
+
+    server, thread, port = _serve(Settings(bundle_dir=bundle_dir, **overrides))
+
+    async def connect() -> int:
+        async with websockets.connect(f"ws://127.0.0.1:{port}/ws/stream", origin=origin) as ws:
+            with pytest.raises(websockets.ConnectionClosed) as closed:
+                await ws.recv()
+            return closed.value.rcvd.code
+
+    try:
+        assert asyncio.run(connect()) == code
+    finally:
+        server.should_exit = True
+        thread.join(timeout=5)

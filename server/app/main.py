@@ -90,12 +90,17 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         start: Annotated[int, Query(ge=0)] = 0,
         loop: Annotated[bool, Query()] = True,
     ) -> None:
+        # Refusals accept the handshake first and then close with a code: closing
+        # before accept() makes the server answer HTTP 403, and browsers then
+        # report only close code 1006, so the app could not tell "full" from "down".
         origin = websocket.headers.get("origin")
         if "*" not in settings.allowed_origins and origin not in settings.allowed_origins:
-            await websocket.close(code=1008)
+            await websocket.accept()
+            await websocket.close(code=1008, reason="origin not allowed")
             return
         if app.state.active_streams >= settings.max_streams:
-            await websocket.close(code=1013)
+            await websocket.accept()
+            await websocket.close(code=1013, reason="too many streams, try again later")
             return
 
         await websocket.accept()
@@ -110,6 +115,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             chunk_samples=settings.chunk_samples,
             hop_seconds=settings.hop_seconds,
             max_speed=settings.max_speed,
+            heartbeat_seconds=settings.heartbeat_seconds,
         )
 
         async def send(message: dict) -> None:
