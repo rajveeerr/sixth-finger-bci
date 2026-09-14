@@ -1,7 +1,10 @@
 // Messages sent by the server on /ws/stream. Mirrors server/app/stream.py.
 
 export type Mode = "trial" | "continuous";
+// Where predictions come from (the `source` field of a prediction).
 export type Source = "server" | "browser" | "replay";
+// The states of the source state machine (01-ARCHITECTURE.md §5); the badge shows these.
+export type SourceState = "connecting" | "server" | "loading-browser" | "browser" | "replay";
 
 export interface ClassInfo {
   id: number;
