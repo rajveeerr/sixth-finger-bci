@@ -173,6 +173,9 @@ def epochs_build(
 def run(
     config: Annotated[Path, typer.Argument(exists=True, dir_okay=False)],
     subjects: Annotated[str, typer.Option()] = "all",
+    methods: Annotated[
+        str, typer.Option(help="Comma-separated subset of the config's methods.")
+    ] = "all",
     quick: Annotated[bool, typer.Option(help="Small grid for smoke tests.")] = False,
 ) -> None:
     """Run an experiment described by a config in configs/experiments/."""
