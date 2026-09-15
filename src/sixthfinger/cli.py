@@ -156,9 +156,31 @@ def data_verify(archive: Annotated[str, typer.Option()] = "processeddata") -> No
 
 
 @data_app.command("audit")
-def data_audit() -> None:
+def data_audit(
+    remote: Annotated[
+        bool, typer.Option(help="Also read the raw zip index over HTTP (a few kB).")
+    ] = True,
+) -> None:
     """Integrity audit of every run (events, durations, duplicates)."""
-    _not_yet("P02", "data audit")
+    from sixthfinger.data import audit
+    from sixthfinger.data.loading import list_processed_runs
+
+    logging.basicConfig(level=logging.INFO, format="%(message)s")
+    paths = get_paths()
+    cfg = load_data_config()
+    paths.audit.mkdir(parents=True, exist_ok=True)
+    inv = audit.audit_all(paths.processed)
+    inv.to_csv(paths.audit / "inventory.csv", index=False)
+    audit.event_flags(inv).to_csv(paths.audit / "event_flags.csv", index=False)
+    forced = audit.known_pairs(list_processed_runs(paths.processed))
+    audit.pairwise_similarity(paths.processed, forced_pairs=forced).to_csv(
+        paths.audit / "near_duplicates.csv", index=False
+    )
+    if remote:
+        url = cfg.figshare.url_for("sourcedata")
+        audit.raw_crc_duplicates(url).to_csv(paths.audit / "raw_crc_duplicates.csv", index=False)
+    report = audit.write_report(paths.audit)
+    typer.echo(f"audit written to {paths.audit} (summary: {report.name})")
 
 
 @epochs_app.command("build")

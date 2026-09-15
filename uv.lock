@@ -2528,6 +2528,7 @@ dev = [
     { name = "nbstripout" },
     { name = "pre-commit" },
     { name = "pytest" },
+    { name = "remotezip" },
     { name = "ruff" },
 ]
 
@@ -2567,6 +2568,7 @@ dev = [
     { name = "nbstripout", specifier = "==0.9.1" },
     { name = "pre-commit", specifier = "==4.6.2" },
     { name = "pytest", specifier = "==9.1.1" },
+    { name = "remotezip", specifier = "==0.12.6" },
     { name = "ruff", specifier = "==0.16.9" },
 ]
 
