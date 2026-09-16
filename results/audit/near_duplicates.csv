@@ -1,0 +1,15 @@
+run_a,run_b,screen_r,segment_median_r,forced
+sub-02_B_post_02_eeg.mat,sub-02_B_follow_02_eeg.mat,0.9966971336399727,0.9962616014282919,True
+sub-02_B_post_01_eeg.mat,sub-02_B_follow_01_eeg.mat,0.9908014271483102,0.9927615666348457,True
+sub-02_B_post_03_eeg.mat,sub-02_B_follow_03_eeg.mat,0.9567316862756076,0.9546894487249687,True
+sub-02_B_post_04_eeg.mat,sub-02_B_follow_04_eeg.mat,0.9262224880818931,0.9292402870079779,True
+sub-21_T_pre_02_eeg.mat,sub-22_T_pre_02_eeg.mat,0.9634813355890155,0.8766715713087831,True
+sub-21_T_pre_04_eeg.mat,sub-22_T_pre_04_eeg.mat,0.9012727999312995,0.7846494686411845,True
+sub-21_T_pre_03_eeg.mat,sub-22_T_pre_03_eeg.mat,0.5264792562359748,0.5604878720647376,True
+sub-21_T_pre_01_eeg.mat,sub-22_T_pre_01_eeg.mat,0.459533871197323,0.3845728074307927,True
+sub-15_B_pre_01_eeg.mat,sub-15_B_pre_03_eeg.mat,0.27729053784804997,0.24310407232389736,False
+sub-15_B_pre_01_eeg.mat,sub-15_B_pre_02_eeg.mat,0.2511651750201754,0.24294732304189745,False
+sub-15_B_pre_04_eeg.mat,sub-15_B_post_01_eeg.mat,0.26026176995418177,0.23284100611181363,False
+sub-15_B_post_02_eeg.mat,sub-15_B_post_04_eeg.mat,0.2503983992251495,0.22597357272957458,False
+sub-15_B_post_04_eeg.mat,sub-15_B_follow_04_eeg.mat,0.25100305815085905,0.22322386331855976,False
+sub-15_B_pre_01_eeg.mat,sub-15_B_post_02_eeg.mat,0.25707242593778035,0.21849989342226622,False
