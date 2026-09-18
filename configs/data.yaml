@@ -128,11 +128,19 @@ exclusions:
   sessions:
     - subject: sub-02
       session: follow
-      reason: "Raw runs byte-identical to sub-02/post; preprocessed run 01 correlates at r=0.98 with post run 01."
+      reason: "Raw runs byte-identical to sub-02/post (8 CRC groups in sourcedata.zip); preprocessed runs match post at segment median r 0.93-1.00 (results/audit/near_duplicates.csv)."
+    # The two pre sessions share byte-identical raw runs but carry different cue sequences,
+    # so at least one of them has labels that do not belong to its signal; we cannot tell which.
+    - subject: sub-21
+      session: pre
+      reason: "Raw runs byte-identical to sub-22/pre; cue order differs in all 4 runs, so labels cannot be trusted (results/audit/audit_report.md)."
+    - subject: sub-22
+      session: pre
+      reason: "Raw runs byte-identical to sub-21/pre; cue order differs in all 4 runs, so labels cannot be trusted (results/audit/audit_report.md)."
   # Subjects that must always be on the same side of a cross-subject split.
   linked_subjects:
     - members: [sub-21, sub-22]
-      reason: "Raw pre-session runs are byte-identical between the two subjects."
+      reason: "Raw pre-session runs are byte-identical between the two subjects; kept as a safeguard although both pre sessions are excluded."
 
 paths:
   processed_glob: "sub-*/*/sub-*_*_*_*_eeg.mat"
