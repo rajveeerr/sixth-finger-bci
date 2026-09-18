@@ -72,12 +72,26 @@ are in `results/audit/`.
 1. The four raw runs of `sub-02/post` and `sub-02/follow` are byte-identical,
    and the preprocessed runs of the two sessions are near-identical after a
    time shift. We exclude `sub-02/follow`.
-2. The raw runs of `sub-21/pre` and `sub-22/pre` are byte-identical. We keep
-   both subjects but never place one in training while the other is tested.
+2. The raw runs of `sub-21/pre` and `sub-22/pre` are byte-identical, but the
+   imagery cue sequences in the preprocessed files differ in all four runs, so
+   one of the two sessions has labels that do not match its signal. We exclude
+   both pre sessions and never place one subject in training while the other
+   is tested.
 3. The cue timing in the files (imagery cue about 8.57 s after the rest
    marker, next rest marker 6.7 to 7.4 s after the cue) differs from the 7 s +
    1 s + 6 s description in the article. Our windows lie inside the rest and
    imagery periods under either timing.
+4. `sub-15/follow` run 02 lasts 48 s and holds no imagery cue; it contributes
+   no windows. 99 runs have fewer events than 20/10/10 because EEGLAB removed
+   events with the segments it cut.
+
+## Audit summary
+
+All 268 runs have 43 channels at 250 Hz and no flat channel. A screen of all
+35 778 run pairs (C3, 20 s segments aligned separately) found no shared
+recording beyond the two known cases. After exclusions: 256 runs in 64
+sessions, with 5032 rest, 2511 affected-hand and 2516 sixth-finger events
+(nominal 5120, 2560, 2560). Source: `results/audit/`.
 4. The article's classification code fits CSP spatial filters on all trials
    before cross-validation, so the reported 85 to 86 % accuracy includes
    information from the test folds. We report both that protocol and
