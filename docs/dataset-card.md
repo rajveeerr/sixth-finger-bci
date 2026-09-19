@@ -82,7 +82,7 @@ are in `results/audit/`.
    1 s + 6 s description in the article. Our windows lie inside the rest and
    imagery periods under either timing.
 4. `sub-15/follow` run 02 lasts 48 s and holds no imagery cue; it contributes
-   no windows. 99 runs have fewer events than 20/10/10 because EEGLAB removed
+   no windows. 99 runs have event counts other than 20/10/10, mostly because EEGLAB removed
    events with the segments it cut.
 
 ## Audit summary
