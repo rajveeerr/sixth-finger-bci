@@ -26,6 +26,9 @@ def test_exclusions_and_links():
     assert cfg.sessions_for("sub-01") == ["pre", "post", "follow"]
     assert cfg.split_group("sub-21") == cfg.split_group("sub-22")
     assert cfg.split_group("sub-01") == "sub-01"
+    assert cfg.is_run_excluded("sub-15", "follow", "02")
+    assert not cfg.is_run_excluded("sub-15", "follow", "01")
+    assert cfg.is_run_excluded("sub-02", "follow", "01")
 
 
 def test_label_codes():

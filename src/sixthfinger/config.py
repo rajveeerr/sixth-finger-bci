@@ -100,6 +100,13 @@ class SessionExclusion(Strict):
     reason: str
 
 
+class RunExclusion(Strict):
+    subject: str
+    session: str
+    run: str
+    reason: str
+
+
 class LinkedSubjects(Strict):
     members: list[str]
     reason: str
@@ -107,6 +114,7 @@ class LinkedSubjects(Strict):
 
 class ExclusionsCfg(Strict):
     sessions: list[SessionExclusion] = []
+    runs: list[RunExclusion] = []
     linked_subjects: list[LinkedSubjects] = []
 
 
@@ -145,6 +153,12 @@ class DataConfig(Strict):
 
     def is_excluded(self, subject: str, session: str) -> bool:
         return any(e.subject == subject and e.session == session for e in self.exclusions.sessions)
+
+    def is_run_excluded(self, subject: str, session: str, run: str) -> bool:
+        return self.is_excluded(subject, session) or any(
+            e.subject == subject and e.session == session and e.run == run
+            for e in self.exclusions.runs
+        )
 
     def sessions_for(self, subject: str) -> list[str]:
         return [

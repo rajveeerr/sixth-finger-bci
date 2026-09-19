@@ -137,6 +137,11 @@ exclusions:
     - subject: sub-22
       session: pre
       reason: "Raw runs byte-identical to sub-21/pre; cue order differs in all 4 runs, so labels cannot be trusted (results/audit/audit_report.md)."
+  runs:
+    - subject: sub-15
+      session: follow
+      run: "02"
+      reason: "48 s with 5 rest markers and no imagery cue (results/audit/event_flags.csv, degenerate)."
   # Subjects that must always be on the same side of a cross-subject split.
   linked_subjects:
     - members: [sub-21, sub-22]
