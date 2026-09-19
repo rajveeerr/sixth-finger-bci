@@ -128,7 +128,7 @@ exclusions:
   sessions:
     - subject: sub-02
       session: follow
-      reason: "Raw runs byte-identical to sub-02/post (8 CRC groups in sourcedata.zip); preprocessed runs match post at segment median r 0.93-1.00 (results/audit/near_duplicates.csv)."
+      reason: "Raw runs byte-identical to sub-02/post (4 CRC groups in sourcedata.zip); preprocessed runs match post at segment median r 0.93-1.00 (results/audit/near_duplicates.csv)."
     # The two pre sessions share byte-identical raw runs but carry different cue sequences,
     # so at least one of them has labels that do not belong to its signal; we cannot tell which.
     - subject: sub-21
