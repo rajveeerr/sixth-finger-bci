@@ -57,9 +57,9 @@ Decided 2026-10-03 on integrity evidence only (no accuracy was looked at).
 |------|----------|----------|
 | sub-02 follow | 4 byte-identical raw runs with sub-02 post; preprocessed segment median r 0.929-0.996 | excluded (`configs/data.yaml`) |
 | sub-21 pre and sub-22 pre | 4 byte-identical raw runs; preprocessed r 0.385-0.877; the imagery cue sequences differ in all 4 runs | both sessions excluded: one copy's labels do not match its signal and we cannot tell which; subjects stay linked |
-| sub-15 follow run 02 | 48 s, 5 rest markers, no imagery cue | kept: it yields no imagery window, so it contributes nothing; recorded here |
+| sub-15 follow run 02 | 48 s, 5 rest markers, no imagery cue | excluded as a run (`exclusions.runs`): its rest windows would have no imagery partner (revised 2026-10-03 in P03) |
 | 99 runs with `count` flags | fewer events than 20/10/10, from segments EEGLAB cut out with their events | kept; windows are cut from the events present |
 | other pairs | 6 confirmed pairs, all within sub-15, r 0.218-0.243 | independent (below 0.30) |
 
-After exclusions: 256 of 268 runs, 64 of 67 sessions, 22 subjects with a pre
-session; 5032 rest, 2511 affected-hand and 2516 sixth-finger events.
+After exclusions: 255 of 268 runs, 64 of 67 sessions, 22 subjects with a pre
+session; 5027 rest, 2511 affected-hand and 2516 sixth-finger events.
