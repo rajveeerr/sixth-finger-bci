@@ -81,17 +81,16 @@ are in `results/audit/`.
    marker, next rest marker 6.7 to 7.4 s after the cue) differs from the 7 s +
    1 s + 6 s description in the article. Our windows lie inside the rest and
    imagery periods under either timing.
-4. `sub-15/follow` run 02 lasts 48 s and holds no imagery cue; it contributes
-   no windows. 99 runs have event counts other than 20/10/10, mostly because EEGLAB removed
+4. `sub-15/follow` run 02 lasts 48 s and holds no imagery cue; we exclude it. 99 runs have event counts other than 20/10/10, mostly because EEGLAB removed
    events with the segments it cut.
 
 ## Audit summary
 
 All 268 runs have 43 channels at 250 Hz and no flat channel. A screen of all
 35 778 run pairs (C3, 20 s segments aligned separately) found no shared
-recording beyond the two known cases. After exclusions: 256 runs in 64
-sessions, with 5032 rest, 2511 affected-hand and 2516 sixth-finger events
-(nominal 5120, 2560, 2560). Source: `results/audit/`.
+recording beyond the two known cases. After exclusions: 255 runs in 64
+sessions, with 5027 rest, 2511 affected-hand and 2516 sixth-finger events
+(nominal 5100, 2550, 2550). Source: `results/audit/`.
 4. The article's classification code fits CSP spatial filters on all trials
    before cross-validation, so the reported 85 to 86 % accuracy includes
    information from the test folds. We report both that protocol and
