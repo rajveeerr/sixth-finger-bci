@@ -7,6 +7,7 @@ import pytest
 import scipy.io
 
 from sixthfinger.data.channels import CHANNELS_40, DROPPED_CHANNELS
+from sixthfinger.paths import get_paths
 
 SFREQ = 250.0
 FILE_CHANNELS = (*DROPPED_CHANNELS, *CHANNELS_40)
@@ -84,3 +85,12 @@ def processed_tree(tmp_path: Path) -> Path:
                 name = f"{subject}_{group}_{session}_{run}_eeg.mat"
                 write_eeglab_mat(root / subject / session / name, seed=int(run))
     return root
+
+
+def pytest_collection_modifyitems(config, items):
+    if (get_paths().epochs / "manifest.json").exists():
+        return
+    skip = pytest.mark.skip(reason="no epoch cache under data/derived/epochs (run make epochs)")
+    for item in items:
+        if "real_data" in item.keywords:
+            item.add_marker(skip)
