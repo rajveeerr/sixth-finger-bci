@@ -12,7 +12,7 @@ from typing import Annotated
 import typer
 
 from sixthfinger.config import load_data_config
-from sixthfinger.paths import get_paths
+from sixthfinger.paths import current_git_sha, get_paths
 
 app = typer.Typer(no_args_is_help=True, add_completion=False, help="Sixth-finger BCI pipeline.")
 data_app = typer.Typer(no_args_is_help=True, help="Download, verify and audit the dataset.")
@@ -188,7 +188,22 @@ def epochs_build(
     subjects: Annotated[str, typer.Option(help="Comma-separated ids or 'all'.")] = "all",
 ) -> None:
     """Cut [tmin, tmax) windows around each cue and cache them per session."""
-    _not_yet("P03", "epochs build")
+    from sixthfinger.data import epochs
+
+    logging.basicConfig(level=logging.INFO, format="%(message)s")
+    paths, cfg = get_paths(), load_data_config()
+    ids = None if subjects == "all" else subjects.split(",")
+    md = epochs.build_all(cfg, paths.processed, paths.epochs, ids, git_sha=current_git_sha())
+    counts = md.pivot_table(
+        index=["subject", "session"],
+        columns="label_name",
+        values="trial_uid",
+        aggfunc="count",
+        fill_value=0,
+    )
+    paths.audit.mkdir(parents=True, exist_ok=True)
+    counts.to_csv(paths.audit / "epoch_counts.csv")
+    typer.echo(f"{len(md)} windows in {paths.epochs}")
 
 
 @app.command()

@@ -85,3 +85,20 @@ def get_paths() -> Paths:
     root = find_root()
     data = Path(os.environ.get("SIXTHFINGER_DATA", root / "data")).expanduser().resolve()
     return Paths(root=root, data=data)
+
+
+def current_git_sha() -> str:
+    import subprocess
+
+    try:
+        out = subprocess.run(
+            ["git", "rev-parse", "--short", "HEAD"],
+            cwd=find_root(),
+            capture_output=True,
+            text=True,
+            check=True,
+            timeout=10,
+        )
+        return out.stdout.strip() or "unknown"
+    except (OSError, subprocess.SubprocessError):
+        return "unknown"
