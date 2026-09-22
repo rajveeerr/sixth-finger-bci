@@ -188,6 +188,8 @@ def epochs_build(
     subjects: Annotated[str, typer.Option(help="Comma-separated ids or 'all'.")] = "all",
 ) -> None:
     """Cut [tmin, tmax) windows around each cue and cache them per session."""
+    import pandas as pd
+
     from sixthfinger.data import epochs
 
     logging.basicConfig(level=logging.INFO, format="%(message)s")
@@ -203,6 +205,10 @@ def epochs_build(
     )
     paths.audit.mkdir(parents=True, exist_ok=True)
     counts.to_csv(paths.audit / "epoch_counts.csv")
+    dropped = pd.read_parquet(paths.epochs / "dropped.parquet")
+    dropped.groupby(["subject", "session", "reason"]).size().rename("windows").to_csv(
+        paths.audit / "epoch_drops.csv"
+    )
     typer.echo(f"{len(md)} windows in {paths.epochs}")
 
 
