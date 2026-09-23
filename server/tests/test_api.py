@@ -89,8 +89,13 @@ def test_controls_pause_and_jump(client):
                     break
         assert seen_status
         assert 3 in trial_starts
+        # Pause first: at speed 10000 the backlog of data messages can otherwise hide
+        # the error reply behind more messages than the loop reads on a slow runner.
+        ws.send_json({"type": "pause"})
+        while not (lambda m: m["type"] == "status" and m["paused"])(ws.receive_json()):
+            pass
         ws.send_json({"type": "nonsense"})
-        for _ in range(5000):
+        for _ in range(50):
             if ws.receive_json()["type"] == "error":
                 break
         else:
