@@ -1,0 +1,3 @@
+subject,session,kind,item,value,note
+sub-01,pre,c3_window_outliers,C3,1.0,windows with |robust z| > 5 of log variance
+sub-18,pre,channel_std,FC6,2.61,median window std relative to all subjects
