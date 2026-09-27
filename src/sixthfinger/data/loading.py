@@ -78,13 +78,18 @@ def read_eeglab_mat(path: Path) -> EEGLABRecord:
     ev = eeg["event"]
     types = ev["type"] if isinstance(ev["type"], list) else [ev["type"]]
     latencies = np.atleast_1d(np.asarray(ev["latency"], dtype=float))
-    # EEGLAB latencies are 1-based (MATLAB indexing).
-    samples = np.rint(latencies - 1).astype(np.int64)
+    codes = [_event_code(t) for t in types]
+    # EEGLAB latencies are 1-based (MATLAB indexing). A boundary sits between two samples
+    # (latency n + 0.5); store the first sample after the cut. np.rint would round half to
+    # even and put half of them one sample early.
+    samples = np.where(
+        np.array(codes) == "boundary", np.ceil(latencies - 1), np.rint(latencies - 1)
+    ).astype(np.int64)
     return EEGLABRecord(
         data_uv=data,
         ch_names=ch_names,
         sfreq=float(eeg["srate"]),
-        event_codes=[_event_code(t) for t in types],
+        event_codes=codes,
         event_samples=samples,
     )
 

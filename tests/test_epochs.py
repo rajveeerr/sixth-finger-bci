@@ -130,3 +130,37 @@ def test_real_cache_dev_subject_counts():
     assert X.shape == (159, 40, 1000)
     mi = md[md.label != 0]
     assert not mi.trial_uid.duplicated().any()
+
+
+def test_boundaries_between_samples_split_only_the_windows_they_fall_in(tmp_path, cfg):
+    # Cue at sample 1000: its window is [1250, 2250). EEGLAB puts cuts at n + 0.5.
+    # 1250.5 (1-based) is the cut between samples 1249 and 1250, just before the window.
+    # 2250.5 is between 2249 and 2250, just after it. 1251.5 is inside.
+    def drops(lat):
+        events = [("2", 1001), ("boundary", lat)]
+        path = tmp_path / f"processed/sub-01/pre/sub-01_B_pre_01_{int(lat)}.mat"
+        write_eeglab_mat(path, events=events, n_times=3000)
+        path = path.rename(path.with_name("sub-01_B_pre_01_eeg.mat"))
+        _, dropped = epochs.cut_run(path, cfg)
+        return [d["reason"] for d in dropped]
+
+    assert drops(1250.5) == []
+    assert drops(2250.5) == []
+    assert drops(1251.5) == ["boundary_inside"]
+    assert drops(2249.5) == ["boundary_inside"]
+
+
+def test_build_all_refuses_an_empty_subject_list(processed_tree, tmp_path, cfg):
+    with pytest.raises(ValueError, match="non-empty"):
+        epochs.build_all(cfg, processed_tree, tmp_path / "epochs", subjects=[])
+
+
+def test_load_refuses_files_that_disagree_with_the_metadata(full_tree, tmp_path, cfg):
+    out = tmp_path / "epochs"
+    epochs.build_all(cfg, full_tree, out, subjects=["sub-01"])
+    name = "sub-01_ses-pre.npz"
+    with np.load(out / name) as npz:
+        arrays = {k: npz[k][:-1] for k in npz.files}
+    np.savez(out / name, **arrays)
+    with pytest.raises(RuntimeError, match="metadata"):
+        epochs.load_windows(out, cfg)

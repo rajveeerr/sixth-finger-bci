@@ -83,6 +83,7 @@ def cut_run(path: Path, cfg: DataConfig) -> tuple[list, list[dict]]:
             reason = "before_start"
         elif e > data.shape[1]:
             reason = "past_end"
+        # A boundary at sample b means a cut just before b; it splits [s, e) when s < b < e.
         elif cfg.window.drop_if_boundary_inside and np.any((boundaries > s) & (boundaries < e)):
             reason = "boundary_inside"
         if reason:
@@ -170,6 +171,8 @@ def build_all(
     With `subjects`, rebuild only those and keep the rest of an existing cache
     (refused if the existing cache used other settings).
     """
+    if subjects is not None and not subjects:
+        raise ValueError("subjects must be None (all) or a non-empty list")
     out_dir.mkdir(parents=True, exist_ok=True)
     settings = _settings(cfg)
     old_meta, old_drops, hashes = None, None, {}
@@ -184,8 +187,10 @@ def build_all(
         old_drops = pd.read_parquet(out_dir / "dropped.parquet")
         old_drops = old_drops[~old_drops.subject.isin(subjects)]
         hashes = {f: h for f, h in old["files"].items() if f.split("_ses-")[0] not in subjects}
+    # Until the new manifest is written at the end, nothing can load a half-rebuilt cache.
+    (out_dir / "manifest.json").unlink(missing_ok=True)
     meta, drops = [], []
-    for subject in subjects or cfg.subjects.ids:
+    for subject in subjects if subjects is not None else cfg.subjects.ids:
         for session in cfg.sessions_for(subject):
             sw = build_session(subject, session, cfg, processed)
             name = f"{subject}_ses-{session}.npz"
@@ -223,7 +228,9 @@ def build_all(
         "n_dropped": len(dr),
         "files": dict(sorted(hashes.items())),
     }
-    (out_dir / "manifest.json").write_text(json.dumps(manifest, indent=2))
+    tmp = out_dir / "manifest.json.tmp"
+    tmp.write_text(json.dumps(manifest, indent=2))
+    tmp.replace(out_dir / "manifest.json")
     return md
 
 
@@ -250,6 +257,7 @@ def load_windows(
     if diff:
         raise RuntimeError(f"Epoch cache was built with different {diff}; run `make epochs` again.")
     md = pd.read_parquet(out_dir / "metadata.parquet")
+    n_rows = md.source_file.value_counts()
     if subjects is not None:
         md = md[md.subject.isin(subjects)]
     if sessions is not None:
@@ -260,7 +268,15 @@ def load_windows(
         raise ValueError("No cached windows match the selection.")
     parts = []
     for name, rows in md.groupby("source_file", sort=True):
-        X = np.load(out_dir / name)["X"][rows.row_in_npz.to_numpy()]
+        with np.load(out_dir / name) as npz:
+            stored = npz["X"]
+            # A rebuild that stopped halfway leaves new files under old metadata.
+            if stored.shape[0] != n_rows[name]:
+                raise RuntimeError(
+                    f"{name} holds {stored.shape[0]} windows but the metadata lists "
+                    f"{n_rows[name]}; run `make epochs` again."
+                )
+            X = stored[rows.row_in_npz.to_numpy()]
         if mirror:
             X = mirror_if_needed(X, rows.subject.iloc[0], cfg.channels.keep)
         parts.append((X, rows))
