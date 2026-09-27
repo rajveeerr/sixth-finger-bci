@@ -9,6 +9,13 @@ PAYLOAD = bytes(range(256)) * 400  # 102 400 bytes
 MD5 = hashlib.md5(PAYLOAD).hexdigest()
 
 
+@pytest.fixture(autouse=True)
+def plenty_of_disk(monkeypatch):
+    # The downloader keeps a 2 GB margin; these tests write 100 kB and must not
+    # depend on how full the test machine's disk is. test_not_enough_space overrides it.
+    monkeypatch.setattr(dl, "free_bytes", lambda _p: 10**12)
+
+
 class FakeResponse:
     def __init__(self, body: bytes, status: int, headers: dict | None = None):
         self.body = body
