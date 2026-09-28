@@ -34,6 +34,11 @@ def sem(a: np.ndarray, axis: int = 0) -> np.ndarray:
     return a.std(axis=axis, ddof=1) / np.sqrt(a.shape[axis])
 
 
+def _having(maps: dict, name: str, mirror: bool) -> list[dict]:
+    """Subjects with enough windows of a class for an ERD map (subject_erd skips the rest)."""
+    return [m for m in maps["subjects"].values() if (name, mirror) in m]
+
+
 def subject_erd(cfg, paths, subject: str, session: str) -> dict:
     """Per-subject ERD maps for AH and SF, mirrored and not."""
     out = {}
@@ -56,8 +61,9 @@ def psd_figure(cfg, paths, session: str, out: Path) -> None:
     per_subject = {
         name: np.stack(
             [
-                db[(md.subject == s).to_numpy() & (md.label_name == name).to_numpy()].mean(axis=0)
+                db[sel].mean(axis=0)
                 for s in sorted(md.subject.unique())
+                if (sel := (md.subject == s).to_numpy() & (md.label_name == name).to_numpy()).any()
             ]
         )
         for name in CLASS_COLORS
@@ -89,7 +95,7 @@ def timecourse_and_tfr(maps: dict, cfg, session: str, out: Path) -> None:
     mu = (topo.TFR_FREQS >= 8) & (topo.TFR_FREQS <= 13)
     fig, ax = plt.subplots(figsize=(4.2, 2.6))
     for name in MI.values():
-        curves = np.stack([m[(name, True)][c3, mu].mean(axis=0) for m in maps["subjects"].values()])
+        curves = np.stack([m[(name, True)][c3, mu].mean(axis=0) for m in _having(maps, name, True)])
         mean, err = curves.mean(axis=0), sem(curves)
         ax.plot(times, mean, color=CLASS_COLORS[name], label=CLASS_SHORT[name])
         ax.fill_between(times, mean - err, mean + err, color=CLASS_COLORS[name], alpha=0.2)
@@ -104,7 +110,7 @@ def timecourse_and_tfr(maps: dict, cfg, session: str, out: Path) -> None:
 
     fig, axes = plt.subplots(1, 2, figsize=(7.2, 2.6), sharey=True)
     for ax, name in zip(axes, MI.values(), strict=True):
-        tfr = np.stack([m[(name, True)][c3] for m in maps["subjects"].values()]).mean(axis=0)
+        tfr = np.stack([m[(name, True)][c3] for m in _having(maps, name, True)]).mean(axis=0)
         im = ax.pcolormesh(
             times, topo.TFR_FREQS, tfr, cmap="RdBu_r", vmin=-40, vmax=40, shading="auto"
         )
@@ -124,7 +130,7 @@ def topomaps(maps: dict, cfg, session: str, out: Path) -> None:
             name: np.stack(
                 [
                     topo.band_mean(m[(name, mirror)], times, topo.BANDS["mu"])
-                    for m in maps["subjects"].values()
+                    for m in _having(maps, name, mirror)
                 ]
             ).mean(axis=0)
             for name in MI.values()

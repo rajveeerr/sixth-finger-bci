@@ -13,7 +13,8 @@ from sixthfinger.data.channels import mirror_if_needed
 from sixthfinger.data.epochs import cut_run
 from sixthfinger.data.loading import list_processed_runs
 
-BANDS = {"mu": (8.0, 13.0), "beta": (13.0, 30.0)}
+# Inclusive bounds on the 1 Hz TFR grid; beta starts at 14 Hz so no bin counts twice.
+BANDS = {"mu": (8.0, 13.0), "beta": (14.0, 30.0)}
 TFR_FREQS = np.arange(6.0, 32.0, 1.0)
 # Cut wider than shown so the wavelets' edge effects fall outside the plotted -1..5 s.
 PAD_S = 1.0
