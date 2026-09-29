@@ -23,7 +23,7 @@ Runs: 268; sessions: 67.
 
 ## Pairs of runs that share a recording
 
-Screened 35778 pairs; 14 confirmed on every segment.
+Screened 35778 pairs; 14 re-scored on every segment, 8 of them sharing a recording.
 
 | run_a                    | run_b                      |   screen_r |   segment_median_r | forced   | verdict                                 |
 |:-------------------------|:---------------------------|-----------:|-------------------:|:---------|:----------------------------------------|

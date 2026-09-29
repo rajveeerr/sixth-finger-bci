@@ -238,7 +238,8 @@ def write_report(audit_dir: Path) -> Path:
         "",
         "## Pairs of runs that share a recording",
         "",
-        f"Screened {len(inv) * (len(inv) - 1) // 2} pairs; {len(dup)} confirmed on every segment.",
+        f"Screened {len(inv) * (len(inv) - 1) // 2} pairs; {len(dup)} re-scored on every"
+        f" segment, {int((dup.verdict != 'independent').sum())} of them sharing a recording.",
         "",
         shown.to_markdown(index=False, floatfmt=".3f") if len(shown) else "none",
         "",
