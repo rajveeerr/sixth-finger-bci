@@ -5,7 +5,7 @@
 B.Tech Minor Project, Electronics and Communication Engineering (AI & ML),
 Maharaja Surajmal Institute of Technology, Delhi (GGSIPU).
 
-Team: Rajveer Singh, Vivek Yadav, Ansh Dahiya. Guide: Dr. Suman Lata.
+Author: Rajveer Singh. Guide: Dr. Suman Lata.
 
 ---
 
