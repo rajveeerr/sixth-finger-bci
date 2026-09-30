@@ -55,7 +55,7 @@ jobs:
           enable-cache: true
           cache-dependency-glob: server/uv.lock
       - name: Install
-        run: uv sync --project server
+        run: uv sync --locked --project server
       - name: Tests
         run: uv run --project server pytest -q server/tests
 
