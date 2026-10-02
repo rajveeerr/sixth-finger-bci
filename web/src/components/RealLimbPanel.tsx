@@ -1,5 +1,5 @@
 // Explains which layers of the demo are real and how a physical limb would use the same commands.
-// Text source: _workspace/research/from-demo-to-real-limb.md (keep the two in sync).
+// Keep this text in step with the report section on moving from the demo to a real limb.
 
 const LAYERS: { id: string; name: string; demo: string; real: string; kind: "real" | "sim" }[] = [
   { id: "L1", name: "Intent", demo: "stroke patients imagining a movement (recorded)", real: "the user, live", kind: "real" },
