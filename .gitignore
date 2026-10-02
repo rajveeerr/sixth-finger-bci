@@ -78,3 +78,6 @@ kaggle.json
 
 # TypeScript incremental build info
 *.tsbuildinfo
+
+# Tabular caches and run outputs are regenerated, never committed.
+*.parquet

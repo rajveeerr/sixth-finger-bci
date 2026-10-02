@@ -12,6 +12,9 @@
 | Consent | Written informed consent, including public sharing of de-identified data |
 
 We use the data as published and do not attempt to re-identify participants.
+The demo bundle (`web/public/demo/`) redistributes a small number of held-out,
+preprocessed EEG windows; CC BY 4.0 allows this with attribution, which this
+card and the demo page give.
 
 ## Participants
 
