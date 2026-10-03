@@ -221,8 +221,21 @@ def run(
     ] = "all",
     quick: Annotated[bool, typer.Option(help="Small grid for smoke tests.")] = False,
 ) -> None:
-    """Run an experiment described by a config in configs/experiments/."""
-    _not_yet("P05/P06", "run")
+    """Run an experiment described by a config in configs/experiments/ (resumable)."""
+    import pandas as pd
+
+    from sixthfinger.evaluation.runner import run_experiment
+
+    def _list(value: str) -> list[str] | None:
+        return None if value == "all" else [v.strip() for v in value.split(",") if v.strip()]
+
+    try:
+        out = run_experiment(config, _list(subjects), _list(methods), quick)
+    except (KeyError, ValueError) as err:
+        typer.secho(str(err), fg="red", err=True)
+        raise typer.Exit(code=1) from err
+    n = len(pd.read_parquet(out)) if out.exists() else 0
+    typer.echo(f"{n} rows in {out}")
 
 
 @export_app.command("demo")

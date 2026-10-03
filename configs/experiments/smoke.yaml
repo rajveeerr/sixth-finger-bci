@@ -1,0 +1,10 @@
+# Harness check on the development subjects only (protocol section 8): two leak-free
+# within-session protocols, a decoder and a chance-level baseline. Never a study result.
+name: smoke
+protocol: within_session
+within_protocols: [cv_leakfree, chrono]
+tasks: [T1_ah_vs_sf]
+sessions: [pre]
+subjects: [sub-01, sub-03]
+methods: [smoke_logvar_lda, smoke_prior]
+mirror: false

@@ -1,0 +1,11 @@
+# Calibration-protocol harness check on the development subjects; run with --quick.
+name: smoke_calib
+protocol: calibration
+tasks: [T2_rest_ah_sf, T3_sf_vs_rest]
+sessions: [pre]
+subjects: [sub-01, sub-03]
+scenarios: [S1_new_user, S2_new_command]
+methods: [smoke_logvar_lda, smoke_prior]
+k_grid: from_protocol
+draws: from_protocol
+mirror: false
