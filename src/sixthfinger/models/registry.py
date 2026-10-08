@@ -7,6 +7,7 @@ from typing import Protocol
 
 import numpy as np
 import pandas as pd
+from sklearn.pipeline import Pipeline
 
 
 @dataclass
@@ -22,6 +23,7 @@ class Method(Protocol):
     # Optional class attributes the runner reads with a default:
     #   deep (False): draws_deep instead of draws_classical
     #   min_trials_per_class (1): below this k the cell is declared undefined, not tried
+    #   feature ("bandpower"): the input a within-session run feeds it (protocol 4.1)
 
     def fit(
         self,
@@ -32,6 +34,28 @@ class Method(Protocol):
     ) -> Method: ...
 
     def predict_proba(self, X: np.ndarray) -> np.ndarray: ...  # (n, n_classes)
+
+
+class PipelineMethod:
+    """A from-scratch method that is one scikit-learn pipeline fitted on the target windows.
+
+    `paper_replica` relies on `build()`: it fits every step but the last on all windows.
+    """
+
+    uses_source = False
+
+    def __init__(self, n_classes: int, **params):
+        self.n_classes, self.params = n_classes, params
+
+    def build(self) -> Pipeline:
+        raise NotImplementedError
+
+    def fit(self, target: Batch, source=None, unlabelled=None, seed: int = 0):
+        self.pipe = self.build().fit(target.X, target.y)
+        return self
+
+    def predict_proba(self, X: np.ndarray) -> np.ndarray:
+        return self.pipe.predict_proba(X)
 
 
 REGISTRY: dict[str, type] = {}

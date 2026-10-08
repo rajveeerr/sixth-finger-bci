@@ -1,0 +1,4 @@
+# Hyperparameters fixed in the pre-registration (section 3.6) before prereg-v1.
+method: csp_lda
+csp: {n_components: 6, reg: ledoit_wolf, log: true}
+lda: {solver: lsqr, shrinkage: auto}

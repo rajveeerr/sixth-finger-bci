@@ -1,0 +1,10 @@
+# Hyperparameters fixed in the pre-registration (section 3.6) before prereg-v1. RQ1 only.
+method: fbcsp_lda
+bands: [[8, 12], [12, 16], [16, 20], [20, 24], [24, 28], [28, 32]]
+filter_order: 4  # Butterworth, applied forwards and backwards (zero phase)
+csp: {n_components: 4, reg: ledoit_wolf, log: true}
+select_k: 8  # mutual-information feature selection, fitted on training windows only
+# mutual_info_classif adds random jitter; a fixed seed keeps reruns identical.
+mutual_info_random_state: 0
+lda: {solver: lsqr, shrinkage: auto}
+sfreq: 250.0  # sampling rate of the windows the filters run on (configs/data.yaml)

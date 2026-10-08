@@ -1,0 +1,5 @@
+# Hyperparameters fixed in the pre-registration (section 3.6) before prereg-v1.
+method: ts_lr
+covariance: oas
+tangent_space_metric: riemann
+logreg: {C: 1.0, max_iter: 1000}

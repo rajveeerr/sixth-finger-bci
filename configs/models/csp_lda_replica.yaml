@@ -1,0 +1,6 @@
+# The authors' Step7 pipeline (pre-registration 3.6), RQ1 sanity check only. Its input is the
+# mu ERSP: 8-13 Hz power in dB relative to the second before the cue, over the [1, 5) s window.
+method: csp_lda_replica
+ersp_mu: {band_hz: [8.0, 13.0], baseline_s: [-1.0, 0.0]}
+csp: {n_components: 10, reg: null, log: true}
+lda: {}  # scikit-learn defaults, like MATLAB's fitcdiscr

@@ -1,3 +1,3 @@
 """Decoders; importing a module registers its methods by name."""
 
-from sixthfinger.models import smoke  # noqa: F401
+from sixthfinger.models import classical, smoke  # noqa: F401

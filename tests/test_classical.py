@@ -1,0 +1,163 @@
+import numpy as np
+import pandas as pd
+import pytest
+
+from sixthfinger.config import load_data_config
+from sixthfinger.evaluation.runner import method_params
+from sixthfinger.models.registry import REGISTRY, Batch, make_method
+from sixthfinger.paths import get_paths
+from sixthfinger.preprocessing.filters import BandPass, bandpass, ersp_db
+
+RQ1_METHODS = ["csp_lda", "csp_lda_replica", "csp_svm", "fbcsp_lda", "mdm", "ts_lr"]
+SFREQ = 250.0
+
+
+def _params(name: str) -> dict:
+    return method_params(name, get_paths().configs)
+
+
+def _planted(n_per_class=30, n_classes=2, n_channels=8, n_times=500, seed=0):
+    """Gaussian noise with a 10 Hz rhythm that is stronger on one channel per class."""
+    rng = np.random.default_rng(seed)
+    t = np.arange(n_times) / SFREQ
+    X, y = [], []
+    for label in range(1, n_classes + 1):
+        for _ in range(n_per_class):
+            x = rng.standard_normal((n_channels, n_times))
+            x[label] += 3 * np.sin(2 * np.pi * 10 * t + rng.uniform(0, 2 * np.pi))
+            X.append(x)
+            y.append(label)
+    X = np.asarray(X, np.float32) * 1e-6
+    md = pd.DataFrame({"trial_uid": [f"t{i}" for i in range(len(y))], "label": y})
+    return X, np.asarray(y), md
+
+
+def _split(y, seed=1):
+    idx = np.random.default_rng(seed).permutation(len(y))
+    cut = len(y) * 2 // 3
+    return idx[:cut], idx[cut:]
+
+
+def test_every_rq1_method_is_registered_with_a_config():
+    for name in RQ1_METHODS:
+        assert name in REGISTRY
+        assert _params(name), f"configs/models/{name}.yaml missing or empty"
+
+
+def test_configs_hold_the_preregistered_hyperparameters():
+    # Pre-registration 3.6; any change here is a deviation and must be logged.
+    assert _params("csp_lda") == {
+        "csp": {"n_components": 6, "reg": "ledoit_wolf", "log": True},
+        "lda": {"solver": "lsqr", "shrinkage": "auto"},
+    }
+    replica = _params("csp_lda_replica")
+    assert replica["csp"] == {"n_components": 10, "reg": None, "log": True}
+    assert replica["lda"] == {}
+    assert replica["ersp_mu"] == {"band_hz": [8.0, 13.0], "baseline_s": [-1.0, 0.0]}
+    assert _params("csp_svm")["csp"] == _params("csp_lda")["csp"]
+    assert _params("csp_svm")["svm"] == {
+        "kernel": "linear",
+        "C": 1.0,
+        "probability": True,
+        "random_state": 0,
+    }
+    fb = _params("fbcsp_lda")
+    assert fb["bands"] == [[8, 12], [12, 16], [16, 20], [20, 24], [24, 28], [28, 32]]
+    assert fb["csp"] == {"n_components": 4, "reg": "ledoit_wolf", "log": True}
+    assert (fb["select_k"], fb["filter_order"]) == (8, 4)
+    assert fb["lda"] == _params("csp_lda")["lda"]
+    assert fb["sfreq"] == load_data_config().signal.sfreq
+    assert _params("mdm") == {"covariance": "oas", "metric": "riemann"}
+    assert _params("ts_lr") == {
+        "covariance": "oas",
+        "tangent_space_metric": "riemann",
+        "logreg": {"C": 1.0, "max_iter": 1000},
+    }
+
+
+@pytest.mark.parametrize("name", ["csp_lda", "csp_svm", "fbcsp_lda", "mdm", "ts_lr"])
+@pytest.mark.parametrize("n_classes", [2, 3])
+def test_methods_learn_a_planted_rhythm(name, n_classes):
+    X, y, md = _planted(n_classes=n_classes)
+    tr, te = _split(y)
+    method = make_method(name, n_classes=n_classes, **_params(name))
+    method.fit(Batch(X[tr], y[tr], md.iloc[tr]))
+    proba = method.predict_proba(X[te])
+    assert proba.shape == (len(te), n_classes)
+    assert np.allclose(proba.sum(axis=1), 1)
+    pred = np.sort(np.unique(y))[proba.argmax(axis=1)]
+    assert (pred == y[te]).mean() > 0.8
+
+
+def test_replica_method_runs_on_ersp_shaped_input():
+    X, y, md = _planted(n_channels=12)
+    tr, te = _split(y)
+    method = make_method("csp_lda_replica", n_classes=2, **_params("csp_lda_replica"))
+    assert method.feature == "ersp_mu"
+    method.fit(Batch(X[tr], y[tr], md.iloc[tr]))
+    assert method.predict_proba(X[te]).shape == (len(te), 2)
+
+
+def test_declared_minimum_trials():
+    # CSP needs a covariance per class (protocol 4.2); MDM and TS+LR work from one trial.
+    for name in ("csp_lda", "csp_lda_replica", "csp_svm", "fbcsp_lda"):
+        assert REGISTRY[name].min_trials_per_class == 2
+    X, y, md = _planted(n_per_class=1)
+    for name in ("mdm", "ts_lr"):
+        assert getattr(REGISTRY[name], "min_trials_per_class", 1) == 1
+        method = make_method(name, n_classes=2, **_params(name)).fit(Batch(X, y, md))
+        assert method.predict_proba(X).shape == (2, 2)
+
+
+@pytest.mark.parametrize("name", ["csp_svm", "fbcsp_lda"])
+def test_randomised_steps_are_seeded(name):
+    X, y, md = _planted()
+    tr, te = _split(y)
+    runs = [
+        make_method(name, n_classes=2, **_params(name))
+        .fit(Batch(X[tr], y[tr], md.iloc[tr]))
+        .predict_proba(X[te])
+        for _ in range(2)
+    ]
+    assert np.array_equal(runs[0], runs[1])
+
+
+def test_paper_replica_split_point_is_before_the_classifier():
+    # The replica fits pipe[:-1] on all windows; for these methods that is everything but
+    # the classifier, so the leak is in CSP, selection or the tangent-space reference only.
+    last = {
+        "csp_lda": "lineardiscriminantanalysis",
+        "csp_svm": "svc",
+        "fbcsp_lda": "lineardiscriminantanalysis",
+        "mdm": "mdm",
+        "ts_lr": "logisticregression",
+    }
+    for name, step in last.items():
+        pipe = make_method(name, n_classes=2, **_params(name)).build()
+        assert pipe.steps[-1][0] == step
+
+
+def test_bandpass_keeps_the_band_and_removes_the_rest():
+    t = np.arange(2000) / SFREQ
+    inside, outside = np.sin(2 * np.pi * 10 * t), np.sin(2 * np.pi * 40 * t)
+    out = bandpass(np.stack([inside, outside])[None], 8, 12, SFREQ)
+    mid = slice(500, 1500)  # away from the filter's edge transients
+    assert out.dtype == np.float32
+    assert np.std(out[0, 0, mid]) == pytest.approx(np.std(inside[mid]), rel=0.05)
+    assert np.std(out[0, 1, mid]) < 0.01
+    step = BandPass(8, 12, SFREQ)
+    assert step.fit(None) is step
+    assert np.array_equal(step.transform(np.stack([inside])[None]), out[:, :1])
+
+
+def test_ersp_is_db_change_from_each_windows_own_baseline():
+    # 1 s baseline, 1 s gap, 4 s kept; the 10 Hz amplitude halves after the baseline.
+    t = np.arange(1500) / SFREQ
+    amp = np.where(t < 1.0, 1.0, 0.5)
+    x = (amp * np.sin(2 * np.pi * 10 * t))[None, None]
+    scaled = np.concatenate([x, 7.0 * x])  # a louder copy must give the same dB
+    out = ersp_db(scaled, SFREQ, (8.0, 13.0), baseline=(0, 250), keep=(500, 1500))
+    assert out.shape == (2, 1, 1000) and out.dtype == np.float32
+    mid = out[:, 0, 200:800]
+    assert np.allclose(mid.mean(axis=-1), 20 * np.log10(0.5), atol=0.3)
+    assert np.allclose(out[0], out[1], atol=1e-4)

@@ -107,4 +107,6 @@ filterwarnings = [
     "ignore::DeprecationWarning:pymatreader.*",
     # braindecode 1.8.1 still asks MNE for the deprecated standard_1020 montage at import.
     "ignore:Montage name 'standard_1020' is deprecated:FutureWarning",
+    # SVC(probability=True) is pre-registered; scikit-learn 1.9 warns it goes away in 1.11.
+    "ignore:The `probability` parameter was deprecated:FutureWarning",
 ]

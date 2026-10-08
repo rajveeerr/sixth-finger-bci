@@ -13,7 +13,7 @@ from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.dummy import DummyClassifier
 from sklearn.pipeline import Pipeline, make_pipeline
 
-from sixthfinger.models.registry import Batch, register
+from sixthfinger.models.registry import PipelineMethod, register
 
 
 class LogVariance(BaseEstimator, TransformerMixin):
@@ -26,25 +26,8 @@ class LogVariance(BaseEstimator, TransformerMixin):
         return np.log(np.var(X, axis=-1))
 
 
-class _PipelineMethod:
-    uses_source = False
-
-    def __init__(self, n_classes: int, **params):
-        self.n_classes, self.params = n_classes, params
-
-    def build(self) -> Pipeline:
-        raise NotImplementedError
-
-    def fit(self, target: Batch, source=None, unlabelled=None, seed: int = 0):
-        self.pipe = self.build().fit(target.X, target.y)
-        return self
-
-    def predict_proba(self, X: np.ndarray) -> np.ndarray:
-        return self.pipe.predict_proba(X)
-
-
 @register("smoke_logvar_lda")
-class SmokeLogVarLda(_PipelineMethod):
+class SmokeLogVarLda(PipelineMethod):
     def build(self) -> Pipeline:
         return make_pipeline(
             LogVariance(), LinearDiscriminantAnalysis(solver="lsqr", shrinkage="auto")
@@ -52,7 +35,7 @@ class SmokeLogVarLda(_PipelineMethod):
 
 
 @register("smoke_prior")
-class SmokePrior(_PipelineMethod):
+class SmokePrior(PipelineMethod):
     def build(self) -> Pipeline:
         # Predicts the training-class prior: balanced accuracy is exactly 1 / n_classes.
         return make_pipeline(LogVariance(), DummyClassifier(strategy="prior"))

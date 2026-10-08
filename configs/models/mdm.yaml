@@ -1,0 +1,4 @@
+# Hyperparameters fixed in the pre-registration (section 3.6) before prereg-v1.
+method: mdm
+covariance: oas
+metric: riemann
