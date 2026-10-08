@@ -366,6 +366,8 @@ def score_folds(
 
     X, y and md are aligned (row i of md is X[i]); yields (fold, metrics, extra columns).
     """
+    n_front = getattr(REGISTRY[method_name], "per_window_steps", 0)
+    head = None
     if protocol == "paper_replica":
         # The one deliberate leak (protocol 4.1): every stage before the classifier sees all
         # windows of the session, test folds included. Its numbers only measure the leak.
@@ -373,13 +375,20 @@ def score_folds(
         if not hasattr(method, "build"):
             raise TypeError(f"{method_name} has no build(); paper_replica cannot split it")
         pipe = method.build()
-        features = pipe[:-1].fit_transform(X, y)
+        features, head = pipe[:-1].fit_transform(X, y), pipe[-1]
+    elif n_front:
+        # Leading steps without fitted parameters (FBCSP's filter bank) give each window the
+        # same output in every fold, so they run once; the rest is fitted per fold as usual.
+        pipe = make_method(method_name, n_classes=len(classes), **params).build()
+        features, head = X, pipe[n_front:]
+        for _, step in pipe.steps[:n_front]:
+            features = step.transform(features)  # never fitted: nothing to learn from X
     for fold, (tr, te) in todo:
         assert_no_leakage(md.iloc[tr], md.iloc[te])
         t0 = time.perf_counter()
-        if protocol == "paper_replica":
-            head = clone(pipe[-1]).fit(features[tr], y[tr])
-            proba = head.predict_proba(features[te])
+        if head is not None:
+            model = clone(head).fit(features[tr], y[tr])
+            proba = model.predict_proba(features[te])
         else:
             method = make_method(method_name, n_classes=len(classes), **params)
             method.fit(Batch(X[tr], y[tr], md.iloc[tr]), seed=seed)

@@ -32,6 +32,23 @@ class BandPass(BaseEstimator, TransformerMixin):
         return bandpass(X, self.low, self.high, self.sfreq, self.order)
 
 
+class FilterBank(BaseEstimator, TransformerMixin):
+    """Stateless: X (n, n_channels, n_times) -> (n, n_bands, n_channels, n_times), float32."""
+
+    def __init__(self, bands, sfreq: float = 250.0, order: int = 4):
+        self.bands = bands
+        self.sfreq = sfreq
+        self.order = order
+
+    def fit(self, X, y=None):
+        return self
+
+    def transform(self, X):
+        return np.stack(
+            [bandpass(X, lo, hi, self.sfreq, self.order) for lo, hi in self.bands], axis=1
+        )
+
+
 def ersp_db(
     X_long: np.ndarray,
     sfreq: float,

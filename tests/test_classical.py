@@ -161,3 +161,43 @@ def test_ersp_is_db_change_from_each_windows_own_baseline():
     mid = out[:, 0, 200:800]
     assert np.allclose(mid.mean(axis=-1), 20 * np.log10(0.5), atol=0.3)
     assert np.allclose(out[0], out[1], atol=1e-4)
+
+
+def test_filter_bank_layout_matches_one_filter_per_band():
+    from functools import partial
+
+    from sklearn.feature_selection import SelectKBest, mutual_info_classif
+    from sklearn.pipeline import make_pipeline, make_union
+
+    from sixthfinger.models.classical import _csp, _lda
+
+    p = _params("fbcsp_lda")
+    X, y, md = _planted(n_channels=10)
+    tr, te = _split(y)
+    # The textbook layout: a band-pass and a CSP per band side by side.
+    score = partial(mutual_info_classif, random_state=p["mutual_info_random_state"])
+    union = make_pipeline(
+        make_union(
+            *[
+                make_pipeline(BandPass(lo, hi, p["sfreq"], p["filter_order"]), _csp(p["csp"]))
+                for lo, hi in p["bands"]
+            ]
+        ),
+        SelectKBest(score, k=p["select_k"]),
+        _lda(p["lda"]),
+    ).fit(X[tr], y[tr])
+    ours = make_method("fbcsp_lda", n_classes=2, **p).fit(Batch(X[tr], y[tr], md.iloc[tr]))
+    assert np.array_equal(ours.predict_proba(X[te]), union.predict_proba(X[te]))
+
+
+def test_filter_bank_once_per_session_gives_the_same_folds():
+    from sixthfinger.evaluation.runner import score_folds
+
+    X, y, md = _planted(n_channels=10)
+    splits = [(0, _split(y, seed=1)), (1, _split(y, seed=2))]
+    p = _params("fbcsp_lda")
+    rows = list(score_folds(X, y, md, splits, "fbcsp_lda", p, [1, 2], "cv_leakfree", 0))
+    for (fold, (tr, te)), (_, metrics, _) in zip(splits, rows, strict=True):
+        method = make_method("fbcsp_lda", n_classes=2, **p).fit(Batch(X[tr], y[tr], md.iloc[tr]))
+        pred = np.array([1, 2])[method.predict_proba(X[te]).argmax(axis=1)]
+        assert metrics["acc"] == (pred == y[te]).mean(), fold

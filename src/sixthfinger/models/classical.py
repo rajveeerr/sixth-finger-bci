@@ -9,18 +9,20 @@ import warnings
 from functools import partial
 
 import mne
+import numpy as np
 from mne.decoding import CSP
 from pyriemann.classification import MDM
 from pyriemann.estimation import Covariances
 from pyriemann.tangentspace import TangentSpace
+from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.feature_selection import SelectKBest, mutual_info_classif
 from sklearn.linear_model import LogisticRegression
-from sklearn.pipeline import Pipeline, make_pipeline, make_union
+from sklearn.pipeline import Pipeline, make_pipeline
 from sklearn.svm import SVC
 
 from sixthfinger.models.registry import PipelineMethod, register
-from sixthfinger.preprocessing.filters import BandPass
+from sixthfinger.preprocessing.filters import FilterBank
 
 # MNE logs a few lines per CSP fit; an RQ1 run makes tens of thousands of fits.
 mne.set_log_level("ERROR")
@@ -61,20 +63,44 @@ class CspSvm(PipelineMethod):
         return make_pipeline(_csp(self.params["csp"]), SVC(**self.params["svm"]))
 
 
+class BandCSP(BaseEstimator, TransformerMixin):
+    """One CSP per band of a filter bank; X: (n, n_bands, n_channels, n_times).
+
+    Features are concatenated band by band, n_components per band.
+    """
+
+    def __init__(self, csp: dict):
+        self.csp = csp
+
+    def fit(self, X, y):
+        self.csps_ = [_csp(self.csp).fit(self._band(X, b), y) for b in range(X.shape[1])]
+        return self
+
+    def transform(self, X):
+        return np.hstack([csp.transform(self._band(X, b)) for b, csp in enumerate(self.csps_)])
+
+    @staticmethod
+    def _band(X, b):
+        # A contiguous copy, as a separately filtered band would be, so CSP sees the same
+        # memory layout whether the bank ran in the fold or once per session.
+        return np.ascontiguousarray(X[:, b])
+
+
 @register("fbcsp_lda")
 class FbcspLda(PipelineMethod):
     min_trials_per_class = 2
+    # The filter bank has no fitted parameters, so the runner may apply it once per session.
+    per_window_steps = 1
 
     def build(self) -> Pipeline:
         p = self.params
-        bank = make_union(
-            *[
-                make_pipeline(BandPass(lo, hi, p["sfreq"], p["filter_order"]), _csp(p["csp"]))
-                for lo, hi in p["bands"]
-            ]
-        )
         score = partial(mutual_info_classif, random_state=p["mutual_info_random_state"])
-        return make_pipeline(bank, SelectKBest(score, k=p["select_k"]), _lda(p["lda"]))
+        return make_pipeline(
+            FilterBank(p["bands"], p["sfreq"], p["filter_order"]),
+            BandCSP(p["csp"]),
+            SelectKBest(score, k=p["select_k"]),
+            _lda(p["lda"]),
+        )
 
 
 @register("mdm")
