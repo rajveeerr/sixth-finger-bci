@@ -1,0 +1,12 @@
+# RQ1 (protocol 4.1, pre-registration 3.2): affected hand vs sixth finger under the four
+# within-session protocols. csp_lda (bandpower) is the confirmatory H1 pipeline;
+# csp_lda_replica reads the authors' mu ERSP feature and is the sanity check only.
+name: rq1_benchmark
+protocol: within_session
+within_protocols: [paper_replica, cv_leakfree, loro, chrono]
+features: [bandpower, ersp_mu]
+tasks: [T1_ah_vs_sf]
+sessions: [pre, post, follow]
+subjects: all
+methods: [csp_lda, csp_lda_replica, csp_svm, fbcsp_lda, mdm, ts_lr]
+mirror: false

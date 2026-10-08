@@ -1,0 +1,12 @@
+# Context for RQ1 (P06 step 4.4): the three-class and sixth-finger detection tasks under the
+# run-level protocols, so a weak AH vs SF result can be told apart from "no imagery signal".
+# Descriptive only. The replica's ERSP feature has no meaning for REST windows, so it is left out.
+name: rq1_context
+protocol: within_session
+within_protocols: [loro, chrono]
+features: [bandpower]
+tasks: [T2_rest_ah_sf, T3_sf_vs_rest]
+sessions: [pre, post, follow]
+subjects: all
+methods: [csp_lda, csp_svm, fbcsp_lda, mdm, ts_lr]
+mirror: false
