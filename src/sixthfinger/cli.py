@@ -220,6 +220,9 @@ def run(
         str, typer.Option(help="Comma-separated subset of the config's methods.")
     ] = "all",
     quick: Annotated[bool, typer.Option(help="Small grid for smoke tests.")] = False,
+    jobs: Annotated[
+        int, typer.Option(min=1, help="Processes for within-session experiments (same results).")
+    ] = 1,
 ) -> None:
     """Run an experiment described by a config in configs/experiments/ (resumable)."""
     import pandas as pd
@@ -230,7 +233,7 @@ def run(
         return None if value == "all" else [v.strip() for v in value.split(",") if v.strip()]
 
     try:
-        out = run_experiment(config, _list(subjects), _list(methods), quick)
+        out = run_experiment(config, _list(subjects), _list(methods), quick, n_jobs=jobs)
     except (KeyError, ValueError) as err:
         typer.secho(str(err), fg="red", err=True)
         raise typer.Exit(code=1) from err

@@ -7,15 +7,18 @@ import json
 import logging
 import math
 import time
-from collections.abc import Iterable
+from collections import defaultdict
+from collections.abc import Iterable, Iterator
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
+from functools import partial
 from pathlib import Path
 from typing import Literal
 
 import numpy as np
 import pandas as pd
 import yaml
+from joblib import Parallel, delayed
 from pydantic import Field
 from sklearn.base import clone
 
@@ -27,8 +30,8 @@ from sixthfinger.config import (
     load_data_config,
     load_protocol_config,
 )
-from sixthfinger.data.epochs import load_windows, manifest_sha
-from sixthfinger.evaluation.calibration import draw_calibration_set
+from sixthfinger.data.epochs import load_windows, manifest_sha, recut
+from sixthfinger.evaluation.calibration import REST_ID, draw_calibration_set
 from sixthfinger.evaluation.leakage import assert_no_leakage
 from sixthfinger.evaluation.metrics import SF, score
 from sixthfinger.evaluation.splits import (
@@ -41,6 +44,7 @@ from sixthfinger.evaluation.splits import (
 )
 from sixthfinger.models.registry import REGISTRY, Batch, make_method
 from sixthfinger.paths import current_git_sha, get_paths
+from sixthfinger.preprocessing.filters import ersp_db
 
 log = logging.getLogger(__name__)
 
@@ -200,6 +204,7 @@ class RunContext:
     provenance: dict
     method_params: dict[str, dict]
     base_hash: str
+    processed: Path | None = None
 
     def skip(self, key: dict) -> bool:
         return unit_key(key) in self.done
@@ -244,18 +249,29 @@ def _class_ids(data_cfg: DataConfig, names: Iterable[str]) -> list[int]:
     return sorted(data_cfg.label_by_name[n].id for n in names)
 
 
+def feature_of(method_name: str) -> str:
+    """Input a method reads: the cached windows (`bandpower`) unless the class says otherwise."""
+    return getattr(REGISTRY[method_name], "feature", "bandpower")
+
+
 def run_experiment(
     config_path: Path,
     subjects: list[str] | None = None,
     methods: list[str] | None = None,
     quick: bool = False,
     *,
+    n_jobs: int = 1,
     epochs_dir: Path | None = None,
     runs_dir: Path | None = None,
+    processed_dir: Path | None = None,
     data_cfg: DataConfig | None = None,
     proto: ProtocolConfig | None = None,
 ) -> Path:
-    """Run every unit of the experiment that is not in its scores file yet; return the file."""
+    """Run every unit of the experiment that is not in its scores file yet; return the file.
+
+    n_jobs > 1 spreads the subject-sessions of a within-session experiment over processes;
+    every fit is the same as with one process, only the row order in the file differs.
+    """
     import mne
 
     mne.set_log_level("ERROR")
@@ -265,9 +281,19 @@ def run_experiment(
     epochs_dir = epochs_dir or paths.epochs
     exp = resolve(load_experiment(config_path, proto), proto, data_cfg, subjects, methods, quick)
     out_path = (runs_dir or paths.runs) / exp.name / "scores.parquet"
+    if exp.protocol == "calibration" and (
+        odd := [m for m in exp.methods if feature_of(m) != "bandpower"]
+    ):
+        raise ValueError(f"The calibration protocol only feeds cached windows; not {odd}")
 
     needs_source = exp.protocol == "calibration" and any(
         REGISTRY[m].uses_source for m in exp.methods
+    )
+    # Within a session only the tasks' classes are needed; calibration draws on all three.
+    labels = (
+        sorted({c for t in exp.tasks for c in _class_ids(data_cfg, proto.tasks[t])})
+        if exp.protocol == "within_session"
+        else None
     )
     # Without a transfer method only the targets are read, so no other subject is touched.
     X, md = load_windows(
@@ -275,6 +301,7 @@ def run_experiment(
         data_cfg,
         subjects=None if needs_source else exp.subjects,
         sessions=None if needs_source else list(exp.sessions),
+        labels=labels,
         mirror=exp.mirror,
     )
     present = md[["subject", "session", "run"]].drop_duplicates().itertuples(index=False)
@@ -292,12 +319,15 @@ def run_experiment(
         provenance=_provenance(epochs_dir),
         method_params={m: method_params(m, paths.configs) for m in exp.methods},
         base_hash=config_hash(data_cfg, proto, exp),
+        processed=processed_dir or paths.processed,
     )
     log.info("%s: %d units already in %s", exp.name, len(ctx.done), out_path)
     try:
         if exp.protocol == "within_session":
-            _run_within_session(ctx)
+            _run_within_session(ctx, n_jobs)
         else:
+            if n_jobs > 1:
+                log.warning("n_jobs applies to within-session experiments; running in one process")
             _run_calibration(ctx)
     finally:
         ctx.writer.flush()
@@ -308,7 +338,8 @@ def run_experiment(
 # Within-session protocols (RQ1) ------------------------------------------------------------
 
 
-def _within_splits(name: str, md: pd.DataFrame, proto: ProtocolConfig) -> tuple[list[Split], int]:
+def within_splits(name: str, md: pd.DataFrame, proto: ProtocolConfig) -> tuple[list[Split], int]:
+    """Splits of one subject-session under a named protocol, and its number of folds."""
     ws, seed = proto.within_session, proto.calibration.seed_base
     if name in ("cv_leakfree", "paper_replica"):
         folds = n_cv_folds(md, ws.cv_folds)
@@ -320,9 +351,158 @@ def _within_splits(name: str, md: pd.DataFrame, proto: ProtocolConfig) -> tuple[
     return [chrono_split(md, ws.chrono_train_runs, ws.chrono_test_runs)], 1
 
 
-def _run_within_session(ctx: RunContext) -> None:
-    exp, data_cfg, proto = ctx.exp, ctx.data_cfg, ctx.proto
+def score_folds(
+    X: np.ndarray,
+    y: np.ndarray,
+    md: pd.DataFrame,
+    todo: list[tuple[int, Split]],
+    method_name: str,
+    params: dict,
+    classes: list[int],
+    protocol: str,
+    seed: int,
+) -> Iterator[tuple[int, dict, dict]]:
+    """Fit and score one method on the listed folds of one subject-session.
+
+    X, y and md are aligned (row i of md is X[i]); yields (fold, metrics, extra columns).
+    """
+    if protocol == "paper_replica":
+        # The one deliberate leak (protocol 4.1): every stage before the classifier sees all
+        # windows of the session, test folds included. Its numbers only measure the leak.
+        method = make_method(method_name, n_classes=len(classes), **params)
+        if not hasattr(method, "build"):
+            raise TypeError(f"{method_name} has no build(); paper_replica cannot split it")
+        pipe = method.build()
+        features = pipe[:-1].fit_transform(X, y)
+    for fold, (tr, te) in todo:
+        assert_no_leakage(md.iloc[tr], md.iloc[te])
+        t0 = time.perf_counter()
+        if protocol == "paper_replica":
+            head = clone(pipe[-1]).fit(features[tr], y[tr])
+            proba = head.predict_proba(features[te])
+        else:
+            method = make_method(method_name, n_classes=len(classes), **params)
+            method.fit(Batch(X[tr], y[tr], md.iloc[tr]), seed=seed)
+            proba = method.predict_proba(X[te])
+        fit_seconds = time.perf_counter() - t0
+        _check_proba(proba, len(te), classes, method_name)
+        extra = dict(n_train=len(tr), n_test=len(te), fit_seconds=fit_seconds)
+        yield fold, score(y[te], proba, classes), extra
+
+
+def ersp_input(
+    rows: pd.DataFrame,
+    data_cfg: DataConfig,
+    processed: Path,
+    settings: dict,
+    mirror: bool = False,
+) -> tuple[pd.DataFrame, np.ndarray]:
+    """The mu ERSP of cached imagery windows, the input of `csp_lda_replica` (protocol 5).
+
+    The run files are cut again from the start of the baseline to the end of the window;
+    a window whose wider span crosses a boundary is dropped by the cache's own rule.
+    Returns the kept rows (index 0..n-1) and X: (n, 40, n_times) float32, dB.
+    """
+    if (rows.label == REST_ID).any():
+        raise ValueError("The ERSP baseline is the second before an imagery cue; no REST windows")
+    sfreq, window = data_cfg.signal.sfreq, data_cfg.window
+    b0, b1 = settings["baseline_s"]
+    keep, X_long = recut(rows, data_cfg, processed, b0, window.tmax, mirror=mirror)
+    start = round((window.tmin - b0) * sfreq)
+    X = ersp_db(
+        X_long,
+        sfreq,
+        tuple(settings["band_hz"]),
+        baseline=(0, round((b1 - b0) * sfreq)),
+        keep=(start, start + data_cfg.n_times),
+    )
+    return rows[keep].reset_index(drop=True), X
+
+
+@dataclass
+class WithinJob:
+    """The folds still to run for one subject, session and task."""
+
+    task: str
+    classes: list[int]
+    subject: str
+    session: str
+    rows: pd.DataFrame  # the session's windows of the task's classes, cache order
+    X: np.ndarray  # cached windows aligned with rows
+    done: set  # unit keys of this subject, session and task already in the scores file
+
+
+def _within_input(job: WithinJob, feature: str, params: dict, data_cfg, processed, mirror):
+    if feature == "bandpower":
+        return job.rows.reset_index(drop=True), job.X
+    if feature == "ersp_mu":
+        return ersp_input(job.rows, data_cfg, processed, params["ersp_mu"], mirror)
+    raise ValueError(f"No input called {feature!r}")
+
+
+def iter_within_job(
+    job: WithinJob,
+    exp: ExperimentConfig,
+    proto: ProtocolConfig,
+    data_cfg: DataConfig,
+    params: dict[str, dict],
+    processed: Path | None,
+) -> Iterator[tuple[dict, dict, dict]]:
+    """Every protocol and method of one job; yields (unit key, metrics, extra) per fold."""
     seed = proto.calibration.seed_base
+    inputs: dict[tuple[str, str], tuple[pd.DataFrame, np.ndarray]] = {}
+    splits: dict[tuple, tuple[list[Split], int]] = {}
+    for proto_name in exp.within_protocols:
+        for method_name in exp.methods:
+            feature = feature_of(method_name)
+            if feature not in exp.features:
+                continue
+            # Inputs depend on the method's settings (the ERSP band and baseline).
+            input_id = (feature, json.dumps(params[method_name].get(feature), sort_keys=True))
+            if input_id not in inputs:
+                inputs[input_id] = _within_input(
+                    job, feature, params[method_name], data_cfg, processed, exp.mirror
+                )
+            md, X = inputs[input_id]
+            if (proto_name, input_id) not in splits:
+                splits[(proto_name, input_id)] = within_splits(proto_name, md, proto)
+            fold_splits, n_folds = splits[(proto_name, input_id)]
+            key = dict(
+                experiment=exp.name,
+                protocol=proto_name,
+                scenario=None,
+                task=job.task,
+                method=method_name,
+                feature=feature,
+                subject=job.subject,
+                session=job.session,
+                k=None,
+                draw=None,
+            )
+            todo = [
+                (fold, split)
+                for fold, split in enumerate(fold_splits)
+                if unit_key({**key, "fold": fold}) not in job.done
+            ]
+            if not todo:
+                continue
+            y = md.label.to_numpy()
+            for fold, metrics, extra in score_folds(
+                X, y, md, todo, method_name, params[method_name], job.classes, proto_name, seed
+            ):
+                yield {**key, "fold": fold}, metrics, {**extra, "n_folds": n_folds}
+
+
+def run_within_job(job: WithinJob, **kwargs) -> list[tuple[dict, dict, dict]]:
+    return list(iter_within_job(job, **kwargs))
+
+
+def _within_jobs(ctx: RunContext) -> Iterator[WithinJob]:
+    exp, data_cfg, proto = ctx.exp, ctx.data_cfg, ctx.proto
+    done = defaultdict(set)
+    task_i, subject_i, session_i = (UNIT_KEYS.index(k) for k in ("task", "subject", "session"))
+    for key in ctx.done:
+        done[(key[task_i], key[subject_i], key[session_i])].add(key)
     for task in exp.tasks:
         classes = _class_ids(data_cfg, proto.tasks[task])
         for session in exp.sessions:
@@ -337,71 +517,48 @@ def _run_within_session(ctx: RunContext) -> None:
                 if rows.empty:
                     log.warning("%s %s %s: no windows", subject, session, task)
                     continue
-                log.info("%s %s %s", subject, session, task)
-                local = rows.reset_index(drop=True)
-                for proto_name in exp.within_protocols:
-                    splits, n_folds = _within_splits(proto_name, local, proto)
-                    for method_name in exp.methods:
-                        feature = getattr(REGISTRY[method_name], "feature", "bandpower")
-                        if feature not in exp.features:
-                            continue
-                        keys = [
-                            dict(
-                                experiment=exp.name,
-                                protocol=proto_name,
-                                scenario=None,
-                                task=task,
-                                method=method_name,
-                                feature=feature,
-                                subject=subject,
-                                session=session,
-                                k=None,
-                                draw=None,
-                                fold=fold,
-                            )
-                            for fold in range(len(splits))
-                        ]
-                        todo = [(key, s) for key, s in zip(keys, splits, strict=True)]
-                        todo = [(key, s) for key, s in todo if not ctx.skip(key)]
-                        if not todo:
-                            continue
-                        _fit_folds(ctx, rows, todo, method_name, classes, proto_name, n_folds, seed)
+                X = ctx.X[rows.index.to_numpy()]
+                yield WithinJob(
+                    task, classes, subject, session, rows, X, done[(task, subject, session)]
+                )
 
 
-def _fit_folds(ctx, rows, todo, method_name, classes, proto_name, n_folds, seed) -> None:
-    X = ctx.X[rows.index.to_numpy()]
-    y = rows.label.to_numpy()
-    local = rows.reset_index(drop=True)
-    params = ctx.method_params[method_name]
-    if proto_name == "paper_replica":
-        # The one deliberate leak (protocol 4.1): every stage before the classifier sees all
-        # windows of the session, test folds included. Its numbers only measure the leak.
-        method = make_method(method_name, n_classes=len(classes), **params)
-        if not hasattr(method, "build"):
-            raise TypeError(f"{method_name} has no build(); paper_replica cannot split it")
-        pipe = method.build()
-        features = pipe[:-1].fit_transform(X, y)
-    for key, (tr, te) in todo:
-        assert_no_leakage(local.iloc[tr], local.iloc[te])
-        t0 = time.perf_counter()
-        if proto_name == "paper_replica":
-            head = clone(pipe[-1]).fit(features[tr], y[tr])
-            proba = head.predict_proba(features[te])
-        else:
-            method = make_method(method_name, n_classes=len(classes), **params)
-            train = Batch(X[tr], y[tr], local.iloc[tr])
-            method.fit(train, seed=seed)
-            proba = method.predict_proba(X[te])
-        fit_seconds = time.perf_counter() - t0
-        _check_proba(proba, len(te), classes, method_name)
-        ctx.write(
-            key,
-            score(y[te], proba, classes),
-            n_train=len(tr),
-            n_test=len(te),
-            n_folds=n_folds,
-            fit_seconds=fit_seconds,
-        )
+def _run_within_session(ctx: RunContext, n_jobs: int = 1) -> None:
+    kwargs = dict(
+        exp=ctx.exp,
+        proto=ctx.proto,
+        data_cfg=ctx.data_cfg,
+        params=ctx.method_params,
+        processed=ctx.processed,
+    )
+    jobs = _within_jobs(ctx)
+    if n_jobs == 1:
+        # Rows go to the writer as each fold finishes, so a crash loses at most one buffer.
+        for job in jobs:
+            n = 0
+            for key, metrics, extra in iter_within_job(job, **kwargs):
+                ctx.write(key, metrics, **extra)
+                n += 1
+            log.info("%s %s %s: %d new rows", job.subject, job.session, job.task, n)
+        return
+    # Workers return whole jobs and only this process writes, so the scores file keeps a
+    # single writer; a crash loses the jobs still running, which a resume redoes.
+    work = partial(run_within_job, **kwargs)
+    results = Parallel(n_jobs=n_jobs, return_as="generator_unordered")(
+        delayed(work)(job) for job in jobs
+    )
+    for rows in results:
+        for key, metrics, extra in rows:
+            ctx.write(key, metrics, **extra)
+        if rows:
+            first = rows[0][0]
+            log.info(
+                "%s %s %s: %d new rows",
+                first["subject"],
+                first["session"],
+                first["task"],
+                len(rows),
+            )
 
 
 def _check_proba(proba: np.ndarray, n: int, classes: list[int], method_name: str) -> None:

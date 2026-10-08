@@ -196,7 +196,9 @@ def test_cli_run_reports_rows(cache, tmp_path, monkeypatch):
     monkeypatch.setattr(
         runner_mod,
         "get_paths",
-        lambda: type("P", (), {"epochs": cache, "runs": tmp_path, "configs": tmp_path})(),
+        lambda: type(
+            "P", (), {"epochs": cache, "runs": tmp_path, "configs": tmp_path, "processed": tmp_path}
+        )(),
     )
     cfg = _config(tmp_path, within_protocols=["chrono"])
     result = CliRunner().invoke(app, ["run", str(cfg), "--subjects", "sub-01"])
@@ -204,3 +206,100 @@ def test_cli_run_reports_rows(cache, tmp_path, monkeypatch):
     assert "2 rows" in result.output
     bad = CliRunner().invoke(app, ["run", str(cfg), "--methods", "nope"])
     assert bad.exit_code == 1
+
+
+@pytest.fixture(scope="module")
+def tree_and_cache(tmp_path_factory):
+    """sub-05 (no follow-up session) from synthetic run files, and its epoch cache."""
+    from sixthfinger.data import epochs
+    from tests.conftest import synthetic_events, write_eeglab_mat
+
+    root = tmp_path_factory.mktemp("processed")
+    for session in ("pre", "post"):
+        for run in ("01", "02", "03", "04"):
+            name = f"sub-05_B_{session}_{run}_eeg.mat"
+            seed = int(run) + (10 if session == "post" else 0)
+            events = synthetic_events(n_trials=6, seed=seed)
+            write_eeglab_mat(root / "sub-05" / session / name, events=events, seed=seed)
+    out = tmp_path_factory.mktemp("epochs5")
+    epochs.build_all(load_data_config(), root, out, subjects=["sub-05"])
+    return root, out
+
+
+def _rq1(tmp_path, **fields):
+    base = dict(
+        name="rq1_small",
+        within_protocols=["paper_replica", "cv_leakfree", "loro", "chrono"],
+        features=["bandpower", "ersp_mu"],
+        subjects=["sub-05"],
+        methods=["csp_lda_replica", "mdm"],
+    )
+    return _config(tmp_path, **{**base, **fields})
+
+
+def test_replica_method_reads_the_ersp_input(tree_and_cache, tmp_path):
+    root, cache = tree_and_cache
+    out = run_experiment(
+        _rq1(tmp_path), epochs_dir=cache, runs_dir=tmp_path / "runs", processed_dir=root
+    )
+    scores = pd.read_parquet(out)
+    assert scores.groupby("method").feature.unique().map(list).to_dict() == {
+        "csp_lda_replica": ["ersp_mu"],
+        "mdm": ["bandpower"],
+    }
+    # 12 trials per class in a session: 10 folds x 10 repeats, 4 runs, one chrono split.
+    counts = scores.groupby(["method", "protocol"]).size()
+    expected = {"cv_leakfree": 100, "paper_replica": 100, "loro": 4, "chrono": 1}
+    assert all(counts[(m, p)] == n for m in ("mdm", "csp_lda_replica") for p, n in expected.items())
+    assert scores.bal_acc.between(0, 1).all()
+    # MDM has nothing to fit before its classifier, so the replica cannot leak.
+    mdm = scores[scores.method == "mdm"].set_index(["protocol", "fold"]).bal_acc
+    assert np.array_equal(mdm["paper_replica"].to_numpy(), mdm["cv_leakfree"].to_numpy())
+    resumed = run_experiment(
+        _rq1(tmp_path), epochs_dir=cache, runs_dir=tmp_path / "runs", processed_dir=root
+    )
+    assert len(pd.read_parquet(resumed)) == len(scores)
+
+
+def test_parallel_jobs_give_the_same_rows(tree_and_cache, tmp_path):
+    root, cache = tree_and_cache
+    cfg = _rq1(
+        tmp_path,
+        sessions=["pre", "post"],
+        within_protocols=["paper_replica", "loro", "chrono"],
+        methods=["csp_lda", "csp_lda_replica"],
+    )
+    frames = []
+    for n_jobs in (1, 2):
+        out = run_experiment(
+            cfg,
+            n_jobs=n_jobs,
+            epochs_dir=cache,
+            runs_dir=tmp_path / f"runs{n_jobs}",
+            processed_dir=root,
+        )
+        scores = pd.read_parquet(out).sort_values(UNIT_KEYS, ignore_index=True)
+        frames.append(scores)
+    cols = ["bal_acc", "acc", "kappa", "confusion", "n_train", "n_test", "n_folds"]
+    assert len(frames[0]) == len(frames[1]) > 0
+    pd.testing.assert_frame_equal(frames[0][UNIT_KEYS + cols], frames[1][UNIT_KEYS + cols])
+
+
+def test_calibration_refuses_a_method_with_another_input(cache, tmp_path):
+    cfg = _calib(tmp_path, methods=["csp_lda_replica"])
+    with pytest.raises(ValueError, match="cached windows"):
+        _run(cfg, cache, tmp_path, quick=True)
+
+
+def test_ersp_input_refuses_rest_windows(tree_and_cache):
+    from sixthfinger.evaluation.runner import ersp_input
+
+    root, cache = tree_and_cache
+    md = pd.read_parquet(cache / "metadata.parquet")
+    settings = {"band_hz": [8.0, 13.0], "baseline_s": [-1.0, 0.0]}
+    with pytest.raises(ValueError, match="REST"):
+        ersp_input(md, load_data_config(), root, settings)
+    mi = md[(md.label > 0) & (md.session == "pre")]
+    rows, X = ersp_input(mi, load_data_config(), root, settings)
+    assert len(rows) == len(mi) and X.shape == (len(mi), 40, 1000)
+    assert rows.index.tolist() == list(range(len(rows)))

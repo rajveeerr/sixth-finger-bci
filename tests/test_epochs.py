@@ -164,3 +164,35 @@ def test_load_refuses_files_that_disagree_with_the_metadata(full_tree, tmp_path,
     np.savez(out / name, **arrays)
     with pytest.raises(RuntimeError, match="metadata"):
         epochs.load_windows(out, cfg)
+
+
+def test_recut_reproduces_the_cache_and_widens_it(full_tree, tmp_path, cfg):
+    out = tmp_path / "epochs"
+    epochs.build_all(cfg, full_tree, out, subjects=["sub-01"])
+    X, md = epochs.load_windows(out, cfg, subjects=["sub-01"])
+    keep, same = epochs.recut(md, cfg, full_tree, cfg.window.tmin, cfg.window.tmax)
+    assert keep.all() and np.array_equal(same, X)
+    keep, wide = epochs.recut(md, cfg, full_tree, -1.0, cfg.window.tmax)
+    assert keep.all() and wide.shape == (len(md), 40, 1500)
+    assert np.array_equal(wide[..., 500:], X)
+
+
+def test_recut_drops_a_window_whose_wider_span_crosses_a_boundary(tmp_path, cfg):
+    # The AH cue at sample 2000 keeps its cached window [2250, 3250), but the cut at
+    # 1899.5 falls in the second before the cue, inside the wider [1750, 3250).
+    events = [("1", 601), ("boundary", 1900.5), ("2", 2001), ("1", 4001), ("3", 5501)]
+    root = tmp_path / "processed"
+    write_eeglab_mat(root / "sub-01/pre/sub-01_B_pre_01_eeg.mat", events=events, n_times=8000)
+    rows = pd.DataFrame(
+        {
+            "subject": "sub-01",
+            "session": "pre",
+            "run": 1,
+            "trial_in_run": [1, 1, 2, 2],
+            "label": [0, 1, 0, 2],
+        }
+    )
+    keep, X = epochs.recut(rows, cfg, root, cfg.window.tmin, cfg.window.tmax)
+    assert keep.all()
+    keep, X = epochs.recut(rows, cfg, root, -1.0, cfg.window.tmax)
+    assert keep.tolist() == [True, False, True, True] and X.shape == (3, 40, 1500)

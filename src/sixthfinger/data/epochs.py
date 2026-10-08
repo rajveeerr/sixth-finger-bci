@@ -283,3 +283,54 @@ def load_windows(
     X = np.concatenate([p[0] for p in parts])
     md = pd.concat([p[1] for p in parts], ignore_index=True)
     return X, md
+
+
+def recut(
+    rows: pd.DataFrame,
+    cfg: DataConfig,
+    processed: Path,
+    tmin: float,
+    tmax: float,
+    mirror: bool = False,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Cut the events behind cached windows again over [tmin, tmax) s, never cached.
+
+    The wider window follows the cache's rules, so it is dropped when it crosses a
+    boundary or the edge of its run even if the cached window did not.
+
+    Args:
+        rows: metadata rows of cached windows (subject, session, run, trial_in_run, label).
+
+    Returns:
+        keep: (len(rows),) bool, False where the wider window was dropped, and
+        X: (keep.sum(), 40, n_times) float32 volts, in the order of the kept rows.
+    """
+    window = cfg.window.model_copy(update={"tmin": tmin, "tmax": tmax})
+    wide = cfg.model_copy(update={"window": window})
+    files = {(r.subject, r.session, int(r.run)): r.path for r in list_processed_runs(processed)}
+    cut: dict[tuple, np.ndarray] = {}
+    units = rows[["subject", "session", "run"]].drop_duplicates()
+    for subject, session, run in units.itertuples(index=False):
+        windows, _ = cut_run(files[(subject, session, int(run))], wide)
+        for x, label, trial, _ in windows:
+            cut[(subject, session, int(run), int(trial), int(label))] = x
+    keys = zip(
+        rows.subject,
+        rows.session,
+        rows.run.astype(int),
+        rows.trial_in_run.astype(int),
+        rows.label.astype(int),
+        strict=True,
+    )
+    found = [cut.get(k) for k in keys]
+    keep = np.array([x is not None for x in found], dtype=bool)
+    if not keep.any():
+        return keep, np.empty((0, len(cfg.channels.keep), wide.n_times), np.float32)
+    X = np.stack([x for x in found if x is not None])
+    if mirror:
+        subjects = rows.subject[keep].to_numpy()
+        for subject in np.unique(subjects):
+            X[subjects == subject] = mirror_if_needed(
+                X[subjects == subject], subject, cfg.channels.keep
+            )
+    return keep, X
