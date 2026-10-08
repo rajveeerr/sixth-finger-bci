@@ -374,6 +374,8 @@ def main() -> None:
     ap.add_argument("--summarise-only", action="store_true")
     args = ap.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s: %(message)s")
+    for noisy in ("fontTools", "httpx", "matplotlib"):
+        logging.getLogger(noisy).setLevel(logging.WARNING)
 
     paths = get_paths()
     data_dir = _use_data_dir(paths)

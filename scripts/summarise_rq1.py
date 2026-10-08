@@ -3,7 +3,7 @@
 uv run python scripts/summarise_rq1.py
 
 Reads results/runs/rq1_benchmark (and rq1_context when present); writes
-results/summary/rq1_{subject_values,table,stats,replica_check}.csv and
+results/summary/rq1_{subject_values,table,stats,replica_check,runtime}.csv and
 docs/figures/rq1_{leakage_paired,methods}.{pdf,png}.
 """
 
@@ -202,6 +202,17 @@ def replica_check(sv: pd.DataFrame, data_cfg) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
+def runtime_table(scores: pd.DataFrame) -> pd.DataFrame:
+    """Fit time per fold; the replica's pre-fit and FBCSP's filter bank run once per session
+    and are not in these numbers."""
+    return scores.groupby(["experiment", "method", "protocol"], as_index=False).agg(
+        n_fits=("fit_seconds", "size"),
+        total_fit_seconds=("fit_seconds", "sum"),
+        mean_fit_seconds=("fit_seconds", "mean"),
+        git_sha=("git_sha", lambda s: ",".join(sorted(set(s)))),
+    )
+
+
 def figures(sv: pd.DataFrame, out: Path) -> None:
     import matplotlib
 
@@ -274,6 +285,7 @@ def main() -> None:
     ap.add_argument("--no-figures", action="store_true")
     args = ap.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s: %(message)s")
+    logging.getLogger("fontTools").setLevel(logging.WARNING)
     paths, data_cfg, proto = get_paths(), load_data_config(), load_protocol_config()
     scores = load_scores(paths.runs)
     n_classes = {task: len(names) for task, names in proto.tasks.items()}
@@ -288,6 +300,7 @@ def main() -> None:
     replica_check(sv, data_cfg).to_csv(
         out / "rq1_replica_check.csv", index=False, float_format="%.6g"
     )
+    runtime_table(scores).to_csv(out / "rq1_runtime.csv", index=False, float_format="%.6g")
     h1 = stats[stats.test_id == "H1"].iloc[0]
     log.info(
         "H1: n=%d, inflation %.2f points [%.2f, %.2f], W=%s, p=%.3g -> %s",

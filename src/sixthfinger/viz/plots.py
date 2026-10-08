@@ -50,10 +50,10 @@ def reference_line(ax: plt.Axes, y: float, label: str) -> None:
         label,
         (1, y),
         xycoords=("axes fraction", "data"),
-        xytext=(-2, 2),
+        xytext=(-2, -2),
         textcoords="offset points",
         ha="right",
-        va="bottom",
+        va="top",
         fontsize=7,
         color=REFERENCE_GREY,
     )
