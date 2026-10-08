@@ -1,0 +1,3 @@
+dataset,n_files,download_gb,on_disk_gb,free_gb_now,free_gb_after_this,free_gb_after_all_listed,keep_free_gb,fits_with_margin,checked_at
+BNCI2014_001,18,0.78,0.0,7.779,6.999,6.999,10.0,False,2026-10-08T18:49:11+00:00
+Cho2017,52,10.704,0.0,7.779,-2.925,-3.705,10.0,False,2026-10-08T18:49:47+00:00
