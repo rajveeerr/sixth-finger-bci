@@ -6,9 +6,20 @@ from pathlib import Path
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 
 CLASS_COLORS = {"rest": "#7f7f7f", "affected_hand": "#1f77b4", "sixth_finger": "#d62728"}
 CLASS_SHORT = {"rest": "REST", "affected_hand": "AH", "sixth_finger": "SF"}
+ACCENT = "#1f77b4"
+SUBJECT_GREY = "#b8b8b8"
+REFERENCE_GREY = "#6f6f6f"
+PROTOCOL_LABELS = {
+    "paper_replica": "replica",
+    "cv_leakfree": "CV leak-free",
+    "loro": "leave-run-out",
+    "chrono": "chronological",
+}
 
 
 def use_style() -> None:
@@ -31,6 +42,50 @@ def save(fig: plt.Figure, out_dir: Path, name: str) -> None:
     fig.savefig(out_dir / f"{name}.pdf", bbox_inches="tight")
     fig.savefig(out_dir / f"{name}.png", bbox_inches="tight")
     plt.close(fig)
+
+
+def reference_line(ax: plt.Axes, y: float, label: str) -> None:
+    ax.axhline(y, color=REFERENCE_GREY, lw=0.8, zorder=1)
+    ax.annotate(
+        label,
+        (1, y),
+        xycoords=("axes fraction", "data"),
+        xytext=(-2, 2),
+        textcoords="offset points",
+        ha="right",
+        va="bottom",
+        fontsize=7,
+        color=REFERENCE_GREY,
+    )
+
+
+def protocol_lines(
+    ax: plt.Axes,
+    wide: pd.DataFrame,
+    protocols: list[str],
+    title: str,
+    chance: float,
+    ci: pd.DataFrame | None = None,
+) -> None:
+    """One thin grey line per subject across the protocols, the group mean on top.
+
+    wide: rows = subjects, columns = protocols, balanced accuracy. ci: optional rows =
+    protocols with columns ci_lo, ci_hi for the mean.
+    """
+    x = np.arange(len(protocols))
+    for _, row in wide[protocols].iterrows():
+        ax.plot(x, row.to_numpy(), color=SUBJECT_GREY, lw=0.8, alpha=0.8, zorder=2)
+    mean = wide[protocols].mean()
+    ax.plot(x, mean.to_numpy(), color=ACCENT, lw=2, marker="o", ms=5, zorder=4)
+    if ci is not None:
+        lo = mean - ci.loc[protocols, "ci_lo"]
+        hi = ci.loc[protocols, "ci_hi"] - mean
+        ax.errorbar(x, mean, yerr=[lo, hi], fmt="none", ecolor=ACCENT, lw=1.2, zorder=3)
+    reference_line(ax, chance, "chance")
+    ax.set_xticks(x, [PROTOCOL_LABELS.get(p, p) for p in protocols], rotation=20, ha="right")
+    ax.set_title(f"{title} (n = {len(wide)})")
+    ax.grid(axis="y", color="#e6e6e6", lw=0.6)
+    ax.set_axisbelow(True)
 
 
 def learning_curve(*args, **kwargs):
