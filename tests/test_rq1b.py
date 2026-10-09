@@ -51,3 +51,18 @@ def test_chrono_trains_on_the_first_half_of_the_runs(rq1b):
     assert n == 6 and all(len(set(md.run.iloc[te])) == 1 for _, te in splits)
     splits, n = rq1b.protocol_splits("cv_leakfree", md, proto)
     assert n == 10 and len(splits) == 100
+
+
+def test_blocks_of_one_class_leave_chrono_unfittable(rq1b):
+    # MOABB's Cho2017 stacks every left-hand trial before every right-hand one, so the
+    # four blocks hold one class each: chrono trains on left hands only (OQ-P06-1).
+    md, source = rq1b.session_metadata(_meta(["0"], 200), "Cho2017")
+    md["label"] = np.repeat([1, 2], 100)
+    proto = load_protocol_config()
+    chrono, _ = rq1b.protocol_splits("chrono", md, proto)
+    fit, one_class = rq1b.split_by_training_classes(list(enumerate(chrono)), md.label.to_numpy())
+    assert source == "blocks" and not fit and len(one_class) == 1
+    loro, _ = rq1b.protocol_splits("loro", md, proto)
+    fit, one_class = rq1b.split_by_training_classes(list(enumerate(loro)), md.label.to_numpy())
+    assert len(fit) == 4 and not one_class
+    assert all(len(set(md.label.iloc[te])) == 1 for _, (_, te) in fit)

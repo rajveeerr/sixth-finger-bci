@@ -25,6 +25,7 @@ import pandas as pd
 
 from sixthfinger.config import load_protocol_config
 from sixthfinger.evaluation.runner import (
+    METRIC_KEYS,
     ScoreWriter,
     completed_units,
     method_params,
@@ -83,6 +84,20 @@ def _file_urls(code: str, subjects: list[int]) -> list[str]:
     raise ValueError(f"No file list for {code}")
 
 
+def _content_length(requests, url: str, tries: int = 4) -> int:
+    # The GigaDB bucket answers slowly under load; a size check must not fail on one timeout.
+    for attempt in range(tries):
+        try:
+            head = requests.head(url, allow_redirects=True, timeout=180)
+            head.raise_for_status()
+            return int(head.headers["Content-Length"])
+        except requests.RequestException:
+            if attempt == tries - 1:
+                raise
+            log.warning("size of %s: attempt %d failed, retrying", url, attempt + 1)
+    raise AssertionError("unreachable")
+
+
 def download_sizes(codes: list[str], data_dir: Path, keep_free_gb: float) -> pd.DataFrame:
     """Bytes each dataset still has to download (HTTP Content-Length), against free disk."""
     import requests
@@ -94,9 +109,7 @@ def download_sizes(codes: list[str], data_dir: Path, keep_free_gb: float) -> pd.
         urls = _file_urls(code, list(_dataset(code).subject_list))
         sizes = []
         for url in urls:
-            head = requests.head(url, allow_redirects=True, timeout=60)
-            head.raise_for_status()
-            sizes.append(int(head.headers["Content-Length"]))
+            sizes.append(_content_length(requests, url))
         have = sum(present.get(u.rsplit("/", 1)[-1], 0) for u in urls)
         missing = sum(sizes) - have
         needed += missing
@@ -152,6 +165,16 @@ def protocol_splits(name: str, md: pd.DataFrame, proto) -> tuple[list, int]:
     runs = sorted(md.run.unique())
     half = len(runs) // 2
     return [chrono_split(md, [str(r) for r in runs[:half]], [str(r) for r in runs[half:]])], 1
+
+
+def split_by_training_classes(todo: list, y: np.ndarray) -> tuple[list, list]:
+    """Folds that can be fitted, and folds whose training part holds a single class.
+
+    A classifier cannot be fitted on one class; such a fold is written as missing with a
+    reason (protocol 4.2: never chance), which happens only where blocks hold one class.
+    """
+    fit = [(f, s) for f, s in todo if len(np.unique(y[s[0]])) > 1]
+    return fit, [(f, s) for f, s in todo if len(np.unique(y[s[0]])) <= 1]
 
 
 def run_dataset(code: str, subjects: list[int] | None, out_root: Path) -> Path:
@@ -211,8 +234,30 @@ def run_dataset(code: str, subjects: list[int] | None, out_root: Path) -> Path:
                         for fold, split in enumerate(splits)
                         if unit_key({**key, "fold": fold}) not in done
                     ]
+                    fit, one_class = split_by_training_classes(todo, md.label.to_numpy())
+                    common = dict(
+                        n_folds=n_folds,
+                        run_source=source,
+                        n_runs=int(md.run.nunique()),
+                        n_channels=Xs.shape[1],
+                        **provenance,
+                    )
+                    for fold, (tr, te) in one_class:
+                        writer.append(
+                            {
+                                **key,
+                                "fold": fold,
+                                **dict.fromkeys(METRIC_KEYS, np.nan),
+                                "n_train": len(tr),
+                                "n_test": len(te),
+                                **common,
+                                "reason": "training split holds one class",
+                                "created_at": datetime.now(UTC).isoformat(timespec="seconds"),
+                            }
+                        )
+                        n_new += 1
                     for fold, metrics, extra in score_folds(
-                        Xs, md.label.to_numpy(), md, todo, METHOD, params, classes, name, seed
+                        Xs, md.label.to_numpy(), md, fit, METHOD, params, classes, name, seed
                     ):
                         # The task has no sixth-finger class; the SF columns stay empty.
                         metrics.update(sf_recall=np.nan, sf_precision=np.nan, auc_sf=np.nan)
@@ -222,12 +267,8 @@ def run_dataset(code: str, subjects: list[int] | None, out_root: Path) -> Path:
                                 "fold": fold,
                                 **metrics,
                                 **extra,
-                                "n_folds": n_folds,
-                                "run_source": source,
-                                "n_runs": int(md.run.nunique()),
-                                "n_channels": Xs.shape[1],
+                                **common,
                                 "reason": None,
-                                **provenance,
                                 "created_at": datetime.now(UTC).isoformat(timespec="seconds"),
                             }
                         )
