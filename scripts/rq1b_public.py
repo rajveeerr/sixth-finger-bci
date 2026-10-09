@@ -290,6 +290,17 @@ def _our_dataset_h1(summary: Path) -> pd.DataFrame:
     return row.assign(dataset="Wang2026 stroke (this study, T1, pre)", role="reference")
 
 
+# Cho2017 has one run per session, cut into four blocks in MOABB's order (protocol 4.1b):
+# each leave-run-out test block holds one class and the chronological split cannot be fitted,
+# so these two protocols do not measure what they measure elsewhere.
+NOT_COMPARABLE = {
+    "Cho2017": {
+        "loro": "leave-run-out: one-class blocks, not comparable",
+        "chrono": "chronological: training split holds one class",
+    }
+}
+
+
 def summarise(out_root: Path, summary: Path, figures: Path) -> None:
     frames = [
         pd.read_parquet(p) for c in DATASETS if (p := out_root / c / "scores.parquet").exists()
@@ -348,7 +359,9 @@ def summarise(out_root: Path, summary: Path, figures: Path) -> None:
             ("loro - chrono", paired(w, "loro", "chrono")),
         ]
         adj = holm_family({c: r["p"] for c, r in desc})
+        blank = NOT_COMPARABLE.get(code, {})
         for comparison, res in desc:
+            involved = [p for p in blank if p in comparison.split(" - ")]
             stats.append(
                 dict(
                     test_id="descriptive",
@@ -357,6 +370,7 @@ def summarise(out_root: Path, summary: Path, figures: Path) -> None:
                     comparison=comparison,
                     **res,
                     p_holm=adj[comparison],
+                    note="; ".join(blank[p] for p in involved) or None,
                 )
             )
     stats = pd.DataFrame(stats)
@@ -386,16 +400,20 @@ def figure(per_subject: pd.DataFrame, per_session: pd.DataFrame, summary: Path, 
             & (sv.task == "T1_ah_vs_sf")
             & (sv.session == "pre")
         ]
-        panels.append(("Stroke, AH vs SF (ours, pre)", sv))
+        panels.append(("Stroke AH vs SF (ours, pre)", sv))
     for code, rows in per_subject.groupby("dataset"):
-        panels.append((f"{code}, left vs right", rows))
-    fig, axes = plt.subplots(1, len(panels), figsize=(2.4 * len(panels), 2.8), sharey=True)
+        panels.append((f"{code} left vs right", rows))
+    fig, axes = plt.subplots(1, len(panels), figsize=(2.9 * len(panels), 2.9), sharey=True)
     axes = np.atleast_1d(axes)
     for ax, (title, rows) in zip(axes, panels, strict=True):
         wide = rows.pivot_table(index="subject", columns="protocol", values="bal_acc")
         wide = wide.reindex(columns=WITHIN_PROTOCOLS)
         ci = pd.DataFrame([describe(wide[p]) for p in WITHIN_PROTOCOLS], index=WITHIN_PROTOCOLS)
-        protocol_lines(ax, wide, WITHIN_PROTOCOLS, title, chance=0.5, ci=ci)
+        code = title.split(" ")[0]
+        protocol_lines(
+            ax, wide, WITHIN_PROTOCOLS, title, chance=0.5, ci=ci,
+            not_comparable=NOT_COMPARABLE.get(code),
+        )  # fmt: skip
     axes[0].set_ylabel("Balanced accuracy (CSP+LDA)")
     axes[0].set_ylim(0.2, 1.0)
     save(fig, figures, "rq1b_leakage_public")

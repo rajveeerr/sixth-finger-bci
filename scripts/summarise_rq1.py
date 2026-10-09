@@ -224,8 +224,8 @@ def figures(sv: pd.DataFrame, out: Path) -> None:
     use_style()
     pre = sv[(sv.session == "pre") & (sv.task == H1_TASK)]
     panels = [
-        ("CSP+LDA, cached 5-35 Hz (H1)", "csp_lda", "bandpower"),
-        ("CSP+LDA replica, mu ERSP", "csp_lda_replica", "ersp_mu"),
+        ("CSP+LDA, 5-35 Hz (H1)", "csp_lda", "bandpower"),
+        ("Replica, mu ERSP", "csp_lda_replica", "ersp_mu"),
     ]
     fig, axes = plt.subplots(1, 2, figsize=(6.2, 3.0), sharey=True)
     for ax, (title, method, feature) in zip(axes, panels, strict=True):

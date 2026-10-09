@@ -66,13 +66,21 @@ def protocol_lines(
     title: str,
     chance: float,
     ci: pd.DataFrame | None = None,
+    not_comparable: dict[str, str] | None = None,
 ) -> None:
     """One thin grey line per subject across the protocols, the group mean on top.
 
     wide: rows = subjects, columns = protocols, balanced accuracy. ci: optional rows =
-    protocols with columns ci_lo, ci_hi for the mean.
+    protocols with columns ci_lo, ci_hi for the mean. not_comparable: protocols left blank
+    with a note, for a dataset where they do not measure the same thing.
     """
     x = np.arange(len(protocols))
+    blank = list(not_comparable or {})
+    wide = wide.reindex(columns=protocols).copy()
+    wide[blank] = np.nan
+    if ci is not None:
+        ci = ci.copy()
+        ci.loc[[p for p in blank if p in ci.index], ["ci_lo", "ci_hi"]] = np.nan
     for _, row in wide[protocols].iterrows():
         ax.plot(x, row.to_numpy(), color=SUBJECT_GREY, lw=0.8, alpha=0.8, zorder=2)
     mean = wide[protocols].mean()
@@ -83,7 +91,18 @@ def protocol_lines(
         ax.errorbar(x, mean, yerr=[lo, hi], fmt="none", ecolor=ACCENT, lw=1.2, zorder=3)
     reference_line(ax, chance, "chance")
     ax.set_xticks(x, [PROTOCOL_LABELS.get(p, p) for p in protocols], rotation=20, ha="right")
-    ax.set_title(f"{title} (n = {len(wide)})")
+    ax.set_title(f"{title} (n = {len(wide)})", fontsize=8)
+    if not_comparable:
+        ax.text(
+            0.98,
+            0.04,
+            "\n".join(not_comparable.values()),
+            transform=ax.transAxes,
+            fontsize=6,
+            color="#6f6f6f",
+            ha="right",
+            va="bottom",
+        )
     ax.grid(axis="y", color="#e6e6e6", lw=0.6)
     ax.set_axisbelow(True)
 
