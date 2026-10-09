@@ -1,0 +1,8 @@
+test_id,dataset,role,comparison,n,n_nonzero,median_diff,mean_diff,ci_lo,ci_hi,W,p,r_rb,alternative,p_holm,note,h1b_category,task,method,feature,session,population,category,same_category_as_pre
+H1b,BNCI2014_001,confirmatory,paper_replica - cv_leakfree,9,9,8.12946,8.63194,4.12465,13.406,45,0.00195312,1,greater,0.00195312,,supported,,,,,,,
+H1b,Cho2017,confirmatory,paper_replica - cv_leakfree,52,52,10.25,11.8535,9.8009,14.0469,1378,1.75193e-10,1,greater,3.50386e-10,,supported,,,,,,,
+descriptive,BNCI2014_001,descriptive,cv_leakfree - loro,9,9,0.556548,-0.303296,-1.95816,1.27623,21,0.910156,-0.0666667,two-sided,0.910156,,,,,,,,,
+descriptive,BNCI2014_001,descriptive,loro - chrono,9,9,2.08333,2.5463,0.154321,5.74942,8,0.09375,0.644444,two-sided,0.1875,,,,,,,,,
+descriptive,Cho2017,descriptive,cv_leakfree - loro,52,52,53.575,52.8819,49.394,56.0372,0,3.50313e-10,1,two-sided,7.00627e-10,"leave-run-out: one-class blocks, not comparable",,,,,,,,
+descriptive,Cho2017,descriptive,loro - chrono,0,0,,,,,,,,two-sided,1,"leave-run-out: one-class blocks, not comparable; chronological: training split holds one class",,,,,,,,
+H1,"Wang2026 stroke (this study, T1, pre)",reference,paper_replica - cv_leakfree,22,22,20.375,22.6258,17.6555,27.7898,253,2.38419e-07,1,greater,2.38419e-07,,,T1_ah_vs_sf,csp_lda,bandpower,pre,all,supported,True
