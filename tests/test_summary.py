@@ -75,6 +75,13 @@ def test_paired_reports_points():
     assert res["mean_diff"] == pytest.approx(100 * (wide.a[:6].mean() - 0.5))
 
 
+def test_paired_without_any_defined_pair_is_empty_not_an_error():
+    # Cho2017's chrono cells are all declared missing, so pivot_table drops the column.
+    wide = pd.DataFrame({"loro": [0.6, 0.7, 0.8]}, index=["s1", "s2", "s3"])
+    res = paired(wide, "loro", "chrono")
+    assert res["n"] == 0 and np.isnan(res["p"]) and np.isnan(res["mean_diff"])
+
+
 def test_holm_family_keeps_a_member_that_was_not_run():
     adj = holm_family({"BNCI2014_001": 0.004, "Cho2017": None})
     assert adj == {"BNCI2014_001": pytest.approx(0.008), "Cho2017": 1.0}

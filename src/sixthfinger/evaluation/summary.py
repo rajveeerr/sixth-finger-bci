@@ -62,7 +62,23 @@ def paired(
 
     Differences and their CI are multiplied by `scale` (points of balanced accuracy).
     """
-    both = wide[[a, b]].dropna()
+    # A protocol whose cells are all declared missing (Cho2017 chrono) has no column at all
+    # after pivot_table; it is a comparison with no pairs, not an error.
+    both = wide.reindex(columns=[a, b]).dropna()
+    if both.empty:
+        nan = float("nan")
+        return {
+            "n": 0,
+            "n_nonzero": 0,
+            "median_diff": nan,
+            "mean_diff": nan,
+            "ci_lo": nan,
+            "ci_hi": nan,
+            "W": nan,
+            "p": nan,
+            "r_rb": nan,
+            "alternative": alternative,
+        }
     res = paired_test(both[a].to_numpy(), both[b].to_numpy(), alternative=alternative)
     for k in ("median_diff", "mean_diff", "ci_lo", "ci_hi"):
         res[k] *= scale

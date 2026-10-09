@@ -393,6 +393,7 @@ def figure(per_subject: pd.DataFrame, per_session: pd.DataFrame, summary: Path, 
     axes = np.atleast_1d(axes)
     for ax, (title, rows) in zip(axes, panels, strict=True):
         wide = rows.pivot_table(index="subject", columns="protocol", values="bal_acc")
+        wide = wide.reindex(columns=WITHIN_PROTOCOLS)
         ci = pd.DataFrame([describe(wide[p]) for p in WITHIN_PROTOCOLS], index=WITHIN_PROTOCOLS)
         protocol_lines(ax, wide, WITHIN_PROTOCOLS, title, chance=0.5, ci=ci)
     axes[0].set_ylabel("Balanced accuracy (CSP+LDA)")
