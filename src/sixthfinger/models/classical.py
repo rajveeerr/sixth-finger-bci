@@ -14,6 +14,7 @@ from mne.decoding import CSP
 from pyriemann.classification import MDM
 from pyriemann.estimation import Covariances
 from pyriemann.tangentspace import TangentSpace
+from scipy.linalg import LinAlgError
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.feature_selection import SelectKBest, mutual_info_classif
@@ -21,7 +22,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import Pipeline, make_pipeline
 from sklearn.svm import SVC
 
-from sixthfinger.models.registry import PipelineMethod, register
+from sixthfinger.models.registry import PipelineMethod, UndefinedCell, register
 from sixthfinger.preprocessing.filters import FilterBank
 
 # MNE logs a few lines per CSP fit; an RQ1 run makes tens of thousands of fits.
@@ -31,8 +32,24 @@ mne.set_log_level("ERROR")
 warnings.filterwarnings("ignore", message="The `probability` parameter", category=FutureWarning)
 
 
+class UnregularisedCSP(CSP):
+    """CSP without shrinkage, as the pre-registration fixes it for the replica.
+
+    It solves a generalised eigenproblem whose second matrix, the summed class covariance,
+    must be positive definite. On a training set that has lost a dimension (sub-18 post with
+    run 02 held out) it is not, and the method has no answer there: that cell is undefined.
+    """
+
+    def fit(self, X, y):
+        try:
+            return super().fit(X, y)
+        except LinAlgError as err:
+            raise UndefinedCell(f"unregularised CSP undefined: {err}") from err
+
+
 def _csp(p: dict) -> CSP:
-    return CSP(n_components=p["n_components"], reg=p["reg"], log=p["log"])
+    cls = UnregularisedCSP if p["reg"] is None else CSP
+    return cls(n_components=p["n_components"], reg=p["reg"], log=p["log"])
 
 
 def _lda(p: dict) -> LinearDiscriminantAnalysis:

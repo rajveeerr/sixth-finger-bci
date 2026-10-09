@@ -201,3 +201,69 @@ def test_filter_bank_once_per_session_gives_the_same_folds():
         method = make_method("fbcsp_lda", n_classes=2, **p).fit(Batch(X[tr], y[tr], md.iloc[tr]))
         pred = np.array([1, 2])[method.predict_proba(X[te]).argmax(axis=1)]
         assert metrics["acc"] == (pred == y[te]).mean(), fold
+
+
+def _csp_that_fails(monkeypatch):
+    # The real failure is borderline: MNE judges the summed covariance full rank and then its
+    # Cholesky factor breaks (sub-18 post, run 02 held out). Synthetic data cannot sit on that
+    # edge reliably, so the factorisation error is raised directly.
+    from mne.decoding import CSP
+    from scipy.linalg import LinAlgError
+
+    def fail(self, X, y):
+        raise LinAlgError("The leading minor of order 40 of B is not positive definite.")
+
+    monkeypatch.setattr(CSP, "fit", fail)
+
+
+def test_unregularised_csp_declares_a_failed_factorisation_undefined(monkeypatch):
+    from sixthfinger.models.classical import _csp
+    from sixthfinger.models.registry import UndefinedCell
+
+    X, y, _ = _planted()
+    _csp_that_fails(monkeypatch)
+    with pytest.raises(UndefinedCell, match="unregularised CSP undefined"):
+        _csp({"n_components": 4, "reg": None, "log": True}).fit(X, y)
+    # With shrinkage nothing is declared: a failure there would be a bug and must surface.
+    with pytest.raises(Exception, match="leading minor") as err:
+        _csp({"n_components": 4, "reg": "ledoit_wolf", "log": True}).fit(X, y)
+    assert not isinstance(err.value, UndefinedCell)
+
+
+@pytest.mark.parametrize("protocol", ["cv_leakfree", "paper_replica"])
+def test_runner_writes_an_undefined_fold_as_missing_with_its_reason(monkeypatch, protocol):
+    from sixthfinger.evaluation.runner import score_folds
+
+    X, y, md = _planted()
+    tr, te = _split(y)
+    _csp_that_fails(monkeypatch)
+    params = {"csp": {"n_components": 4, "reg": None, "log": True}, "lda": {}}
+    rows = list(score_folds(X, y, md, [(0, (tr, te))], "csp_lda", params, [1, 2], protocol, 0))
+    assert len(rows) == 1
+    fold, metrics, extra = rows[0]
+    assert fold == 0 and metrics is None
+    assert extra["reason"].startswith("unregularised CSP undefined")
+
+
+@pytest.mark.real_data
+def test_replica_is_undefined_on_three_sub18_post_folds():
+    # Found by replaying every honest CSP fold of the unfinished sessions on 2026-10-10: only
+    # these three cv_leakfree folds fail, all of them for the unregularised replica.
+    from sixthfinger.config import load_protocol_config
+    from sixthfinger.data.epochs import load_windows
+    from sixthfinger.evaluation.runner import ersp_input, within_splits
+    from sixthfinger.models.registry import UndefinedCell
+
+    paths, cfg = get_paths(), load_data_config()
+    params = _params("csp_lda_replica")
+    _, md = load_windows(paths.epochs, cfg, subjects=["sub-18"], sessions=["post"], labels=[1, 2])
+    md, X = ersp_input(md.reset_index(drop=True), cfg, paths.processed, params["ersp_mu"])
+    y = md.label.to_numpy()
+    splits, _ = within_splits("cv_leakfree", md, load_protocol_config())
+    for fold in (5, 14, 55):
+        tr, _te = splits[fold]
+        method = make_method("csp_lda_replica", n_classes=2, **params)
+        with pytest.raises(UndefinedCell):
+            method.fit(Batch(X[tr], y[tr], md.iloc[tr]))
+    tr, _te = splits[0]
+    make_method("csp_lda_replica", n_classes=2, **params).fit(Batch(X[tr], y[tr], md.iloc[tr]))

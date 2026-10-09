@@ -10,6 +10,11 @@ import pandas as pd
 from sklearn.pipeline import Pipeline
 
 
+class UndefinedCell(Exception):
+    """The method is not defined on this training data; the runner writes the cell as missing
+    with this message as its reason, never as a score (protocol 4.2: declared, not dropped)."""
+
+
 @dataclass
 class Batch:
     X: np.ndarray  # (n, 40, n_times) float32, volts

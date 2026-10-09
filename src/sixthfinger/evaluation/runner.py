@@ -42,7 +42,7 @@ from sixthfinger.evaluation.splits import (
     n_cv_folds,
     paper_replica_splits,
 )
-from sixthfinger.models.registry import REGISTRY, Batch, make_method
+from sixthfinger.models.registry import REGISTRY, Batch, UndefinedCell, make_method
 from sixthfinger.paths import current_git_sha, get_paths
 from sixthfinger.preprocessing.filters import ersp_db
 
@@ -375,7 +375,12 @@ def score_folds(
         if not hasattr(method, "build"):
             raise TypeError(f"{method_name} has no build(); paper_replica cannot split it")
         pipe = method.build()
-        features, head = pipe[:-1].fit_transform(X, y), pipe[-1]
+        try:
+            features, head = pipe[:-1].fit_transform(X, y), pipe[-1]
+        except UndefinedCell as err:
+            for fold, (tr, te) in todo:
+                yield fold, None, dict(n_train=len(tr), n_test=len(te), reason=str(err))
+            return
     elif n_front:
         # Leading steps without fitted parameters (FBCSP's filter bank) give each window the
         # same output in every fold, so they run once; the rest is fitted per fold as usual.
@@ -386,13 +391,17 @@ def score_folds(
     for fold, (tr, te) in todo:
         assert_no_leakage(md.iloc[tr], md.iloc[te])
         t0 = time.perf_counter()
-        if head is not None:
-            model = clone(head).fit(features[tr], y[tr])
-            proba = model.predict_proba(features[te])
-        else:
-            method = make_method(method_name, n_classes=len(classes), **params)
-            method.fit(Batch(X[tr], y[tr], md.iloc[tr]), seed=seed)
-            proba = method.predict_proba(X[te])
+        try:
+            if head is not None:
+                model = clone(head).fit(features[tr], y[tr])
+                proba = model.predict_proba(features[te])
+            else:
+                method = make_method(method_name, n_classes=len(classes), **params)
+                method.fit(Batch(X[tr], y[tr], md.iloc[tr]), seed=seed)
+                proba = method.predict_proba(X[te])
+        except UndefinedCell as err:
+            yield fold, None, dict(n_train=len(tr), n_test=len(te), reason=str(err))
+            continue
         fit_seconds = time.perf_counter() - t0
         _check_proba(proba, len(te), classes, method_name)
         extra = dict(n_train=len(tr), n_test=len(te), fit_seconds=fit_seconds)
