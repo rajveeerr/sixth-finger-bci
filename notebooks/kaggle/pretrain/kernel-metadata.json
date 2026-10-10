@@ -1,0 +1,13 @@
+{
+  "id": "rajveeerr/sixth-finger-bci-pretrain",
+  "title": "sixth-finger-bci-pretrain",
+  "code_file": "pretrain_kernel.py",
+  "language": "python",
+  "kernel_type": "script",
+  "is_private": true,
+  "enable_gpu": true,
+  "enable_internet": true,
+  "dataset_sources": ["rajveeerr/sixth-finger-bci-code", "rajveeerr/sixth-finger-bci-epochs"],
+  "competition_sources": [],
+  "kernel_sources": []
+}
