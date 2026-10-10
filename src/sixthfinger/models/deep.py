@@ -208,7 +208,8 @@ def pretrain_loso(
     out_dir.mkdir(parents=True, exist_ok=True)
     name = pretrained_name(target, mirror, aligned)
     tmp = out_dir / f"{name}.tmp"
-    torch.save(clf.module_.state_dict(), tmp)
+    # CPU tensors, so a model trained on a Kaggle GPU loads on the Mac without a map_location.
+    torch.save({k: v.detach().cpu() for k, v in clf.module_.state_dict().items()}, tmp)
     tmp.replace(out_dir / name)
     history = [
         {k: h.get(k) for k in ("epoch", "train_loss", "valid_loss", "valid_acc")}

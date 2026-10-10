@@ -123,7 +123,7 @@ def zero_shot(models: Path, summary: Path) -> pd.DataFrame | None:
         ref = ((md.label == 0) & runs.isin(pool)).to_numpy()  # the declared k = 0 set
         te = runs.isin(test).to_numpy()
         net = build_module(cfg, X.shape[1], 3, X.shape[2])
-        net.load_state_dict(torch.load(weights, weights_only=True))
+        net.load_state_dict(torch.load(weights, weights_only=True, map_location="cpu"))
         net.eval()
         x = align(X[te], reference_matrix(X[ref])) * cfg["input_scale"]
         with torch.no_grad():
