@@ -303,3 +303,12 @@ def test_ersp_input_refuses_rest_windows(tree_and_cache):
     rows, X = ersp_input(mi, load_data_config(), root, settings)
     assert len(rows) == len(mi) and X.shape == (len(mi), 40, 1000)
     assert rows.index.tolist() == list(range(len(rows)))
+
+
+def test_within_session_seeds_are_separate_units(cache, tmp_path):
+    cfg = _config(tmp_path, name="seeded", within_protocols=["chrono"], seeds=[0, 1, 2])
+    scores = pd.read_parquet(_run(cfg, cache, tmp_path, methods=["smoke_logvar_lda"]))
+    assert sorted(scores.draw.unique()) == ["0", "1", "2"]
+    assert len(scores) == 2 * 3  # two subjects, one chrono split, three seeds
+    again = pd.read_parquet(_run(cfg, cache, tmp_path, methods=["smoke_logvar_lda"]))
+    assert len(again) == len(scores) and not again.duplicated(UNIT_KEYS).any()

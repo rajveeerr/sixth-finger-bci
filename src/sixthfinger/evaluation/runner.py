@@ -92,6 +92,10 @@ class ExperimentConfig(Strict):
     scenarios: list[str] = Field(default_factory=list)
     k_grid: list[int] | Literal["from_protocol"] = "from_protocol"
     draws: int | Literal["from_protocol"] = "from_protocol"
+    # Training seeds of a within-session experiment (deep training is noisy: P07 reports
+    # the mean over a fixed set). Each seed is its own unit, stored as `draw`; without
+    # seeds every fold is fitted once with the protocol's seed_base and `draw` stays empty.
+    seeds: list[int] | None = None
 
 
 def load_experiment(path: Path, proto: ProtocolConfig) -> ExperimentConfig:
@@ -467,7 +471,7 @@ def iter_within_job(
     processed: Path | None,
 ) -> Iterator[tuple[dict, dict, dict]]:
     """Every protocol and method of one job; yields (unit key, metrics, extra) per fold."""
-    seed = proto.calibration.seed_base
+    seeds = exp.seeds or [proto.calibration.seed_base]
     inputs: dict[tuple[str, str], tuple[pd.DataFrame, np.ndarray]] = {}
     splits: dict[tuple, tuple[list[Split], int]] = {}
     for proto_name in exp.within_protocols:
@@ -485,30 +489,31 @@ def iter_within_job(
             if (proto_name, input_id) not in splits:
                 splits[(proto_name, input_id)] = within_splits(proto_name, md, proto)
             fold_splits, n_folds = splits[(proto_name, input_id)]
-            key = dict(
-                experiment=exp.name,
-                protocol=proto_name,
-                scenario=None,
-                task=job.task,
-                method=method_name,
-                feature=feature,
-                subject=job.subject,
-                session=job.session,
-                k=None,
-                draw=None,
-            )
-            todo = [
-                (fold, split)
-                for fold, split in enumerate(fold_splits)
-                if unit_key({**key, "fold": fold}) not in job.done
-            ]
-            if not todo:
-                continue
             y = md.label.to_numpy()
-            for fold, metrics, extra in score_folds(
-                X, y, md, todo, method_name, params[method_name], job.classes, proto_name, seed
-            ):
-                yield {**key, "fold": fold}, metrics, {**extra, "n_folds": n_folds}
+            for seed in seeds:
+                key = dict(
+                    experiment=exp.name,
+                    protocol=proto_name,
+                    scenario=None,
+                    task=job.task,
+                    method=method_name,
+                    feature=feature,
+                    subject=job.subject,
+                    session=job.session,
+                    k=None,
+                    draw=str(seed) if exp.seeds else None,
+                )
+                todo = [
+                    (fold, split)
+                    for fold, split in enumerate(fold_splits)
+                    if unit_key({**key, "fold": fold}) not in job.done
+                ]
+                if not todo:
+                    continue
+                for fold, metrics, extra in score_folds(
+                    X, y, md, todo, method_name, params[method_name], job.classes, proto_name, seed
+                ):
+                    yield {**key, "fold": fold}, metrics, {**extra, "n_folds": n_folds}
 
 
 def run_within_job(job: WithinJob, **kwargs) -> list[tuple[dict, dict, dict]]:
