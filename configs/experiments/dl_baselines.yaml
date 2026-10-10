@@ -1,0 +1,13 @@
+# P07 step 4.3: EEGNet trained on one session of one patient only, under the run-level
+# protocols. Descriptive (no hypothesis rests on it): it shows how far a network gets on
+# about 80 imagery windows before any transfer. Deep training is noisy, so every fold is
+# fitted with three fixed seeds and the mean is reported, never the best.
+name: dl_baselines
+protocol: within_session
+within_protocols: [chrono, loro]
+features: [bandpower]
+tasks: [T1_ah_vs_sf, T2_rest_ah_sf, T3_sf_vs_rest]
+sessions: [pre]
+subjects: all
+methods: [eegnet_scratch]
+seeds: [0, 1, 2]
