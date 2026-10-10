@@ -75,6 +75,8 @@ def baselines(runs: Path, summary: Path) -> pd.DataFrame:
             rows.append(dict(task=task, protocol=protocol, method=m, **describe(c),
                              chance=1 / len(TASKS[task]),
                              eegnet_minus_points=res["mean_diff"] * 100,
+                             diff_ci_lo_points=res["ci_lo"] * 100,
+                             diff_ci_hi_points=res["ci_hi"] * 100,
                              paired_p_two_sided=res["p"], paired_n=res["n"]))  # fmt: skip
     table = pd.DataFrame(rows)
     table.to_csv(summary / "dl_baselines_table.csv", index=False, float_format="%.6g")
