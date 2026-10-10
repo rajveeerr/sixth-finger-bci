@@ -16,7 +16,6 @@ from __future__ import annotations
 import argparse
 import json
 import logging
-import shutil
 from pathlib import Path
 
 import matplotlib
@@ -87,7 +86,8 @@ def pretraining(models: Path, summary: Path, audit: Path, figures: Path) -> None
     if not manifest_path.exists():
         log.warning("no pre-training manifest yet")
         return
-    shutil.copyfile(manifest_path, audit / "pretrain_manifest.json")
+    # The Kaggle manifest predates write_manifest's trailing newline; the hook wants one.
+    (audit / "pretrain_manifest.json").write_text(manifest_path.read_text().rstrip("\n") + "\n")
     m = json.loads(manifest_path.read_text())
     rows = [
         {k: e[k] for k in ("file", "target", "epochs_run", "best_epoch", "best_valid_loss",

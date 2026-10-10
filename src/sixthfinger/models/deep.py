@@ -248,5 +248,5 @@ def write_manifest(entries: list[dict], path: Path) -> None:
     old = json.loads(path.read_text()) if path.exists() else {}
     old.update({e["file"]: e for e in entries})
     tmp = path.with_suffix(".tmp")
-    tmp.write_text(json.dumps(dict(sorted(old.items())), indent=2))
+    tmp.write_text(json.dumps(dict(sorted(old.items())), indent=2) + "\n")
     tmp.replace(path)
