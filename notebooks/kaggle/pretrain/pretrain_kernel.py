@@ -8,6 +8,7 @@ The models and their manifest are this notebook's output.
 
 import glob
 import os
+import shutil
 import subprocess
 import sys
 import tarfile
@@ -16,13 +17,29 @@ from pathlib import Path
 TARGETS = os.environ.get("TARGETS", "").split()  # empty: every subject
 MAX_EPOCHS = os.environ.get("MAX_EPOCHS", "")  # set only for a smoke run
 
-code = glob.glob("/kaggle/input/**/code.tar.gz", recursive=True)[0]
-epochs_dir = Path(glob.glob("/kaggle/input/**/metadata.parquet", recursive=True)[0]).parent
+
+def find(name: str) -> list[Path]:
+    return sorted(Path(p) for p in glob.glob(f"/kaggle/input/**/{name}", recursive=True))
+
+
+for path in sorted(Path("/kaggle/input").glob("*/*"))[:20]:
+    print("input:", path)
+epochs_dir = find("metadata.parquet")[0].parent
 repo = Path("/kaggle/working/repo")
-repo.mkdir(parents=True, exist_ok=True)
-with tarfile.open(code) as tar:
-    tar.extractall(repo, filter="data")
-sha = (repo / "GIT_SHA").read_text().strip()
+# Kaggle unpacks an uploaded archive into a folder; the archive itself may or may not remain.
+archives = find("code.tar.gz") + find("code.tar")
+if archives:
+    repo.mkdir(parents=True, exist_ok=True)
+    with tarfile.open(archives[0]) as tar:
+        tar.extractall(repo, filter="data")
+else:
+    snapshot = [
+        p.parent for p in find("pyproject.toml") if (p.parent / "src" / "sixthfinger").is_dir()
+    ]
+    shutil.copytree(snapshot[0], repo, dirs_exist_ok=True)
+sha_files = [repo / "GIT_SHA", *find("GIT_SHA")]
+sha = next(p for p in sha_files if p.exists()).read_text().strip()
+print("code at", sha, "epochs in", epochs_dir)
 
 pins = ["braindecode==1.8.1", "mne==1.13.2", "pyriemann==0.12", "pymatreader", "typer"]
 subprocess.run([sys.executable, "-m", "pip", "install", "-q", *pins], check=True)
