@@ -39,7 +39,8 @@ def use_style() -> None:
 
 def save(fig: plt.Figure, out_dir: Path, name: str) -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
-    fig.savefig(out_dir / f"{name}.pdf", bbox_inches="tight")
+    # No creation date, so re-running a script leaves an unchanged figure unchanged in git.
+    fig.savefig(out_dir / f"{name}.pdf", bbox_inches="tight", metadata={"CreationDate": None})
     fig.savefig(out_dir / f"{name}.png", bbox_inches="tight")
     plt.close(fig)
 
