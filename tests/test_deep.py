@@ -101,7 +101,8 @@ def test_pretraining_never_sees_the_target_or_its_linked_partner(tmp_path):
     X, md = _cohort(data_cfg.subjects.ids)
     cfg = _params("eegnet_ea_ft", device="cpu")
     cfg["pretrain"] = {**cfg["pretrain"], "max_epochs": 2}
-    entry = deep.pretrain_loso("sub-21", cfg, X, md, data_cfg, tmp_path)
+    ready = deep.prepare_inputs(X, md.subject.to_numpy(), cfg, aligned=True)
+    entry = deep.pretrain_loso("sub-21", cfg, ready, md, data_cfg, tmp_path)
     used = set(entry["train_subjects"]) | set(entry["validation_subjects"])
     assert "sub-21" not in used and "sub-22" not in used  # linked pair
     assert len(entry["validation_subjects"]) == 3
@@ -118,5 +119,18 @@ def test_pretraining_refuses_a_target_inside_its_sources(tmp_path, monkeypatch):
     monkeypatch.setattr(
         deep, "pretrain_sources", lambda target, data_cfg: list(data_cfg.subjects.ids)
     )
+    ready = deep.prepare_inputs(X, md.subject.to_numpy(), cfg, aligned=False)
     with pytest.raises(AssertionError, match="own pre-training data"):
-        deep.pretrain_loso("sub-07", cfg, X, md, data_cfg, tmp_path)
+        deep.pretrain_loso("sub-07", cfg, ready, md, data_cfg, tmp_path)
+
+
+def test_inputs_are_aligned_per_subject_then_scaled_to_microvolts():
+    X, md = _cohort(["sub-01", "sub-03"])
+    cfg = _params("eegnet_ea_ft")
+    ready = deep.prepare_inputs(X, md.subject.to_numpy(), cfg, aligned=True)
+    for s in ("sub-01", "sub-03"):
+        A = ready[(md.subject == s).to_numpy()].astype(np.float64) / cfg["input_scale"]
+        w = np.linalg.eigvalsh(np.einsum("nct,ndt->cd", A, A) / (A.shape[0] * A.shape[-1]))
+        np.testing.assert_allclose(w, 1.0, atol=1e-3)
+    raw = deep.prepare_inputs(X, md.subject.to_numpy(), cfg, aligned=False)
+    np.testing.assert_allclose(raw, X * 1e6, rtol=1e-6)

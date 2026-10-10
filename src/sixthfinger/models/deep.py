@@ -152,10 +152,21 @@ def pretrain_sources(target: str, data_cfg: DataConfig) -> list[str]:
     return [s for s in data_cfg.subjects.ids if data_cfg.split_group(s) != group]
 
 
+def prepare_inputs(X: np.ndarray, subjects: np.ndarray, cfg: dict, aligned: bool) -> np.ndarray:
+    """Network input for every window: aligned per subject if asked, then in microvolts.
+
+    A subject's reference uses all of that subject's windows (pre-registration 3.6), so it
+    does not depend on which subject is the target: compute it once for all 24 models.
+    """
+    if aligned:
+        X = align_by_subject(X, subjects)
+    return (X * cfg["input_scale"]).astype(np.float32)
+
+
 def pretrain_loso(
     target: str,
     cfg: dict,
-    X_all: np.ndarray,
+    X_ready: np.ndarray,
     md_all: pd.DataFrame,
     data_cfg: DataConfig,
     out_dir: Path,
@@ -164,10 +175,9 @@ def pretrain_loso(
 ) -> dict:
     """Pre-train one EEGNet for one target on every other subject (three classes, T2).
 
-    X_all: (n, 40, n_times) volts with md_all rows aligned; mirroring is already applied by
-    the caller when `mirror` is set. Each source subject is aligned with its own reference
-    over all of its windows (pre-registration 3.6). Three source subjects, drawn with the
-    recipe's seed, are held out for early stopping. Returns the manifest entry.
+    X_ready: network input from `prepare_inputs` (aligned per subject when `aligned`,
+    mirrored by the caller when `mirror`), rows aligned with md_all. Three source subjects,
+    drawn with the recipe's seed, are held out for early stopping. Returns the manifest entry.
     """
     p = cfg["pretrain"]
     sources = pretrain_sources(target, data_cfg)
@@ -179,17 +189,13 @@ def pretrain_loso(
     used = set(subjects[tr | va])
     if data_cfg.split_group(target) in {data_cfg.split_group(s) for s in used}:
         raise AssertionError(f"{target} or a linked subject is in its own pre-training data")
-    X = X_all[tr | va]
-    if aligned:
-        X = align_by_subject(X, subjects[tr | va])
-    X = (X * cfg["input_scale"]).astype(np.float32)
-    y = md_all.label.to_numpy()[tr | va]
-    in_tr = tr[tr | va]
-    valid = Dataset(X[~in_tr], y[~in_tr])
+    y_all = md_all.label.to_numpy()
+    X, y = X_ready[tr], y_all[tr]
+    valid = Dataset(X_ready[va], y_all[va])
     clf = make_classifier(
         cfg,
         X.shape[1],
-        len(np.unique(y)),
+        len(np.unique(y_all[tr | va])),
         X.shape[2],
         p["max_epochs"],
         valid=valid,
@@ -197,7 +203,7 @@ def pretrain_loso(
         seed=p["seed"],
     )
     t0 = time.perf_counter()
-    clf.fit(X[in_tr], y[in_tr])
+    clf.fit(X, y)
     seconds = time.perf_counter() - t0
     out_dir.mkdir(parents=True, exist_ok=True)
     name = pretrained_name(target, mirror, aligned)
@@ -224,8 +230,8 @@ def pretrain_loso(
         "aligned": aligned,
         "train_subjects": train_subjects,
         "validation_subjects": val_subjects,
-        "n_train_windows": int(in_tr.sum()),
-        "n_valid_windows": int((~in_tr).sum()),
+        "n_train_windows": int(tr.sum()),
+        "n_valid_windows": int(va.sum()),
         "epochs_run": len(history),
         "best_epoch": best["epoch"],
         "best_valid_loss": best["valid_loss"],
