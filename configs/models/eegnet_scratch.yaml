@@ -1,0 +1,10 @@
+# Recipe fixed in the pre-registration (section 3.6) before prereg-v1.
+method: eegnet_scratch
+architecture: EEGNet          # braindecode 1.8.1; EEGNetv4 is an alias
+architecture_params: {}       # braindecode defaults: F1=8, D=2, F2=16, kernel_length=64, drop_prob=0.25
+input_scale: 1.0e+6           # volts to microvolts before the network
+optimizer: {name: AdamW, lr: 1.0e-3, weight_decay: 1.0e-3}
+batch_size: 32
+scheduler: CosineAnnealingLR
+max_epochs: 150
+device: auto                  # cuda > mps > cpu

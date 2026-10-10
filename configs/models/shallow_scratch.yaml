@@ -1,0 +1,10 @@
+# Optional second architecture (Schirrmeister et al. 2017); never in a confirmatory comparison.
+method: shallow_scratch
+architecture: ShallowFBCSPNet
+architecture_params: {}
+input_scale: 1.0e+6
+optimizer: {name: AdamW, lr: 6.25e-4, weight_decay: 0.0}
+batch_size: 32
+scheduler: CosineAnnealingLR
+max_epochs: 150
+device: auto

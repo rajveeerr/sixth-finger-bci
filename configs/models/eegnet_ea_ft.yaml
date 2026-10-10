@@ -1,0 +1,15 @@
+# Pre-registration 3.6: Euclidean alignment per subject, EEGNet pre-trained per target on all
+# source subjects, then every layer fine-tuned on the target windows. The pre-training part is
+# used in P07; the fine-tuning lr and epochs are chosen in P08 from the grid below by the
+# pre-registered rule (DECISIONS 44) and added here as finetune_lr and finetune_epochs.
+method: eegnet_ea_ft
+architecture: EEGNet
+architecture_params: {}
+input_scale: 1.0e+6
+optimizer: {name: AdamW, lr: 1.0e-3, weight_decay: 1.0e-3}
+batch_size: 32
+scheduler: CosineAnnealingLR
+device: auto
+alignment: {rel_floor: 1.0e-6}
+pretrain: {max_epochs: 150, early_stopping_patience: 20, validation_subjects: 3, seed: 0}
+finetune_grid: {lr: [1.0e-4, 3.0e-4], epochs: [20, 50]}
