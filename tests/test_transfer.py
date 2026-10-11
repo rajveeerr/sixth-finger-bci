@@ -103,7 +103,8 @@ def test_transfer_methods_refuse_unchosen_target_weights():
     X, md = _cohort()
     store = CovarianceStore(X, md)
     source, labelled, unlabelled, _ = _batches(X, md, store)
-    m = make_method("rct_tslr", n_classes=3, **method_params("rct_tslr", get_paths().configs))
+    params = {**method_params("rct_tslr", get_paths().configs), "target_weight": None}
+    m = make_method("rct_tslr", n_classes=3, **params)
     with pytest.raises(ValueError, match="target_weight"):
         m.fit(labelled, source, unlabelled)
 
