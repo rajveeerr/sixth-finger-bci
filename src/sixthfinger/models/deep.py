@@ -112,12 +112,21 @@ def make_classifier(
 class _DeepMethod:
     uses_source = False
     deep = True  # the runner gives deep methods draws_deep instead of draws_classical
+    needs_classes = True
 
-    def __init__(self, n_classes: int, **cfg):
-        self.n_classes, self.cfg = n_classes, cfg
+    def __init__(self, n_classes: int, classes: list[int] | None = None, **cfg):
+        self.n_classes, self.classes, self.cfg = n_classes, classes, cfg
 
     def _x(self, X: np.ndarray) -> np.ndarray:
         return (X * self.cfg["input_scale"]).astype(np.float32)
+
+    def _positions(self, y: np.ndarray) -> np.ndarray:
+        """Output position of each label: its place among the task's classes when the runner
+        gives them (calibration), else among the labels present (within a session)."""
+        if self.classes is None:
+            return task_label_map(y)[0]
+        pos = {c: i for i, c in enumerate(self.classes)}
+        return np.array([pos[int(v)] for v in y], np.int64)
 
     def predict_proba(self, X: np.ndarray) -> np.ndarray:
         return self.clf.predict_proba(self._x(X))
@@ -128,11 +137,10 @@ class EegnetScratch(_DeepMethod):
     """EEGNet trained on the target windows only, a fixed number of epochs, no early stop."""
 
     def fit(self, target: Batch, source=None, unlabelled=None, seed: int = 0):
-        y, _ = task_label_map(target.y)
+        y = self._positions(target.y)
         _, c, t = target.X.shape
-        self.clf = make_classifier(
-            self.cfg, c, len(np.unique(y)), t, self.cfg["max_epochs"], seed=seed
-        )
+        n = len(self.classes) if self.classes is not None else len(np.unique(y))
+        self.clf = make_classifier(self.cfg, c, n, t, self.cfg["max_epochs"], seed=seed)
         self.clf.fit(self._x(target.X), y)
         return self
 
@@ -147,6 +155,42 @@ class ShallowScratch(EegnetScratch):
 
 def pretrained_name(target: str, mirror: bool, aligned: bool) -> str:
     return f"eegnet_loso_{target}_{'ea_' if aligned else ''}{'mir' if mirror else 'raw'}.pt"
+
+
+def pretrained_path(models_dir: Path, subject: str, mirror: bool) -> Path:
+    """The aligned model pre-trained without `subject` and its linked partner; no other."""
+    path = Path(models_dir) / pretrained_name(subject, mirror, aligned=True)
+    if not path.exists():
+        raise FileNotFoundError(f"{path} missing: run the aligned pre-training (P07) for {subject}")
+    if f"_{subject}_" not in path.name:
+        raise AssertionError(f"{path.name} was not pre-trained for {subject}")
+    return path
+
+
+def make_finetune_classifier(
+    cfg: dict, net: torch.nn.Module, n_outputs: int, epochs: int, lr: float, seed: int = 0
+) -> EEGClassifier:
+    """Fine-tuning of a loaded network (P08 step 4.4).
+
+    The module is passed as an instance with no module__ arguments, so braindecode keeps it
+    and its weights; built from a class it would start again from random weights.
+    """
+    seed_everything(seed)
+    return EEGClassifier(
+        net,
+        optimizer=torch.optim.AdamW,
+        optimizer__lr=lr,
+        optimizer__weight_decay=cfg["optimizer"]["weight_decay"],
+        batch_size=cfg["batch_size"],
+        max_epochs=epochs,
+        train_split=None,
+        iterator_train__shuffle=True,
+        iterator_train__drop_last=False,  # k = 1 gives 4 windows: never drop the only batch
+        callbacks=[("lr_scheduler", LRScheduler("CosineAnnealingLR", T_max=epochs))],
+        classes=list(range(n_outputs)),
+        device=pick_device(cfg["device"]),
+        verbose=0,
+    )
 
 
 def pretrain_sources(target: str, data_cfg: DataConfig) -> list[str]:

@@ -17,9 +17,11 @@ class UndefinedCell(Exception):
 
 @dataclass
 class Batch:
-    X: np.ndarray  # (n, 40, n_times) float32, volts
+    X: np.ndarray | None  # (n, 40, n_times) float32, volts; None for covariance-only sources
     y: np.ndarray | None  # (n,) int64; None for unlabelled data
-    md: pd.DataFrame  # metadata rows aligned with X
+    md: pd.DataFrame  # metadata rows aligned with X; its index is the row in the run's arrays
+    # The run's CovarianceStore, for methods with uses_covariances (P08 transfer methods).
+    store: object | None = None
 
 
 class Method(Protocol):
@@ -29,6 +31,9 @@ class Method(Protocol):
     #   deep (False): draws_deep instead of draws_classical
     #   min_trials_per_class (1): below this k the cell is declared undefined, not tried
     #   feature ("bandpower"): the input a within-session run feeds it (protocol 4.1)
+    #   uses_covariances (False): sources arrive as covariances from the run's store, X None
+    #   needs_classes (False): the runner passes the task's class ids as `classes`
+    #   needs_pretrained (False): the runner passes `models_dir` and the experiment's `mirror`
 
     def fit(
         self,

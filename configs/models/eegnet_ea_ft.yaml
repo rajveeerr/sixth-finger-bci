@@ -13,3 +13,6 @@ device: auto
 alignment: {rel_floor: 1.0e-6}
 pretrain: {max_epochs: 150, early_stopping_patience: 20, validation_subjects: 3, seed: 0}
 finetune_grid: {lr: [1.0e-4, 3.0e-4], epochs: [20, 50]}
+# Chosen once by scripts/select_transfer_hparams.py (P08 step 4.5).
+finetune_lr: null
+finetune_epochs: null

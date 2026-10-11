@@ -1,0 +1,6 @@
+# Hyperparameters fixed in the pre-registration (section 3.6) before prereg-v1: ts_lr on the
+# source and target windows together, without alignment.
+method: pooled_tslr
+covariance: oas
+tangent_space_metric: riemann
+logreg: {C: 1.0, max_iter: 1000}

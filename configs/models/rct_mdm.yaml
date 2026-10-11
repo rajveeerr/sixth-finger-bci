@@ -1,0 +1,8 @@
+# Hyperparameters fixed in the pre-registration (section 3.6) before prereg-v1: re-centring to
+# the identity per subject, then MDM as mdm.
+method: rct_mdm
+covariance: oas
+metric: riemann
+# Chosen once from target_weight_grid by scripts/select_transfer_hparams.py (P08 step 4.5).
+target_weight: null
+target_weight_grid: [1, 5, 20]

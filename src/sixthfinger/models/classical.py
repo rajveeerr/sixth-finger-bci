@@ -137,3 +137,9 @@ class TsLr(PipelineMethod):
             TangentSpace(metric=self.params["tangent_space_metric"]),
             LogisticRegression(C=lr["C"], max_iter=lr["max_iter"]),
         )
+
+
+@register("ah_proxy")
+class AhProxy(TsLr):
+    """The S2 own-hand control (protocol 5): `ts_lr` trained on the AH and REST windows of the
+    pool's AH trials; the runner scores its AH output as SF for T3."""
