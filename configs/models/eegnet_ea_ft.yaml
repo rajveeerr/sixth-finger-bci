@@ -14,5 +14,5 @@ alignment: {rel_floor: 1.0e-6}
 pretrain: {max_epochs: 150, early_stopping_patience: 20, validation_subjects: 3, seed: 0}
 finetune_grid: {lr: [1.0e-4, 3.0e-4], epochs: [20, 50]}
 # Chosen once by scripts/select_transfer_hparams.py (P08 step 4.5).
-finetune_lr: null
-finetune_epochs: null
+finetune_lr: 0.0001  # chosen by scripts/select_transfer_hparams.py, 2026-10-12, 5d66ba2
+finetune_epochs: 20  # chosen by scripts/select_transfer_hparams.py, 2026-10-12, 5d66ba2

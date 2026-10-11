@@ -4,5 +4,5 @@ method: rct_mdm
 covariance: oas
 metric: riemann
 # Chosen once from target_weight_grid by scripts/select_transfer_hparams.py (P08 step 4.5).
-target_weight: null
+target_weight: 20  # chosen by scripts/select_transfer_hparams.py, 2026-10-12, 5d66ba2
 target_weight_grid: [1, 5, 20]
