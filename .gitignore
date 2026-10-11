@@ -81,3 +81,4 @@ kaggle.json
 
 # Tabular caches and run outputs are regenerated, never committed.
 *.parquet
+results/kaggle/
