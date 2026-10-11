@@ -23,14 +23,30 @@ def mi_trials(pool: pd.DataFrame, label_id: int) -> pd.DataFrame:
     return rows.sort_values(["run", "trial_in_run"]).drop_duplicates("trial_uid")
 
 
+def complete_trials(pool: pd.DataFrame) -> set[str]:
+    """Trials whose imagery window and REST window both survived the cut (boundary drops)."""
+    kinds = pool.assign(rest=pool.label == REST_ID).groupby("trial_uid").rest.agg(["any", "all"])
+    return set(kinds.index[kinds["any"] & ~kinds["all"]])
+
+
 def draw_calibration_set(
-    pool: pd.DataFrame, full_ids: list[int], budget_ids: list[int], k: int, seed: int | str
+    pool: pd.DataFrame,
+    full_ids: list[int],
+    budget_ids: list[int],
+    k: int,
+    seed: int | str,
+    *,
+    k_all: int,
 ) -> CalibrationDraw:
     """Pick trials for one (scenario, k, draw) and return row positions within `pool`.
 
-    pool: the three-class windows of runs 01-02 of one subject-session, so that one draw
-    serves every task. seed: an int for a random draw, or "chrono" for the first k
+    pool: the three-class windows of the calibration runs of one subject-session, so that one
+    draw serves every task. seed: an int for a random draw, or "chrono" for the first k
     trials in time order. The REST window of every chosen trial comes along with it.
+
+    k >= k_all is "all" (pre-registration 3.4): every trial of each budget class, as every
+    trial of a full class. Below it, a draw picks among complete trials only, so each drawn
+    trial brings its REST window and every task's training set holds all of its classes.
     """
     chosen: list[str] = []
     k_used: dict[str, int] = {}
@@ -38,8 +54,14 @@ def draw_calibration_set(
         chosen += mi_trials(pool, cid).trial_uid.tolist()
     chrono = seed == "chrono"
     rng = None if chrono else np.random.default_rng(int(seed))
+    complete = complete_trials(pool)
     for cid in budget_ids:
         trials = mi_trials(pool, cid).trial_uid.to_numpy()
+        if k >= k_all:
+            k_used[str(cid)] = len(trials)
+            chosen += list(trials)
+            continue
+        trials = trials[np.isin(trials, list(complete))]
         n = min(k, len(trials))
         k_used[str(cid)] = n
         if n == 0:

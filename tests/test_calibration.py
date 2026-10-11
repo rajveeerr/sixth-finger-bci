@@ -1,12 +1,12 @@
 import numpy as np
 import pytest
 
-from sixthfinger.evaluation.calibration import draw_calibration_set, mi_trials
+from sixthfinger.evaluation.calibration import complete_trials, draw_calibration_set, mi_trials
 from tests.evalfixtures import session_md
 
 AH, SF = 1, 2
-S1 = dict(full_ids=[], budget_ids=[AH, SF])
-S2 = dict(full_ids=[AH], budget_ids=[SF])
+S1 = dict(full_ids=[], budget_ids=[AH, SF], k_all=20)
+S2 = dict(full_ids=[AH], budget_ids=[SF], k_all=20)
 
 
 @pytest.fixture
@@ -44,9 +44,33 @@ def test_s2_k2_takes_every_ah_trial_and_two_sf(pool):
 
 
 def test_k_above_available_is_capped(pool):
-    cd = draw_calibration_set(pool, **S1, k=20, seed=0)
+    cd = draw_calibration_set(pool, **{**S1, "k_all": 30}, k=20, seed=0)
     assert cd.k_used == {"1": 20, "2": 19}
     assert _mi_counts(pool, cd.labelled_idx)[SF] == 19
+
+
+def test_k_all_takes_every_trial_even_beyond_the_grid_value():
+    # Pre-registration 3.4: "all" is every available trial; some pools have 21 or 22.
+    md = session_md(runs=(1, 2, 3), drop_mi=(), drop_rest=((3, 1),))
+    pool = md[md.run.isin([1, 2, 3])].reset_index(drop=True)  # 30 trials per class
+    cd = draw_calibration_set(pool, **S1, k=20, seed=0)
+    assert cd.k_used == {"1": 30, "2": 30}
+    assert pool.iloc[cd.labelled_idx].trial_uid.nunique() == 60  # the incomplete one too
+
+
+@pytest.mark.parametrize("seed", [0, 1, 2, "chrono"])
+def test_draws_below_all_pick_only_trials_with_both_windows(seed):
+    no_rest = (*((1, t) for t in range(1, 21, 2)), (2, 2), (2, 4))  # run 1 AH, two SF
+    md = session_md(runs=(1, 2), drop_mi=((2, 6),), drop_rest=no_rest)
+    pool = md.reset_index(drop=True)
+    ok = complete_trials(pool)
+    assert len(ok) == 40 - len(no_rest) - 1
+    for k in (1, 3, 5, 10):
+        rows = pool.iloc[draw_calibration_set(pool, **S1, k=k, seed=seed).labelled_idx]
+        assert set(rows.trial_uid) <= ok
+        for cid in (AH, SF):  # every drawn imagery trial brings its REST window
+            uids = set(rows.trial_uid[rows.label == cid])
+            assert uids <= set(rows.trial_uid[rows.label == 0])
 
 
 @pytest.mark.parametrize("scen", [S1, S2])

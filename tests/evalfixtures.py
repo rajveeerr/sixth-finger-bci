@@ -11,11 +11,12 @@ def session_md(
     session: str = "pre",
     runs: tuple[int, ...] = (1, 2, 3, 4),
     drop_mi: tuple[tuple[int, int], ...] = ((2, 20),),
+    drop_rest: tuple[tuple[int, int], ...] = (),
 ) -> pd.DataFrame:
     """20 trials per run, MI class alternating AH/SF; each trial has a REST and an MI window.
 
     drop_mi removes the MI window of (run, trial), the way a boundary drop does, so by
-    default the SF class has only 19 trials in runs 01-02.
+    default the SF class has only 19 trials in runs 01-02; drop_rest removes the REST window.
     """
     rows = []
     for run in runs:
@@ -24,6 +25,8 @@ def session_md(
             mi = 1 if trial % 2 else 2
             for label in (0, mi):
                 if label and (run, trial) in drop_mi:
+                    continue
+                if not label and (run, trial) in drop_rest:
                     continue
                 rows.append(
                     {

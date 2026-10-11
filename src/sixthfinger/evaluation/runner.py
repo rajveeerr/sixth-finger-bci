@@ -671,7 +671,8 @@ def _run_calibration(ctx: RunContext) -> None:
     cal, md = proto.calibration, ctx.md
     pool_runs = [int(r) for r in cal.pool_runs]
     test_runs = [int(r) for r in cal.test_runs]
-    k_all = max(exp.k_grid)
+    # "all" is the protocol's last budget, whatever grid an experiment runs (P08 step 4.5).
+    k_all = max(cal.k_grid)
     proxies: dict[tuple[str, str], object] = {}
     for task in exp.tasks:
         classes = _class_ids(data_cfg, proto.tasks[task])
@@ -708,7 +709,7 @@ def _run_calibration(ctx: RunContext) -> None:
                         )  # fmt: skip
                         for k in exp.k_grid:
                             proxy = method_name == AH_PROXY
-                            one_draw = proxy or k == 0 or k == k_all
+                            one_draw = proxy or k == 0 or k >= k_all
                             for draw in ["0"] if one_draw else _draws_for(method_name, exp, proto):
                                 unit.run(k, draw)
 
@@ -752,7 +753,8 @@ class _CalibUnit:
             return
         cls = REGISTRY[name]
         uses_source = bool(getattr(cls, "uses_source", False))
-        cd = draw_calibration_set(self.pool, self.full, self.budget, k, draw)
+        k_all = max(ctx.proto.calibration.k_grid)
+        cd = draw_calibration_set(self.pool, self.full, self.budget, k, draw, k_all=k_all)
         k_used = json.dumps(cd.k_used)
         if name == AH_PROXY:
             train_md = ah_proxy_windows(self.pool)
