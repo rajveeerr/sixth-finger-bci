@@ -1,0 +1,10 @@
+task,versus,protocol,n,zero_shot_minus_points,diff_ci_lo_points,diff_ci_hi_points,paired_p_two_sided
+T1_ah_vs_sf,csp_lda,chrono,22,6.08598,-1.42799,12.7315,0.0308418
+T1_ah_vs_sf,eegnet_scratch,chrono,22,3.43281,-2.6,9.60618,0.199675
+T1_ah_vs_sf,ts_lr,chrono,22,5.44564,1.11079,9.55313,0.015699
+T2_rest_ah_sf,csp_lda,chrono,22,0.590574,-3.94903,4.85369,0.476136
+T2_rest_ah_sf,eegnet_scratch,chrono,22,4.62266,-1.56057,10.4305,0.0984106
+T2_rest_ah_sf,ts_lr,chrono,22,-0.0593487,-4.89256,4.17677,0.41404
+T3_sf_vs_rest,csp_lda,chrono,22,-1.98798,-6.55622,2.34529,0.388045
+T3_sf_vs_rest,eegnet_scratch,chrono,22,11.8184,6.75658,16.4901,0.000213146
+T3_sf_vs_rest,ts_lr,chrono,22,-1.58419,-6.86626,3.49606,0.702385
