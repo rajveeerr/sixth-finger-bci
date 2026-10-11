@@ -55,3 +55,35 @@ def test_config_hash_is_stable():
     a = config_hash(load_data_config(), load_protocol_config())
     b = config_hash(load_data_config(), load_protocol_config())
     assert a == b and len(a) == 16
+
+
+def test_git_sha_comes_from_the_environment_when_set(monkeypatch):
+    from sixthfinger.paths import current_git_sha
+
+    monkeypatch.setenv("SIXTHFINGER_GIT_SHA", "abc1234")
+    assert current_git_sha() == "abc1234"
+
+
+def test_git_sha_is_marked_dirty_when_code_differs(monkeypatch, tmp_path):
+    import subprocess
+
+    from sixthfinger.paths import current_git_sha
+
+    monkeypatch.delenv("SIXTHFINGER_GIT_SHA", raising=False)
+    monkeypatch.setenv("SIXTHFINGER_ROOT", str(tmp_path))
+
+    def run(*args):
+        subprocess.run(["git", "-C", str(tmp_path), *args], check=True, capture_output=True)
+
+    run("init", "-q")
+    (tmp_path / "src").mkdir()
+    (tmp_path / "src" / "a.py").write_text("x = 1\n")
+    (tmp_path / "notes.md").write_text("n\n")
+    run("add", ".")
+    run("-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "c")
+    clean = current_git_sha()
+    assert clean and not clean.endswith("-dirty")
+    (tmp_path / "notes.md").write_text("changed\n")
+    assert current_git_sha() == clean  # notes are not code
+    (tmp_path / "src" / "a.py").write_text("x = 2\n")
+    assert current_git_sha() == clean + "-dirty"

@@ -87,18 +87,28 @@ def get_paths() -> Paths:
     return Paths(root=root, data=data)
 
 
+# Files whose state decides a result; a change elsewhere (notes, the report) is not "dirty".
+CODE_PATHS = ["src", "configs", "scripts", "pyproject.toml", "uv.lock"]
+
+
 def current_git_sha() -> str:
+    """Short commit of the code, with "-dirty" when code files differ from that commit.
+
+    A Kaggle bundle has no .git; the bundle script records its commit and the notebook passes
+    it in SIXTHFINGER_GIT_SHA.
+    """
     import subprocess
 
+    env = os.environ.get("SIXTHFINGER_GIT_SHA")
+    if env:
+        return env
     try:
-        out = subprocess.run(
-            ["git", "rev-parse", "--short", "HEAD"],
-            cwd=find_root(),
-            capture_output=True,
-            text=True,
-            check=True,
-            timeout=10,
-        )
-        return out.stdout.strip() or "unknown"
+        git = ["git", "-C", str(find_root())]
+        kw = {"capture_output": True, "text": True, "check": True, "timeout": 10}
+        sha = subprocess.run([*git, "rev-parse", "--short", "HEAD"], **kw).stdout.strip()
+        status = subprocess.run(
+            [*git, "status", "--porcelain", "--untracked-files=no", "--", *CODE_PATHS], **kw
+        ).stdout
+        return (sha + "-dirty" if status.strip() else sha) or "unknown"
     except (OSError, subprocess.SubprocessError):
         return "unknown"
