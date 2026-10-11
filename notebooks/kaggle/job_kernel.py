@@ -63,6 +63,9 @@ env = {
     "SIXTHFINGER_ROOT": str(REPO),
     "SIXTHFINGER_GIT_SHA": sha,
 }
+if "--jobs" in JOB["args"]:
+    # One BLAS thread per worker: the workers already fill the cores.
+    env.update(OMP_NUM_THREADS="1", OPENBLAS_NUM_THREADS="1", MKL_NUM_THREADS="1")
 probe = (
     "import json, torch; c = torch.cuda.is_available(); print(json.dumps({'torch': "
     "torch.__version__, 'cuda': c, 'device_name': torch.cuda.get_device_name(0) if c else 'cpu'}))"
@@ -76,14 +79,25 @@ print("device", device)
 if JOB["kind"] == "pretrain":
     cmd = [sys.executable, str(REPO / "scripts/pretrain_loso.py"), "--epochs-dir", str(epochs_dir)]
     cmd += ["--out", str(OUT / "pretrained"), *JOB["args"]]
+    cmds = [cmd]
 elif JOB["kind"] == "run":
-    cmd = [sys.executable, "-c", "from sixthfinger.cli import app; app()", "run", *JOB["args"]]
+    cli = [sys.executable, "-c", "from sixthfinger.cli import app; app()", "run"]
+    # "::" separates experiments run one after the other in the same notebook.
+    groups, current = [], []
+    for arg in JOB["args"]:
+        if arg == "::":
+            groups.append(current)
+            current = []
+        else:
+            current.append(arg)
+    cmds = [[*cli, *g] for g in [*groups, current] if g]
 else:
     raise SystemExit(f"unknown job kind {JOB['kind']!r}")
 start = time.time()
 info = {"job": JOB, "git_sha": sha, "prereg": (REPO / "PREREG").read_text().split("\n"), **device}
 try:
-    subprocess.run(cmd, env=env, cwd=REPO, check=True)
+    for command in cmds:
+        subprocess.run(command, env=env, cwd=REPO, check=True)
     info["status"] = "complete"
 finally:
     info["seconds"] = round(time.time() - start)
