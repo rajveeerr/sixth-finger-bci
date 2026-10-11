@@ -92,3 +92,29 @@ def test_person_identity_alone_inflates_segment_cv_only(rq5):
     # No inflation under subject_cv. On null data it can even fall below 0.5: holding out a
     # group's subjects tilts the training set towards the other group.
     assert ba["subject_cv"] < 0.65
+
+
+def test_shuffled_diagnoses_keep_group_sizes_and_split_groups(rq5):
+    _, md = _identity_only(n_per_group=6, n_seg=3)
+    md.loc[md.subject.isin(["H-S1", "H-S2"]), "split_group"] = "H-S1+H-S2"
+    for seed in range(5):
+        s = rq5.shuffled(md, seed)
+        per_group = s.drop_duplicates("split_group").group.value_counts()
+        assert (
+            per_group.to_dict() == md.drop_duplicates("split_group").group.value_counts().to_dict()
+        )
+        assert s.groupby("split_group").group.nunique().eq(1).all()  # a group shares one label
+    assert any(not rq5.shuffled(md, seed).group.equals(md.group) for seed in range(5))
+
+
+def test_inflation_ci_is_stratified_and_contains_the_point(rq5):
+    rng = np.random.default_rng(0)
+    groups = np.array(["H"] * 20 + ["MDD"] * 30)
+    a_sub = rng.uniform(0.4, 0.7, 50)
+    a_seg = np.clip(a_sub + 0.2, 0, 1)
+    point, lo, hi = rq5.stratified_inflation_ci(a_seg, a_sub, groups, n=2000)
+    expected = np.mean([a_seg[groups == g].mean() for g in ("H", "MDD")]) - np.mean(
+        [a_sub[groups == g].mean() for g in ("H", "MDD")]
+    )
+    assert point == pytest.approx(expected)
+    assert lo <= point <= hi

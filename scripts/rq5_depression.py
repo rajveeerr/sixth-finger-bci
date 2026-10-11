@@ -261,15 +261,19 @@ def fetch(_args) -> None:
     log.info("MODMA zip md5 ok: %s", md5(zip_path) == MODMA_MD5)
 
 
-def audit_mumtaz() -> tuple[pd.DataFrame, list]:
+def _kept(subject, group, data_uv, **extra) -> dict:
+    return dict(subject=subject, group=group, segs=segment(data_uv, SFREQ),
+                overlap=segment(data_uv, SFREQ, step_s=SEG_S / 2), **extra)  # fmt: skip
+
+
+def audit_mumtaz() -> tuple[pd.DataFrame, list[dict]]:
     """One row per eyes-closed file; and the kept recordings' segments with their subject."""
     import mne
 
     out = data_dir() / "mumtaz"
     files = mumtaz_files(json.loads((out / "figshare_record.json").read_text()))
     status = pd.read_csv(out / "download_status.csv").set_index("file")
-    rows, kept, seen_md5 = [], [], {}
-    hashes = {}
+    rows, kept, seen_md5, hashes = [], [], {}, {}
     for f in files.itertuples():
         row = dict(dataset="mumtaz", file=f.file, subject=f.subject, group=f.group, kept=False)
         path = out / f.file
@@ -285,16 +289,17 @@ def audit_mumtaz() -> tuple[pd.DataFrame, list]:
         if picks is None:
             rows.append({**row, "reason": "a required channel is missing"})
             continue
-        segs = segment(preprocess(raw, picks), SFREQ)
+        year = edf_start_year(path)
+        k = _kept(f.subject, f.group, preprocess(raw, picks), year=year)
         duration = raw.n_times / raw.info["sfreq"]
         del raw  # its info holds the header's patient fields; nothing of it is kept
         hashes[f.subject] = edf_patient_hash(path)
-        row.update(year=edf_start_year(path), duration_s=round(duration, 1), n_segments=len(segs))
-        if len(segs) < MIN_SEGMENTS:
+        row.update(year=year, duration_s=round(duration, 1), n_segments=len(k["segs"]))
+        if len(k["segs"]) < MIN_SEGMENTS:
             rows.append({**row, "reason": f"fewer than {MIN_SEGMENTS} accepted segments"})
             continue
         rows.append({**row, "kept": True, "reason": ""})
-        kept.append((f.subject, f.group, segs, path))
+        kept.append(k)
     audit = pd.DataFrame(rows)
     # Linked recordings: the same patient field (compared by hash) is one split group.
     by_hash: dict[str, list[str]] = {}
@@ -305,34 +310,290 @@ def audit_mumtaz() -> tuple[pd.DataFrame, list]:
     return audit, kept
 
 
-def save_segments(name: str, audit: pd.DataFrame, kept: list) -> None:
+def read_xlsx(path: Path) -> pd.DataFrame:
+    """The first sheet of an .xlsx (a zip of XML files), with the standard library only."""
+    import re
+    import xml.etree.ElementTree as ET
+    import zipfile
+
+    ns = {"m": "http://schemas.openxmlformats.org/spreadsheetml/2006/main"}
+    with zipfile.ZipFile(path) as z:
+        shared = [
+            "".join(t.text or "" for t in si.iter(f"{{{ns['m']}}}t"))
+            for si in ET.fromstring(z.read("xl/sharedStrings.xml")).findall("m:si", ns)
+        ] if "xl/sharedStrings.xml" in z.namelist() else []  # fmt: skip
+        sheet = ET.fromstring(z.read("xl/worksheets/sheet1.xml"))
+    rows = []
+    for r in sheet.find("m:sheetData", ns).findall("m:row", ns):
+        cells = {}
+        for c in r.findall("m:c", ns):
+            v = c.find("m:v", ns)
+            if v is not None:
+                col = re.match(r"[A-Z]+", c.get("r")).group()
+                cells[col] = shared[int(v.text)] if c.get("t") == "s" else v.text
+        rows.append(cells)
+    header = rows[0]
+    return pd.DataFrame([{header[k]: r.get(k) for k in header} for r in rows[1:]])
+
+
+def audit_modma() -> tuple[pd.DataFrame, list[dict]]:
+    import mne
+    import scipy.io as sio
+
+    folder = data_dir() / "modma" / "EEG_128channels_resting_lanzhou_2015"
+    info = read_xlsx(next(folder.glob("subjects_information*.xlsx")))
+    info["subject id"] = info["subject id"].str.zfill(8)
+    labels = info.set_index("subject id")
+    rows, kept, seen_md5 = [], [], {}
+    for path in sorted(folder.glob("*.mat")):
+        sid = path.name[:8]
+        if sid not in labels.index:
+            rows.append(dict(dataset="modma", file=path.name, subject=sid, kept=False,
+                             reason="not in the participant sheet"))  # fmt: skip
+            continue
+        meta = labels.loc[sid]
+        group = {"MDD": "MDD", "HC": "H"}[meta["type"]]
+        row = dict(dataset="modma", file=path.name, subject=f"{group}-{sid}", group=group,
+                   gad7=float(meta["GAD-7"]), kept=False)  # fmt: skip
+        digest = md5(path)
+        if digest in seen_md5:
+            rows.append({**row, "reason": f"byte-identical to {seen_md5[digest]}"})
+            continue
+        seen_md5[digest] = row["subject"]
+        m = sio.loadmat(path)
+        key = next(k for k in m if not k.startswith("__") and k.startswith("a"))
+        sfreq = float(m["samplingRate"].ravel()[0])
+        data = m[key]  # (129, n): E1..E128, then Cz, the recording reference; µV
+        if data.shape[0] != 129:
+            rows.append({**row, "reason": f"{data.shape[0]} channels, expected 129"})
+            continue
+        index = {f"E{i + 1}": i for i in range(128)} | {"Cz": 128}
+        x = data[[index[MODMA_CHANNELS[c]] for c in CHANNELS]] * 1e-6
+        raw = mne.io.RawArray(x, mne.create_info(CHANNELS, sfreq, "eeg"), verbose="ERROR")
+        k = _kept(row["subject"], group, preprocess(raw, {c: c for c in CHANNELS}),
+                  gad7=row["gad7"])  # fmt: skip
+        row.update(duration_s=round(data.shape[1] / sfreq, 1), n_segments=len(k["segs"]))
+        if len(k["segs"]) < MIN_SEGMENTS:
+            rows.append({**row, "reason": f"fewer than {MIN_SEGMENTS} accepted segments"})
+            continue
+        rows.append({**row, "kept": True, "reason": ""})
+        kept.append(k)
+    audit = pd.DataFrame(rows)
+    audit["split_group"] = audit.subject  # one recording per person; nothing to link
+    return audit, kept
+
+
+def save_segments(name: str, audit: pd.DataFrame, kept: list[dict]) -> None:
     out = data_dir() / "derived"
     out.mkdir(parents=True, exist_ok=True)
     split = audit.set_index("subject").split_group
-    X = np.concatenate([segs for _, _, segs, _ in kept])
-    md = pd.concat(
-        [pd.DataFrame({"subject": s, "group": g, "split_group": split[s], "segment": range(len(x))})
-         for s, g, x, _ in kept],
-        ignore_index=True,
-    )  # fmt: skip
-    np.save(out / f"{name}_X.npy", X)
-    md.to_parquet(out / f"{name}_segments.parquet", index=False)
+    for kind in ("segs", "overlap"):
+        X = np.concatenate([k[kind] for k in kept])
+        md = pd.concat(
+            [pd.DataFrame({"subject": k["subject"], "group": k["group"],
+                           "split_group": split[k["subject"]], "segment": range(len(k[kind])),
+                           **{c: k[c] for c in ("year", "gad7") if c in k}})
+             for k in kept],
+            ignore_index=True,
+        )  # fmt: skip
+        tag = "" if kind == "segs" else "_overlap"
+        np.save(out / f"{name}{tag}_X.npy", X)
+        md.to_parquet(out / f"{name}{tag}_segments.parquet", index=False)
+
+
+def load_segments(name: str, overlap: bool = False) -> tuple[np.ndarray, pd.DataFrame]:
+    tag = "_overlap" if overlap else ""
+    out = data_dir() / "derived"
+    return np.load(out / f"{name}{tag}_X.npy"), pd.read_parquet(
+        out / f"{name}{tag}_segments.parquet"
+    )
 
 
 def audit(_args) -> None:
     require_tag()
     paths = get_paths()
-    table, kept = audit_mumtaz()
-    table.to_csv(paths.audit / "rq5_audit_mumtaz.csv", index=False)
-    save_segments("mumtaz", table, kept)
-    log.info("mumtaz: %d files, %d kept (%s)", len(table), table.kept.sum(),
-             table[table.kept].group.value_counts().to_dict())  # fmt: skip
+    for name, fn in (("mumtaz", audit_mumtaz), ("modma", audit_modma)):
+        table, kept = fn()
+        table.to_csv(paths.audit / f"rq5_audit_{name}.csv", index=False)
+        save_segments(name, table, kept)
+        log.info("%s: %d files, %d kept (%s)", name, len(table), table.kept.sum(),
+                 table[table.kept].group.value_counts().to_dict())  # fmt: skip
+
+
+# Run and summarise -------------------------------------------------------------------------
+
+DATASETS = ("mumtaz", "modma")
+N_NULL = 20
+
+
+def shuffled(md: pd.DataFrame, seed: int) -> pd.DataFrame:
+    """Diagnoses shuffled across split groups, group sizes kept (preregistration-rq5 §6)."""
+    groups = md.drop_duplicates("split_group").set_index("split_group").group
+    perm = pd.Series(np.random.default_rng(seed).permutation(groups.to_numpy()), groups.index)
+    return md.assign(group=md.split_group.map(perm))
+
+
+def run(_args) -> None:
+    require_tag()
+    paths = get_paths()
+    out = paths.runs / "rq5"
+    out.mkdir(parents=True, exist_ok=True)
+    frames = []
+    for name in DATASETS:
+        X, md = load_segments(name)
+        for pipe in PIPELINES:
+            for protocol in PROTOCOLS:
+                log.info("%s %s %s", name, pipe, protocol)
+                v = per_subject(evaluate(X, md, pipe, protocol))
+                frames.append(
+                    v.assign(dataset=name, pipeline=pipe, protocol=protocol, analysis="main")
+                )
+        # E2: overlapping segments under segment_cv.
+        Xo, mdo = load_segments(name, overlap=True)
+        for pipe in PIPELINES:
+            v = per_subject(evaluate(Xo, mdo, pipe, "segment_cv"))
+            frames.append(
+                v.assign(dataset=name, pipeline=pipe, protocol="segment_cv", analysis="E2_overlap")
+            )
+        if name == "mumtaz":
+            # No-signal demonstration: shuffled diagnoses, ts_lr.
+            for seed in range(N_NULL):
+                ms = shuffled(md, seed)
+                for protocol in PROTOCOLS:
+                    v = per_subject(evaluate(X, ms, "ts_lr", protocol))
+                    frames.append(v.assign(dataset=name, pipeline="ts_lr", protocol=protocol,
+                                           analysis=f"null_{seed}"))  # fmt: skip
+            # E1: one recording year, if both groups have at least 10 subjects in it.
+            years = md.drop_duplicates("subject").pivot_table(
+                index="year", columns="group", values="subject", aggfunc="count", fill_value=0
+            )
+            for year, counts in years.iterrows():
+                if (counts >= 10).all():
+                    rows = (md.year == year).to_numpy()
+                    for pipe in PIPELINES:
+                        sub = md[rows].reset_index(drop=True)
+                        v = per_subject(evaluate(X[rows], sub, pipe, "subject_cv"))
+                        frames.append(v.assign(dataset=name, pipeline=pipe, protocol="subject_cv",
+                                               analysis=f"E1_year_{year}"))  # fmt: skip
+        if name == "modma":
+            # E3: GAD-7 >= 10 vs < 10 over all participants, ts_lr, if both sides >= 10.
+            ma = md.assign(group=np.where(md.gad7 >= 10, "MDD", "H"))
+            sides = ma.drop_duplicates("subject").group.value_counts()
+            if len(sides) == 2 and (sides >= 10).all():
+                for protocol in PROTOCOLS:
+                    v = per_subject(evaluate(X, ma, "ts_lr", protocol))
+                    frames.append(v.assign(dataset=name, pipeline="ts_lr", protocol=protocol,
+                                           analysis="E3_gad7"))  # fmt: skip
+            else:
+                log.info("E3 not run: GAD-7 sides %s", sides.to_dict())
+    pd.concat(frames, ignore_index=True).to_parquet(out / "subject_values.parquet", index=False)
+    log.info("rq5 per-subject values in %s", out)
+
+
+def stratified_inflation_ci(a_seg, a_sub, groups, n=10_000, seed=12345):
+    """Mean inflation and its 95 % CI, resampling subjects within each group."""
+    rng = np.random.default_rng(seed)
+    a_seg, a_sub, groups = map(np.asarray, (a_seg, a_sub, groups))
+    idx = {g: np.flatnonzero(groups == g) for g in np.unique(groups)}
+
+    def ba(a, take):
+        return np.mean([a[t].mean() for t in take])
+
+    point = ba(a_seg, idx.values()) - ba(a_sub, idx.values())
+    boots = np.empty(n)
+    for b in range(n):
+        take = [rng.choice(i, size=len(i), replace=True) for i in idx.values()]
+        boots[b] = ba(a_seg, take) - ba(a_sub, take)
+    lo, hi = np.percentile(boots, [2.5, 97.5])
+    return float(point), float(lo), float(hi)
+
+
+def summarise(_args) -> None:
+    from sixthfinger.evaluation.stats import paired_test
+    from sixthfinger.evaluation.summary import holm_family
+
+    paths = get_paths()
+    v = pd.read_parquet(paths.runs / "rq5" / "subject_values.parquet")
+    v.to_csv(paths.results / "summary" / "rq5_subject_values.csv", index=False, float_format="%.6g")
+    main = v[v.analysis == "main"]
+    table, stats = [], []
+    for (name, pipe), g in main.groupby(["dataset", "pipeline"]):
+        w = g.pivot_table(index=["subject", "group"], columns="protocol", values="a").reset_index()
+        for protocol in PROTOCOLS:
+            sub = g[g.protocol == protocol]
+            table.append(dict(dataset=name, pipeline=pipe, protocol=protocol,
+                              n_subjects=len(sub), ba=subject_balanced_accuracy(sub),
+                              diagnosed=float((sub.a > 0.5).mean())))  # fmt: skip
+        point, lo, hi = stratified_inflation_ci(w.segment_cv, w.subject_cv, w.group)
+        res = paired_test(w.segment_cv.to_numpy(), w.subject_cv.to_numpy(), alternative="greater")
+        stats.append(dict(hypothesis="H5" if name == "mumtaz" else "H5b", dataset=name,
+                          pipeline=pipe, inflation_points=point * 100, ci_lo_points=lo * 100,
+                          ci_hi_points=hi * 100, **{k: res[k] for k in
+                          ("n", "median_diff", "mean_diff", "W", "p", "r_rb")}))  # fmt: skip
+    stats = pd.DataFrame(stats)
+    for _, g in stats.groupby("dataset"):
+        adj = holm_family(dict(zip(g.pipeline, g.p, strict=True)))
+        n_sig = sum(p < 0.05 for p in adj.values())
+        stats.loc[g.index, "p_holm"] = [adj[p] for p in g.pipeline]
+        stats.loc[g.index, "category"] = (
+            "supported" if n_sig == 2 else "partial" if n_sig else "inconclusive"
+        )
+    summary = paths.results / "summary"
+    pd.DataFrame(table).to_csv(summary / "rq5_table.csv", index=False, float_format="%.6g")
+    stats.to_csv(summary / "rq5_stats.csv", index=False, float_format="%.6g")
+    null = v[v.analysis.str.startswith("null_")]
+    null_ba = (
+        null.groupby(["analysis", "protocol"])
+        .apply(subject_balanced_accuracy, include_groups=False)
+        .rename("ba")
+        .reset_index()
+    )
+    null_ba.to_csv(summary / "rq5_null.csv", index=False, float_format="%.6g")
+    ex = v[v.analysis.str.startswith("E")]
+    ex_ba = (
+        ex.groupby(["analysis", "dataset", "pipeline", "protocol"])
+        .apply(subject_balanced_accuracy, include_groups=False)
+        .rename("ba")
+        .reset_index()
+    )
+    ex_ba.to_csv(summary / "rq5_exploratory.csv", index=False, float_format="%.6g")
+    figure(main, null_ba, paths.root / "docs" / "figures")
+    log.info("rq5 summaries in %s", summary)
+
+
+def figure(main: pd.DataFrame, null_ba: pd.DataFrame, figures: Path) -> None:
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    from sixthfinger.viz.plots import ACCENT, SUBJECT_GREY, save, use_style
+
+    use_style()
+    fig, axes = plt.subplots(1, 4, figsize=(7.4, 2.8), sharey=True)
+    panels = [(d, p) for d in DATASETS for p in PIPELINES]
+    for ax, (name, pipe) in zip(axes, panels, strict=True):
+        g = main[(main.dataset == name) & (main.pipeline == pipe)]
+        w = g.pivot_table(index="subject", columns="protocol", values="a")
+        for _, r in w.iterrows():
+            ax.plot([0, 1], [r.segment_cv, r.subject_cv], color=SUBJECT_GREY, lw=0.6)
+        means = [subject_balanced_accuracy(g[g.protocol == p]) for p in PROTOCOLS]
+        ax.plot([0, 1], means, color=ACCENT, marker="o", lw=2)
+        if name == "mumtaz" and pipe == "ts_lr" and len(null_ba):
+            for i, p in enumerate(PROTOCOLS):
+                q = null_ba[null_ba.protocol == p].ba
+                ax.fill_between([i - 0.15, i + 0.15], q.min(), q.max(), color="orange", alpha=0.3)
+        ax.axhline(0.5, color="0.5", lw=0.8)
+        ax.set_xticks([0, 1], ["segment\nCV", "subject\nCV"])
+        ax.set_title(f"{name}, {pipe}", fontsize=8)
+    axes[0].set_ylabel("share of a subject's segments\nassigned to its group")
+    save(fig, figures, "rq5_leakage_depression")
 
 
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     sub = ap.add_subparsers(dest="cmd", required=True)
-    for name, fn in (("fetch", fetch), ("audit", audit)):
+    for name, fn in (("fetch", fetch), ("audit", audit), ("run", run), ("summarise", summarise)):
         sub.add_parser(name).set_defaults(fn=fn)
     args = ap.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s", datefmt="%H:%M:%S")
