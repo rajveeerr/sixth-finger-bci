@@ -440,6 +440,7 @@ def run(_args) -> None:
     paths = get_paths()
     out = paths.runs / "rq5"
     out.mkdir(parents=True, exist_ok=True)
+    sha = current_git_sha()  # the code this run starts from
     frames = []
     for name in DATASETS:
         X, md = load_segments(name)
@@ -488,7 +489,7 @@ def run(_args) -> None:
                                            analysis="E3_gad7"))  # fmt: skip
             else:
                 log.info("E3 not run: GAD-7 sides %s", sides.to_dict())
-    values = pd.concat(frames, ignore_index=True).assign(git_sha=current_git_sha())
+    values = pd.concat(frames, ignore_index=True).assign(git_sha=sha)
     values.to_parquet(out / "subject_values.parquet", index=False)
     log.info("rq5 per-subject values in %s", out)
 
@@ -573,7 +574,7 @@ def figure(main: pd.DataFrame, null_ba: pd.DataFrame, figures: Path) -> None:
     from sixthfinger.viz.plots import ACCENT, SUBJECT_GREY, save, use_style
 
     use_style()
-    fig, axes = plt.subplots(1, 4, figsize=(7.4, 2.8), sharey=True)
+    fig, axes = plt.subplots(1, 4, figsize=(7.6, 2.9), sharey=True)
     panels = [(d, p) for d in DATASETS for p in PIPELINES]
     for ax, (name, pipe) in zip(axes, panels, strict=True):
         g = main[(main.dataset == name) & (main.pipeline == pipe)]
@@ -587,7 +588,8 @@ def figure(main: pd.DataFrame, null_ba: pd.DataFrame, figures: Path) -> None:
                 q = null_ba[null_ba.protocol == p].ba
                 ax.fill_between([i - 0.15, i + 0.15], q.min(), q.max(), color="orange", alpha=0.3)
         ax.axhline(0.5, color="0.5", lw=0.8)
-        ax.set_xticks([0, 1], ["segment\nCV", "subject\nCV"])
+        ax.set_xticks([0, 1], ["segment\nCV", "subject\nCV"], fontsize=7)
+        ax.set_xlim(-0.35, 1.35)
         ax.set_title(f"{name}, {pipe}", fontsize=8)
     axes[0].set_ylabel("share of a subject's segments\nassigned to its group")
     save(fig, figures, "rq5_leakage_depression")
