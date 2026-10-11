@@ -50,7 +50,7 @@ def tag(candidate: dict) -> str:
     return "_".join(f"{k}{v:g}" for k, v in candidate.items()).replace(".", "p").replace("-", "m")
 
 
-def run_candidate(method: str, candidate: dict, n_jobs: int, work: Path) -> pd.DataFrame:
+def run_candidate(method: str, candidate: dict, n_jobs: int, work: Path, sha: str) -> pd.DataFrame:
     cfg = {
         "name": f"select_{method}_{tag(candidate)}",
         "protocol": "calibration",
@@ -68,6 +68,9 @@ def run_candidate(method: str, candidate: dict, n_jobs: int, work: Path) -> pd.D
     path = work / f"{cfg['name']}.yaml"
     path.write_text(yaml.safe_dump(cfg, sort_keys=False))
     scores = pd.read_parquet(run_experiment(path, n_jobs=n_jobs))
+    # Every row from this commit: a resumed file must not carry rows of another run.
+    if set(scores.git_sha) != {sha}:
+        raise RuntimeError(f"{cfg['name']}: rows from {sorted(set(scores.git_sha))}, not {sha}")
     if scores.bal_acc.isna().any():
         raise RuntimeError(f"{cfg['name']}: missing scores: {scores.reason.dropna().unique()}")
     return scores
@@ -117,7 +120,7 @@ def main() -> None:
         for method in args.methods:
             params = method_params(method, paths.configs)
             cands = candidates(method, params)
-            scores = [run_candidate(method, c, args.jobs, Path(tmp)) for c in cands]
+            scores = [run_candidate(method, c, args.jobs, Path(tmp), sha) for c in cands]
             table = summarise(method, cands, scores)
             tables.append(table)
             choice = {k: v for k, v in table[table.chosen].iloc[0].items() if k in cands[0]}
