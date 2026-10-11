@@ -1,4 +1,5 @@
 import json
+import subprocess
 
 import numpy as np
 import pandas as pd
@@ -10,7 +11,13 @@ from sixthfinger.cli import app
 from sixthfinger.config import load_data_config
 from sixthfinger.data.epochs import _settings
 from sixthfinger.evaluation import runner as runner_mod
-from sixthfinger.evaluation.runner import UNIT_KEYS, map_ah_proxy, run_experiment, task_windows
+from sixthfinger.evaluation.runner import (
+    UNIT_KEYS,
+    map_ah_proxy,
+    require_prereg,
+    run_experiment,
+    task_windows,
+)
 from sixthfinger.models.registry import REGISTRY, register
 from sixthfinger.models.smoke import SmokeLogVarLda
 from tests.evalfixtures import session_md
@@ -312,3 +319,36 @@ def test_within_session_seeds_are_separate_units(cache, tmp_path):
     assert len(scores) == 2 * 3  # two subjects, one chrono split, three seeds
     again = pd.read_parquet(_run(cfg, cache, tmp_path, methods=["smoke_logvar_lda"]))
     assert len(again) == len(scores) and not again.duplicated(UNIT_KEYS).any()
+
+
+def _git(root, *args):
+    subprocess.run(["git", "-C", str(root), *args], check=True, capture_output=True)
+
+
+def test_full_cohort_calibration_needs_the_prereg_tag(tmp_path):
+    _git(tmp_path, "init", "-q")
+    _git(
+        tmp_path,
+        "-c",
+        "user.name=t",
+        "-c",
+        "user.email=t@t",
+        "commit",
+        "-q",
+        "--allow-empty",
+        "-m",
+        "c",
+    )
+    dev = ["sub-01", "sub-03"]
+    require_prereg(["sub-01"], dev, tmp_path)  # development subjects only: always allowed
+    with pytest.raises(RuntimeError, match="prereg-v1"):
+        require_prereg(["sub-01", "sub-05"], dev, tmp_path)
+    _git(tmp_path, "tag", "prereg-v1")
+    require_prereg(["sub-01", "sub-05"], dev, tmp_path)
+
+
+def test_a_bundle_without_git_needs_the_stamp(tmp_path):
+    with pytest.raises(RuntimeError, match="prereg-v1"):
+        require_prereg(["sub-05"], ["sub-01"], tmp_path)
+    (tmp_path / "PREREG").write_text("prereg-v1 caea954\n")
+    require_prereg(["sub-05"], ["sub-01"], tmp_path)

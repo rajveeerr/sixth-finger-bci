@@ -6,6 +6,7 @@ import hashlib
 import json
 import logging
 import math
+import subprocess
 import time
 from collections import defaultdict
 from collections.abc import Iterable, Iterator
@@ -258,6 +259,34 @@ def feature_of(method_name: str) -> str:
     return getattr(REGISTRY[method_name], "feature", "bandpower")
 
 
+PREREG_TAG = "prereg-v1"
+
+
+def require_prereg(subjects: Iterable[str], dev_subjects: Iterable[str], root: Path) -> None:
+    """Refuse a calibration run beyond the development subjects before the pre-registration.
+
+    In a git checkout the tag must be an ancestor of HEAD. A Kaggle bundle has no history:
+    its build script makes the same check and writes PREREG, which is read instead.
+    """
+    if set(subjects) <= set(dev_subjects):
+        return
+    if (root / ".git").exists():
+        ok = (
+            subprocess.run(
+                ["git", "-C", str(root), "merge-base", "--is-ancestor", PREREG_TAG, "HEAD"],
+                capture_output=True,
+            ).returncode
+            == 0
+        )
+    else:
+        stamp = root / "PREREG"
+        ok = stamp.is_file() and PREREG_TAG in stamp.read_text().split()
+    if not ok:
+        raise RuntimeError(
+            f"Full-cohort calibration runs need code at or after the {PREREG_TAG} tag (P05)."
+        )
+
+
 def run_experiment(
     config_path: Path,
     subjects: list[str] | None = None,
@@ -285,6 +314,8 @@ def run_experiment(
     epochs_dir = epochs_dir or paths.epochs
     exp = resolve(load_experiment(config_path, proto), proto, data_cfg, subjects, methods, quick)
     out_path = (runs_dir or paths.runs) / exp.name / "scores.parquet"
+    if exp.protocol == "calibration":
+        require_prereg(exp.subjects, proto.dev_subjects, paths.root)
     if exp.protocol == "calibration" and (
         odd := [m for m in exp.methods if feature_of(m) != "bandpower"]
     ):
