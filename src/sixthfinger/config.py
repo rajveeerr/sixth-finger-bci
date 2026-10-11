@@ -256,6 +256,12 @@ def load_protocol_config(path: Path | None = None) -> ProtocolConfig:
 
 
 def config_hash(*configs: BaseModel) -> str:
-    """Stable short hash of resolved configs, stored with every result row."""
-    payload = json.dumps([c.model_dump(mode="json") for c in configs], sort_keys=True)
+    """Stable short hash of resolved configs, stored with every result row.
+
+    Fields left at their default are not hashed, so adding an optional field to a config
+    class does not change the hash of a config that does not use it.
+    """
+    payload = json.dumps(
+        [c.model_dump(mode="json", exclude_defaults=True) for c in configs], sort_keys=True
+    )
     return hashlib.sha256(payload.encode()).hexdigest()[:16]

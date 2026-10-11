@@ -18,7 +18,7 @@ from sixthfinger.evaluation.runner import (
     run_experiment,
     task_windows,
 )
-from sixthfinger.models.registry import REGISTRY, register
+from sixthfinger.models.registry import REGISTRY, Batch, UndefinedCell, register
 from sixthfinger.models.smoke import SmokeLogVarLda
 from tests.evalfixtures import session_md
 
@@ -168,6 +168,7 @@ def test_calibration_quick_grid(cache, tmp_path):
 
 def test_ah_proxy_is_fitted_once_and_repeated_at_every_k(cache, tmp_path):
     fits = {"n": 0}
+    real = REGISTRY["ah_proxy"]
 
     @register("ah_proxy")
     class Proxy(SmokeLogVarLda):
@@ -180,7 +181,7 @@ def test_ah_proxy_is_fitted_once_and_repeated_at_every_k(cache, tmp_path):
         cfg = _calib(tmp_path, scenarios=["S2_new_command"], methods=["ah_proxy"])
         scores = pd.read_parquet(_run(cfg, cache, tmp_path, quick=True))
     finally:
-        REGISTRY.pop("ah_proxy")
+        REGISTRY["ah_proxy"] = real
     assert fits["n"] == 1
     assert set(scores.draw) == {"0"} and set(scores.k) == {0, 2, 20}
     assert scores.bal_acc.notna().all()
@@ -204,7 +205,15 @@ def test_cli_run_reports_rows(cache, tmp_path, monkeypatch):
         runner_mod,
         "get_paths",
         lambda: type(
-            "P", (), {"epochs": cache, "runs": tmp_path, "configs": tmp_path, "processed": tmp_path}
+            "P",
+            (),
+            {
+                "epochs": cache,
+                "runs": tmp_path,
+                "configs": tmp_path,
+                "processed": tmp_path,
+                "models": tmp_path,
+            },
         )(),
     )
     cfg = _config(tmp_path, within_protocols=["chrono"])
@@ -352,3 +361,104 @@ def test_a_bundle_without_git_needs_the_stamp(tmp_path):
         require_prereg(["sub-05"], ["sub-01"], tmp_path)
     (tmp_path / "PREREG").write_text("prereg-v1 caea954\n")
     require_prereg(["sub-05"], ["sub-01"], tmp_path)
+
+
+def _spy(name, seen):
+    @register(name)
+    class Spy(SmokeLogVarLda):
+        def fit(self, target, source=None, unlabelled=None, seed=0):
+            seen.append((target, unlabelled))
+            return super().fit(target, source, unlabelled, seed)
+
+    return Spy
+
+
+def test_parallel_calibration_gives_the_same_rows(cache, tmp_path):
+    kw = dict(subjects=["sub-01", "sub-03"], tasks=["T2_rest_ah_sf"])
+    one = pd.read_parquet(_run(_calib(tmp_path, name="c_one", **kw), cache, tmp_path, quick=True))
+    out = _run(_calib(tmp_path, name="c_two", **kw), cache, tmp_path, quick=True, n_jobs=2)
+    two = pd.read_parquet(out)
+    assert not list((out.parent / "parts").glob("*.parquet"))
+    keys = [k for k in UNIT_KEYS if k != "experiment"]
+    a, b = (f.sort_values(keys).reset_index(drop=True) for f in (one, two))
+    pd.testing.assert_frame_equal(a[[*keys, "bal_acc"]], b[[*keys, "bal_acc"]])
+
+
+def test_a_resume_refuses_rows_made_with_other_settings(cache, tmp_path):
+    _run(_calib(tmp_path, tasks=["T3_sf_vs_rest"]), cache, tmp_path, quick=True)
+    changed = _calib(tmp_path, tasks=["T3_sf_vs_rest"], params={"smoke_prior": {"x": 1}})
+    with pytest.raises(ValueError, match="other settings"):
+        _run(changed, cache, tmp_path, quick=True)
+
+
+def test_pool_and_test_runs_can_be_overridden(cache, tmp_path):
+    seen = []
+    _spy("spy_runs", seen)
+    try:
+        cfg = _calib(
+            tmp_path, methods=["spy_runs"], tasks=["T2_rest_ah_sf"], scenarios=["S1_new_user"],
+            pool_runs=["01"], test_runs=["02"],
+        )  # fmt: skip
+        scores = pd.read_parquet(_run(cfg, cache, tmp_path, quick=True))
+    finally:
+        REGISTRY.pop("spy_runs")
+    assert {r for target, _ in seen for r in target.md.run} == {1}
+    # Run 02 of the fixture has 20 REST and 19 imagery windows (one dropped).
+    assert set(scores.dropna(subset=["bal_acc"]).n_test) == {39}
+
+
+def test_unlabelled_windows_reach_a_method_without_labels(cache, tmp_path):
+    seen = []
+    _spy("spy_labels", seen)
+    try:
+        cfg = _calib(tmp_path, methods=["spy_labels"], tasks=["T3_sf_vs_rest"])
+        _run(cfg, cache, tmp_path, quick=True)
+    finally:
+        REGISTRY.pop("spy_labels")
+    assert seen
+    for _, unlabelled in seen:
+        assert unlabelled.y is None and "label" not in unlabelled.md.columns
+
+
+def test_an_undefined_cell_is_written_as_missing_in_calibration(cache, tmp_path):
+    @register("undefined_here")
+    class Undefined(SmokeLogVarLda):
+        def fit(self, *args, **kwargs):
+            raise UndefinedCell("no solution on this training set")
+
+    try:
+        cfg = _calib(tmp_path, methods=["undefined_here"], tasks=["T3_sf_vs_rest"])
+        scores = pd.read_parquet(_run(cfg, cache, tmp_path, quick=True))
+    finally:
+        REGISTRY.pop("undefined_here")
+    defined_k = scores[scores.k > 0]
+    assert defined_k.bal_acc.isna().all()
+    assert set(defined_k.reason) == {"no solution on this training set"}
+
+
+def test_the_chronological_draw_goes_to_the_listed_methods_only(cache, tmp_path):
+    cfg = _calib(tmp_path, tasks=["T3_sf_vs_rest"], chrono_methods=["smoke_prior"])
+    scores = pd.read_parquet(_run(cfg, cache, tmp_path, quick=True))
+    chrono = scores[scores.draw == "chrono"]
+    assert set(chrono.method) == {"smoke_prior"}
+
+
+def test_permuted_labels_keep_each_subjects_classes():
+    md = pd.DataFrame({"subject": ["a"] * 6 + ["b"] * 4, "label": [0, 0, 0, 2, 2, 2, 0, 1, 1, 1]})
+    batch = Batch(None, md.label.to_numpy(), md)
+    out = runner_mod.permuted(batch, seed=0)
+    for s in ("a", "b"):
+        rows = (md.subject == s).to_numpy()
+        assert sorted(out.y[rows]) == sorted(batch.y[rows])
+    assert not np.array_equal(out.y, batch.y)
+    np.testing.assert_array_equal(batch.y, md.label)  # the input is not changed
+
+
+def test_rct_tslr_runs_end_to_end_with_the_covariance_store(cache, tmp_path):
+    cfg = _calib(
+        tmp_path, methods=["rct_tslr", "pooled_tslr"], params={"rct_tslr": {"target_weight": 5}},
+    )  # fmt: skip
+    scores = pd.read_parquet(_run(cfg, cache, tmp_path, quick=True))
+    # Transfer is defined at every k, k = 0 included, in both scenarios and tasks.
+    assert scores.bal_acc.notna().all(), scores[scores.bal_acc.isna()].reason.unique()
+    assert set(scores.k) == {0, 2, 20}

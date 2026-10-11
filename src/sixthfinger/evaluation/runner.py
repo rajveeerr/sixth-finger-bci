@@ -10,7 +10,7 @@ import subprocess
 import time
 from collections import defaultdict
 from collections.abc import Iterable, Iterator
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import UTC, datetime
 from functools import partial
 from pathlib import Path
@@ -33,7 +33,7 @@ from sixthfinger.config import (
 )
 from sixthfinger.data.epochs import load_windows, manifest_sha, recut
 from sixthfinger.evaluation.calibration import REST_ID, draw_calibration_set
-from sixthfinger.evaluation.leakage import assert_no_leakage
+from sixthfinger.evaluation.leakage import LeakageError, assert_no_leakage
 from sixthfinger.evaluation.metrics import SF, score
 from sixthfinger.evaluation.splits import (
     Split,
@@ -45,6 +45,7 @@ from sixthfinger.evaluation.splits import (
 )
 from sixthfinger.models.registry import REGISTRY, Batch, UndefinedCell, make_method
 from sixthfinger.paths import current_git_sha, get_paths
+from sixthfinger.preprocessing.covariance import CovarianceStore
 from sixthfinger.preprocessing.filters import ersp_db
 
 log = logging.getLogger(__name__)
@@ -97,6 +98,16 @@ class ExperimentConfig(Strict):
     # the mean over a fixed set). Each seed is its own unit, stored as `draw`; without
     # seeds every fold is fitted once with the protocol's seed_base and `draw` stays empty.
     seeds: list[int] | None = None
+    # Calibration only. Pool and test runs (default: the protocol's 01-02 and 03-04); the
+    # choice of the transfer values (P08 step 4.5) uses pool 01 and test 02.
+    pool_runs: list[str] | None = None
+    test_runs: list[str] | None = None
+    # Methods that also get the chronological draw (default: every method).
+    chrono_methods: list[str] | None = None
+    # Settings per method over configs/models/<method>.yaml (the step 4.5 candidates).
+    params: dict[str, dict] = Field(default_factory=dict)
+    # No-signal check (P08 gate): every training label permuted within its subject.
+    permute_labels: bool = False
 
 
 def load_experiment(path: Path, proto: ProtocolConfig) -> ExperimentConfig:
@@ -160,11 +171,37 @@ def unit_key(row: dict) -> tuple[str, ...]:
     return tuple(_norm(row.get(k)) for k in UNIT_KEYS)
 
 
+def part_files(path: Path) -> list[Path]:
+    """Per-target files a parallel calibration run writes before they are merged."""
+    return sorted((path.parent / "parts").glob("*.parquet"))
+
+
+def _stored(path: Path, columns: list[str]) -> pd.DataFrame:
+    files = [f for f in (path, *part_files(path)) if f.exists()]
+    if not files:
+        return pd.DataFrame(columns=columns)
+    return pd.concat([pd.read_parquet(f, columns=columns) for f in files], ignore_index=True)
+
+
 def completed_units(path: Path) -> set[tuple[str, ...]]:
-    if not path.exists():
-        return set()
-    done = pd.read_parquet(path, columns=UNIT_KEYS)
-    return {unit_key(r) for r in done.to_dict("records")}
+    return {unit_key(r) for r in _stored(path, UNIT_KEYS).to_dict("records")}
+
+
+def merge_parts(path: Path) -> None:
+    """Fold the part files into the scores file (atomically) and remove them."""
+    parts = part_files(path)
+    if not parts:
+        return
+    frames = [pd.read_parquet(f) for f in ([path] if path.exists() else []) + parts]
+    out = pd.concat(frames, ignore_index=True)
+    out = out[~out[UNIT_KEYS].astype(str).duplicated()]
+    for col in ("k", "fold"):
+        out[col] = pd.to_numeric(out[col]).astype("Int64")
+    tmp = path.with_suffix(".tmp")
+    out.to_parquet(tmp, index=False)
+    tmp.replace(path)
+    for f in parts:
+        f.unlink()
 
 
 @dataclass
@@ -210,26 +247,54 @@ class RunContext:
     method_params: dict[str, dict]
     base_hash: str
     processed: Path | None = None
+    store: object | None = None  # CovarianceStore when a method reads covariances
+    models_dir: Path | None = None
 
     def skip(self, key: dict) -> bool:
         return unit_key(key) in self.done
 
+    def row_hash(self, method: str | None) -> str:
+        params = json.dumps(self.method_params.get(method, {}), sort_keys=True)
+        return hashlib.sha256((self.base_hash + params).encode()).hexdigest()[:16]
+
     def write(self, key: dict, metrics: dict | None = None, **extra) -> None:
         method = key.get("method")
-        params = json.dumps(self.method_params.get(method, {}), sort_keys=True)
         row = {
             **key,
             **(metrics or {k: np.nan for k in METRIC_KEYS}),
             **extra,
             **self.provenance,
-            "config_hash": hashlib.sha256((self.base_hash + params).encode()).hexdigest()[:16],
+            "config_hash": self.row_hash(method),
         }
         row.setdefault("reason", None)
         self.writer.append(row)
 
-    def batch(self, rows: pd.DataFrame, labels: bool = True) -> Batch:
+    def batch(self, rows: pd.DataFrame, labels: bool = True, store: bool = False) -> Batch:
         idx = rows.index.to_numpy()
-        return Batch(self.X[idx], rows.label.to_numpy() if labels else None, rows)
+        # Unlabelled windows lose their label column too, so no method can read it by mistake.
+        md = rows if labels else rows.drop(columns="label")
+        y = rows.label.to_numpy() if labels else None
+        return Batch(self.X[idx], y, md, store=self.store if store else None)
+
+    def source_batch(self, rows: pd.DataFrame, covariances: bool) -> Batch:
+        """Source windows; a covariance method gets them from the store, without a copy of X."""
+        if not covariances:
+            return self.batch(rows)
+        return Batch(None, rows.label.to_numpy(), rows, store=self.store)
+
+
+def permuted(batch: Batch, seed: int) -> Batch:
+    """The batch with its labels shuffled within each subject (the no-signal check).
+
+    Within the batch, so a task's training set keeps exactly its classes and counts.
+    """
+    y = batch.y.copy()
+    rng = np.random.default_rng(seed)
+    subjects = batch.md.subject.to_numpy()
+    for s in sorted(set(subjects)):
+        rows = np.flatnonzero(subjects == s)
+        y[rows] = y[rng.permutation(rows)]
+    return Batch(batch.X, y, batch.md, store=batch.store)
 
 
 def method_params(name: str, configs: Path) -> dict:
@@ -343,6 +408,12 @@ def run_experiment(
     if any(data_cfg.is_run_excluded(s, ss, f"{r:02d}") for s, ss, r in present):
         raise RuntimeError("The epoch cache holds an excluded run; rebuild it (make epochs).")
 
+    store = None
+    if exp.protocol == "calibration" and any(
+        getattr(REGISTRY[m], "uses_covariances", False) for m in exp.methods
+    ):
+        log.info("covariances of %d windows", len(X))
+        store = CovarianceStore(X, md)
     ctx = RunContext(
         exp=exp,
         data_cfg=data_cfg,
@@ -352,22 +423,36 @@ def run_experiment(
         writer=ScoreWriter(out_path),
         done=completed_units(out_path),
         provenance=_provenance(epochs_dir),
-        method_params={m: method_params(m, paths.configs) for m in exp.methods},
+        method_params={
+            m: {**method_params(m, paths.configs), **exp.params.get(m, {})} for m in exp.methods
+        },
         base_hash=config_hash(data_cfg, proto, exp),
         processed=processed_dir or paths.processed,
+        store=store,
+        models_dir=paths.models / "pretrained",
     )
+    _refuse_changed_settings(ctx, out_path)
     log.info("%s: %d units already in %s", exp.name, len(ctx.done), out_path)
     try:
         if exp.protocol == "within_session":
             _run_within_session(ctx, n_jobs)
         else:
-            if n_jobs > 1:
-                log.warning("n_jobs applies to within-session experiments; running in one process")
-            _run_calibration(ctx)
+            _run_calibration(ctx, n_jobs)
     finally:
         ctx.writer.flush()
     log.info("%s: %d new rows", exp.name, ctx.writer.n_written)
     return out_path
+
+
+def _refuse_changed_settings(ctx: RunContext, out_path: Path) -> None:
+    """A resume must not mix rows made with other settings into one experiment."""
+    stored = _stored(out_path, ["method", "config_hash"])
+    for method, rows in stored.groupby("method"):
+        if method in ctx.method_params and set(rows.config_hash) != {ctx.row_hash(method)}:
+            raise ValueError(
+                f"{out_path} holds {method} rows made with other settings; "
+                "move that file away to start the experiment again"
+            )
 
 
 # Within-session protocols (RQ1) ------------------------------------------------------------
@@ -659,59 +744,85 @@ def _draws_for(method_name: str, exp: ExperimentConfig, proto: ProtocolConfig) -
     else:
         n = cal.draws_deep if getattr(REGISTRY[method_name], "deep", False) else cal.draws_classical
     draws = [str(cal.seed_base + i) for i in range(n)]
-    return [*draws, "chrono"] if cal.chrono_draw else draws
+    chrono = cal.chrono_draw and (exp.chrono_methods is None or method_name in exp.chrono_methods)
+    return [*draws, "chrono"] if chrono else draws
 
 
 def _seed(draw: str, proto: ProtocolConfig) -> int:
     return int(draw) if draw.isdigit() else proto.calibration.seed_base
 
 
-def _run_calibration(ctx: RunContext) -> None:
+def _run_calibration(ctx: RunContext, n_jobs: int = 1) -> None:
+    targets = [
+        t
+        for t in ctx.exp.subjects
+        if any(s in ctx.data_cfg.sessions_for(t) for s in ctx.exp.sessions)
+    ]
+    if n_jobs == 1:
+        for target in targets:
+            calibrate_target(ctx, target)
+        return
+    # One target per worker, each writing its own part file, so a stopped run keeps every
+    # finished row; the parts are merged into the scores file at the end (and on resume).
+    parts = ctx.writer.path.parent / "parts"
+    Parallel(n_jobs=n_jobs)(delayed(_calibrate_in_part)(ctx, t, parts) for t in targets)
+    merge_parts(ctx.writer.path)
+
+
+def _calibrate_in_part(ctx: RunContext, target: str, parts: Path) -> None:
+    own = replace(ctx, writer=ScoreWriter(parts / f"{target}.parquet"))
+    try:
+        calibrate_target(own, target)
+    finally:
+        own.writer.flush()
+
+
+def calibrate_target(ctx: RunContext, target: str) -> None:
+    """Every unit of one target subject: tasks, sessions, scenarios, methods, budgets, draws."""
     exp, data_cfg, proto = ctx.exp, ctx.data_cfg, ctx.proto
     cal, md = proto.calibration, ctx.md
-    pool_runs = [int(r) for r in cal.pool_runs]
-    test_runs = [int(r) for r in cal.test_runs]
+    pool_runs = [int(r) for r in (exp.pool_runs or cal.pool_runs)]
+    test_runs = [int(r) for r in (exp.test_runs or cal.test_runs)]
+    if set(pool_runs) & set(test_runs):
+        raise ValueError(f"pool runs {pool_runs} and test runs {test_runs} overlap")
     # "all" is the protocol's last budget, whatever grid an experiment runs (P08 step 4.5).
     k_all = max(cal.k_grid)
     proxies: dict[tuple[str, str], object] = {}
+    sources = [
+        s for s in data_cfg.subjects.ids if data_cfg.split_group(s) != data_cfg.split_group(target)
+    ]
     for task in exp.tasks:
         classes = _class_ids(data_cfg, proto.tasks[task])
+        src = md[md.subject.isin(sources) & md.label.isin(classes)]
         for session in exp.sessions:
-            for target in exp.subjects:
-                if session not in data_cfg.sessions_for(target):
-                    continue  # e.g. sub-21/sub-22 pre: excluded
-                log.info("%s %s %s", target, session, task)
-                smask = (md.subject == target) & (md.session == session)
-                # Three-class pool: one draw serves both tasks (protocol 4.2).
-                pool = md[smask & md.run.isin(pool_runs)]
-                in_test = smask & md.run.isin(test_runs)
-                test = md[in_test & md.label.isin(classes)]
-                sources = [
-                    s
-                    for s in data_cfg.subjects.ids
-                    if data_cfg.split_group(s) != data_cfg.split_group(target)
-                ]
-                src = md[md.subject.isin(sources) & md.label.isin(classes)]
-                for scen_name in exp.scenarios:
-                    scen = cal.scenarios[scen_name]
-                    full = _class_ids(data_cfg, scen.full_classes)
-                    budget = _class_ids(data_cfg, scen.budget_classes)
-                    # S2 T3 decoders also label the AH test windows, for the SF-vs-AH share.
-                    ah_test = (
-                        md[in_test & (md.label == AH)]
-                        if AH in full and SF in classes and AH not in classes
-                        else md.iloc[:0]
-                    )
-                    for method_name in exp.methods:
-                        unit = _CalibUnit(
-                            ctx, task, classes, session, target, scen_name, full, budget,
-                            pool, test, ah_test, src, method_name, proxies,
-                        )  # fmt: skip
-                        for k in exp.k_grid:
-                            proxy = method_name == AH_PROXY
-                            one_draw = proxy or k == 0 or k >= k_all
-                            for draw in ["0"] if one_draw else _draws_for(method_name, exp, proto):
-                                unit.run(k, draw)
+            if session not in data_cfg.sessions_for(target):
+                continue  # e.g. sub-21/sub-22 pre: excluded
+            log.info("%s %s %s", target, session, task)
+            smask = (md.subject == target) & (md.session == session)
+            # Three-class pool: one draw serves both tasks (protocol 4.2).
+            pool = md[smask & md.run.isin(pool_runs)]
+            in_test = smask & md.run.isin(test_runs)
+            test = md[in_test & md.label.isin(classes)]
+            for scen_name in exp.scenarios:
+                scen = cal.scenarios[scen_name]
+                full = _class_ids(data_cfg, scen.full_classes)
+                budget = _class_ids(data_cfg, scen.budget_classes)
+                # S2 T3 decoders also label the AH test windows, for the SF-vs-AH share.
+                ah_test = (
+                    md[in_test & (md.label == AH)]
+                    if AH in full and SF in classes and AH not in classes
+                    else md.iloc[:0]
+                )
+                for method_name in exp.methods:
+                    unit = _CalibUnit(
+                        ctx, task, classes, session, target, scen_name, full, budget,
+                        pool, pool_runs, k_all, test, ah_test, src, method_name, proxies,
+                    )  # fmt: skip
+                    for k in exp.k_grid:
+                        proxy = method_name == AH_PROXY
+                        one_draw = proxy or k == 0 or k >= k_all
+                        for draw in ["0"] if one_draw else _draws_for(method_name, exp, proto):
+                            unit.run(k, draw)
 
 
 @dataclass
@@ -725,6 +836,8 @@ class _CalibUnit:
     full: list[int]
     budget: list[int]
     pool: pd.DataFrame
+    pool_runs: list[int]
+    k_all: int
     test: pd.DataFrame
     ah_test: pd.DataFrame
     src: pd.DataFrame
@@ -753,8 +866,7 @@ class _CalibUnit:
             return
         cls = REGISTRY[name]
         uses_source = bool(getattr(cls, "uses_source", False))
-        k_all = max(ctx.proto.calibration.k_grid)
-        cd = draw_calibration_set(self.pool, self.full, self.budget, k, draw, k_all=k_all)
+        cd = draw_calibration_set(self.pool, self.full, self.budget, k, draw, k_all=self.k_all)
         k_used = json.dumps(cd.k_used)
         if name == AH_PROXY:
             train_md = ah_proxy_windows(self.pool)
@@ -771,42 +883,70 @@ class _CalibUnit:
             target_subject=self.target,
             split_group=ctx.data_cfg.split_group,
         )
+        for rows in (train_md, unl_md):
+            # The target's own windows, labelled or not, come from its calibration pool only.
+            inside = (
+                rows.subject.eq(self.target).all()
+                and rows.session.eq(self.session).all()
+                and rows.run.isin(self.pool_runs).all()
+            )
+            if len(rows) and not inside:
+                raise LeakageError("target windows outside the calibration pool")
         n_info = dict(k_used=k_used, n_train=len(train_md), n_test=len(self.test))
         if 0 < k < getattr(cls, "min_trials_per_class", 1):
             ctx.write(key, reason="k below the method's declared minimum", **n_info)
             return
-        if not uses_source and name != AH_PROXY and set(train_md.label) != set(self.classes):
-            # From scratch cannot predict a class it has never seen (S1 k = 0, S2 k = 0).
+        transfer = uses_source or getattr(cls, "needs_pretrained", False)
+        if not transfer and name != AH_PROXY and set(train_md.label) != set(self.classes):
+            # From scratch cannot predict a class it has never seen (S1/S2 k = 0).
             ctx.write(key, reason="no target data for every class", **n_info)
             return
         t0 = time.perf_counter()
-        method = self._fitted(train_md, unl_md, src, draw)
-        fit_seconds = time.perf_counter() - t0
-        proba = self._predict(method, self.test)
+        try:
+            method = self._fitted(train_md, unl_md, src, draw)
+            fit_seconds = time.perf_counter() - t0
+            proba = self._predict(method, self.test)
+            said_ah = self._predict(method, self.ah_test) if len(self.ah_test) else None
+        except UndefinedCell as err:
+            ctx.write(key, reason=str(err), **n_info)
+            return
         row = score(self.test.label.to_numpy(), proba, self.classes)
         sf_vs_ah = np.nan
-        if len(self.ah_test):
-            said = np.asarray(self.classes)[self._predict(method, self.ah_test).argmax(axis=1)]
-            sf_vs_ah = float(np.mean(said == SF))
+        if said_ah is not None:
+            sf_vs_ah = float(np.mean(np.asarray(self.classes)[said_ah.argmax(axis=1)] == SF))
         ctx.write(key, row, sf_vs_ah=sf_vs_ah, fit_seconds=fit_seconds, **n_info)
+
+    def _params(self) -> dict:
+        ctx, cls = self.ctx, REGISTRY[self.method_name]
+        params = dict(ctx.method_params[self.method_name])
+        if getattr(cls, "needs_classes", False):
+            params["classes"] = self.classes
+        if getattr(cls, "needs_pretrained", False):
+            params.update(models_dir=ctx.models_dir, mirror=ctx.exp.mirror)
+        return params
 
     def _fitted(self, train_md, unl_md, src, draw):
         ctx, name = self.ctx, self.method_name
+        seed = _seed(draw, ctx.proto)
         if name == AH_PROXY:
             # Independent of k and task: fitted once per subject and session (protocol 4.2).
             cache_key = (self.target, self.session)
             if cache_key not in self.proxies:
-                method = make_method(name, n_classes=2, **ctx.method_params[name])
-                method.fit(ctx.batch(train_md), seed=ctx.proto.calibration.seed_base)
+                method = make_method(name, n_classes=2, **self._params())
+                method.fit(self._train(ctx.batch(train_md)), seed=ctx.proto.calibration.seed_base)
                 self.proxies[cache_key] = method
             return self.proxies[cache_key]
-        method = make_method(name, n_classes=len(self.classes), **ctx.method_params[name])
+        covariances = bool(getattr(REGISTRY[name], "uses_covariances", False))
+        method = make_method(name, n_classes=len(self.classes), **self._params())
         return method.fit(
-            ctx.batch(train_md),
-            ctx.batch(src) if src is not None else None,
-            ctx.batch(unl_md, labels=False),
-            seed=_seed(draw, ctx.proto),
+            self._train(ctx.batch(train_md, store=covariances)),
+            self._train(ctx.source_batch(src, covariances)) if src is not None else None,
+            ctx.batch(unl_md, labels=False, store=covariances),
+            seed=seed,
         )
+
+    def _train(self, batch: Batch) -> Batch:
+        return permuted(batch, seed=0) if self.ctx.exp.permute_labels and len(batch.md) else batch
 
     def _predict(self, method, rows: pd.DataFrame) -> np.ndarray:
         proba = method.predict_proba(self.ctx.X[rows.index.to_numpy()])
