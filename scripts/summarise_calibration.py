@@ -83,6 +83,8 @@ def curve(values: pd.DataFrame, method: str, subject: str, scenario, task, sessi
         (values.method == method) & (values.subject == subject) & (values.scenario == scenario)
         & (values.task == task) & (values.session == session)
     ].set_index("k")[col]  # fmt: skip
+    if not g.index.is_unique:
+        raise ValueError(f"{method} {subject} {scenario} {task}: one k from two experiments")
     return g
 
 
@@ -400,30 +402,34 @@ COLOURS = {"ts_lr": "#1f77b4", "rct_tslr": "#d62728", "csp_lda": "#9467bd", "mdm
 def figure_curves(cur: pd.DataFrame, figures: Path) -> None:
     pre = cur[(cur.session == "pre") & (cur.population == "all")]
     panels = [(S1, T2), (S1, T3), (S2, T3), (S2, T2)]
-    fig, axes = plt.subplots(2, 2, figsize=(7.4, 6.0), sharex=True)
+    fig, axes = plt.subplots(2, 2, figsize=(7.4, 6.6))
+    handles = {}
     for ax, (scenario, task) in zip(axes.flat, panels, strict=True):
         g = pre[(pre.scenario == scenario) & (pre.task == task)]
         for method, m in g.groupby("method"):
             m = m.sort_values("k")
             x = np.log1p(m.k)
-            ax.plot(x, m["mean"], marker="o", ms=3, lw=1.4 if method in PAIR else 0.9,
-                    color=COLOURS.get(method, "0.5"), label=method)  # fmt: skip
-            ax.fill_between(x, m.ci_lo, m.ci_hi, color=COLOURS.get(method, "0.5"), alpha=0.12, lw=0)
+            colour = COLOURS.get(method, "0.5")
+            (line,) = ax.plot(x, m["mean"], marker="o", ms=3, color=colour,
+                              lw=1.6 if method in PAIR else 0.9, label=method)  # fmt: skip
+            ax.fill_between(x, m.ci_lo, m.ci_hi, color=colour, alpha=0.12, lw=0)
+            handles[method] = line
         ax.axhline(CHANCE[task], color="0.5", lw=0.8)
         for thr in THRESHOLDS[task]:
             ax.axhline(thr, color="0.7", lw=0.6, ls=":")
         ks = sorted(set(g.k))
         ax.set_xticks(np.log1p(ks), [str(k) if k < 20 else "all" for k in ks])
-        ax.set_title(
-            f"{scenario.split('_')[0]} {task.split('_', 1)[1].replace('_', ' ')}", fontsize=8
-        )
+        name = task.split("_", 1)[1].replace("_", " ")
+        ax.set_title(f"{scenario.split('_')[0]}: {name}", fontsize=8, pad=16)
         top = ax.secondary_xaxis("top")
-        top.set_xticks(np.log1p(ks), [f"{minutes(scenario, k, False):.1f}" for k in ks], fontsize=6)
-    for ax in axes[1]:
-        ax.set_xlabel("trials per class (top axis: calibration minutes)")
+        top.set_xticks(np.log1p(ks), [f"{minutes(scenario, k, False):.1f}" for k in ks])
+        top.tick_params(labelsize=6)
+        ax.set_xlabel("k (trials per class)" if scenario == S1 else "k (SF trials)", fontsize=8)
     for ax in axes[:, 0]:
         ax.set_ylabel("balanced accuracy")
-    axes[0, 0].legend(frameon=False, fontsize=6, ncol=2)
+    fig.legend(handles.values(), handles.keys(), loc="lower center", ncol=5, frameon=False,
+               fontsize=7)  # fmt: skip
+    fig.tight_layout(rect=(0, 0.06, 1, 1))
     save(fig, figures, "rq2_calibration_curves")
 
 
