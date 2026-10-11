@@ -7,6 +7,9 @@ budget nor the draw, so a run computes them once instead of in every fit (`DECIS
 
 from __future__ import annotations
 
+import hashlib
+from collections.abc import Callable
+
 import numpy as np
 import pandas as pd
 from pyriemann.estimation import Covariances
@@ -34,6 +37,7 @@ class CovarianceStore:
         est = Covariances(estimator)
         self.C = np.concatenate([est.transform(X[i : i + chunk]) for i in range(0, len(X), chunk)])
         self._filters: dict[tuple, np.ndarray] = {}
+        self._cache: dict[tuple, object] = {}
 
     def covs(self, idx) -> np.ndarray:
         return self.C[np.asarray(idx)]
@@ -59,3 +63,14 @@ class CovarianceStore:
             rows = subjects == s
             out[rows] = recentre(self.C[idx[rows]], self.filters(s, classes))
         return out
+
+    def cached(self, key: tuple, compute: Callable[[], object]) -> object:
+        """A value computed once per process, e.g. the sources' own mean (a warm start)."""
+        if key not in self._cache:
+            self._cache[key] = compute()
+        return self._cache[key]
+
+
+def fingerprint(idx) -> str:
+    """Short id of a set of row positions, to key what depends on exactly those rows."""
+    return hashlib.blake2b(np.asarray(idx, dtype=np.int64).tobytes(), digest_size=8).hexdigest()

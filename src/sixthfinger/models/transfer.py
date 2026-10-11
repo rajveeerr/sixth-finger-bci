@@ -5,7 +5,10 @@ does, then fit one classifier on the source and target matrices together with th
 weighted, as `TLClassifier` does. They read the run's cached covariances; each source
 subject is re-centred once over all its windows of the task's classes. The target is
 re-centred with its unlabelled set only (protocol 4.2), never with its test windows.
-`tests/test_transfer.py` checks the predictions against the pyRiemann pipeline.
+Their Riemannian means (tangent-space reference, MDM class means) start from the sources'
+own mean, cached per target: the same fixed point within the solver's tolerance, reached in
+a few iterations instead of about twenty. `tests/test_transfer.py` checks the predictions
+against the pyRiemann pipeline.
 """
 
 from __future__ import annotations
@@ -14,6 +17,7 @@ import numpy as np
 import torch
 from pyriemann.classification import MDM
 from pyriemann.estimation import Covariances
+from pyriemann.geometry.mean import mean_riemann
 from pyriemann.tangentspace import TangentSpace
 from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import make_pipeline
@@ -26,7 +30,7 @@ from sixthfinger.models.deep import (
 )
 from sixthfinger.models.registry import Batch, register
 from sixthfinger.preprocessing.alignment import align, reference_matrix
-from sixthfinger.preprocessing.covariance import centring_filters, recentre
+from sixthfinger.preprocessing.covariance import centring_filters, fingerprint, recentre
 
 
 def _covs(batch: Batch, estimator: str) -> np.ndarray:
@@ -41,6 +45,46 @@ def _labelled(batch: Batch | None) -> bool:
     return batch is not None and batch.y is not None and len(batch.y) > 0
 
 
+class WarmTangentSpace(TangentSpace):
+    """pyRiemann's TangentSpace (Riemannian metric) whose reference mean starts at `init`."""
+
+    def __init__(self, metric="riemann", tsupdate=False, init=None):
+        super().__init__(metric=metric, tsupdate=tsupdate)
+        self.init = init
+
+    def fit(self, X, y=None, sample_weight=None):
+        if self.metric != "riemann":
+            raise ValueError("the warm start is for the Riemannian mean only")
+        self.reference_ = mean_riemann(X, sample_weight=sample_weight, init=self.init)
+        return self
+
+    def fit_transform(self, X, y=None, sample_weight=None):
+        return self.fit(X, y, sample_weight=sample_weight).transform(X)
+
+
+class WarmMDM(MDM):
+    """pyRiemann's MDM (Riemannian metric) whose class means start at `init[class]`."""
+
+    def __init__(self, metric="riemann", n_jobs=1, init=None):
+        super().__init__(metric=metric, n_jobs=n_jobs)
+        self.init = init
+
+    def fit(self, X, y, sample_weight=None):
+        if self.metric != "riemann":
+            raise ValueError("the warm start is for the Riemannian mean only")
+        self._metric_mean = self._metric_dist = "riemann"  # what MDM.fit sets for "riemann"
+        w = np.ones(len(X)) if sample_weight is None else np.asarray(sample_weight)
+        self.classes_ = np.unique(y)
+        start = self.init or {}
+        self.covmeans_ = np.stack(
+            [
+                mean_riemann(X[y == c], sample_weight=w[y == c], init=start.get(int(c)))
+                for c in self.classes_
+            ]
+        )
+        return self
+
+
 class _RiemannTransfer:
     uses_source = True
     uses_covariances = True
@@ -48,7 +92,7 @@ class _RiemannTransfer:
     def __init__(self, n_classes: int, **params):
         self.n_classes, self.p = n_classes, params
 
-    def _estimator(self):
+    def _estimator(self, Cs: np.ndarray, ys: np.ndarray, key: tuple):
         raise NotImplementedError
 
     def _fit_args(self, weights: np.ndarray) -> dict:
@@ -62,6 +106,7 @@ class _RiemannTransfer:
         est = self.p["covariance"]
         classes = sorted(int(c) for c in np.unique(source.md.label))
         Cs = source.store.recentred(source.md.index, classes)
+        key = (fingerprint(source.md.index), tuple(classes))
         # Target reference from the unlabelled set: the drawn windows at k > 0, the declared
         # REST set at k = 0 (protocol 4.2, deviation log 2026-10-11).
         self.W = centring_filters(_covs(unlabelled, est))
@@ -71,7 +116,8 @@ class _RiemannTransfer:
             ys.append(target.y)
             ws.append(np.full(len(target.y), float(self.p["target_weight"])))
         X, y, w = np.concatenate(parts), np.concatenate(ys), np.concatenate(ws)
-        self.model = self._estimator().fit(X, y, **self._fit_args(w))
+        self.store = source.store
+        self.model = self._estimator(Cs, source.y, key).fit(X, y, **self._fit_args(w))
         return self
 
     def predict_proba(self, X: np.ndarray) -> np.ndarray:
@@ -81,8 +127,12 @@ class _RiemannTransfer:
 
 @register("rct_mdm")
 class RctMdm(_RiemannTransfer):
-    def _estimator(self):
-        return MDM(metric=self.p["metric"])
+    def _estimator(self, Cs, ys, key):
+        init = self.store.cached(
+            ("rct_mdm", *key),
+            lambda: {int(c): mean_riemann(Cs[ys == c]) for c in np.unique(ys)},
+        )
+        return WarmMDM(metric=self.p["metric"], init=init)
 
     def _fit_args(self, weights):
         return {"sample_weight": weights}
@@ -90,17 +140,18 @@ class RctMdm(_RiemannTransfer):
 
 @register("rct_tslr")
 class RctTslr(_RiemannTransfer):
-    def _estimator(self):
+    def _estimator(self, Cs, ys, key):
+        init = self.store.cached(("rct_tslr", *key), lambda: mean_riemann(Cs))
         lr = self.p["logreg"]
         return make_pipeline(
-            TangentSpace(metric=self.p["tangent_space_metric"]),
+            WarmTangentSpace(metric=self.p["tangent_space_metric"], init=init),
             LogisticRegression(C=lr["C"], max_iter=lr["max_iter"]),
         )
 
     def _fit_args(self, weights):
         # TLClassifier passes the domain weights to every step that takes sample_weight.
         return {
-            "tangentspace__sample_weight": weights,
+            "warmtangentspace__sample_weight": weights,
             "logisticregression__sample_weight": weights,
         }
 
@@ -119,13 +170,18 @@ class PooledTslr:
         if source is None:
             raise ValueError("pooled_tslr needs source data")
         est = self.p["covariance"]
-        parts, ys = [_covs(source, est)], [source.y]
+        Cs = _covs(source, est)
+        parts, ys = [Cs], [source.y]
         if _labelled(target):
             parts.append(_covs(target, est))
             ys.append(target.y)
+        init = None
+        if source.store is not None:
+            key = ("pooled_tslr", fingerprint(source.md.index))
+            init = source.store.cached(key, lambda: mean_riemann(Cs))
         lr = self.p["logreg"]
         self.model = make_pipeline(
-            TangentSpace(metric=self.p["tangent_space_metric"]),
+            WarmTangentSpace(metric=self.p["tangent_space_metric"], init=init),
             LogisticRegression(C=lr["C"], max_iter=lr["max_iter"]),
         ).fit(np.concatenate(parts), np.concatenate(ys))
         return self
