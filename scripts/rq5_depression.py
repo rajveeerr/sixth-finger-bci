@@ -1,6 +1,6 @@
 """RQ5: segment-level vs subject-level cross-validation in public depression EEG (P09 Study 6).
 
-Everything is fixed in _workspace/research/preregistration-rq5.md (tag prereg-rq5-v1):
+Everything is fixed in the RQ5 pre-registration addendum, frozen at the tag prereg-rq5-v1:
 
 uv run python scripts/rq5_depression.py fetch       # downloads; refuses before the tag
 uv run python scripts/rq5_depression.py audit       # results/audit/rq5_audit_<dataset>.csv
