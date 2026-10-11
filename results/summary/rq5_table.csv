@@ -1,0 +1,9 @@
+dataset,pipeline,protocol,n_subjects,ba,diagnosed
+modma,bp_lr,segment_cv,52,0.841361,0.980769
+modma,bp_lr,subject_cv,52,0.523143,0.519231
+modma,ts_lr,segment_cv,52,0.910345,1
+modma,ts_lr,subject_cv,52,0.482766,0.461538
+mumtaz,bp_lr,segment_cv,56,0.964582,1
+mumtaz,bp_lr,subject_cv,56,0.818409,0.857143
+mumtaz,ts_lr,segment_cv,56,0.979639,1
+mumtaz,ts_lr,subject_cv,56,0.797763,0.839286

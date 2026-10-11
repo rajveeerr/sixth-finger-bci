@@ -1,0 +1,9 @@
+analysis,dataset,pipeline,protocol,ba
+E1_year_2013,mumtaz,bp_lr,subject_cv,0.841281
+E1_year_2013,mumtaz,ts_lr,subject_cv,0.837937
+E2_overlap,modma,bp_lr,segment_cv,0.854432
+E2_overlap,modma,ts_lr,segment_cv,0.923952
+E2_overlap,mumtaz,bp_lr,segment_cv,0.967031
+E2_overlap,mumtaz,ts_lr,segment_cv,0.984146
+E3_gad7,modma,ts_lr,segment_cv,0.930112
+E3_gad7,modma,ts_lr,subject_cv,0.496297

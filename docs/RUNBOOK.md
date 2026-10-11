@@ -60,14 +60,22 @@ units. Full scores go to `results/runs/<experiment>/scores.parquet`
 |------------|---------|-----------|---------------|----------------|
 | Smoke test | `uv run sixthfinger run configs/experiments/smoke.yaml --subjects sub-01,sub-03` | P05 | Mac | < 1 min |
 | RQ1 re-benchmark | `uv run sixthfinger run configs/experiments/rq1_benchmark.yaml` | P06 | Mac | 1–4 h |
-| Deep baselines | `uv run sixthfinger run configs/experiments/dl_baselines.yaml` | P07 | Mac (chrono) / Kaggle (loro) | 6 h Mac |
-| Leave-one-subject-out pre-training | Kaggle notebook `notebooks/kaggle/run_experiment.ipynb` with `pretrain_loso.yaml` | P07 | Kaggle GPU | 2–8 h |
-| RQ2 calibration, new user | `uv run sixthfinger run configs/experiments/rq2_calib_s1.yaml` (classical) + Kaggle for EEGNet methods | P08 | Mac + Kaggle | overnight + GPU hours |
-| RQ3 calibration, new command | same with `rq3_calib_s2.yaml` | P08 | Mac + Kaggle | same |
+| Deep baselines | `bash notebooks/kaggle/push.sh dl-baselines gpu run configs/experiments/dl_baselines.yaml` | P07 | Kaggle GPU | 1.7 h (T4) |
+| Leave-one-subject-out pre-training | `bash notebooks/kaggle/push.sh pretrain gpu pretrain` | P07 | Kaggle GPU | 45 min (T4) |
+| RQ2 calibration, new user | `uv run sixthfinger run configs/experiments/rq2_calib_s1.yaml --methods <classical> --jobs 3`, or Kaggle shards (`push.sh ... cpu run ... --subjects ... --jobs 4`); EEGNet methods with `push.sh ... gpu --models run ...` | P08 | Mac or Kaggle CPU + Kaggle GPU | hours per shard |
+| RQ3 calibration, new command | same with `rq3_calib_s2.yaml` | P08 | same | same |
+| Transfer values (P08 step 4.5) | `uv run python scripts/select_transfer_hparams.py --methods rct_tslr rct_mdm eegnet_ea_ft` | P08 | Mac | 30 min |
+| RQ5 depression leakage | `uv run python scripts/rq5_depression.py fetch`, then `audit`, `run`, `summarise` | P09 | Mac | minutes after a 2.5 GB download |
 | RQ4 studies | `rq4_mirror.yaml`, `rq4_longitudinal.yaml`, `rq4_channels.yaml` | P09 | Mac | hours |
 
 Quick versions for debugging: add `--quick` (small k grid, two draws) and
 `--subjects sub-01,sub-03`.
+
+Kaggle jobs: `bash notebooks/kaggle/bundle.sh --code` uploads the committed code (add the
+epoch cache without `--code` when it changed); `push.sh <name> <cpu|gpu> [--models] <kind>
+[args]` starts a private notebook; `fetch.sh <name>` downloads its output to
+`results/kaggle/<name>/`; `scripts/merge_scores.py results/kaggle/*/results/runs` merges
+the scores into `results/runs/`.
 
 Summaries and figures:
 
@@ -75,7 +83,7 @@ Summaries and figures:
 |---------|-----------|--------|
 | `uv run python scripts/make_eda_figures.py --session pre --out docs/figures` | P04 | `docs/figures/eda_*` |
 | `uv run python scripts/summarise_rq1.py` | P06 | `results/summary/rq1_*`, `docs/figures/rq1_*` |
-| `uv run python scripts/summarise_calibration.py --experiment rq2_calib_s1` | P08 | `results/summary/rq2_*`, `docs/figures/rq2_*` |
+| `uv run python scripts/summarise_calibration.py` | P08 | `results/summary/calib_*`, `rq3_sf_vs_ah.csv`, `docs/figures/rq2_*`, `rq3_*` |
 | `uv run python scripts/summarise_rq4.py` | P09 | `results/summary/rq4_*`, `docs/figures/rq4_*` |
 
 How to verify a result: every row of every scores file carries `git_sha`,

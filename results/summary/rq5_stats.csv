@@ -1,0 +1,5 @@
+hypothesis,dataset,pipeline,inflation_points,ci_lo_points,ci_hi_points,n,median_diff,mean_diff,W,p,r_rb,p_holm,category
+H5b,modma,bp_lr,31.8218,24.9179,38.7968,52,0.218711,0.310219,1218,8.55411e-10,0.988571,1.71082e-09,supported
+H5b,modma,ts_lr,42.7579,33.855,51.6544,52,0.431963,0.423835,1078,2.1444e-09,0.99445,2.1444e-09,supported
+H5,mumtaz,bp_lr,14.6173,9.03016,20.9224,56,0.0324527,0.145787,663,1.08211e-07,0.990991,1.08211e-07,supported
+H5,mumtaz,ts_lr,18.1876,11.2387,25.8242,56,0.0290099,0.180392,845.5,3.76351e-08,0.963995,7.52701e-08,supported
