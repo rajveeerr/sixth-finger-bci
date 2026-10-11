@@ -29,7 +29,7 @@ import pandas as pd
 from scipy.signal import welch
 from sklearn.base import BaseEstimator, TransformerMixin
 
-from sixthfinger.paths import get_paths
+from sixthfinger.paths import current_git_sha, get_paths
 
 log = logging.getLogger("rq5")
 TAG = "prereg-rq5-v1"
@@ -414,7 +414,9 @@ def audit(_args) -> None:
     paths = get_paths()
     for name, fn in (("mumtaz", audit_mumtaz), ("modma", audit_modma)):
         table, kept = fn()
-        table.to_csv(paths.audit / f"rq5_audit_{name}.csv", index=False)
+        table.assign(git_sha=current_git_sha()).to_csv(
+            paths.audit / f"rq5_audit_{name}.csv", index=False
+        )
         save_segments(name, table, kept)
         log.info("%s: %d files, %d kept (%s)", name, len(table), table.kept.sum(),
                  table[table.kept].group.value_counts().to_dict())  # fmt: skip
@@ -486,7 +488,8 @@ def run(_args) -> None:
                                            analysis="E3_gad7"))  # fmt: skip
             else:
                 log.info("E3 not run: GAD-7 sides %s", sides.to_dict())
-    pd.concat(frames, ignore_index=True).to_parquet(out / "subject_values.parquet", index=False)
+    values = pd.concat(frames, ignore_index=True).assign(git_sha=current_git_sha())
+    values.to_parquet(out / "subject_values.parquet", index=False)
     log.info("rq5 per-subject values in %s", out)
 
 
