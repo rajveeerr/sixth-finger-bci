@@ -1,0 +1,12 @@
+# RQ3, S2 new command, session pre: the confirmatory study (pre-registration 3.4, 5.1).
+name: rq3_calib_s2
+protocol: calibration
+tasks: [T2_rest_ah_sf, T3_sf_vs_rest]
+sessions: [pre]
+subjects: all
+scenarios: [S2_new_command]
+methods: [csp_lda, mdm, ts_lr, eegnet_scratch, pooled_tslr, rct_mdm, rct_tslr, eegnet_ea_ft, ah_proxy]
+k_grid: from_protocol
+draws: from_protocol
+chrono_methods: [ts_lr, rct_tslr]
+mirror: false

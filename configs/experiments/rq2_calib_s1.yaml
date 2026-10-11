@@ -1,0 +1,16 @@
+# RQ2, S1 new user, session pre: the confirmatory study (pre-registration 3.4, 5.1).
+# The classical methods run on CPUs, the EEGNet methods on a GPU (--methods); the files are
+# merged with scripts/merge_scores.py.
+name: rq2_calib_s1
+protocol: calibration
+tasks: [T2_rest_ah_sf, T3_sf_vs_rest]
+sessions: [pre]
+subjects: all
+scenarios: [S1_new_user]
+methods: [csp_lda, mdm, ts_lr, eegnet_scratch, pooled_tslr, rct_mdm, rct_tslr, eegnet_ea_ft]
+k_grid: from_protocol
+draws: from_protocol
+# The chronological draw is a sensitivity check of the confirmatory rows only (5.2; deviation
+# log 2026-10-11).
+chrono_methods: [ts_lr, rct_tslr]
+mirror: false

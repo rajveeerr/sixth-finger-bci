@@ -1,0 +1,13 @@
+# Replication on session post (pre-registration 5.2): the methods of the replicated rows only,
+# H2a, H2b, H3 and H3c (deviation log 2026-10-11).
+name: rq2_rq3_post
+protocol: calibration
+tasks: [T2_rest_ah_sf, T3_sf_vs_rest]
+sessions: [post]
+subjects: all
+scenarios: [S1_new_user, S2_new_command]
+methods: [ts_lr, rct_tslr, ah_proxy]
+k_grid: from_protocol
+draws: from_protocol
+chrono_methods: [ts_lr, rct_tslr]
+mirror: false

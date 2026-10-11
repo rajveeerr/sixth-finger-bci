@@ -1,0 +1,15 @@
+# The P08 gate's no-signal check (deviation log 2026-10-11): every training label permuted
+# within its subject, target and sources; test labels kept. Pass: each method's mean within
+# 0.08 of 1/3 (T2) and 0.10 of 1/2 (T3).
+name: rq2_nosignal
+protocol: calibration
+tasks: [T2_rest_ah_sf, T3_sf_vs_rest]
+sessions: [pre]
+subjects: [sub-01, sub-03]
+scenarios: [S1_new_user]
+methods: [csp_lda, mdm, ts_lr, eegnet_scratch, pooled_tslr, rct_mdm, rct_tslr, eegnet_ea_ft]
+k_grid: [2, 5, 20]
+draws: 3
+chrono_methods: []
+permute_labels: true
+mirror: false
