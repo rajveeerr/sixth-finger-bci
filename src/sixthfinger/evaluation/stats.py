@@ -91,11 +91,19 @@ def paired_alc(
     return alc(k[ok], a[ok], chance), alc(k[ok], b[ok], chance), k[ok].astype(int).tolist()
 
 
+CURVE_KEYS = ["experiment", "scenario", "task", "session", "method", "subject", "k"]
+
+
 def subject_curve(scores: pd.DataFrame, value: str = "bal_acc") -> pd.DataFrame:
-    """Per-subject value at each k: mean over the random draws, chrono draw left out."""
+    """Per-subject value at each k: mean over the random draws, chrono draw left out.
+
+    Grouped by every unit key the scores have except draw and fold, so tasks, scenarios and
+    sessions are never averaged together; n_draws counts the draws with a value.
+    """
     random_draws = scores[scores.draw.astype(str) != "chrono"]
-    keys = ["method", "subject", "k"]
-    return random_draws.groupby(keys, as_index=False)[value].mean()
+    keys = [k for k in CURVE_KEYS if k in scores.columns]
+    out = random_draws.groupby(keys, dropna=False)[value].agg(["mean", "count"]).reset_index()
+    return out.rename(columns={"mean": value, "count": "n_draws"})
 
 
 def k_star(k: np.ndarray, score_: np.ndarray, threshold: float) -> float:

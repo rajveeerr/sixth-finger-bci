@@ -187,11 +187,12 @@ def completed_units(path: Path) -> set[tuple[str, ...]]:
     return {unit_key(r) for r in _stored(path, UNIT_KEYS).to_dict("records")}
 
 
-def merge_parts(path: Path) -> None:
-    """Fold the part files into the scores file (atomically) and remove them."""
+def merge_parts(path: Path) -> int:
+    """Fold the part files into the scores file (atomically), remove them; rows added."""
     parts = part_files(path)
     if not parts:
-        return
+        return 0
+    before = len(pd.read_parquet(path, columns=["method"])) if path.exists() else 0
     frames = [pd.read_parquet(f) for f in ([path] if path.exists() else []) + parts]
     out = pd.concat(frames, ignore_index=True)
     out = out[~out[UNIT_KEYS].astype(str).duplicated()]
@@ -202,6 +203,7 @@ def merge_parts(path: Path) -> None:
     tmp.replace(path)
     for f in parts:
         f.unlink()
+    return len(out) - before
 
 
 @dataclass
@@ -766,7 +768,7 @@ def _run_calibration(ctx: RunContext, n_jobs: int = 1) -> None:
     # finished row; the parts are merged into the scores file at the end (and on resume).
     parts = ctx.writer.path.parent / "parts"
     Parallel(n_jobs=n_jobs)(delayed(_calibrate_in_part)(ctx, t, parts) for t in targets)
-    merge_parts(ctx.writer.path)
+    ctx.writer.n_written += merge_parts(ctx.writer.path)
 
 
 def _calibrate_in_part(ctx: RunContext, target: str, parts: Path) -> None:

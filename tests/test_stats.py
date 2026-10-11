@@ -99,6 +99,20 @@ def test_subject_curve_leaves_out_the_chrono_draw():
         }
     )
     assert subject_curve(scores).bal_acc.tolist() == [pytest.approx(0.5)]
+    assert subject_curve(scores).n_draws.tolist() == [2]
+
+
+def test_subject_curve_never_averages_across_tasks_or_scenarios():
+    base = {"method": "m", "subject": "sub-01", "k": 2, "draw": "0", "session": "pre"}
+    scores = pd.DataFrame(
+        [
+            {**base, "task": "T2", "scenario": "S1", "bal_acc": 0.4},
+            {**base, "task": "T3", "scenario": "S1", "bal_acc": 0.8},
+            {**base, "task": "T3", "scenario": "S2", "bal_acc": 0.6},
+        ]
+    )
+    out = subject_curve(scores).set_index(["task", "scenario"]).bal_acc
+    assert out.to_dict() == {("T2", "S1"): 0.4, ("T3", "S1"): 0.8, ("T3", "S2"): 0.6}
 
 
 def test_k_star():
