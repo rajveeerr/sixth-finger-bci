@@ -43,6 +43,9 @@ for stamp in ("GIT_SHA", "PREREG"):
 sha = (REPO / "GIT_SHA").read_text().strip()
 (REPO / "data/derived").mkdir(parents=True, exist_ok=True)
 (REPO / "data/derived/epochs").symlink_to(epochs_dir)
+# Results are written straight into the output, so a job stopped part-way keeps what it did.
+(OUT / "results").mkdir(parents=True, exist_ok=True)
+(REPO / "results").symlink_to(OUT / "results")
 for manifest in find("manifest.json"):
     weights = sorted(manifest.parent.glob("eegnet_loso_*.pt"))
     if weights:
@@ -84,6 +87,4 @@ try:
     info["status"] = "complete"
 finally:
     info["seconds"] = round(time.time() - start)
-    if (REPO / "results/runs").is_dir():
-        shutil.copytree(REPO / "results/runs", OUT / "runs", dirs_exist_ok=True)
     (OUT / "job.json").write_text(json.dumps(info, indent=2) + "\n")
