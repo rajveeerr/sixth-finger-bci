@@ -110,6 +110,9 @@ def main() -> None:
     out = paths.results / "summary" / "transfer_hparams.csv"
     tables = [pd.read_csv(out)] if out.exists() else []
     tables = [t[~t.method.isin(args.methods)] for t in tables]
+    choices, sha = {}, current_git_sha()
+    if sha.endswith("-dirty") or sha == "unknown":
+        raise SystemExit(f"commit the code first: the selection must come from one commit ({sha})")
     with tempfile.TemporaryDirectory() as tmp:
         for method in args.methods:
             params = method_params(method, paths.configs)
@@ -118,14 +121,14 @@ def main() -> None:
             table = summarise(method, cands, scores)
             tables.append(table)
             choice = {k: v for k, v in table[table.chosen].iloc[0].items() if k in cands[0]}
-            choice = {k: (int(v) if float(v).is_integer() and k != "finetune_lr" else v)
-                      for k, v in choice.items()}  # fmt: skip
-            note = (
-                f"chosen by scripts/select_transfer_hparams.py, {date.today()}, {current_git_sha()}"
-            )
-            write_choice(paths.configs / "models" / f"{method}.yaml", choice, note)
-            log.info("%s: %s", method, choice)
+            choices[method] = {k: (int(v) if float(v).is_integer() and k != "finetune_lr" else v)
+                               for k, v in choice.items()}  # fmt: skip
+            log.info("%s: %s", method, choices[method])
     pd.concat(tables, ignore_index=True).to_csv(out, index=False, float_format="%.6g")
+    # Written only now: a config changed during the run would mark the later runs dirty.
+    note = f"chosen by scripts/select_transfer_hparams.py, {date.today()}, {sha}"
+    for method, choice in choices.items():
+        write_choice(paths.configs / "models" / f"{method}.yaml", choice, note)
     log.info("grid in %s", out)
 
 
