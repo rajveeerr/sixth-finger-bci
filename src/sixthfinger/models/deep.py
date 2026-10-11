@@ -153,13 +153,15 @@ class ShallowScratch(EegnetScratch):
 # Pre-training for the transfer methods (P07 step 4.4) ----------------------------------------
 
 
-def pretrained_name(target: str, mirror: bool, aligned: bool) -> str:
-    return f"eegnet_loso_{target}_{'ea_' if aligned else ''}{'mir' if mirror else 'raw'}.pt"
+def pretrained_name(target: str, mirror: bool, aligned: bool, permuted: bool = False) -> str:
+    """`_perm`: pre-trained on permuted labels, for the no-signal check (P08 gate)."""
+    kind = f"{'ea_' if aligned else ''}{'mir' if mirror else 'raw'}{'_perm' if permuted else ''}"
+    return f"eegnet_loso_{target}_{kind}.pt"
 
 
-def pretrained_path(models_dir: Path, subject: str, mirror: bool) -> Path:
+def pretrained_path(models_dir: Path, subject: str, mirror: bool, permuted: bool = False) -> Path:
     """The aligned model pre-trained without `subject` and its linked partner; no other."""
-    path = Path(models_dir) / pretrained_name(subject, mirror, aligned=True)
+    path = Path(models_dir) / pretrained_name(subject, mirror, aligned=True, permuted=permuted)
     if not path.exists():
         raise FileNotFoundError(f"{path} missing: run the aligned pre-training (P07) for {subject}")
     if f"_{subject}_" not in path.name:
@@ -219,6 +221,7 @@ def pretrain_loso(
     out_dir: Path,
     mirror: bool = False,
     aligned: bool = True,
+    permuted: bool = False,
 ) -> dict:
     """Pre-train one EEGNet for one target on every other subject (three classes, T2).
 
@@ -237,6 +240,12 @@ def pretrain_loso(
     if data_cfg.split_group(target) in {data_cfg.split_group(s) for s in used}:
         raise AssertionError(f"{target} or a linked subject is in its own pre-training data")
     y_all = md_all.label.to_numpy()
+    if permuted:
+        # No-signal check: every source subject's labels shuffled among its own windows.
+        y_all, rng = y_all.copy(), np.random.default_rng(p["seed"])
+        for s in sorted(used):
+            rows = np.flatnonzero(subjects == s)
+            y_all[rows] = y_all[rng.permutation(rows)]
     X, y = X_ready[tr], y_all[tr]
     valid = Dataset(X_ready[va], y_all[va])
     clf = make_classifier(
@@ -253,7 +262,7 @@ def pretrain_loso(
     clf.fit(X, y)
     seconds = time.perf_counter() - t0
     out_dir.mkdir(parents=True, exist_ok=True)
-    name = pretrained_name(target, mirror, aligned)
+    name = pretrained_name(target, mirror, aligned, permuted)
     tmp = out_dir / f"{name}.tmp"
     # CPU tensors, so a model trained on a Kaggle GPU loads on the Mac without a map_location.
     torch.save({k: v.detach().cpu() for k, v in clf.module_.state_dict().items()}, tmp)
@@ -276,6 +285,7 @@ def pretrain_loso(
         "target": target,
         "mirror": mirror,
         "aligned": aligned,
+        "permuted": permuted,
         "train_subjects": train_subjects,
         "validation_subjects": val_subjects,
         "n_train_windows": int(tr.sum()),

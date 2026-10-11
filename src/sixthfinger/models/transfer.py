@@ -203,11 +203,13 @@ class EegnetEaFinetune(_DeepMethod):
     needs_pretrained = True
     N_OUTPUTS = 3
 
-    def __init__(self, n_classes, classes=None, models_dir=None, mirror=False, **cfg):
+    def __init__(
+        self, n_classes, classes=None, models_dir=None, mirror=False, permuted=False, **cfg
+    ):
         super().__init__(n_classes, classes, **cfg)
         if classes is None or models_dir is None:
             raise ValueError("eegnet_ea_ft needs the task's classes and the models directory")
-        self.models_dir, self.mirror = models_dir, mirror
+        self.models_dir, self.mirror, self.permuted = models_dir, mirror, permuted
 
     def fit(self, target: Batch, source=None, unlabelled=None, seed: int = 0):
         cfg = self.cfg
@@ -219,7 +221,7 @@ class EegnetEaFinetune(_DeepMethod):
         self.R = reference_matrix(unlabelled.X, cfg["alignment"]["rel_floor"])
         _, c, t = unlabelled.X.shape
         net = build_module(cfg, c, self.N_OUTPUTS, t)
-        path = pretrained_path(self.models_dir, subject, self.mirror)
+        path = pretrained_path(self.models_dir, subject, self.mirror, self.permuted)
         net.load_state_dict(torch.load(path, weights_only=True, map_location="cpu"))
         epochs = int(cfg["finetune_epochs"])
         self.clf = make_finetune_classifier(

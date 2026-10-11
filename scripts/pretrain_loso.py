@@ -38,6 +38,7 @@ def main() -> None:
     ap.add_argument("--targets", nargs="+", default=None, help="default: every subject")
     ap.add_argument("--mirror", action="store_true")
     ap.add_argument("--unaligned", action="store_true", help="the _raw models (eegnet_pooled only)")
+    ap.add_argument("--permute-labels", action="store_true", help="the _perm no-signal models")
     ap.add_argument("--epochs-dir", type=Path, default=None)
     ap.add_argument("--out", type=Path, default=Path("models/pretrained"))
     ap.add_argument("--device", default=None, help="override the recipe's device")
@@ -60,8 +61,8 @@ def main() -> None:
         t
         for t in targets
         if not (
-            (args.out / pretrained_name(t, args.mirror, aligned)).exists()
-            and pretrained_name(t, args.mirror, aligned) in done
+            (args.out / pretrained_name(t, args.mirror, aligned, args.permute_labels)).exists()
+            and pretrained_name(t, args.mirror, aligned, args.permute_labels) in done
         )
     ]
     log.info("%d of %d targets to pre-train", len(todo), len(targets))
@@ -78,7 +79,9 @@ def main() -> None:
         "recipe": cfg,
     }
     for target in todo:
-        entry = pretrain_loso(target, cfg, ready, md, data_cfg, args.out, args.mirror, aligned)
+        entry = pretrain_loso(
+            target, cfg, ready, md, data_cfg, args.out, args.mirror, aligned, args.permute_labels
+        )
         write_manifest([{**entry, **provenance}], manifest_path)
 
 

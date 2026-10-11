@@ -922,7 +922,10 @@ class _CalibUnit:
         if getattr(cls, "needs_classes", False):
             params["classes"] = self.classes
         if getattr(cls, "needs_pretrained", False):
-            params.update(models_dir=ctx.models_dir, mirror=ctx.exp.mirror)
+            # In the no-signal check the network was pre-trained on permuted labels too.
+            params.update(
+                models_dir=ctx.models_dir, mirror=ctx.exp.mirror, permuted=ctx.exp.permute_labels
+            )
         return params
 
     def _fitted(self, train_md, unl_md, src, draw):

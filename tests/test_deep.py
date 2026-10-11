@@ -152,3 +152,15 @@ def test_inputs_are_aligned_per_subject_then_scaled_to_microvolts():
         np.testing.assert_allclose(w, 1.0, atol=1e-3)
     raw = deep.prepare_inputs(X, md.subject.to_numpy(), cfg, aligned=False)
     np.testing.assert_allclose(raw, X * 1e6, rtol=1e-6)
+
+
+def test_no_signal_pretraining_writes_its_own_file(tmp_path):
+    data_cfg = load_data_config()
+    X, md = _cohort(data_cfg.subjects.ids)
+    cfg = _params("eegnet_ea_ft", device="cpu")
+    cfg["pretrain"] = {**cfg["pretrain"], "max_epochs": 1}
+    ready = deep.prepare_inputs(X, md.subject.to_numpy(), cfg, aligned=True)
+    entry = deep.pretrain_loso("sub-03", cfg, ready, md, data_cfg, tmp_path, permuted=True)
+    assert entry["file"] == "eegnet_loso_sub-03_ea_raw_perm.pt" and entry["permuted"]
+    assert (tmp_path / entry["file"]).exists()
+    assert deep.pretrained_path(tmp_path, "sub-03", False, permuted=True).name == entry["file"]
