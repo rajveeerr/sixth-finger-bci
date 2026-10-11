@@ -101,6 +101,9 @@ def make_classifier(
         device=pick_device(cfg["device"]),
         callbacks=callbacks,
         iterator_train__shuffle=True,
+        # braindecode's default drops the last incomplete batch: 59 windows would train on
+        # 32 per epoch, and fewer than 32 (small calibration budgets) on none at all.
+        iterator_train__drop_last=False,
         classes=list(range(n_classes)),
         verbose=0,
     )

@@ -49,6 +49,24 @@ def test_configs_hold_the_preregistered_recipe():
         assert ea[key] == p[key]
 
 
+@pytest.mark.parametrize("n", [4, 40, 59])
+def test_every_window_is_trained_on_in_every_epoch(n):
+    # braindecode drops the last incomplete batch by default: 59 windows would train on 32,
+    # and 4 windows (k = 1 in P08) on none, without any error.
+    rng = np.random.default_rng(0)
+    X = rng.standard_normal((n, 40, 200)).astype(np.float32)
+    y = np.arange(n) % 3
+    clf = deep.make_classifier(_params("eegnet_scratch", device="cpu"), 40, 3, 200, max_epochs=2)
+    clf.initialize()
+    before = [p.detach().clone() for p in clf.module_.parameters()]
+    clf.partial_fit(X, y)
+    for h in clf.history:
+        assert h["train_batch_count"] == -(-n // 32)
+        assert sum(b["train_batch_size"] for b in h["batches"]) == n
+    after = list(clf.module_.parameters())
+    assert any(not torch.equal(a, b) for a, b in zip(after, before, strict=True))
+
+
 def test_task_label_map_turns_t3_ids_into_positions_and_back():
     pos, back = deep.task_label_map(np.array([0, 2, 2, 0]))
     assert pos.tolist() == [0, 1, 1, 0]
