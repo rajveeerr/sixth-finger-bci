@@ -95,3 +95,14 @@ def test_minutes_follow_the_protocol(cal):
     assert cal.minutes("S1_new_user", 10, transfer=False) == pytest.approx(2 * 10 * 14 / 60)
     assert cal.minutes("S2_new_command", 5, transfer=False) == pytest.approx(5 * 14 / 60)
     assert cal.minutes("S1_new_user", 0, transfer=True) == pytest.approx(40 * 7 / 60)
+
+
+def test_the_no_signal_check_flags_a_method_far_from_chance(cal, tmp_path):
+    rows = [dict(task="T2_rest_ah_sf", method="ok", bal_acc=0.35),
+            dict(task="T2_rest_ah_sf", method="leaky", bal_acc=0.60),
+            dict(task="T3_sf_vs_rest", method="ok", bal_acc=0.55)]  # fmt: skip
+    (tmp_path / "rq2_nosignal").mkdir()
+    pd.DataFrame(rows).to_parquet(tmp_path / "rq2_nosignal" / "scores.parquet")
+    out = cal.nosignal(tmp_path).set_index(["task", "method"]).passes
+    assert out[("T2_rest_ah_sf", "ok")] and not out[("T2_rest_ah_sf", "leaky")]
+    assert out[("T3_sf_vs_rest", "ok")]

@@ -342,6 +342,54 @@ def coverage(scores: pd.DataFrame) -> pd.DataFrame:
     )
 
 
+# P08 gate checks (deviation log 2026-10-11) --------------------------------------------------
+
+NOSIGNAL_TOLERANCE = {T2: 0.08, T3: 0.10}
+
+
+def sanity_vs_p06(values: pd.DataFrame, runs: Path) -> pd.DataFrame:
+    """S1 at k = all, T2, trains on exactly P06's chrono T2 windows: the values must match."""
+    path = runs / "rq1_context" / "scores.parquet"
+    if not path.exists():
+        return pd.DataFrame()
+    p06 = pd.read_parquet(path)
+    p06 = p06[(p06.protocol == "chrono") & (p06.task == T2) & (p06.session == "pre")
+              & (p06.feature == "bandpower")]  # fmt: skip
+    ref = p06.groupby(["method", "subject"]).bal_acc.mean().rename("p06")
+    at_all = values[(values.scenario == S1) & (values.task == T2) & (values.session == "pre")
+                    & (values.k == max(values.k))]  # fmt: skip
+    ours = at_all.set_index(["method", "subject"]).bal_acc
+    both = pd.concat([ours.rename("p08"), ref], axis=1, join="inner").reset_index()
+    both["abs_diff"] = (both.p08 - both.p06).abs()
+    return both.assign(within_0_005=both.abs_diff <= 0.005)
+
+
+def zero_shot_check(values: pd.DataFrame, summary: Path) -> pd.DataFrame:
+    """S1 k = 0 of eegnet_ea_ft against P07's zero-shot (the same rule, the same models)."""
+    path = summary / "dl_zeroshot_subject_values.csv"
+    if not path.exists():
+        return pd.DataFrame()
+    p07 = pd.read_csv(path).set_index(["task", "subject"]).bal_acc.rename("p07")
+    ours = values[(values.method == "eegnet_ea_ft") & (values.scenario == S1)
+                  & (values.session == "pre") & (values.k == 0)]  # fmt: skip
+    both = pd.concat([ours.set_index(["task", "subject"]).bal_acc.rename("p08"), p07],
+                     axis=1, join="inner").reset_index()  # fmt: skip
+    return both.assign(abs_diff=(both.p08 - both.p07).abs())
+
+
+def nosignal(runs: Path) -> pd.DataFrame:
+    path = runs / "rq2_nosignal" / "scores.parquet"
+    if not path.exists():
+        return pd.DataFrame()
+    s = pd.read_parquet(path)
+    g = s.groupby(["task", "method"], as_index=False).agg(
+        mean_bal_acc=("bal_acc", "mean"), n=("bal_acc", "count")
+    )
+    g["chance"] = g.task.map(CHANCE)
+    g["tolerance"] = g.task.map(NOSIGNAL_TOLERANCE)
+    return g.assign(passes=(g.mean_bal_acc - g.chance).abs() <= g.tolerance)
+
+
 # Figures -------------------------------------------------------------------------------------
 
 COLOURS = {"ts_lr": "#1f77b4", "rct_tslr": "#d62728", "csp_lda": "#9467bd", "mdm": "#8c564b",
@@ -484,6 +532,13 @@ def main() -> None:
     fr.to_csv(summary / "calib_friedman.csv", index=False, float_format="%.6g")
     if S2 in set(scores.scenario):
         sf_vs_ah(scores).to_csv(summary / "rq3_sf_vs_ah.csv", index=False, float_format="%.6g")
+    for name, table in (
+        ("calib_sanity_vs_p06", sanity_vs_p06(values, paths.runs)),
+        ("calib_zeroshot_check", zero_shot_check(values, summary)),
+        ("calib_nosignal", nosignal(paths.runs)),
+    ):
+        if len(table):
+            table.to_csv(summary / f"{name}.csv", index=False, float_format="%.6g")
     figure_curves(cur, figures)
     if S2 in set(cur.scenario):
         figure_sf_recall(cur, figures)
