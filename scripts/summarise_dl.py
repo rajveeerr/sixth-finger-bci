@@ -4,16 +4,18 @@ uv run python scripts/summarise_dl.py
 
 1. EEGNet trained on one session only (results/runs/dl_baselines): per-subject mean over
    folds and seeds, group mean with a bootstrap CI, next to the classical methods on the
-   same run-level splits (results/summary/rq1_subject_values.csv).
+   same run-level splits (the raw RQ1 folds in results/runs/rq1_*).
 2. The leave-one-subject-out pre-training (models/pretrained/manifest.json): epochs, best
-   validation loss and the learning curves of three models.
+   validation loss, the learning curves of three models and a checksum of every weight file.
 3. Zero-shot (P07 step 4.5): each pre-trained model on its own target's runs 03-04, aligned
-   with the declared k = 0 set (the REST windows of runs 01-02, protocol 4.2), session pre.
+   with the declared k = 0 set (the REST windows of runs 01-02, protocol 4.2), session pre;
+   paired with the `chrono` results, which test on exactly the same windows.
 """
 
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import logging
 from pathlib import Path
@@ -42,7 +44,28 @@ TASKS = {"T1_ah_vs_sf": (1, 2), "T2_rest_ah_sf": (0, 1, 2), "T3_sf_vs_rest": (0,
 COMPARE = ["csp_lda", "ts_lr"]
 
 
-def baselines(runs: Path, summary: Path) -> pd.DataFrame:
+def classical_values(runs: Path) -> pd.DataFrame:
+    """CSP+LDA and TS+LR per subject, `pre`, from the raw RQ1 folds at full precision.
+
+    The committed rq1_subject_values.csv keeps 6 significant figures, enough to reorder two
+    near-tied differences in a Wilcoxon test (T1 `loro`: p 0.566 instead of 0.545).
+    """
+    s = pd.concat(
+        [pd.read_parquet(runs / n / "scores.parquet") for n in ("rq1_benchmark", "rq1_context")],
+        ignore_index=True,
+    )
+    s = s[
+        s.method.isin(COMPARE)
+        & (s.feature == "bandpower")
+        & (s.session == "pre")
+        & s.protocol.isin(["loro", "chrono"])
+    ]
+    unit = ["task", "method", "protocol", "subject", "session"]
+    parts = [subject_values(rows, unit, len(TASKS[t])) for t, rows in s.groupby("task")]
+    return pd.concat(parts, ignore_index=True)
+
+
+def baselines(runs: Path, summary: Path, classical: pd.DataFrame) -> pd.DataFrame:
     scores = pd.read_parquet(runs / "dl_baselines" / "scores.parquet")
     unit = ["task", "method", "protocol", "subject", "session", "draw"]
     per_seed = pd.concat(
@@ -53,13 +76,6 @@ def baselines(runs: Path, summary: Path) -> pd.DataFrame:
         bal_acc=("bal_acc", "mean"), seed_sd=("bal_acc", "std"), n_seeds=("draw", "nunique")
     )
     sv.to_csv(summary / "dl_baselines_subject_values.csv", index=False, float_format="%.6g")
-    classical = pd.read_csv(summary / "rq1_subject_values.csv")
-    classical = classical[
-        classical.method.isin(COMPARE)
-        & (classical.feature == "bandpower")
-        & (classical.session == "pre")
-        & classical.protocol.isin(["loro", "chrono"])
-    ]
     rows = []
     for (task, protocol), g in sv.groupby(["task", "protocol"]):
         d = describe(g.bal_acc)
@@ -91,6 +107,13 @@ def pretraining(models: Path, summary: Path, audit: Path, figures: Path) -> None
     # The Kaggle manifest predates write_manifest's trailing newline; the hook wants one.
     (audit / "pretrain_manifest.json").write_text(manifest_path.read_text().rstrip("\n") + "\n")
     m = json.loads(manifest_path.read_text())
+    # The weights are not in git; their checksums tie the committed zero-shot table to them.
+    sums = [
+        dict(file=f, bytes=(models / f).stat().st_size,
+             sha256=hashlib.sha256((models / f).read_bytes()).hexdigest())
+        for f in sorted(m) if (models / f).exists()
+    ]  # fmt: skip
+    pd.DataFrame(sums).to_csv(audit / "pretrained_weights.csv", index=False)
     rows = [
         {k: e[k] for k in ("file", "target", "epochs_run", "best_epoch", "best_valid_loss",
                            "n_train_windows", "n_valid_windows", "seconds", "device", "torch")}
@@ -153,12 +176,45 @@ def zero_shot(models: Path, summary: Path) -> pd.DataFrame | None:
     return zs
 
 
-def figure(sv: pd.DataFrame, zs: pd.DataFrame | None, summary: Path, figures: Path) -> None:
-    classical = pd.read_csv(summary / "rq1_subject_values.csv")
-    classical = classical[
-        classical.method.isin(COMPARE) & (classical.feature == "bandpower")
-        & (classical.session == "pre") & (classical.protocol == "loro")
-    ]  # fmt: skip
+def zero_shot_paired(
+    zs: pd.DataFrame, sv: pd.DataFrame, classical: pd.DataFrame, summary: Path
+) -> None:
+    """Zero-shot minus each `chrono` result: both test on runs 03-04 of `pre`, window for window.
+
+    `chrono` trains on the labelled runs 01-02; zero-shot uses only their REST windows,
+    unlabelled, for the alignment. Two-sided Wilcoxon, descriptive (no correction).
+    """
+    chrono = pd.concat([sv[sv.protocol == "chrono"], classical[classical.protocol == "chrono"]])
+    rows = []
+    for (task, method), g in chrono.groupby(["task", "method"]):
+        both = pd.concat(
+            [
+                zs[zs.task == task].set_index("subject").bal_acc.rename("z"),
+                g.set_index("subject").bal_acc.rename("c"),
+            ],
+            axis=1,
+        ).dropna()
+        res = paired_test(both.z.to_numpy(), both.c.to_numpy())
+        rows.append(
+            dict(
+                task=task,
+                versus=method,
+                protocol="chrono",
+                n=res["n"],
+                zero_shot_minus_points=res["mean_diff"] * 100,
+                diff_ci_lo_points=res["ci_lo"] * 100,
+                diff_ci_hi_points=res["ci_hi"] * 100,
+                paired_p_two_sided=res["p"],
+            )
+        )
+    out = pd.DataFrame(rows)
+    out.to_csv(summary / "dl_zeroshot_paired.csv", index=False, float_format="%.6g")
+
+
+def figure(
+    sv: pd.DataFrame, zs: pd.DataFrame | None, classical: pd.DataFrame, figures: Path
+) -> None:
+    classical = classical[classical.protocol == "loro"]
     fig, axes = plt.subplots(1, 3, figsize=(7.2, 2.8))
     for ax, (task, classes) in zip(axes, TASKS.items(), strict=True):
         groups = [("EEGNet\nscratch", sv[(sv.task == task) & (sv.protocol == "loro")].bal_acc)]
@@ -191,10 +247,13 @@ def main() -> None:
         paths.audit,
         paths.root / "docs" / "figures",
     )
-    sv = baselines(paths.results / "runs", summary)
+    classical = classical_values(paths.results / "runs")
+    sv = baselines(paths.results / "runs", summary, classical)
     pretraining(args.models, summary, audit, figures)
     zs = zero_shot(args.models, summary)
-    figure(sv, zs, summary, figures)
+    if zs is not None:
+        zero_shot_paired(zs, sv, classical, summary)
+    figure(sv, zs, classical, figures)
     log.info("dl summaries in %s", summary)
 
 
