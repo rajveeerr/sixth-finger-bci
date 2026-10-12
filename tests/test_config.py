@@ -87,3 +87,6 @@ def test_git_sha_is_marked_dirty_when_code_differs(monkeypatch, tmp_path):
     assert current_git_sha() == clean  # notes are not code
     (tmp_path / "src" / "a.py").write_text("x = 2\n")
     assert current_git_sha() == clean + "-dirty"
+    run("checkout", "--", "src/a.py")
+    (tmp_path / "src" / "new.py").write_text("y = 1\n")  # untracked code counts too
+    assert current_git_sha() == clean + "-dirty"

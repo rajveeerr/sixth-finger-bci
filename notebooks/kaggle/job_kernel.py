@@ -95,6 +95,9 @@ else:
     raise SystemExit(f"unknown job kind {JOB['kind']!r}")
 start = time.time()
 info = {"job": JOB, "git_sha": sha, "prereg": (REPO / "PREREG").read_text().split("\n"), **device}
+# numpy, scipy, scikit-learn and pandas come from the Kaggle image, not uv.lock: record them.
+freeze = subprocess.run([sys.executable, "-m", "pip", "freeze"], capture_output=True, text=True)
+info["packages"] = sorted(freeze.stdout.split())
 try:
     for command in cmds:
         subprocess.run(command, env=env, cwd=REPO, check=True)

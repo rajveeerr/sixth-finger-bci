@@ -384,6 +384,47 @@ def test_parallel_calibration_gives_the_same_rows(cache, tmp_path):
     pd.testing.assert_frame_equal(a[[*keys, "bal_acc"]], b[[*keys, "bal_acc"]])
 
 
+def test_a_one_job_resume_folds_in_the_parts_of_a_stopped_parallel_run(cache, tmp_path):
+    kw = dict(subjects=["sub-01", "sub-03"], tasks=["T3_sf_vs_rest"])
+    out = _run(_calib(tmp_path, name="c_parts", **kw), cache, tmp_path, quick=True)
+    full = pd.read_parquet(out)
+    # As if the run had stopped after sub-03's worker wrote its part file.
+    (out.parent / "parts").mkdir()
+    full[full.subject == "sub-03"].to_parquet(out.parent / "parts" / "sub-03.parquet")
+    full[full.subject == "sub-01"].to_parquet(out)
+    resumed = pd.read_parquet(_run(_calib(tmp_path, name="c_parts", **kw), cache, tmp_path,
+                                   quick=True))  # fmt: skip
+    assert len(resumed) == len(full) and set(resumed.subject) == {"sub-01", "sub-03"}
+    assert not list((out.parent / "parts").glob("*.parquet"))
+
+
+def test_the_unlabelled_set_is_the_rest_set_at_k0_and_the_drawn_windows_after(cache, tmp_path):
+    seen = []
+
+    @register("spy_unlabelled")
+    class Spy(SmokeLogVarLda):
+        uses_source = True  # a transfer method is fitted at k = 0 too
+
+        def fit(self, target, source=None, unlabelled=None, seed=0):
+            seen.append((target, unlabelled))
+            if not len(target.md):
+                raise UndefinedCell("recorded only")
+            return super().fit(target, source, unlabelled, seed)
+
+    try:
+        cfg = _calib(tmp_path, methods=["spy_unlabelled"], scenarios=["S1_new_user"])
+        _run(cfg, cache, tmp_path, quick=True)
+    finally:
+        REGISTRY.pop("spy_unlabelled")
+    k0 = [(t, u) for t, u in seen if len(t.md) == 0]
+    later = [(t, u) for t, u in seen if len(t.md) > 0]
+    assert k0 and later
+    for _, unl in k0:  # every REST window of the pool, nothing else
+        assert set(unl.md.run) <= {1, 2} and len(unl.md) == 40
+    for target, unl in later:  # T3 included: not the AH trials the draw also holds
+        assert list(unl.md.index) == list(target.md.index)
+
+
 def test_a_resume_refuses_rows_made_with_other_settings(cache, tmp_path):
     _run(_calib(tmp_path, tasks=["T3_sf_vs_rest"]), cache, tmp_path, quick=True)
     changed = _calib(tmp_path, tasks=["T3_sf_vs_rest"], params={"smoke_prior": {"x": 1}})

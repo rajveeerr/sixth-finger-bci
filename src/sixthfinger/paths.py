@@ -107,7 +107,8 @@ def current_git_sha() -> str:
         kw = {"capture_output": True, "text": True, "check": True, "timeout": 10}
         sha = subprocess.run([*git, "rev-parse", "--short", "HEAD"], **kw).stdout.strip()
         status = subprocess.run(
-            [*git, "status", "--porcelain", "--untracked-files=no", "--", *CODE_PATHS], **kw
+            [*git, "status", "--porcelain", "--", *CODE_PATHS],
+            **kw,  # untracked code too
         ).stdout
         return (sha + "-dirty" if status.strip() else sha) or "unknown"
     except (OSError, subprocess.SubprocessError):

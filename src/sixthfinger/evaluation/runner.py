@@ -187,6 +187,17 @@ def completed_units(path: Path) -> set[tuple[str, ...]]:
     return {unit_key(r) for r in _stored(path, UNIT_KEYS).to_dict("records")}
 
 
+def dedupe_units(scores: pd.DataFrame) -> tuple[pd.DataFrame, int]:
+    """One row per unit: the newest by created_at (ties: the later frame); rows replaced.
+
+    The same rule wherever rows are combined (part files here, Kaggle shards in
+    scripts/merge_scores.py). Only a re-run of a unit makes a second row.
+    """
+    ordered = scores.sort_values("created_at", kind="mergesort") if len(scores) else scores
+    dup = ordered[UNIT_KEYS].astype(str).duplicated(keep="last")
+    return ordered[~dup], int(dup.sum())
+
+
 def merge_parts(path: Path) -> int:
     """Fold the part files into the scores file (atomically), remove them; rows added."""
     parts = part_files(path)
@@ -194,8 +205,7 @@ def merge_parts(path: Path) -> int:
         return 0
     before = len(pd.read_parquet(path, columns=["method"])) if path.exists() else 0
     frames = [pd.read_parquet(f) for f in ([path] if path.exists() else []) + parts]
-    out = pd.concat(frames, ignore_index=True)
-    out = out[~out[UNIT_KEYS].astype(str).duplicated()]
+    out, _ = dedupe_units(pd.concat(frames, ignore_index=True))
     for col in ("k", "fold"):
         out[col] = pd.to_numeric(out[col]).astype("Int64")
     tmp = path.with_suffix(".tmp")
@@ -410,6 +420,9 @@ def run_experiment(
     if any(data_cfg.is_run_excluded(s, ss, f"{r:02d}") for s, ss, r in present):
         raise RuntimeError("The epoch cache holds an excluded run; rebuild it (make epochs).")
 
+    # Rows of a stopped parallel run count as done on resume, so they must reach the scores
+    # file whatever n_jobs this run uses.
+    merge_parts(out_path)
     store = None
     if exp.protocol == "calibration" and any(
         getattr(REGISTRY[m], "uses_covariances", False) for m in exp.methods

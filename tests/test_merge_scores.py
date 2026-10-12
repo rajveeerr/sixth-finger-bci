@@ -40,3 +40,28 @@ def test_the_expected_hash_depends_on_the_subjects_of_the_file(merge):
     one = merge.expected_hashes("rq2_rq3_post", rows)
     two = merge.expected_hashes("rq2_rq3_post", pd.concat([rows, rows.assign(subject="sub-05")]))
     assert one["ts_lr"] != two["ts_lr"]
+
+
+def _unit_rows(created_at, bal_acc):
+    keys = dict(experiment="x", protocol="calib", scenario="S1_new_user", task="T2_rest_ah_sf",
+                method="a", feature="bandpower", subject="sub-01", session="pre", k=1, draw="0",
+                fold=0)  # fmt: skip
+    return pd.DataFrame([{**keys, "created_at": created_at, "bal_acc": bal_acc}])
+
+
+def test_a_unit_keeps_its_newest_row(merge, tmp_path, monkeypatch):
+    monkeypatch.setattr(merge, "check", lambda e, f: pd.read_parquet(f))
+    out = tmp_path / "runs" / "x" / "scores.parquet"
+    out.parent.mkdir(parents=True)
+    _unit_rows("2026-10-12T10:00:00", 0.5).to_parquet(out)
+    _unit_rows("2026-10-12T11:00:00", 0.6).to_parquet(tmp_path / "new.parquet")
+    merged = merge.merge("x", [tmp_path / "new.parquet"], out)
+    assert merged.bal_acc.tolist() == [0.6]
+
+
+def test_merging_refuses_while_a_stopped_run_has_parts(merge, tmp_path):
+    out = tmp_path / "runs" / "x" / "scores.parquet"
+    (out.parent / "parts").mkdir(parents=True)
+    _unit_rows("2026-10-12T10:00:00", 0.5).to_parquet(out.parent / "parts" / "sub-01.parquet")
+    with pytest.raises(SystemExit, match="stopped run"):
+        merge.merge("x", [], out)

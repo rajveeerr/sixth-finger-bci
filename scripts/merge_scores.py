@@ -22,7 +22,13 @@ from pathlib import Path
 import pandas as pd
 
 from sixthfinger.config import config_hash, load_data_config, load_protocol_config
-from sixthfinger.evaluation.runner import UNIT_KEYS, load_experiment, method_params, resolve
+from sixthfinger.evaluation.runner import (
+    dedupe_units,
+    load_experiment,
+    method_params,
+    part_files,
+    resolve,
+)
 from sixthfinger.paths import get_paths
 
 
@@ -51,12 +57,14 @@ def check(experiment: str, f: Path) -> pd.DataFrame:
 
 
 def merge(experiment: str, files: list[Path], out: Path) -> pd.DataFrame:
+    if part_files(out):
+        raise SystemExit(f"{out.parent}/parts holds rows of a stopped run: resume it first")
     frames = ([pd.read_parquet(out)] if out.exists() else []) + [
         check(experiment, f) for f in files
     ]
-    scores = pd.concat(frames, ignore_index=True)
-    scores = scores.sort_values("created_at")
-    scores = scores[~scores[UNIT_KEYS].astype(str).duplicated(keep="last")]
+    scores, replaced = dedupe_units(pd.concat(frames, ignore_index=True))
+    if replaced:
+        print(f"{experiment}: {replaced} rows replaced by a newer row of the same unit")
     for col in ("k", "fold"):
         scores[col] = pd.to_numeric(scores[col]).astype("Int64")
     out.parent.mkdir(parents=True, exist_ok=True)

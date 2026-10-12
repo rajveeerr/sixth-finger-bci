@@ -191,3 +191,18 @@ def test_e3_relabels_by_gad7_only_when_both_sides_reach_ten(rq5):
     ma = rq5.gad7_groups(md)
     assert ma.drop_duplicates("subject").group.value_counts().to_dict() == {"H": 33, "MDD": 19}
     assert rq5.gad7_groups(_people([(0, "H", 29, 3), (0, "MDD", 9, 12)])) is None
+
+
+def test_the_modma_electrodes_are_the_preregistered_ones(rq5):
+    # preregistration-rq5 §2.2, copied here so a typo in either place fails.
+    frozen = dict(Fp1="E22", Fp2="E9", F7="E26", F3="E24", Fz="E11", F4="E124", F8="E2",
+                  T3="E39", C3="E36", Cz="Cz", C4="E104", T4="E115", T5="E50", P3="E52",
+                  Pz="E62", P4="E92", T6="E101", O1="E70", O2="E83")  # fmt: skip
+    assert frozen == rq5.MODMA_CHANNELS and list(frozen) == rq5.CHANNELS
+
+
+def test_the_committed_modma_audit_names_no_file_or_score(rq5):
+    table = pd.DataFrame(dict(file=["02010002rest 20150416 1017..mat"], subject=["MDD-02010002"],
+                              gad7=[18.0], kept=[True]))  # fmt: skip
+    assert list(rq5.public_audit("modma", table).columns) == ["subject", "kept"]
+    assert list(rq5.public_audit("mumtaz", table).columns) == list(table.columns)

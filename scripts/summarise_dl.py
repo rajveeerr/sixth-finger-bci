@@ -106,14 +106,16 @@ def pretraining(models: Path, summary: Path, audit: Path, figures: Path) -> None
         return
     # The Kaggle manifest predates write_manifest's trailing newline; the hook wants one.
     (audit / "pretrain_manifest.json").write_text(manifest_path.read_text().rstrip("\n") + "\n")
-    m = json.loads(manifest_path.read_text())
-    # The weights are not in git; their checksums tie the committed zero-shot table to them.
+    every = json.loads(manifest_path.read_text())
+    # The weights are not in git; their checksums tie the committed results to them, the
+    # no-signal (permuted) models included. The table and the figure are the real models only.
     sums = [
         dict(file=f, bytes=(models / f).stat().st_size,
              sha256=hashlib.sha256((models / f).read_bytes()).hexdigest())
-        for f in sorted(m) if (models / f).exists()
+        for f in sorted(every) if (models / f).exists()
     ]  # fmt: skip
     pd.DataFrame(sums).to_csv(audit / "pretrained_weights.csv", index=False)
+    m = {f: e for f, e in every.items() if not e.get("permuted")}
     rows = [
         {k: e[k] for k in ("file", "target", "epochs_run", "best_epoch", "best_valid_loss",
                            "n_train_windows", "n_valid_windows", "seconds", "device", "torch")}

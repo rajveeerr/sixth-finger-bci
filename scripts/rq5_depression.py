@@ -418,14 +418,24 @@ def load_segments(name: str, overlap: bool = False) -> tuple[np.ndarray, pd.Data
     )
 
 
+# Kept out of the committed audit (preregistration-rq5 §8: results name subjects only by their
+# ids): MODMA's file names carry the recording date and time, and GAD-7 is a clinical score.
+PRIVATE_COLUMNS = {"modma": ["file", "gad7"]}
+
+
+def public_audit(name: str, table: pd.DataFrame) -> pd.DataFrame:
+    return table.drop(columns=[c for c in PRIVATE_COLUMNS.get(name, []) if c in table])
+
+
 def audit(_args) -> None:
     require_tag()
     paths = get_paths()
     for name, fn in (("mumtaz", audit_mumtaz), ("modma", audit_modma)):
         table, kept = fn()
-        table.assign(git_sha=current_git_sha()).to_csv(
-            paths.audit / f"rq5_audit_{name}.csv", index=False
-        )
+        table = table.assign(git_sha=current_git_sha())
+        (data_dir() / "derived").mkdir(parents=True, exist_ok=True)
+        table.to_csv(data_dir() / "derived" / f"{name}_audit_full.csv", index=False)
+        public_audit(name, table).to_csv(paths.audit / f"rq5_audit_{name}.csv", index=False)
         save_segments(name, table, kept)
         log.info("%s: %d files, %d kept (%s)", name, len(table), table.kept.sum(),
                  table[table.kept].group.value_counts().to_dict())  # fmt: skip

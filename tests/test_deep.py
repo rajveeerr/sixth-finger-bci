@@ -164,3 +164,9 @@ def test_no_signal_pretraining_writes_its_own_file(tmp_path):
     assert entry["file"] == "eegnet_loso_sub-03_ea_raw_perm.pt" and entry["permuted"]
     assert (tmp_path / entry["file"]).exists()
     assert deep.pretrained_path(tmp_path, "sub-03", False, permuted=True).name == entry["file"]
+    deep.write_manifest([entry], tmp_path / "manifest.json")
+    assert deep.pretrained_path(tmp_path, "sub-03", False, permuted=True).name == entry["file"]
+    wrong = {**entry, "train_subjects": [*entry["train_subjects"], "sub-03"]}
+    deep.write_manifest([wrong], tmp_path / "manifest.json")
+    with pytest.raises(AssertionError, match="made for sub-03"):
+        deep.pretrained_path(tmp_path, "sub-03", False, permuted=True)

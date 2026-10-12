@@ -33,6 +33,7 @@ import pandas as pd
 from scipy.stats import studentized_range
 
 from sixthfinger.config import load_data_config, load_protocol_config
+from sixthfinger.evaluation.runner import part_files
 from sixthfinger.evaluation.stats import alc, friedman, k_star, paired_alc, subject_curve
 from sixthfinger.evaluation.summary import describe, holm_family, paired
 from sixthfinger.paths import get_paths
@@ -55,6 +56,9 @@ ALPHA = 0.05
 
 
 def load(runs: Path) -> pd.DataFrame:
+    stopped = [e for e in EXPERIMENTS if part_files(runs / e / "scores.parquet")]
+    if stopped:
+        raise SystemExit(f"{stopped}: part files of a stopped run; resume before summarising")
     frames = [
         pd.read_parquet(p) for e in EXPERIMENTS if (p := runs / e / "scores.parquet").exists()
     ]
