@@ -1,9 +1,9 @@
 import { Chapter } from "./components/Chapter";
 import { Controls } from "./components/Controls";
+import { IntroHand } from "./components/IntroHand";
 import { EEGPanel } from "./components/EEGPanel";
 import { ManualTestBanner } from "./components/ManualTestBanner";
 import { ModeBadge } from "./components/ModeBadge";
-import { Plate } from "./components/Plate";
 import { PredictionCard } from "./components/PredictionCard";
 import { Told } from "./components/Told";
 import { data } from "./explain/data";
@@ -14,7 +14,6 @@ import { PatientSees } from "./explain/figures/PatientSees";
 import { RealLimb } from "./explain/figures/RealLimb";
 import { ResultsGauges } from "./explain/figures/Results";
 import { SignalChain } from "./explain/figures/SignalChain";
-import { IsoHand } from "./hands/IsoHand";
 import { useDemo } from "./store";
 import { useDemoStream } from "./stream/useDemoStream";
 
@@ -27,22 +26,27 @@ export default function App() {
   return (
     <div className="page" id="top">
       <main className="column">
-        <header className="intro">
-          <h1 className="intro-title">Sixth-Finger BCI</h1>
-          <p className="lede">
-            Imagine moving <em>a sixth finger</em>, and a model that reads the brain&apos;s signals moves it.
-          </p>
-          <p className="intro-text">
-            After a stroke, many people can no longer use one hand well. One idea is a robotic sixth finger, worn on
-            the hand, that helps it hold things. The wearer would control it just by imagining the movement, picked up
-            by an EEG cap. We took recordings of 24 stroke patients doing exactly that, tested how well a computer can
-            read them, and built the demo on this page, where a model reads one patient&apos;s signals as they play and
-            moves the finger.
-          </p>
-          <p className="intro-meta">
-            A B.Tech minor project by Rajveer Singh, Vivek Yadav and Ansh Dahiya, guided by Dr. Suman Lata.{" "}
-            <a href="#demo">Go to the live demo</a>
-          </p>
+        <header className="intro bleed">
+          <div className="intro-top">
+            <h1 className="intro-title">Sixth-Finger BCI</h1>
+            <p className="lede">
+              Imagine moving <em>a sixth finger</em>, and a model that reads the brain&apos;s signals moves it.
+            </p>
+          </div>
+          <IntroHand />
+          <div className="intro-body">
+            <p className="intro-text">
+              After a stroke, many people can no longer use one hand well. One idea is a robotic sixth finger, worn on
+              the hand, that helps it hold things. The wearer would control it just by imagining the movement, picked up
+              by an EEG cap. We took recordings of 24 stroke patients doing exactly that, tested how well a computer can
+              read them, and built the demo on this page, where a model reads one patient&apos;s signals as they play
+              and moves the finger.
+            </p>
+            <p className="intro-meta">
+              A B.Tech minor project by Rajveer Singh, Vivek Yadav and Ansh Dahiya, guided by Dr. Suman Lata.{" "}
+              <a href="#demo">Go to the live demo</a>
+            </p>
+          </div>
         </header>
 
         <SignalChain />
@@ -58,25 +62,14 @@ export default function App() {
                 still cannot grip well with their <em>affected hand</em>.
               </p>
               <p>
-                A supernumerary, or extra, robotic finger is worn on the side of the hand. It bends toward the palm and
-                presses an object against it, so the weak hand can still hold things. To help, it has to move when the
-                wearer wants it to. Here that wish is read from the brain: imagining the movement is enough, and no
-                muscle has to move.
+                A supernumerary, or extra, robotic finger, the one drawn at the top of this page, is worn on the side of
+                the hand. It bends toward the palm and presses an object against it, so the weak hand can still hold
+                things. To help, it has to move when the wearer wants it to. Here that wish is read from the brain:
+                imagining the movement is enough, and no muscle has to move.
               </p>
             </>
           }
-        >
-          <Plate
-            title="A robotic sixth finger"
-            hint="Worn on a strap at the wrist, beside the little finger."
-            readout="It bends toward the palm when it is told to."
-            className="plate-hand"
-          >
-            <div className="figure-hand">
-              <IsoHand command="SIXTH_FINGER_FLEX" />
-            </div>
-          </Plate>
-        </Chapter>
+        />
 
         <Chapter
           id="recordings"

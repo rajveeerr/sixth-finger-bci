@@ -44,7 +44,18 @@ code { font-family: var(--mono); font-size: 0.86em; background: var(--chip); pad
 /* Wide things (the bench, the demo) break out of the column on both sides. */
 .bleed { margin-left: calc((760px - min(1180px, 100vw - 80px)) / 2); margin-right: calc((760px - min(1180px, 100vw - 80px)) / 2); }
 
-.intro { max-width: var(--text); margin-bottom: 40px; }
+/* Desktop: the words on the left, the hand beside them. Phone: the hand under the headline. */
+.intro {
+  display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.75fr); column-gap: 48px;
+  grid-template-areas: "top hand" "body hand"; align-items: end; margin-bottom: 40px;
+}
+.intro-top { grid-area: top; min-width: 0; }
+.intro-body { grid-area: body; min-width: 0; align-self: start; }
+.intro-hand { grid-area: hand; margin: 0; align-self: center; }
+.intro-hand-art { position: relative; height: 400px; }
+.intro-hand-art .iso-hand { position: absolute; inset: 0; width: 100%; height: 100%; }
+.intro-hand figcaption { margin-top: 8px; font-size: 13.5px; line-height: 1.5; color: var(--ink-3); }
+.intro-hand figcaption b { color: var(--ink); font-weight: 560; }
 .intro-title { margin: 0; font-size: 15px; font-weight: 560; }
 .lede { margin: 14px 0 0; font-size: 30px; line-height: 1.22; letter-spacing: -0.02em; font-weight: 500; }
 .lede em { font-size: 1.12em; font-weight: 400; letter-spacing: 0; }
@@ -156,8 +167,6 @@ code { font-family: var(--mono); font-size: 0.86em; background: var(--chip); pad
 .plate-caption { margin: 10px 0 0; font-size: 15.5px; line-height: 1.6; color: var(--ink-2); }
 .plate-caption strong { color: var(--ink); font-weight: 560; }
 .plate-chain { margin-bottom: 10px; }
-.figure-hand { height: 380px; position: relative; }
-.figure-hand .iso-hand { position: absolute; inset: 0; width: 100%; height: 100%; }
 .demo { padding-top: 4px; }
 
 /* The isometric drawing core: four tones, ink outlines. */
@@ -308,6 +317,8 @@ code { font-family: var(--mono); font-size: 0.86em; background: var(--chip); pad
   .step-signal, .step-read { height: 460px; }
   .page { padding: 0 28px; }
   .bleed { margin-left: 0; margin-right: 0; }
+  .intro { grid-template-columns: minmax(0, 1fr); grid-template-areas: "top" "hand" "body"; row-gap: 12px; }
+  .intro-hand-art { height: 320px; }
 }
 /* Phone: everything stacks. */
 @media (max-width: 700px) {
