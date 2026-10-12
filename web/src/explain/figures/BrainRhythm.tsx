@@ -51,7 +51,6 @@ export function BrainRhythm() {
   }, [fall]);
   return (
     <Plate
-      fig={6}
       title="What changes in the brain"
       hint="A drawing of the effect; the size of the change is measured"
       readout={`22 of 22 patients, ${Math.round(-data.erd.sixth_finger.mean)}% smaller on average`}

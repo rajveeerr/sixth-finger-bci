@@ -13,6 +13,8 @@ export interface Finding {
   valueLabel: string;
   /** What blind guessing would score (none for the switch, which has no classes to guess). */
   guess?: number;
+  /** The short answer, then the rest of it. */
+  lead: string;
   answer: string;
 }
 
@@ -26,7 +28,8 @@ export const FINDINGS: Finding[] = [
     value: task("T3_sf_vs_rest").mean,
     valueLabel: "right",
     guess: 0.5,
-    answer: `Right ${pct(task("T3_sf_vs_rest").mean)} of the time, about 3 times in 4. Guessing gets half.`,
+    lead: "About 3 times in 4.",
+    answer: "When a patient imagines a movement, the brain signal shows it clearly.",
   },
   {
     key: "which",
@@ -34,7 +37,8 @@ export const FINDINGS: Finding[] = [
     value: task("T1_ah_vs_sf").mean,
     valueLabel: "right",
     guess: 0.5,
-    answer: `Right ${pct(task("T1_ah_vs_sf").mean)} of the time: only a little better than guessing.`,
+    lead: "Only a little better than guessing.",
+    answer: "Imagining the hand and imagining the sixth finger look alike in the EEG, which is why the demo also offers an on/off switch.",
   },
   {
     key: "leak",
@@ -43,22 +47,25 @@ export const FINDINGS: Finding[] = [
     other: { value: data.leak.mean_replica, label: "tested the old way" },
     valueLabel: "tested fairly",
     guess: 0.5,
-    answer: `No. It was tested on trials the model had already seen. Tested fairly, the same method gets ${pct(data.leak.mean_leakfree)}.`,
+    lead: "No.",
+    answer: `It was tested on trials the model had already seen. Tested fairly, the same method gets ${pct(data.leak.mean_leakfree)}.`,
   },
   {
     key: "setup",
     question: "How long does a new patient need to set it up?",
     value: data.calibration.transfer[0].mean,
     other: { value: data.calibration.scratch[0].mean, label: "from scratch" },
-    valueLabel: "after 30 s, starting from other patients",
+    valueLabel: "after 30 s",
     guess: 1 / 3,
-    answer: `Starting from other patients' data, 30 seconds gets ${pct(data.calibration.transfer[0].mean)}. From scratch that takes about 5 minutes.`,
+    lead: "About 30 seconds, starting from other patients.",
+    answer: `That gets ${pct(data.calibration.transfer[0].mean)} on all three choices. Starting from scratch, the same takes about 5 minutes.`,
   },
   {
     key: "switch",
     question: "Does it work as a simple on/off switch?",
     value: data.switch.detection,
     valueLabel: "of tries switch it on",
-    answer: `It switches on ${pct(data.switch.detection)} of the time, about ${Math.round(data.switch.latency_s)} s after the patient starts, with about ${Math.round(data.switch.false_per_minute)} false switch a minute.`,
+    lead: "Yes, about 2 times in 3.",
+    answer: `It switches on about ${Math.round(data.switch.latency_s)} s after the patient starts imagining, with about ${Math.round(data.switch.false_per_minute)} false switch a minute.`,
   },
 ];

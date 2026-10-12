@@ -137,7 +137,6 @@ export function SignalChain() {
   return (
     <div className="wide">
       <Plate
-        fig={4}
         title="From an imagined movement to a command"
         hint="Live: the same EEG, decision and finger as above"
         readout={<span className="command" data-command={command}>{command}</span>}

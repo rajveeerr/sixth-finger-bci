@@ -6,20 +6,20 @@ import { PHASE_CODES, eegBuffer, type EegRing } from "../stream/eegBuffer";
 // the model read, with what it read and whether that was right. Drawn imperatively at most
 // 30 times a second, and only when something changed (no React state per sample).
 
-const RANGE_UV = 26; // ± µV at a full row's half height
-const FONT = '11px "Departure Mono", ui-monospace, monospace';
-const INK = "#1a1f25";
-const MUTED = "#8b929b";
-const DOT = "#d5d9df";
-const SECOND = "#eef0f2";
-const PAPER = "#ffffff";
-const TINT: Record<string, string> = { ready: "#fbf6e8", affected_hand: "#f4f6ff", sixth_finger: "#fff5f0" };
-const BAND: Record<string, string> = { rest: "#e3e6ea", ready: "#e9c770", affected_hand: "#1342ff", sixth_finger: "#ff5a1f" };
+const RANGE_UV = 30; // ± µV at a full row's half height
+const FONT = '500 11px "Inter Variable", Inter, system-ui, sans-serif';
+const INK = "#171717";
+const MUTED = "#8f8f8f";
+const DOT = "#d6d6d6";
+const SECOND = "#ececec";
+const PAPER = "#fafafa";
+const TINT: Record<string, string> = { ready: "#f6f1e3", affected_hand: "#efefef", sixth_finger: "#fff2ec" };
+const BAND: Record<string, string> = { rest: "#e2e2e2", ready: "#d8c58f", affected_hand: "#3a3a3a", sixth_finger: "#ff5a1f" };
 const KIND_COLOUR: Record<string, string> = {
-  rest: "#6f7780",
-  affected_hand: "#1342ff",
-  sixth_finger: "#d63d0b",
-  imagery: "#d63d0b",
+  rest: "#8f8f8f",
+  affected_hand: "#3a3a3a",
+  sixth_finger: "#d9480f",
+  imagery: "#d9480f",
 };
 const SAY: Record<string, string> = { rest: "Rest", affected_hand: "Hand", sixth_finger: "Sixth finger", imagery: "Move" };
 
@@ -108,12 +108,14 @@ export function paint(ctx: CanvasRenderingContext2D, ring: EegRing, w: number, h
     ctx.lineTo(x1, y + 7);
     ctx.stroke();
     const text = `read: ${SAY[read.kind] ?? read.kind} ${read.right === null ? "" : read.right ? "✓" : "✗"}`;
-    const tw = ctx.measureText(text).width + 10;
-    const tx = Math.min(Math.max((Math.max(x0, labelW) + x1) / 2 - tw / 2, labelW), w - tw - 4);
+    const tw = ctx.measureText(text).width + 12;
+    const tx = Math.min(Math.max((Math.max(x0, labelW) + x1) / 2 - tw / 2, labelW + 6), w - tw - 4);
+    ctx.globalAlpha = 1;
     ctx.fillStyle = PAPER;
-    ctx.fillRect(tx, y - 7, tw, 14);
+    ctx.fillRect(tx, y - 8, tw, 16);
+    ctx.globalAlpha = newest ? 1 : 0.6;
     ctx.fillStyle = colour;
-    ctx.fillText(text, tx + 5, y + 0.5);
+    ctx.fillText(text, tx + 6, y + 0.5);
     ctx.globalAlpha = 1;
   });
 
@@ -124,7 +126,8 @@ export function paint(ctx: CanvasRenderingContext2D, ring: EegRing, w: number, h
     ctx.textAlign = "left";
     ctx.fillText(ring.channels[c], 8, mid);
     ctx.strokeStyle = INK;
-    ctx.lineWidth = 1;
+    ctx.globalAlpha = 0.85;
+    ctx.lineWidth = 0.85;
     ctx.lineJoin = "round";
     ctx.beginPath();
     const gain = (rowH * 0.48) / RANGE_UV;
@@ -137,6 +140,7 @@ export function paint(ctx: CanvasRenderingContext2D, ring: EegRing, w: number, h
       else ctx.lineTo(x, y);
     }
     ctx.stroke();
+    ctx.globalAlpha = 1;
   }
 
   // Now, at the right edge, and the scale: 1 s across, 20 µV up.

@@ -48,7 +48,7 @@ export function PredictionCard() {
     <Panel
       step={3}
       title="What the model decided"
-      note="every 4 s"
+      note="A reading every 4 s"
       className="panel-decision"
       testId="prediction"
       data={{ "data-label": decided ?? "", "data-view": view }}

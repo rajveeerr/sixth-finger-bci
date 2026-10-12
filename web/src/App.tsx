@@ -29,20 +29,19 @@ export default function App() {
   const subject = trialUid.split("_")[0]?.replace("sub-0", "").replace("sub-", "");
   return (
     <div className="app">
-      <header className="masthead">
-        <h1 className="wordmark">Sixth-Finger BCI</h1>
-        <div className="masthead-side">
-          <p className="tagline">Move a robotic sixth finger by imagining the movement.</p>
-          <p className="status">
-            {synthetic && <span className="chip chip-warn">Synthetic data</span>}
-            <span className="chip">
-              {subject ? `Patient ${subject}'s recorded brain signals, played back` : "Recorded brain signals, played back"}
-            </span>
-            <ModeBadge source={source} />
-          </p>
-        </div>
+      <header className="top">
+        <h1 className="top-name">
+          <b>Sixth-Finger BCI</b> <span>· a B.Tech minor project</span>
+        </h1>
+        <p className="status">
+          {synthetic && <span className="warn">Synthetic data. </span>}
+          <span>{subject ? `Patient ${subject}'s recorded brain signals, played back` : "Recorded brain signals, played back"}</span>
+          <ModeBadge source={source} />
+        </p>
       </header>
-      <div className="divider" aria-hidden="true" />
+      <p className="lede">
+        Imagine moving <em>a sixth finger</em>, and a model that reads the brain&apos;s signals moves it.
+      </p>
       {error && (
         <p className="error" role="alert">
           {error}
@@ -52,7 +51,7 @@ export default function App() {
         <Panel
           step={1}
           title="The brain signal"
-          note={`EEG from 7 of 40 sensors${nTrials ? `, trial ${trial + 1} of ${nTrials}` : ""}`}
+          note={`EEG from 7 of the 40 sensors${nTrials ? `, trial ${trial + 1} of ${nTrials}` : ""}`}
           className="panel-eeg"
           foot={
             <span className="legend-swatches">
@@ -67,16 +66,13 @@ export default function App() {
         <Panel
           step={2}
           title="The hand it moves"
-          note="the robotic finger is on the wrist"
+          note="A robotic sixth finger worn at the wrist"
           className="panel-hand"
           foot={
-            <>
-              <span className="command" data-command={command}>
-                {manual ? "Test pose " : ""}
-                {command}: {COMMAND_TEXT[command]}
-              </span>
-              <span className="muted">keys 1, 2, 3 test it</span>
-            </>
+            <span className="command" data-command={command}>
+              {manual ? "Test pose " : ""}
+              <code>{command}</code> {COMMAND_TEXT[command]}
+            </span>
           }
         >
           <div className="hand-stage" data-testid="hand" data-command={command}>

@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
 
 interface PlateProps {
-  fig: number;
   title: string;
   hint?: ReactNode;
   readout?: ReactNode;
@@ -15,10 +14,10 @@ interface PlateProps {
 }
 
 /**
- * A figure plate: the figure number at top left, its title at top right, how to use it at
- * bottom left and what it reads now at bottom right, with the caption under the frame.
+ * A figure on the page, unframed: the drawing, and beside it in the margin its name, how to
+ * use it and what it reads now. A caption, when there is one, sits under the drawing.
  */
-export function Plate({ fig, title, hint, readout, caption, className, label, testId, data, children }: PlateProps) {
+export function Plate({ title, hint, readout, caption, className, label, testId, data, children }: PlateProps) {
   return (
     <figure
       className={className ? `plate ${className}` : "plate"}
@@ -26,20 +25,13 @@ export function Plate({ fig, title, hint, readout, caption, className, label, te
       data-testid={testId}
       {...data}
     >
-      <div className="plate-frame">
-        <div className="plate-head">
-          <span className="plate-fig">FIG_{String(fig).padStart(3, "0")}</span>
-          <span className="plate-title">{title}</span>
-        </div>
-        <div className="plate-body">{children}</div>
-        {(hint || readout) && (
-          <div className="plate-foot">
-            <span className="plate-hint">{hint}</span>
-            <span className="plate-readout">{readout}</span>
-          </div>
-        )}
-      </div>
-      {caption && <figcaption className="plate-caption">{caption}</figcaption>}
+      <div className="plate-art">{children}</div>
+      <figcaption className="plate-side">
+        <b className="plate-title">{title}</b>
+        {hint && <span className="plate-hint">{hint}</span>}
+        {readout && <span className="plate-readout">{readout}</span>}
+      </figcaption>
+      {caption && <p className="plate-caption">{caption}</p>}
     </figure>
   );
 }

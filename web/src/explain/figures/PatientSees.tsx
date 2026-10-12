@@ -95,7 +95,6 @@ export function PatientSees() {
   const svg = useMemo(() => art(), []);
   return (
     <Plate
-      fig={5}
       title="What the patient sees"
       hint="One trial, 14 s, drawn to scale"
       readout="80 trials a session"

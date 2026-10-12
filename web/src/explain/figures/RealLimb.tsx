@@ -16,7 +16,6 @@ const LAYERS: { id: string; name: string; demo: string; real: string; sim?: bool
 export function RealLimb() {
   return (
     <Plate
-      fig={8}
       title="Seven steps, five of them real"
       hint="Hatched: drawn, not built"
       readout="steps 1 to 5 are real"
