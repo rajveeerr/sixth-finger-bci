@@ -1,0 +1,39 @@
+{
+  "subject": "sub-08",
+  "method": "eegnet_scratch",
+  "choice": {
+    "rule": "protocol \u00a710; ties: whole held-out trials, lower accuracy, subject id",
+    "cohort_median_chrono": 0.6732515,
+    "candidates": [
+      {
+        "subject": "sub-08",
+        "chrono_bal_acc": 0.65294,
+        "whole_trials": 36,
+        "trials": 40
+      },
+      {
+        "subject": "sub-17",
+        "chrono_bal_acc": 0.693563,
+        "whole_trials": 25,
+        "trials": 35
+      }
+    ]
+  },
+  "trials_whole": 36,
+  "trials_total": 40,
+  "clipped_samples": 0,
+  "held_out_bal_acc": 0.7407407407407408,
+  "runner_row_bal_acc": 0.731578947368421,
+  "runner_row_n_test": 77,
+  "n_training_trials": 39,
+  "parity": {
+    "opset": 18,
+    "bytes": 21812,
+    "max_abs_diff_random": 1.4551915228366852e-11,
+    "max_abs_diff_real": 4.76837158203125e-07,
+    "max_abs_diff_method": 6.556510925292969e-07
+  },
+  "max_quantisation_error_uv": 0.005000114440917969,
+  "bundle_bytes": 10536325,
+  "git_sha": "cd3d4c6"
+}

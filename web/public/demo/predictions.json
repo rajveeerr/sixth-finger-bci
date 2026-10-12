@@ -1,14 +1,14 @@
 {
  "schema_version": 1,
- "model_sha256": "f15f2e05a480a89ffcdb8d08a62e15a40e9f7a154897b6101750bda3730680e5",
+ "model_sha256": "cb7a167ffe265b8e2f293695bc28e64e04654d6c1b176fc896ec861a8f5394d9",
  "items": [
   {
    "trial": 0,
    "window": "rest",
    "probs": [
-    1.0,
-    0.0,
-    0.0
+    0.96742,
+    0.02518,
+    0.00741
    ],
    "label_id": 0
   },
@@ -16,9 +16,9 @@
    "trial": 0,
    "window": "imagery",
    "probs": [
-    0.0,
-    0.99999,
-    0.0
+    0.19726,
+    0.77689,
+    0.02585
    ],
    "label_id": 1
   },
@@ -26,44 +26,484 @@
    "trial": 1,
    "window": "rest",
    "probs": [
-    0.99996,
+    0.94397,
+    0.04883,
+    0.0072
+   ],
+   "label_id": 0
+  },
+  {
+   "trial": 1,
+   "window": "imagery",
+   "probs": [
+    6e-05,
+    0.00095,
+    0.999
+   ],
+   "label_id": 2
+  },
+  {
+   "trial": 2,
+   "window": "rest",
+   "probs": [
+    0.99999,
+    1e-05,
+    0.0
+   ],
+   "label_id": 0
+  },
+  {
+   "trial": 2,
+   "window": "imagery",
+   "probs": [
+    0.00618,
+    0.90925,
+    0.08457
+   ],
+   "label_id": 1
+  },
+  {
+   "trial": 3,
+   "window": "rest",
+   "probs": [
+    0.99998,
     2e-05,
+    0.0
+   ],
+   "label_id": 0
+  },
+  {
+   "trial": 3,
+   "window": "imagery",
+   "probs": [
+    0.0152,
+    0.37544,
+    0.60937
+   ],
+   "label_id": 2
+  },
+  {
+   "trial": 4,
+   "window": "rest",
+   "probs": [
+    0.99932,
+    0.00068,
+    0.0
+   ],
+   "label_id": 0
+  },
+  {
+   "trial": 4,
+   "window": "imagery",
+   "probs": [
+    0.21713,
+    0.69979,
+    0.08308
+   ],
+   "label_id": 1
+  },
+  {
+   "trial": 5,
+   "window": "rest",
+   "probs": [
+    0.61482,
+    0.26387,
+    0.12131
+   ],
+   "label_id": 0
+  },
+  {
+   "trial": 5,
+   "window": "imagery",
+   "probs": [
+    0.00098,
+    0.02752,
+    0.97149
+   ],
+   "label_id": 2
+  },
+  {
+   "trial": 6,
+   "window": "rest",
+   "probs": [
+    0.40786,
+    0.5382,
+    0.05394
+   ],
+   "label_id": 1
+  },
+  {
+   "trial": 6,
+   "window": "imagery",
+   "probs": [
+    0.01407,
+    0.77891,
+    0.20702
+   ],
+   "label_id": 1
+  },
+  {
+   "trial": 7,
+   "window": "rest",
+   "probs": [
+    0.70263,
+    0.12922,
+    0.16815
+   ],
+   "label_id": 0
+  },
+  {
+   "trial": 7,
+   "window": "imagery",
+   "probs": [
+    0.07933,
+    0.06216,
+    0.85851
+   ],
+   "label_id": 2
+  },
+  {
+   "trial": 8,
+   "window": "rest",
+   "probs": [
+    0.99728,
+    0.00081,
+    0.00191
+   ],
+   "label_id": 0
+  },
+  {
+   "trial": 8,
+   "window": "imagery",
+   "probs": [
+    0.00761,
+    0.10992,
+    0.88247
+   ],
+   "label_id": 2
+  },
+  {
+   "trial": 9,
+   "window": "rest",
+   "probs": [
+    0.99717,
+    0.00181,
+    0.00102
+   ],
+   "label_id": 0
+  },
+  {
+   "trial": 9,
+   "window": "imagery",
+   "probs": [
+    0.0006,
+    0.0012,
+    0.99819
+   ],
+   "label_id": 2
+  },
+  {
+   "trial": 10,
+   "window": "rest",
+   "probs": [
+    0.98762,
+    0.01169,
+    0.00069
+   ],
+   "label_id": 0
+  },
+  {
+   "trial": 10,
+   "window": "imagery",
+   "probs": [
+    0.00724,
+    0.66578,
+    0.32698
+   ],
+   "label_id": 1
+  },
+  {
+   "trial": 11,
+   "window": "rest",
+   "probs": [
+    0.15112,
+    0.05042,
+    0.79846
+   ],
+   "label_id": 2
+  },
+  {
+   "trial": 11,
+   "window": "imagery",
+   "probs": [
+    0.01057,
+    0.23555,
+    0.75388
+   ],
+   "label_id": 2
+  },
+  {
+   "trial": 12,
+   "window": "rest",
+   "probs": [
+    0.83079,
+    0.07872,
+    0.09049
+   ],
+   "label_id": 0
+  },
+  {
+   "trial": 12,
+   "window": "imagery",
+   "probs": [
+    0.00028,
+    0.03374,
+    0.96599
+   ],
+   "label_id": 2
+  },
+  {
+   "trial": 13,
+   "window": "rest",
+   "probs": [
+    0.99447,
+    0.00553,
+    0.0
+   ],
+   "label_id": 0
+  },
+  {
+   "trial": 13,
+   "window": "imagery",
+   "probs": [
+    0.15728,
+    0.09031,
+    0.75241
+   ],
+   "label_id": 2
+  },
+  {
+   "trial": 14,
+   "window": "rest",
+   "probs": [
+    0.1798,
+    0.78959,
+    0.03061
+   ],
+   "label_id": 1
+  },
+  {
+   "trial": 14,
+   "window": "imagery",
+   "probs": [
+    0.03933,
+    0.07078,
+    0.88989
+   ],
+   "label_id": 2
+  },
+  {
+   "trial": 15,
+   "window": "rest",
+   "probs": [
+    0.4072,
+    0.42862,
+    0.16419
+   ],
+   "label_id": 1
+  },
+  {
+   "trial": 15,
+   "window": "imagery",
+   "probs": [
+    0.0147,
+    0.05015,
+    0.93515
+   ],
+   "label_id": 2
+  },
+  {
+   "trial": 16,
+   "window": "rest",
+   "probs": [
+    0.44315,
+    0.34066,
+    0.21619
+   ],
+   "label_id": 0
+  },
+  {
+   "trial": 16,
+   "window": "imagery",
+   "probs": [
+    0.00981,
+    0.92534,
+    0.06484
+   ],
+   "label_id": 1
+  },
+  {
+   "trial": 17,
+   "window": "rest",
+   "probs": [
+    0.99907,
+    0.00068,
+    0.00026
+   ],
+   "label_id": 0
+  },
+  {
+   "trial": 17,
+   "window": "imagery",
+   "probs": [
+    0.03408,
+    0.08938,
+    0.87654
+   ],
+   "label_id": 2
+  },
+  {
+   "trial": 18,
+   "window": "rest",
+   "probs": [
+    0.99659,
+    0.00116,
+    0.00225
+   ],
+   "label_id": 0
+  },
+  {
+   "trial": 18,
+   "window": "imagery",
+   "probs": [
+    0.00459,
+    0.02926,
+    0.96615
+   ],
+   "label_id": 2
+  },
+  {
+   "trial": 19,
+   "window": "rest",
+   "probs": [
+    0.59369,
+    0.24986,
+    0.15645
+   ],
+   "label_id": 0
+  },
+  {
+   "trial": 19,
+   "window": "imagery",
+   "probs": [
+    0.02471,
+    0.40406,
+    0.57122
+   ],
+   "label_id": 2
+  },
+  {
+   "trial": 20,
+   "window": "rest",
+   "probs": [
+    0.95563,
+    0.00956,
+    0.0348
+   ],
+   "label_id": 0
+  },
+  {
+   "trial": 20,
+   "window": "imagery",
+   "probs": [
+    0.05209,
+    0.4558,
+    0.49211
+   ],
+   "label_id": 2
+  },
+  {
+   "trial": 21,
+   "window": "rest",
+   "probs": [
+    0.17867,
+    0.78573,
+    0.0356
+   ],
+   "label_id": 1
+  },
+  {
+   "trial": 21,
+   "window": "imagery",
+   "probs": [
+    0.00122,
+    0.13283,
+    0.86595
+   ],
+   "label_id": 2
+  },
+  {
+   "trial": 22,
+   "window": "rest",
+   "probs": [
+    0.61421,
+    0.11813,
+    0.26766
+   ],
+   "label_id": 0
+  },
+  {
+   "trial": 22,
+   "window": "imagery",
+   "probs": [
+    0.00392,
+    0.03325,
+    0.96283
+   ],
+   "label_id": 2
+  },
+  {
+   "trial": 23,
+   "window": "rest",
+   "probs": [
+    0.03904,
+    0.34171,
+    0.61924
+   ],
+   "label_id": 2
+  },
+  {
+   "trial": 23,
+   "window": "imagery",
+   "probs": [
+    0.00974,
+    0.02526,
+    0.965
+   ],
+   "label_id": 2
+  },
+  {
+   "trial": 24,
+   "window": "rest",
+   "probs": [
+    0.98924,
+    0.01073,
     3e-05
    ],
    "label_id": 0
   },
   {
-   "trial": 1,
+   "trial": 24,
    "window": "imagery",
    "probs": [
-    0.0,
-    5e-05,
-    0.99995
-   ],
-   "label_id": 2
-  },
-  {
-   "trial": 2,
-   "window": "rest",
-   "probs": [
-    1.0,
-    0.0,
-    0.0
-   ],
-   "label_id": 0
-  },
-  {
-   "trial": 2,
-   "window": "imagery",
-   "probs": [
-    0.0,
-    0.99999,
-    1e-05
+    0.1937,
+    0.59302,
+    0.21327
    ],
    "label_id": 1
   },
   {
-   "trial": 3,
+   "trial": 25,
    "window": "rest",
    "probs": [
     1.0,
@@ -73,57 +513,77 @@
    "label_id": 0
   },
   {
-   "trial": 3,
+   "trial": 25,
    "window": "imagery",
    "probs": [
-    0.0,
-    6e-05,
-    0.99994
+    0.00165,
+    0.11338,
+    0.88497
    ],
    "label_id": 2
   },
   {
-   "trial": 4,
+   "trial": 26,
    "window": "rest",
    "probs": [
-    1.0,
-    0.0,
-    0.0
+    0.88279,
+    0.11469,
+    0.00253
    ],
    "label_id": 0
   },
   {
-   "trial": 4,
+   "trial": 26,
    "window": "imagery",
    "probs": [
-    0.0,
-    0.99999,
-    0.0
+    0.21349,
+    0.77295,
+    0.01356
    ],
    "label_id": 1
   },
   {
-   "trial": 5,
+   "trial": 27,
    "window": "rest",
    "probs": [
-    1.0,
-    0.0,
-    0.0
+    0.9694,
+    0.02258,
+    0.00801
    ],
    "label_id": 0
   },
   {
-   "trial": 5,
+   "trial": 27,
    "window": "imagery",
    "probs": [
-    0.0,
-    7e-05,
-    0.99993
+    0.00164,
+    0.14841,
+    0.84995
    ],
    "label_id": 2
   },
   {
-   "trial": 6,
+   "trial": 28,
+   "window": "rest",
+   "probs": [
+    0.99449,
+    0.00172,
+    0.00378
+   ],
+   "label_id": 0
+  },
+  {
+   "trial": 28,
+   "window": "imagery",
+   "probs": [
+    0.00023,
+    0.00369,
+    0.99608
+   ],
+   "label_id": 2
+  },
+  {
+   "trial": 29,
    "window": "rest",
    "probs": [
     1.0,
@@ -133,114 +593,134 @@
    "label_id": 0
   },
   {
-   "trial": 6,
+   "trial": 29,
    "window": "imagery",
    "probs": [
-    0.0,
-    0.99999,
-    1e-05
+    0.00356,
+    0.0539,
+    0.94254
+   ],
+   "label_id": 2
+  },
+  {
+   "trial": 30,
+   "window": "rest",
+   "probs": [
+    0.48514,
+    0.20281,
+    0.31205
+   ],
+   "label_id": 0
+  },
+  {
+   "trial": 30,
+   "window": "imagery",
+   "probs": [
+    0.05306,
+    0.93816,
+    0.00878
    ],
    "label_id": 1
   },
   {
-   "trial": 7,
+   "trial": 31,
    "window": "rest",
    "probs": [
-    0.99998,
-    2e-05,
-    0.0
-   ],
-   "label_id": 0
-  },
-  {
-   "trial": 7,
-   "window": "imagery",
-   "probs": [
-    0.0,
-    7e-05,
-    0.99993
-   ],
-   "label_id": 2
-  },
-  {
-   "trial": 8,
-   "window": "rest",
-   "probs": [
-    1.0,
-    0.0,
-    0.0
-   ],
-   "label_id": 0
-  },
-  {
-   "trial": 8,
-   "window": "imagery",
-   "probs": [
-    1e-05,
-    0.99998,
-    1e-05
-   ],
-   "label_id": 1
-  },
-  {
-   "trial": 9,
-   "window": "rest",
-   "probs": [
-    1.0,
-    0.0,
-    0.0
-   ],
-   "label_id": 0
-  },
-  {
-   "trial": 9,
-   "window": "imagery",
-   "probs": [
-    0.0,
-    6e-05,
-    0.99994
-   ],
-   "label_id": 2
-  },
-  {
-   "trial": 10,
-   "window": "rest",
-   "probs": [
-    1.0,
-    0.0,
-    0.0
-   ],
-   "label_id": 0
-  },
-  {
-   "trial": 10,
-   "window": "imagery",
-   "probs": [
-    0.0,
-    0.99998,
+    0.91074,
+    0.08924,
     2e-05
    ],
+   "label_id": 0
+  },
+  {
+   "trial": 31,
+   "window": "imagery",
+   "probs": [
+    0.28886,
+    0.70678,
+    0.00436
+   ],
    "label_id": 1
   },
   {
-   "trial": 11,
+   "trial": 32,
    "window": "rest",
    "probs": [
-    1.0,
-    0.0,
-    0.0
+    0.84252,
+    0.15741,
+    8e-05
    ],
    "label_id": 0
   },
   {
-   "trial": 11,
+   "trial": 32,
    "window": "imagery",
    "probs": [
-    0.0,
-    6e-05,
-    0.99994
+    0.14083,
+    0.16263,
+    0.69653
    ],
    "label_id": 2
+  },
+  {
+   "trial": 33,
+   "window": "rest",
+   "probs": [
+    0.96539,
+    0.03231,
+    0.0023
+   ],
+   "label_id": 0
+  },
+  {
+   "trial": 33,
+   "window": "imagery",
+   "probs": [
+    0.00857,
+    0.49037,
+    0.50106
+   ],
+   "label_id": 2
+  },
+  {
+   "trial": 34,
+   "window": "rest",
+   "probs": [
+    0.99317,
+    0.00682,
+    1e-05
+   ],
+   "label_id": 0
+  },
+  {
+   "trial": 34,
+   "window": "imagery",
+   "probs": [
+    0.00572,
+    0.00944,
+    0.98484
+   ],
+   "label_id": 2
+  },
+  {
+   "trial": 35,
+   "window": "rest",
+   "probs": [
+    0.63987,
+    0.13231,
+    0.22781
+   ],
+   "label_id": 0
+  },
+  {
+   "trial": 35,
+   "window": "imagery",
+   "probs": [
+    0.58016,
+    0.41901,
+    0.00082
+   ],
+   "label_id": 0
   }
  ]
 }
