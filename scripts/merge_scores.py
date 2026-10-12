@@ -73,7 +73,10 @@ def main() -> None:
     runs = get_paths().runs
     found: dict[str, list[Path]] = {}
     for folder in args.folders:
-        for f in sorted(folder.glob("*/scores.parquet")):
+        files = sorted(folder.glob("*/scores.parquet"))
+        if not files:
+            raise SystemExit(f"{folder}: no <experiment>/scores.parquet (was the job fetched?)")
+        for f in files:
             found.setdefault(f.parent.name, []).append(f)
     for experiment, files in sorted(found.items()):
         scores = merge(experiment, files, runs / experiment / "scores.parquet")
