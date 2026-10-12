@@ -132,11 +132,14 @@ def eegnet_maps(paths, cfg, channels) -> tuple[np.ndarray, list[dict]]:
 
 
 def topomaps(maps: dict, info, title: str, name: str, figures) -> None:
-    fig, axes = plt.subplots(1, len(maps), figsize=(2.2 * len(maps), 2.4), squeeze=False)
+    """Each map on its own range (lowest to highest channel), no colour beyond the electrodes."""
+    fig, axes = plt.subplots(1, len(maps), figsize=(2.4 * len(maps), 2.6), squeeze=False)
     for ax, (label, m) in zip(axes[0], maps.items(), strict=True):
-        plot_topomap(m / m.max(), info, axes=ax, show=False, cmap="Reds", vlim=(0, 1),
-                     contours=0)  # fmt: skip
+        im, _ = plot_topomap(m, info, axes=ax, show=False, cmap="Reds", contours=4,
+                             vlim=(m.min(), m.max()), extrapolate="local")  # fmt: skip
         ax.set_title(label, fontsize=8)
+        bar = fig.colorbar(im, ax=ax, shrink=0.6, ticks=[m.min(), m.max()])
+        bar.ax.set_yticklabels(["lowest", "highest"], fontsize=6)
     fig.suptitle(title, fontsize=8)
     save(fig, figures, name)
 
@@ -152,6 +155,16 @@ def main() -> None:
     out.to_csv(paths.results / "summary" / "rq4_pattern_shares.csv", index=False,
                float_format="%.6g")  # fmt: skip
     print(out.groupby("source")[["frontal_share", "parieto_occipital_share"]].agg(["mean", "max"]))
+    maps = pd.DataFrame(
+        {
+            "channel": channels,
+            "csp_T1_ah_vs_sf": csp["T1_ah_vs_sf"],
+            "csp_T3_sf_vs_rest": csp["T3_sf_vs_rest"],
+            "eegnet_pretrained": eeg,
+        }
+    )
+    maps.to_csv(paths.results / "summary" / "rq4_pattern_maps.csv", index=False,
+                float_format="%.6g")  # fmt: skip
     topomaps({"AH vs SF": csp["T1_ah_vs_sf"], "SF vs REST": csp["T3_sf_vs_rest"]}, info,
              "CSP patterns, mean over 22 patients (pre, runs 01-02, mirrored)",
              "rq4_csp_patterns_group", paths.figures)  # fmt: skip
