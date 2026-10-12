@@ -163,10 +163,25 @@ def test_no_signal_pretraining_writes_its_own_file(tmp_path):
     entry = deep.pretrain_loso("sub-03", cfg, ready, md, data_cfg, tmp_path, permuted=True)
     assert entry["file"] == "eegnet_loso_sub-03_ea_raw_perm.pt" and entry["permuted"]
     assert (tmp_path / entry["file"]).exists()
-    assert deep.pretrained_path(tmp_path, "sub-03", False, permuted=True).name == entry["file"]
+    with pytest.raises(FileNotFoundError, match="manifest"):
+        deep.pretrained_path(tmp_path, "sub-03", False, permuted=True)
     deep.write_manifest([entry], tmp_path / "manifest.json")
     assert deep.pretrained_path(tmp_path, "sub-03", False, permuted=True).name == entry["file"]
-    wrong = {**entry, "train_subjects": [*entry["train_subjects"], "sub-03"]}
-    deep.write_manifest([wrong], tmp_path / "manifest.json")
+    for wrong in ({**entry, "train_subjects": [*entry["train_subjects"], "sub-03"]},
+                  {**entry, "target": "sub-04"}):  # fmt: skip
+        deep.write_manifest([wrong], tmp_path / "manifest.json")
+        with pytest.raises(AssertionError, match="made for sub-03"):
+            deep.pretrained_path(tmp_path, "sub-03", False, permuted=True)
+    (tmp_path / "manifest.json").write_text("{}")  # no entry for the file
     with pytest.raises(AssertionError, match="made for sub-03"):
         deep.pretrained_path(tmp_path, "sub-03", False, permuted=True)
+
+
+def test_the_model_guard_also_refuses_the_linked_partner(tmp_path):
+    name = deep.pretrained_name("sub-21", False, aligned=True)
+    (tmp_path / name).write_bytes(b"")
+    entry = dict(file=name, target="sub-21", train_subjects=["sub-01", "sub-22"],
+                 validation_subjects=[])  # fmt: skip
+    deep.write_manifest([entry], tmp_path / "manifest.json")
+    with pytest.raises(AssertionError, match="made for sub-21"):
+        deep.pretrained_path(tmp_path, "sub-21", False)

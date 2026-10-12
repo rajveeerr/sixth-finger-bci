@@ -25,7 +25,7 @@ from sixthfinger.config import load_data_config, load_protocol_config
 from sixthfinger.data.epochs import run_signal
 from sixthfinger.data.loading import list_processed_runs
 from sixthfinger.evaluation import pseudo_online as po
-from sixthfinger.evaluation.runner import run_experiment
+from sixthfinger.evaluation.runner import load_experiment, run_experiment
 from sixthfinger.evaluation.stats import bootstrap_ci
 from sixthfinger.paths import current_git_sha, get_paths
 
@@ -45,7 +45,10 @@ def make_hook(gate_cls):
     files = {
         (r.subject, r.session, int(r.run)): r.path for r in list_processed_runs(paths.processed)
     }
-    test_runs = [int(r) for r in proto.calibration.test_runs]
+    cfg = paths.configs / "experiments" / f"{EXPERIMENT}.yaml"
+    exp = load_experiment(cfg, proto)
+    test_runs = po.replayed_runs(exp.test_runs or proto.calibration.test_runs,
+                                 exp.pool_runs or proto.calibration.pool_runs)  # fmt: skip
     n_window, sha = data_cfg.n_times, current_git_sha()
     out = replay_dir()
     out.mkdir(parents=True, exist_ok=True)
@@ -58,22 +61,11 @@ def make_hook(gate_cls):
             if path is None or data_cfg.is_run_excluded(subject, session, f"{run:02d}"):
                 continue
             data, rec = run_signal(path, data_cfg)
-            codes, samples = rec.event_codes, rec.event_samples
-            boundaries = samples[np.array(codes) == "boundary"]
-            ends = po.window_ends(data.shape[1], n_window, round(po.STRIDE_S * rec.sfreq),
-                                  boundaries)  # fmt: skip
-            proba = np.concatenate([
-                method.predict_proba(np.stack([data[:, e - n_window : e] for e in chunk]))
-                for chunk in np.array_split(ends, max(1, len(ends) // 256))
-            ])  # fmt: skip
-            if proba.shape != (len(ends), 3):
-                raise ValueError(f"{name}: probabilities of shape {proba.shape}")
-            active = po.replay(proba, gate_cls)
-            per = po.periods(codes, samples, rec.sfreq, data.shape[1])
-            replays.append(po.RunReplay(per, po.activations(active, ends), rec.sfreq))
-            timeline.append(pd.DataFrame({"run": run, "t": ends / rec.sfreq, "p_rest": proba[:, 0],
-                                          "p_ah": proba[:, 1], "p_sf": proba[:, 2],
-                                          "active": active}))  # fmt: skip
+            events = (rec.event_codes, rec.event_samples, rec.sfreq)
+            replayed, tl = po.replay_run(method.predict_proba, data, *events, n_window, gate_cls)
+            replays.append(replayed)
+            timeline.append(tl.assign(run=run))
+            per = replayed.periods
             scored.append(per.assign(run=run, t0=per.start / rec.sfreq, t1=per.stop / rec.sfreq))
         row = dict(subject=subject, session=session, method=name, n_runs=len(replays),
                    flagged=subject in FLAGGED, **po.subject_metrics(replays),
@@ -101,16 +93,16 @@ def reproduction(paths) -> pd.DataFrame:
 
 
 def demo_subject(paths) -> str:
-    """Protocol §10: the subject whose `chrono` balanced accuracy of the demo method (P07,
-    three-class) is closest to the cohort median."""
-    sv = pd.read_csv(paths.results / "summary" / "dl_baselines_subject_values.csv")
-    g = sv[(sv.task == "T2_rest_ah_sf") & (sv.protocol == "chrono") & (sv.session == "pre")
-           & (sv.method == "eegnet_scratch")]  # fmt: skip
-    return g.loc[(g.bal_acc - g.bal_acc.median()).abs().idxmin(), "subject"]
+    """The demo patient by protocol §10 with the tie-break of DECISIONS 60 (one rule, shared
+    with the demo bundle)."""
+    from sixthfinger.export.demo_bundle import demo_subject as choose
+
+    proto = load_protocol_config()
+    return choose("eegnet_scratch", load_data_config(), list(proto.calibration.test_runs))[0]
 
 
 def one_switch(rows: pd.DataFrame, gate_cls) -> pd.DataFrame:
-    """Added after the P08 results: the same decoders and gate on P(rest) against
+    """Added after the pseudo-online results: the same decoders and gate on P(rest) against
     P(AH) + P(SF), replayed from the stored probabilities; any imagery period counts."""
     out = []
     for r in rows.itertuples():

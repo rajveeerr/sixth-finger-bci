@@ -38,7 +38,7 @@ from sixthfinger.preprocessing.alignment import align, reference_matrix
 from sixthfinger.viz.explain import (
     FRONTAL,
     PARIETO_OCCIPITAL,
-    haufe_patterns,
+    eegnet_patterns,
     normalised_abs,
     weight_share,
 )
@@ -99,31 +99,8 @@ def eegnet_maps(paths, cfg, channels) -> tuple[np.ndarray, list[dict]]:
             continue
         net = build_module(deep, X.shape[1], 3, X.shape[2])
         net.load_state_dict(torch.load(models / name, weights_only=True, map_location="cpu"))
-        net.eval()
-        seen: list = []
-
-        def keep(_module, _inputs, output, seen=seen):
-            seen.append(output.detach())
-
-        hook = net.bnorm_temporal.register_forward_hook(keep)
         rows_of = np.isin(subj, entry["train_subjects"])
-        n_feat = net.conv_temporal.out_channels
-        total, s, ss = 0, np.zeros((n_feat, X.shape[1])), np.zeros((n_feat, X.shape[1], X.shape[1]))
-        with torch.no_grad():
-            for start in range(0, rows_of.sum(), 50):
-                seen.clear()
-                net(torch.from_numpy(X[rows_of][start : start + 50]))
-                out = seen[0].double().numpy()  # (batch, features, channels, times)
-                xb = out.transpose(1, 2, 0, 3).reshape(n_feat, X.shape[1], -1)
-                total += xb.shape[2]
-                s += xb.sum(axis=2)
-                ss += np.einsum("fct,fdt->fcd", xb, xb)
-        hook.remove()
-        mean = s / total
-        covs = (ss - total * np.einsum("fc,fd->fcd", mean, mean)) / (total - 1)
-        W = net.conv_spatial.weight.detach().double().numpy()[:, 0, :, 0]  # (F1 * D, channels)
-        depth = W.shape[0] // n_feat
-        patterns = np.stack([haufe_patterns(W[j], covs[j // depth])[0] for j in range(len(W))])
+        patterns = eegnet_patterns(net, X[rows_of])
         model_map = normalised_abs(patterns).mean(axis=0)
         maps.append(model_map)
         rows.append(dict(source="eegnet_pretrained", unit=entry["target"],
@@ -169,8 +146,8 @@ def main() -> None:
              "CSP patterns, mean over 22 patients (pre, runs 01-02, mirrored)",
              "rq4_csp_patterns_group", paths.figures)  # fmt: skip
     topomaps({"EEGNet spatial patterns": eeg}, info,
-             "Haufe patterns, mean over the 24 pre-trained models", "rq4_eegnet_patterns_group",
-             paths.figures)  # fmt: skip
+             "Haufe patterns, mean over the 24 pre-trained models (21 distinct)",
+             "rq4_eegnet_patterns_group", paths.figures)  # fmt: skip
 
 
 if __name__ == "__main__":

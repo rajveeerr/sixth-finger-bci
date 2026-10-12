@@ -187,8 +187,8 @@ def test_e1_uses_only_years_with_ten_per_group(rq5):
 
 
 def test_e3_relabels_by_gad7_only_when_both_sides_reach_ten(rq5):
-    md = _people([(0, "H", 29, 3), (0, "MDD", 4, 5), (0, "MDD", 19, 12)])
-    ma = rq5.gad7_groups(md)
+    md = _people([(0, "H", 29, 3), (0, "MDD", 4, 5), (0, "MDD", 18, 12), (0, "MDD", 1, 10)])
+    ma = rq5.gad7_groups(md)  # GAD-7 = 10 counts as the anxious side (>= 10)
     assert ma.drop_duplicates("subject").group.value_counts().to_dict() == {"H": 33, "MDD": 19}
     assert rq5.gad7_groups(_people([(0, "H", 29, 3), (0, "MDD", 9, 12)])) is None
 
@@ -202,7 +202,14 @@ def test_the_modma_electrodes_are_the_preregistered_ones(rq5):
 
 
 def test_the_committed_modma_audit_names_no_file_or_score(rq5):
-    table = pd.DataFrame(dict(file=["02010002rest 20150416 1017..mat"], subject=["MDD-02010002"],
-                              gad7=[18.0], kept=[True]))  # fmt: skip
+    # Made-up values: a real file name carries a recording date (preregistration-rq5 §8).
+    table = pd.DataFrame(dict(file=["00000000rest 20000101 0000..mat"], subject=["MDD-00000000"],
+                              gad7=[0.0], kept=[True]))  # fmt: skip
     assert list(rq5.public_audit("modma", table).columns) == ["subject", "kept"]
     assert list(rq5.public_audit("mumtaz", table).columns) == list(table.columns)
+
+
+def test_segment_auc_takes_mdd_as_the_positive_class(rq5):
+    pred = pd.DataFrame({"group": ["H", "H", "MDD", "MDD"], "p_mdd": [0.1, 0.2, 0.8, 0.9]})
+    assert rq5.segment_auc(pred) == 1.0
+    assert rq5.segment_auc(pred.assign(p_mdd=1 - pred.p_mdd)) == 0.0

@@ -61,7 +61,10 @@ def main() -> None:
                                  bal_acc=decode(X, md, classes, idx)))  # fmt: skip
     out = pd.DataFrame(rows)
     full = out[out.channels == "all_40"].set_index(["subject", "task"]).bal_acc
-    gap = (full - p06[full.index]).abs().max()
+    gap = (full - p06.reindex(full.index)).abs()
+    if gap.isna().any():
+        raise SystemExit("a cell is missing from the full montage or from P06")
+    gap = gap.max()
     print(f"full montage vs P06 chrono ts_lr: {len(full)} cells, largest difference {gap:.2e}")
     if gap > 1e-6:
         raise SystemExit("the full montage does not reproduce P06: the windows differ")

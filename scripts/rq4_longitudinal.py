@@ -45,7 +45,15 @@ LATER = ["post", "follow"]
 ARMS = ["pre_unchanged", "new_only", "pooled", "recentred"]
 
 
-def fit_ts_lr(X, rows: pd.DataFrame):
+def outside(test: pd.DataFrame, *fitted: pd.DataFrame) -> None:
+    """No test window in anything a fit reads, labelled or unlabelled."""
+    for rows in fitted:
+        if set(rows.index) & set(test.index):
+            raise AssertionError("a test window reached a fit")
+
+
+def fit_ts_lr(X, rows: pd.DataFrame, test: pd.DataFrame):
+    outside(test, rows)
     m = make_method("ts_lr", n_classes=3, **method_params("ts_lr", get_paths().configs))
     return m.fit(Batch(X[rows.index], rows.label.to_numpy(), rows))
 
@@ -56,7 +64,9 @@ class Recentred:
     def __init__(self, params: dict):
         self.p = params
 
-    def fit(self, X, pre: pd.DataFrame, new: pd.DataFrame, unlabelled: pd.DataFrame):
+    def fit(self, X, pre: pd.DataFrame, new: pd.DataFrame, unlabelled: pd.DataFrame,
+            test: pd.DataFrame):  # fmt: skip
+        outside(test, pre, new, unlabelled)
         cov = Covariances(self.p["covariance"])
         C_pre = cov.transform(X[pre.index])
         self.W = centring_filters(cov.transform(X[unlabelled.index]))
@@ -71,8 +81,9 @@ class Recentred:
             TangentSpace(metric=self.p["tangent_space_metric"]),
             LogisticRegression(C=lr["C"], max_iter=lr["max_iter"]),
         )
-        self.model.fit(np.concatenate(parts), np.concatenate(ys),
-                       logisticregression__sample_weight=np.concatenate(ws))  # fmt: skip
+        w = np.concatenate(ws)  # to both steps, as rct_tslr passes them (transfer.py)
+        weights = {"tangentspace__sample_weight": w, "logisticregression__sample_weight": w}
+        self.model.fit(np.concatenate(parts), np.concatenate(ys), **weights)
         self.cov = cov
         return self
 
@@ -87,8 +98,6 @@ def subject_rows(subject: str, session: str, X, md: pd.DataFrame, proto, rct: di
     later = md[md.session == session]
     pool = later[later.run.isin(pool_runs)]
     test = later[later.run.isin(test_runs) & later.label.isin(CLASSES)]
-    if set(pre.index) & set(test.index) or set(pool.index) & set(test.index):
-        raise AssertionError("a test window in a training set")
     y = test.label.to_numpy()
 
     def bal(model) -> float:
@@ -96,7 +105,7 @@ def subject_rows(subject: str, session: str, X, md: pd.DataFrame, proto, rct: di
 
     base = dict(subject=subject, session=session, group=md.group.iloc[0])
     # Independent of k: one row, stored at k = 0.
-    rows = [dict(base, arm="pre_unchanged", k=0, draw="0", bal_acc=bal(fit_ts_lr(X, pre)))]
+    rows = [dict(base, arm="pre_unchanged", k=0, draw="0", bal_acc=bal(fit_ts_lr(X, pre, test)))]
     k_all = max(cal.k_grid)
     for k in K_GRID:
         draws = ["0"] if k == 0 else [str(cal.seed_base + i) for i in range(cal.draws_classical)]
@@ -104,10 +113,10 @@ def subject_rows(subject: str, session: str, X, md: pd.DataFrame, proto, rct: di
             cd = draw_calibration_set(pool, [], [1, 2], k, draw, k_all=k_all)
             new = task_windows(pool.iloc[cd.labelled_idx], CLASSES)
             unl = pool.iloc[cd.unlabelled_idx] if k == 0 else new
-            out = {"recentred": bal(Recentred(rct).fit(X, pre, new, unl))}
+            out = {"recentred": bal(Recentred(rct).fit(X, pre, new, unl, test))}
             if k > 0:
-                out["new_only"] = bal(fit_ts_lr(X, new))
-                out["pooled"] = bal(fit_ts_lr(X, pd.concat([pre, new])))
+                out["new_only"] = bal(fit_ts_lr(X, new, test))
+                out["pooled"] = bal(fit_ts_lr(X, pd.concat([pre, new]), test))
             rows += [dict(base, arm=a, k=k, draw=draw, bal_acc=v) for a, v in out.items()]
     return rows
 

@@ -164,12 +164,16 @@ def pretrained_path(models_dir: Path, subject: str, mirror: bool, permuted: bool
     path = Path(models_dir) / pretrained_name(subject, mirror, aligned=True, permuted=permuted)
     if not path.exists():
         raise FileNotFoundError(f"{path} missing: run the aligned pre-training (P07) for {subject}")
-    manifest = Path(models_dir) / "manifest.json"
-    if manifest.exists():  # written by scripts/pretrain_loso.py next to the weights
-        entry = json.loads(manifest.read_text()).get(path.name)
-        seen = [] if entry is None else entry["train_subjects"] + entry["validation_subjects"]
-        if entry is None or entry["target"] != subject or subject in seen:
-            raise AssertionError(f"the manifest does not record {path.name} as made for {subject}")
+    manifest = Path(models_dir) / "manifest.json"  # written by scripts/pretrain_loso.py
+    if not manifest.exists():
+        raise FileNotFoundError(f"{manifest} missing: the models cannot be checked without it")
+    entry = json.loads(manifest.read_text()).get(path.name)
+    seen = set() if entry is None else set(entry["train_subjects"] + entry["validation_subjects"])
+    from sixthfinger.config import load_data_config
+
+    group = set(load_data_config().split_group(subject).split("+"))  # the linked partner too
+    if entry is None or entry["target"] != subject or group & seen:
+        raise AssertionError(f"the manifest does not record {path.name} as made for {subject}")
     return path
 
 

@@ -138,7 +138,10 @@ def _ft_cfg(**over):
 def models_dir(tmp_path):
     torch.manual_seed(0)
     net = deep.build_module(_ft_cfg(), N_CH, 3, N_T)
-    torch.save(net.state_dict(), tmp_path / deep.pretrained_name("sub-07", False, True))
+    name = deep.pretrained_name("sub-07", False, True)
+    torch.save(net.state_dict(), tmp_path / name)
+    deep.write_manifest([dict(file=name, target="sub-07", train_subjects=["sub-01", "sub-03"],
+                              validation_subjects=[])], tmp_path / "manifest.json")  # fmt: skip
     return tmp_path
 
 

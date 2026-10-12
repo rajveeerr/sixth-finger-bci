@@ -65,3 +65,12 @@ def test_merging_refuses_while_a_stopped_run_has_parts(merge, tmp_path):
     _unit_rows("2026-10-12T10:00:00", 0.5).to_parquet(out.parent / "parts" / "sub-01.parquet")
     with pytest.raises(SystemExit, match="stopped run"):
         merge.merge("x", [], out)
+
+
+def test_the_newest_row_wins_whatever_the_order_of_the_frames(merge, tmp_path, monkeypatch):
+    monkeypatch.setattr(merge, "check", lambda e, f: pd.read_parquet(f))
+    out = tmp_path / "runs" / "x" / "scores.parquet"
+    out.parent.mkdir(parents=True)
+    _unit_rows("2026-10-12T11:00:00", 0.6).to_parquet(out)  # the newer row, read first
+    _unit_rows("2026-10-12T10:00:00", 0.5).to_parquet(tmp_path / "old.parquet")
+    assert merge.merge("x", [tmp_path / "old.parquet"], out).bal_acc.tolist() == [0.6]

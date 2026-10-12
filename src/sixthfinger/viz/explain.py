@@ -48,3 +48,36 @@ def weight_share(pattern: np.ndarray, channels: list[str], group: list[str]) -> 
     """Share of a (non-negative) map's total weight on the channels of `group`."""
     idx = [channels.index(c) for c in group]
     return float(pattern[idx].sum() / pattern.sum())
+
+
+def eegnet_patterns(net, X: np.ndarray, batch: int = 50) -> np.ndarray:
+    """Haufe patterns (n_spatial_filters, channels) of a braindecode EEGNet's depthwise spatial
+    filters on network inputs X (n, channels, times).
+
+    Spatial filter j sees temporal feature j // D (grouped convolution, D filters per
+    feature); its pattern uses the channel covariance of that feature's map, the output of
+    `bnorm_temporal`, which is exactly what the spatial filters receive.
+    """
+    import torch
+
+    seen: list = []
+    hook = net.bnorm_temporal.register_forward_hook(lambda _m, _i, out: seen.append(out.detach()))
+    n_feat, n_ch = net.conv_temporal.out_channels, X.shape[1]
+    total, s, ss = 0, np.zeros((n_feat, n_ch)), np.zeros((n_feat, n_ch, n_ch))
+    net.eval()
+    try:
+        with torch.no_grad():
+            for start in range(0, len(X), batch):
+                seen.clear()
+                net(torch.from_numpy(np.ascontiguousarray(X[start : start + batch], np.float32)))
+                xb = seen[0].double().numpy().transpose(1, 2, 0, 3).reshape(n_feat, n_ch, -1)
+                total += xb.shape[2]
+                s += xb.sum(axis=2)
+                ss += np.einsum("fct,fdt->fcd", xb, xb)
+    finally:
+        hook.remove()
+    mean = s / total
+    covs = (ss - total * np.einsum("fc,fd->fcd", mean, mean)) / (total - 1)
+    W = net.conv_spatial.weight.detach().double().numpy()[:, 0, :, 0]  # (F1 * D, channels)
+    depth = W.shape[0] // n_feat
+    return np.stack([haufe_patterns(W[j], covs[j // depth])[0] for j in range(len(W))])

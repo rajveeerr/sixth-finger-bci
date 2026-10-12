@@ -38,8 +38,37 @@ def test_recentring_undoes_a_change_of_channel_gains_between_sessions(lon):
     pre, later = md.iloc[: len(ya)], md.iloc[len(ya) :]
     params = dict(covariance="oas", tangent_space_metric="riemann",
                   logreg={"C": 1.0, "max_iter": 1000}, target_weight=1)  # fmt: skip
-    model = lon.Recentred(params).fit(X, pre, later.iloc[:0], unlabelled=later)
+    none = later.iloc[:0]
+    model = lon.Recentred(params).fit(X, pre, none, unlabelled=later, test=none)
     acc_recentred = (model.predict_proba(Xb).argmax(1) == yb).mean()
-    unchanged = lon.Recentred(params).fit(X, pre, later.iloc[:0], unlabelled=pre)
+    unchanged = lon.Recentred(params).fit(X, pre, none, unlabelled=pre, test=none)
     acc_unchanged = (unchanged.predict_proba(Xb).argmax(1) == yb).mean()
     assert acc_recentred > 0.8 and acc_recentred > acc_unchanged + 0.1
+
+
+def test_no_fit_reads_a_test_window(lon):
+    md = pd.DataFrame({"label": [0, 1, 2] * 4})
+    test = md.iloc[9:]
+    with pytest.raises(AssertionError, match="test window"):
+        lon.Recentred({}).fit(None, md.iloc[:6], md.iloc[:0], unlabelled=md.iloc[6:], test=test)
+    with pytest.raises(AssertionError, match="test window"):
+        lon.fit_ts_lr(None, md, test)
+
+
+def test_subject_rows_never_fit_on_the_later_sessions_test_runs(lon, monkeypatch):
+    from sixthfinger.config import load_protocol_config
+    from tests.evalfixtures import session_md
+
+    md = pd.concat([session_md("sub-01", "pre"), session_md("sub-01", "post")], ignore_index=True)
+    md = md.assign(group="B")
+    rng = np.random.default_rng(0)
+    X = rng.standard_normal((len(md), 6, 100)) * (1 + md.label.to_numpy()[:, None, None])
+    test_index = set(md[(md.session == "post") & md.run.isin([3, 4])].index)
+    fitted = []
+    monkeypatch.setattr(lon, "outside", lambda test, *rows: fitted.extend(rows))
+    monkeypatch.setattr(lon, "K_GRID", [0, 5])
+    params = dict(covariance="oas", tangent_space_metric="riemann",
+                  logreg={"C": 1.0, "max_iter": 200}, target_weight=1)  # fmt: skip
+    rows = lon.subject_rows("sub-01", "post", X, md, load_protocol_config(), params)
+    assert {r["arm"] for r in rows} == set(lon.ARMS)
+    assert fitted and all(not set(f.index) & test_index for f in fitted)

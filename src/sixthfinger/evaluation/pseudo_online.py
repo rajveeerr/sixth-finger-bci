@@ -73,6 +73,45 @@ def activations(active: np.ndarray, ends: np.ndarray) -> pd.DataFrame:
     return out
 
 
+def replay_run(
+    predict_proba,
+    data: np.ndarray,
+    codes: list[str],
+    samples: np.ndarray,
+    sfreq: float,
+    n_window: int,
+    gate_cls: type,
+):
+    """Replay one continuous run (channels, samples) through the gate.
+
+    `predict_proba` takes windows (n, channels, n_window) and returns probabilities in class
+    order [REST, AH, SF], the order of the gate's indices. Returns the run's RunReplay and its
+    timeline (window end times, probabilities, gate output).
+    """
+    codes = list(codes)
+    boundaries = np.asarray(samples)[np.array(codes) == "boundary"]
+    ends = window_ends(data.shape[1], n_window, round(STRIDE_S * sfreq), boundaries)
+    chunks = np.array_split(ends, max(1, len(ends) // 256))
+    proba = np.concatenate(
+        [predict_proba(np.stack([data[:, e - n_window : e] for e in c])) for c in chunks]
+    )
+    if proba.shape != (len(ends), 3):
+        raise ValueError(f"probabilities of shape {proba.shape}, expected ({len(ends)}, 3)")
+    active = replay(proba, gate_cls)
+    per = periods(codes, samples, sfreq, data.shape[1])
+    timeline = pd.DataFrame({"t": ends / sfreq, "p_rest": proba[:, REST], "p_ah": proba[:, AH],
+                             "p_sf": proba[:, SF], "active": active})  # fmt: skip
+    return RunReplay(per, activations(active, ends), sfreq), timeline
+
+
+def replayed_runs(experiment_test_runs, experiment_pool_runs) -> list[int]:
+    """The runs to replay: the experiment's test runs, which must not hold fitted data."""
+    test, pool = {int(r) for r in experiment_test_runs}, {int(r) for r in experiment_pool_runs}
+    if test & pool:
+        raise ValueError(f"replayed runs {sorted(test)} overlap the fitted pool {sorted(pool)}")
+    return sorted(test)
+
+
 @dataclass
 class RunReplay:
     """One replayed run: its periods and the gate's activations, in samples of the run."""

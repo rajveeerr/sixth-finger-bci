@@ -425,6 +425,18 @@ def test_the_unlabelled_set_is_the_rest_set_at_k0_and_the_drawn_windows_after(ca
         assert list(unl.md.index) == list(target.md.index)
 
 
+def test_the_fit_hook_sees_every_fitted_unit(cache, tmp_path):
+    seen = []
+    cfg = _calib(tmp_path, name="c_hook", tasks=["T3_sf_vs_rest"], scenarios=["S1_new_user"])
+    out = _run(cfg, cache, tmp_path, quick=True, on_fitted=lambda key, m: seen.append((key, m)))
+    fitted = pd.read_parquet(out).dropna(subset=["bal_acc"])
+    assert len(seen) == len(fitted) > 0
+    assert all(hasattr(m, "predict_proba") for _, m in seen)
+    assert {(k["method"], k["k"], k["draw"]) for k, _ in seen} == {
+        (r.method, r.k, r.draw) for r in fitted.itertuples()
+    }
+
+
 def test_a_resume_refuses_rows_made_with_other_settings(cache, tmp_path):
     _run(_calib(tmp_path, tasks=["T3_sf_vs_rest"]), cache, tmp_path, quick=True)
     changed = _calib(tmp_path, tasks=["T3_sf_vs_rest"], params={"smoke_prior": {"x": 1}})
