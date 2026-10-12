@@ -52,14 +52,13 @@ export function BrainRhythm() {
   }, [fall]);
   return (
     <Plate
-      title="What changes in the brain"
+      title="The rhythm, resting and imagining"
       hint="The drawing shows the effect. Under it, one dot per patient: how much their rhythm fell."
       readout={`Smaller in 22 of 22 patients for the sixth finger, by ${Math.round(-data.erd.sixth_finger.mean)}% on average`}
       caption={
         <>
-          Over the part of the brain that moves the hand, the EEG has a steady rhythm (8 to 13 waves a second). When
-          the patient imagines moving, it gets <strong>about a third smaller</strong>. That drop is what the model
-          learns to spot.
+          The rhythm runs at 8 to 13 waves a second. While these patients imagined moving, it got{" "}
+          <strong>about a third smaller</strong>, in every one of them for the sixth finger.
         </>
       }
     >

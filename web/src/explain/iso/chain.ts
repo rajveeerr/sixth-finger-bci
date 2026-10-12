@@ -1,11 +1,11 @@
-// Fig. 4's bench, built once: a contour model of the head with its electrodes, an
+// The bench, built once: a head in an EEG cap (the template head of iso/head.ts), an
 // amplifier whose pen writes the EEG on a moving paper strip, a frame that holds the
 // newest 4 s of that paper, the decoder with one lamp per command, and the robotic finger
 // it drives. World units are millimetres of the model; x runs along the bench, y across
 // it toward the viewer, z up. The live parts (the ink on the paper, the lamps and the
 // finger) are drawn by SignalChain.tsx from the same projection.
 
-import { data } from "../data";
+import { HEAD_BOUNDS, headSvg, placeHead, type HeadPose } from "./head";
 import * as K from "./kit";
 
 export const VIEW_W = 1000;
@@ -15,11 +15,18 @@ const AZIMUTH = 70;
 const BENCH: K.Plan = { x: 0, y: 0, w: 676, d: 150, r: 10 };
 const TOP = 12; // bench top
 
-// The head: a stepped contour model, nose toward −x.
-const HEAD = { cx: 72, cy: 76 };
-const CONTOURS = [52, 48, 42, 34, 24, 13];
-const STEP = 6;
-const HEAD_BASE = TOP + 4;
+// The head: a real head on a short stand, three-quarter view, the nose toward the viewer's
+// left, so the cap's top and the motor strip face the reader.
+const HEAD = { cx: 70, cy: 76 };
+const HEAD_SCALE = 0.6; // world units per millimetre of head
+const HEAD_CUT = -72; // the neck stops here, in the template's millimetres
+const a0 = (AZIMUTH * Math.PI) / 180;
+const POSE: HeadPose = {
+  origin: [HEAD.cx, HEAD.cy, TOP + 18 - HEAD_CUT * HEAD_SCALE],
+  scale: HEAD_SCALE,
+  nose: [Math.cos(a0) * 0.6 - Math.sin(a0) * 0.8, Math.sin(a0) * 0.6 + Math.cos(a0) * 0.8],
+  cutMm: HEAD_CUT,
+};
 
 const AMP: K.Plan = { x: 150, y: 38, w: 74, d: 76, r: 5 };
 const AMP_TOP = TOP + 46;
@@ -56,7 +63,7 @@ export const P = K.fitProjection(
   [
     ...K.boxCorners(BENCH, -8, TOP),
     [FINGER_ROOT[0] + 30, FINGER_ROOT[1], FINGER_ROOT[2] + 60],
-    [HEAD.cx, HEAD.cy, HEAD_BASE + STEP * CONTOURS.length + 8],
+    ...HEAD_BOUNDS.map(placeHead(POSE).world),
     [AMP.x, AMP.y, AMP_TOP + 14],
   ],
   VIEW_W,
@@ -70,19 +77,6 @@ export const UNIT = Math.abs(K.axisVector(P, [0, 0, 1])[1]) / Math.cos(Math.PI /
 const at = (p: K.Point3) => K.iso(p, P);
 const solid = (paths: K.SolidPaths, style: K.SolidStyle = {}) => K.solidSvg(paths, style);
 const slab = (plan: K.Plan, z: number, h: number, bevel = 0) => K.slabOf(plan, z, h, P, 8, bevel);
-
-/** The plan position and the height of an electrode on the contour model. */
-function electrodeAt(e: { x: number; y: number }): K.Point3 {
-  const R = CONTOURS[0] - 3;
-  const px = HEAD.cx - e.y * R;
-  const py = HEAD.cy + e.x * R;
-  const rho = Math.hypot(e.x, e.y) * R;
-  let level = 0;
-  CONTOURS.forEach((r, i) => {
-    if (r > rho + 2.5) level = i + 1;
-  });
-  return [px, py, HEAD_BASE + level * STEP];
-}
 
 export interface ChainArt {
   /** Everything under the ink on the paper. */
@@ -122,17 +116,12 @@ export function buildChain(): ChainArt {
     back.push(K.lineSvg(K.segment([plate.x0 + 4, plate.y, z], [plate.x1 - (z === 8 ? 26 : 4), plate.y, z], P), { tone: "lo", free: true }));
   }
 
-  // The head: a base disc, the contour steps, a nose tab and the 40 electrodes.
-  back.push(solid(K.cylinder(HEAD.cx, HEAD.cy, CONTOURS[0] + 6, TOP, 4, P, 48, 0.6), { tone: "mid" }));
-  back.push(solid(slab({ x: HEAD.cx - CONTOURS[0] - 12, y: HEAD.cy - 6, w: 12, d: 12, r: 3 }, HEAD_BASE, 3), { tone: "mid" }));
-  CONTOURS.forEach((r, i) => {
-    back.push(solid(K.cylinder(HEAD.cx, HEAD.cy, r, HEAD_BASE + i * STEP, STEP, P, 56), { tone: i === 0 ? "mid" : "hi" }));
-  });
-  const electrodes = data.electrodes.map((e) => ({ ...e, p: electrodeAt(e) }));
-  const plain = electrodes.filter((e) => !e.shown);
-  back.push(K.dotsSvg(plain.map((e) => at(e.p)), { size: 1.6, tone: "mid" }));
-  const shown = electrodes.filter((e) => e.shown).sort((a, b) => K.depthOf(a.p, P) - K.depthOf(b.p, P));
-  for (const e of shown) back.push(solid(K.cylinder(e.p[0], e.p[1], 3.4, e.p[2], 4, P, 16), { tone: "hi", lit: true }));
+  // The head on its stand: a disc, a short post into the neck, the head in its cap.
+  const head = headSvg(P, POSE);
+  back.push(solid(K.cylinder(HEAD.cx, HEAD.cy, 44, TOP, 4, P, 56, 0.6), { tone: "mid" }));
+  back.push(solid(K.cylinder(head.neck.c[0], head.neck.c[1], head.neck.r * 0.6, TOP + 4, head.neck.c[2] - TOP - 2, P, 32), { tone: "hi" }));
+  back.push(head.svg);
+  const shown = head.electrodes.filter((e) => e.shown && e.visible);
 
   // The amplifier: body, top panel, input connector, gain knob, three lights, vents.
   back.push(solid(slab(AMP, TOP, AMP_TOP - TOP, 1.2), { tone: "hi" }));
@@ -150,16 +139,18 @@ export function buildChain(): ChainArt {
     back.push(K.lineSvg(K.segment([AMP.x + AMP.w, y, TOP + 12], [AMP.x + AMP.w, y, TOP + 30], P), { tone: "lo" }));
   }
 
-  // The leads: from the seven drawn electrodes up and over to the input connector.
-  // The leads: from the seven drawn electrodes up to a clip above the head's edge, then side
-  // by side as a ribbon into the amplifier's input connector.
-  const byLead = [...shown].sort((a, b) => a.p[1] - b.p[1]);
-  byLead.forEach((e, i) => {
-    const top: K.Point3 = [e.p[0], e.p[1], e.p[2] + 4];
-    const clip: K.Point3 = [HEAD.cx + 40, input.y + 5 + i * 5, HEAD_BASE + STEP * CONTOURS.length + 14];
-    const end: K.Point3 = [input.x + 7, input.y + 5 + i * 5, AMP_TOP + 4];
-    back.push(K.wireSvg(at(top), at(end), { via: [at(clip), at([input.x - 6, end[1], AMP_TOP + 14])], tone: "mid", size: 1 }));
-  });
+  // The leads: from each drawn electrode in view, off the cap and gathered side by side
+  // as a ribbon into the amplifier's input connector.
+  const ribbonZ = AMP_TOP + 22;
+  [...shown]
+    .sort((p, q) => p.p[1] - q.p[1])
+    .forEach((e, i) => {
+      const from: K.Point3 = [e.p[0] + e.n[0] * 2, e.p[1] + e.n[1] * 2, e.p[2] + e.n[2] * 2];
+      const off: K.Point3 = [e.p[0] + e.n[0] * 9, e.p[1] + e.n[1] * 9, e.p[2] + e.n[2] * 9];
+      const end: K.Point3 = [input.x + 7, input.y + 5 + i * 5, AMP_TOP + 4];
+      const gather: K.Point3 = [input.x - 10, end[1], ribbonZ];
+      back.push(K.wireSvg(at(from), at(end), { via: [at(off), at(gather)], tone: "mid", size: 1 }));
+    });
 
   // The paper tray, the paper and the time scale along its front edge, 1 s apart.
   back.push(solid(slab(TRAY, TOP, TRAY_TOP - TOP, 0.8), { tone: "mid" }));

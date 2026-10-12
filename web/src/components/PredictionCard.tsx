@@ -37,9 +37,9 @@ export function PredictionCard() {
         : "No reading yet";
   return (
     <section className="step step-read" aria-label="What the model reads" data-testid="prediction" data-label={decided ?? ""} data-view={view}>
-      <h2 className="step-title">
+      <h3 className="step-title">
         <span className="step-num">3</span> The model reads
-      </h2>
+      </h3>
       <p className="read-now" data-kind={decided ?? "none"} aria-live="polite">
         {p ? (SAY[decided ?? ""] ?? decided) : "Waiting for 4 s of signal"}
         {right !== null && (

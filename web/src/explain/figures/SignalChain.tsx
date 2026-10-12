@@ -135,17 +135,16 @@ export function SignalChain() {
 
   const lit = LAMP_OF[command];
   return (
-    <div className="wide">
-      <Plate
-        title="From an imagined movement to a command"
-        hint="Live: the same EEG, decision and finger as above"
+    <Plate
+        title="The whole system on one bench"
+        hint="It runs live with the demo in chapter 5: the paper carries the same signal, the lamp lights with the same reading."
         readout={<span className="command" data-command={command}>{command}</span>}
         className="plate-chain"
         caption={
           <>
-            The electrodes pick up the EEG, the amplifier writes it out, and the decoder reads the newest{" "}
-            <strong>4 s</strong> held in the frame. It lights one lamp for one of three commands, and the robotic
-            finger flexes when the command is <strong>sixth finger</strong>.
+            Left to right: a head in an EEG cap; an amplifier that writes the brain signal onto paper; a frame that
+            holds the newest <strong>4 seconds</strong>; the model, which lights one of three lamps (rest, hand, sixth
+            finger); and the robotic finger, which bends when the sixth-finger lamp is lit.
           </>
         }
       >
@@ -181,6 +180,5 @@ export function SignalChain() {
           </g>
         </svg>
       </Plate>
-    </div>
   );
 }

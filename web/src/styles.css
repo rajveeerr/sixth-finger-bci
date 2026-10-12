@@ -38,25 +38,34 @@ code { font-family: var(--mono); font-size: 0.86em; background: var(--chip); pad
 :focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; border-radius: 3px; }
 .muted { color: var(--ink-3); }
 
-.app { max-width: 1440px; margin: 0 auto; padding: 26px 36px 0; }
-
-/* The top: name and status on one line, then what it does in one sentence. */
-.top { display: flex; justify-content: space-between; align-items: baseline; gap: 6px 24px; flex-wrap: wrap; }
-.top-name { margin: 0; font-size: 15px; font-weight: 450; }
-.top-name b { font-weight: 560; }
-.top-name span { color: var(--ink-3); }
-.status { margin: 0; display: flex; align-items: baseline; gap: 4px 14px; flex-wrap: wrap; font-size: 13.5px; color: var(--ink-3); }
-.status .warn { color: var(--sixth-ink); }
-.badge { display: inline-flex; align-items: center; gap: 7px; color: var(--ink-2); }
-.badge::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--ink-4); }
-.badge[data-source="server"]::before, .badge[data-source="browser"]::before { background: var(--right); }
-.badge[data-source="replay"]::before { background: #c99a2e; }
-.badge[data-source="connecting"]::before, .badge[data-source="loading-browser"]::before {
-  background: #c99a2e; animation: blink 1.2s steps(2, jump-none) infinite;
+/* The page: chapters listed in the left margin, one reading column, figures that may run
+   into the right margin. */
+.page {
+  display: grid; grid-template-columns: 210px minmax(0, 1fr); column-gap: 48px;
+  max-width: 1400px; margin: 0 auto; padding: 0 40px;
 }
-@keyframes blink { 50% { opacity: 0.25; } }
-.lede { margin: 10px 0 24px; font-size: 21px; line-height: 1.35; letter-spacing: -0.01em; }
-.lede em { font-size: 1.14em; }
+.column { min-width: 0; padding: 56px 0 0; --text: 760px; }
+.toc { position: sticky; top: 0; align-self: start; height: 100svh; padding: 60px 0 24px; font-size: 14px; }
+.toc a { color: var(--ink-3); text-decoration: none; }
+.toc a:hover { color: var(--ink); }
+.toc-name { display: block; color: var(--ink) !important; font-weight: 560; margin-bottom: 26px; }
+.toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 11px; }
+.toc li a { display: flex; gap: 10px; align-items: baseline; }
+.toc-num { font: italic 400 15px/1 var(--serif); width: 14px; color: var(--ink-4); }
+.toc li[data-active] a { color: var(--ink); }
+.toc li[data-active] .toc-num { color: var(--ink); }
+
+.intro { max-width: var(--text); margin-bottom: 40px; }
+.intro-title { margin: 0; font-size: 15px; font-weight: 560; }
+@media (min-width: 1101px) { .intro-title { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); } }
+.lede { margin: 14px 0 0; font-size: 30px; line-height: 1.22; letter-spacing: -0.02em; font-weight: 500; }
+.lede em { font-size: 1.12em; font-weight: 400; letter-spacing: 0; }
+.intro-text { margin: 22px 0 0; font-size: 17px; line-height: 1.65; color: var(--ink-2); }
+.intro-meta { margin: 18px 0 0; font-size: 14px; color: var(--ink-3); }
+.intro-meta a, .chapter-lede a { color: var(--ink); text-underline-offset: 3px; text-decoration-color: var(--ink-4); }
+.demo-status { display: flex; justify-content: flex-end; gap: 14px; font-size: 13.5px; color: var(--ink-3); margin: 0 0 10px; }
+@media (min-width: 1101px) { .demo-status { margin-top: -30px; } }
+.demo-status .warn { color: var(--sixth-ink); }
 
 .error { margin: 0 0 12px; padding: 10px 14px; border-left: 2px solid var(--wrong); color: var(--ink-2); }
 
@@ -65,7 +74,7 @@ code { font-family: var(--mono); font-size: 0.86em; background: var(--chip); pad
   display: grid;
   grid-template-columns: minmax(230px, 0.8fr) minmax(0, 1.55fr) minmax(280px, 1fr);
   gap: 44px;
-  height: clamp(470px, calc(100svh - 196px), 690px);
+  height: 500px;
 }
 .step { min-width: 0; display: flex; flex-direction: column; }
 .step-title { margin: 0; display: flex; align-items: baseline; gap: 10px; font-size: 15px; font-weight: 560; }
@@ -137,22 +146,28 @@ code { font-family: var(--mono); font-size: 0.86em; background: var(--chip); pad
   background: var(--ink); color: var(--page); padding: 9px 15px; border-radius: 8px; font-size: 14px;
 }
 
-/* The explanation: a reading column, figures floating in it, notes in the margin. */
-.explain { margin: 90px auto 0; max-width: 1060px; }
-.chapter { margin-bottom: 90px; }
-.chapter-head { display: flex; align-items: center; gap: 16px; max-width: 800px; }
+/* Chapters: a title ruled to its number, a short lede, then the figures. */
+.chapter { padding-top: 70px; scroll-margin-top: -50px; }
+#demo .chapter-lede { margin-bottom: 20px; }
+.chapter-head { display: flex; align-items: center; gap: 16px; max-width: var(--text); }
 .chapter h2 { margin: 0; font-size: 15px; font-weight: 560; white-space: nowrap; }
 .chapter-rule { flex: 1; height: 1px; background: var(--rule); }
 .chapter-num { font: italic 400 20px/1 var(--serif); color: var(--ink-3); }
-.chapter-lede { margin: 18px 0 40px; font-size: 17px; line-height: 1.6; max-width: 800px; }
+.chapter-lede { margin: 18px 0 36px; max-width: var(--text); }
+.chapter-lede p { margin: 0 0 14px; font-size: 17px; line-height: 1.65; }
+.chapter-lede p + p { color: var(--ink-2); }
 
-.plate { margin: 0 0 56px; display: grid; grid-template-columns: minmax(0, 800px) minmax(0, 1fr); column-gap: 40px; align-items: end; }
+.plate { margin: 0 0 52px; display: grid; grid-template-columns: minmax(0, var(--text)) minmax(0, 1fr); column-gap: 40px; align-items: end; }
 .plate-art { min-width: 0; }
-.plate-side { display: grid; gap: 6px; align-content: end; font-size: 13.5px; color: var(--ink-3); padding-bottom: 8px; }
+.plate-side { display: grid; gap: 6px; align-content: end; font-size: 13.5px; color: var(--ink-3); padding-bottom: 8px; max-width: 280px; }
 .plate-title { color: var(--ink); font-weight: 560; }
 .plate-readout { color: var(--ink-2); }
 .plate-caption { grid-column: 1; margin: 14px 0 0; font-size: 15px; line-height: 1.6; color: var(--ink-2); max-width: 70ch; }
 .plate-caption strong { color: var(--ink); font-weight: 560; }
+.plate-chain { margin-bottom: 10px; }
+.figure-hand { height: 380px; position: relative; }
+.figure-hand .iso-hand { position: absolute; inset: 0; width: 100%; height: 100%; }
+.demo { padding-top: 4px; }
 
 /* The isometric drawing core: four tones, ink outlines. */
 .iso-svg { display: block; width: 100%; height: auto; overflow: visible; }
@@ -289,7 +304,7 @@ code { font-family: var(--mono); font-size: 0.86em; background: var(--chip); pad
 .layers li[data-sim] .layer-name { color: var(--sixth-ink); }
 
 .colophon {
-  margin: 20px auto 0; max-width: 1060px; padding: 22px 0 36px; border-top: 1px solid var(--rule);
+  margin: 40px 0 0; padding: 22px 0 36px; border-top: 1px solid var(--rule);
   font-size: 13.5px; color: var(--ink-3); display: grid; gap: 4px;
 }
 .colophon p { margin: 0; max-width: 90ch; }
@@ -300,19 +315,23 @@ code { font-family: var(--mono); font-size: 0.86em; background: var(--chip); pad
   .step-told { grid-column: 1 / -1; }
   .patient-screen { flex: none; height: 200px; }
   .step-signal, .step-read { height: 460px; }
+  .page { grid-template-columns: minmax(0, 1fr); padding: 0 28px; }
+  .toc { display: none; }
   .plate { grid-template-columns: minmax(0, 1fr); row-gap: 10px; }
   .plate-side { padding-bottom: 0; }
 }
 /* Phone: everything stacks. */
 @media (max-width: 700px) {
-  .app { padding: 18px 18px 0; }
+  .page { padding: 0 18px; }
+  .column { padding-top: 30px; }
+  .lede { font-size: 24px; }
+  .chapter { padding-top: 54px; }
   .lede { font-size: 19px; }
   .stage { grid-template-columns: minmax(0, 1fr); gap: 36px; }
   .step-signal { height: 340px; }
   .step-read { height: 520px; }
   .told-now { font-size: 32px; margin: 14px 0 18px; }
   .ctl-quiet { margin-left: 0; }
-  .explain { margin-top: 60px; }
   .finding { grid-template-columns: minmax(0, 1fr); gap: 8px; }
   .finding .gauge { max-width: 220px; margin: 0 auto; }
   .facts dl > div { grid-template-columns: minmax(0, 1fr); gap: 2px; }
@@ -327,3 +346,27 @@ code { font-family: var(--mono); font-size: 0.86em; background: var(--chip); pad
   .badge::before { animation: none !important; }
   .lamp, .link-strip, .ih-strip { transition: none; }
 }
+
+/* Electrodes on the cap. */
+.cup-base { fill: #d9d9d6; stroke: #26262a; stroke-width: 0.7; }
+.cup-top { fill: #ffffff; stroke: #26262a; stroke-width: 0.7; }
+.cup-motor .cup-top { fill: #ececea; }
+.cup-shown .cup-base { fill: #3a3a3e; }
+.cup-shown .cup-top { fill: #1d1d20; }
+.head-svg { max-width: 430px; margin: 0 auto; }
+
+/* The head drawing: skin and cap in four tones each, outlines and the cap's seam. */
+.head-skin, .head-cap { stroke-width: 0.5; stroke-linejoin: round; }
+.head-skin[data-tone="0"] { fill: #dcdcd9; stroke: #dcdcd9; }
+.head-skin[data-tone="1"] { fill: #e5e5e2; stroke: #e5e5e2; }
+.head-skin[data-tone="2"] { fill: #ededea; stroke: #ededea; }
+.head-skin[data-tone="3"] { fill: #f4f4f1; stroke: #f4f4f1; }
+.head-skin[data-tone="4"] { fill: #ffffff; stroke: #ffffff; }
+.head-cap[data-tone="0"] { fill: #c9c9c6; stroke: #c9c9c6; }
+.head-cap[data-tone="1"] { fill: #d3d3d0; stroke: #d3d3d0; }
+.head-cap[data-tone="2"] { fill: #dcdcd9; stroke: #dcdcd9; }
+.head-cap[data-tone="3"] { fill: #e4e4e1; stroke: #e4e4e1; }
+.head-cap[data-tone="4"] { fill: #ececea; stroke: #ececea; }
+.head-edge { fill: none; stroke: #26262a; stroke-width: 0.9; stroke-linecap: round; }
+.head-seam { fill: none; stroke: #8a8a8f; stroke-width: 0.8; stroke-linecap: round; }
+.cup-base, .cup-top, .head-edge, .head-seam, .head-skin, .head-cap { vector-effect: non-scaling-stroke; }
