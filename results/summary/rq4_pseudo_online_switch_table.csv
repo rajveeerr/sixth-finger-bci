@@ -1,0 +1,13 @@
+method,metric,n,mean,ci_lo,ci_hi
+csp_lda,imagery_detection_rate,22,0.661434,0.577917,0.743865
+csp_lda,false_per_minute,22,0.720231,0.505985,0.951629
+csp_lda,latency_s,22,4.02255,3.71017,4.31028
+eegnet_scratch,imagery_detection_rate,22,0.648919,0.571631,0.719193
+eegnet_scratch,false_per_minute,22,1.23949,0.941841,1.56965
+eegnet_scratch,latency_s,22,3.67455,3.35491,3.98146
+rct_tslr,imagery_detection_rate,22,0.627423,0.540938,0.708746
+rct_tslr,false_per_minute,22,0.889879,0.70327,1.0892
+rct_tslr,latency_s,22,3.85945,3.59982,4.10191
+ts_lr,imagery_detection_rate,22,0.60021,0.505085,0.687801
+ts_lr,false_per_minute,22,0.375206,0.227144,0.534804
+ts_lr,latency_s,21,4.10267,3.80038,4.40554
