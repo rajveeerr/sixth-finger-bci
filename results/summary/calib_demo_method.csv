@@ -1,0 +1,9 @@
+method,mean,ci_lo,ci_hi,n,demo_method
+eegnet_scratch,0.650308,0.606377,0.690706,22,True
+eegnet_ea_ft,0.64338,0.596562,0.688791,22,False
+ts_lr,0.612182,0.565033,0.654932,22,False
+csp_lda,0.604315,0.554031,0.652153,22,False
+rct_tslr,0.578416,0.533856,0.62428,22,False
+mdm,0.577129,0.528587,0.621171,22,False
+pooled_tslr,0.566534,0.523418,0.611352,22,False
+rct_mdm,0.531814,0.495915,0.565981,22,False
