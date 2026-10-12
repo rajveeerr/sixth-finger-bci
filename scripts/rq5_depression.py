@@ -7,10 +7,10 @@ uv run python scripts/rq5_depression.py audit       # results/audit/rq5_audit_<d
 uv run python scripts/rq5_depression.py run         # both pipelines, both protocols, E1-E3
 uv run python scripts/rq5_depression.py summarise   # results/summary/rq5_*.csv and the figure
 
-Privacy: the primary dataset's EDF headers hold names in the patient field. Only the channel
-labels, the sampling rate and the start date are read from a header; linked recordings are
-found by comparing SHA-256 hashes of the patient field. Header text is never printed, logged,
-stored or committed.
+Privacy: the primary dataset's EDF headers hold names in the patient field. From a header the
+script uses the channel labels, the sampling rate, the year of the start date and a SHA-256
+hash of the patient field, which is how linked recordings are found; the field itself is not
+kept. Header text is never printed, logged, stored or committed.
 """
 
 from __future__ import annotations
@@ -336,6 +336,16 @@ def read_xlsx(path: Path) -> pd.DataFrame:
     return pd.DataFrame([{header[k]: r.get(k) for k in header} for r in rows[1:]])
 
 
+def modma_channels(data: np.ndarray) -> np.ndarray:
+    """The 19 electrodes of §2.2 from a (129, n) MODMA recording in µV, returned in volts.
+
+    Rows are E1..E128, then Cz. Cz is the recording reference and is zero, so after the
+    average reference it carries minus the mean of the other 18 channels.
+    """
+    index = {f"E{i + 1}": i for i in range(128)} | {"Cz": 128}
+    return data[[index[MODMA_CHANNELS[c]] for c in CHANNELS]] * 1e-6
+
+
 def audit_modma() -> tuple[pd.DataFrame, list[dict]]:
     import mne
     import scipy.io as sio
@@ -367,8 +377,7 @@ def audit_modma() -> tuple[pd.DataFrame, list[dict]]:
         if data.shape[0] != 129:
             rows.append({**row, "reason": f"{data.shape[0]} channels, expected 129"})
             continue
-        index = {f"E{i + 1}": i for i in range(128)} | {"Cz": 128}
-        x = data[[index[MODMA_CHANNELS[c]] for c in CHANNELS]] * 1e-6
+        x = modma_channels(data)
         raw = mne.io.RawArray(x, mne.create_info(CHANNELS, sfreq, "eeg"), verbose="ERROR")
         k = _kept(row["subject"], group, preprocess(raw, {c: c for c in CHANNELS}),
                   gad7=row["gad7"])  # fmt: skip
@@ -435,21 +444,48 @@ def shuffled(md: pd.DataFrame, seed: int) -> pd.DataFrame:
     return md.assign(group=md.split_group.map(perm))
 
 
+def e1_years(md: pd.DataFrame) -> list[int]:
+    """E1: the recording years in which both groups have at least 10 subjects."""
+    years = md.drop_duplicates("subject").pivot_table(
+        index="year", columns="group", values="subject", aggfunc="count", fill_value=0
+    )
+    return [y for y, counts in years.iterrows() if {"H", "MDD"} <= set(counts.index)
+            and (counts[["H", "MDD"]] >= 10).all()]  # fmt: skip
+
+
+def gad7_groups(md: pd.DataFrame) -> pd.DataFrame | None:
+    """E3: every participant labelled by GAD-7 >= 10 ("MDD") or < 10 ("H"), if both sides >= 10."""
+    ma = md.assign(group=np.where(md.gad7 >= 10, "MDD", "H"))
+    sides = ma.drop_duplicates("subject").group.value_counts()
+    return ma if len(sides) == 2 and (sides >= 10).all() else None
+
+
+def segment_auc(pred: pd.DataFrame) -> float:
+    """ROC-AUC of the out-of-fold P(MDD) over all segments (preregistration-rq5 §6)."""
+    from sklearn.metrics import roc_auc_score
+
+    return float(roc_auc_score(pred.group == "MDD", pred.p_mdd))
+
+
 def run(_args) -> None:
     require_tag()
     paths = get_paths()
     out = paths.runs / "rq5"
     out.mkdir(parents=True, exist_ok=True)
     sha = current_git_sha()  # the code this run starts from
-    frames = []
+    frames, aucs = [], []
     for name in DATASETS:
         X, md = load_segments(name)
         for pipe in PIPELINES:
             for protocol in PROTOCOLS:
                 log.info("%s %s %s", name, pipe, protocol)
-                v = per_subject(evaluate(X, md, pipe, protocol))
+                pred = evaluate(X, md, pipe, protocol)
+                aucs.append(dict(dataset=name, pipeline=pipe, protocol=protocol,
+                                 n_segments=len(pred), auc=segment_auc(pred)))  # fmt: skip
                 frames.append(
-                    v.assign(dataset=name, pipeline=pipe, protocol=protocol, analysis="main")
+                    per_subject(pred).assign(
+                        dataset=name, pipeline=pipe, protocol=protocol, analysis="main"
+                    )
                 )
         # E2: overlapping segments under segment_cv.
         Xo, mdo = load_segments(name, overlap=True)
@@ -467,30 +503,25 @@ def run(_args) -> None:
                     frames.append(v.assign(dataset=name, pipeline="ts_lr", protocol=protocol,
                                            analysis=f"null_{seed}"))  # fmt: skip
             # E1: one recording year, if both groups have at least 10 subjects in it.
-            years = md.drop_duplicates("subject").pivot_table(
-                index="year", columns="group", values="subject", aggfunc="count", fill_value=0
-            )
-            for year, counts in years.iterrows():
-                if (counts >= 10).all():
-                    rows = (md.year == year).to_numpy()
-                    for pipe in PIPELINES:
-                        sub = md[rows].reset_index(drop=True)
-                        v = per_subject(evaluate(X[rows], sub, pipe, "subject_cv"))
-                        frames.append(v.assign(dataset=name, pipeline=pipe, protocol="subject_cv",
-                                               analysis=f"E1_year_{year}"))  # fmt: skip
+            for year in e1_years(md):
+                rows = (md.year == year).to_numpy()
+                for pipe in PIPELINES:
+                    sub = md[rows].reset_index(drop=True)
+                    v = per_subject(evaluate(X[rows], sub, pipe, "subject_cv"))
+                    frames.append(v.assign(dataset=name, pipeline=pipe, protocol="subject_cv",
+                                           analysis=f"E1_year_{year}"))  # fmt: skip
         if name == "modma":
             # E3: GAD-7 >= 10 vs < 10 over all participants, ts_lr, if both sides >= 10.
-            ma = md.assign(group=np.where(md.gad7 >= 10, "MDD", "H"))
-            sides = ma.drop_duplicates("subject").group.value_counts()
-            if len(sides) == 2 and (sides >= 10).all():
-                for protocol in PROTOCOLS:
-                    v = per_subject(evaluate(X, ma, "ts_lr", protocol))
-                    frames.append(v.assign(dataset=name, pipeline="ts_lr", protocol=protocol,
-                                           analysis="E3_gad7"))  # fmt: skip
-            else:
-                log.info("E3 not run: GAD-7 sides %s", sides.to_dict())
+            ma = gad7_groups(md)
+            if ma is None:
+                log.info("E3 not run: a GAD-7 side has fewer than 10 participants")
+            for protocol in PROTOCOLS if ma is not None else ():
+                v = per_subject(evaluate(X, ma, "ts_lr", protocol))
+                frames.append(v.assign(dataset=name, pipeline="ts_lr", protocol=protocol,
+                                       analysis="E3_gad7"))  # fmt: skip
     values = pd.concat(frames, ignore_index=True).assign(git_sha=sha)
     values.to_parquet(out / "subject_values.parquet", index=False)
+    pd.DataFrame(aucs).assign(git_sha=sha).to_parquet(out / "segment_auc.parquet", index=False)
     log.info("rq5 per-subject values in %s", out)
 
 
@@ -512,9 +543,33 @@ def stratified_inflation_ci(a_seg, a_sub, groups, n=10_000, seed=12345):
     return float(point), float(lo), float(hi)
 
 
+def categorise(stats: pd.DataFrame) -> pd.DataFrame:
+    """Holm across the two pipelines of each dataset; supported if both survive (§5)."""
+    from sixthfinger.evaluation.summary import holm_family
+
+    stats = stats.copy()
+    for _, g in stats.groupby("dataset"):
+        adj = holm_family(dict(zip(g.pipeline, g.p, strict=True)))
+        n_sig = sum(p < 0.05 for p in adj.values())
+        stats.loc[g.index, "p_holm"] = [adj[p] for p in g.pipeline]
+        stats.loc[g.index, "category"] = (
+            "supported" if n_sig == 2 else "partial" if n_sig else "inconclusive"
+        )
+    return stats
+
+
+def recording_years(audit: pd.DataFrame) -> pd.DataFrame:
+    """Kept subjects per recording year and group (the batch confound E1 addresses)."""
+    kept = audit[audit.kept.astype(bool)].astype({"year": int})
+    return kept.pivot_table(index="year", columns="group", values="subject", aggfunc="count",
+                            fill_value=0).reset_index().rename_axis(columns=None)  # fmt: skip
+
+
+TEST_KEYS = ("n", "n_nonzero", "median_diff", "mean_diff", "W", "p", "r_rb")
+
+
 def summarise(_args) -> None:
     from sixthfinger.evaluation.stats import paired_test
-    from sixthfinger.evaluation.summary import holm_family
 
     paths = get_paths()
     v = pd.read_parquet(paths.runs / "rq5" / "subject_values.parquet")
@@ -532,16 +587,8 @@ def summarise(_args) -> None:
         res = paired_test(w.segment_cv.to_numpy(), w.subject_cv.to_numpy(), alternative="greater")
         stats.append(dict(hypothesis="H5" if name == "mumtaz" else "H5b", dataset=name,
                           pipeline=pipe, inflation_points=point * 100, ci_lo_points=lo * 100,
-                          ci_hi_points=hi * 100, **{k: res[k] for k in
-                          ("n", "median_diff", "mean_diff", "W", "p", "r_rb")}))  # fmt: skip
-    stats = pd.DataFrame(stats)
-    for _, g in stats.groupby("dataset"):
-        adj = holm_family(dict(zip(g.pipeline, g.p, strict=True)))
-        n_sig = sum(p < 0.05 for p in adj.values())
-        stats.loc[g.index, "p_holm"] = [adj[p] for p in g.pipeline]
-        stats.loc[g.index, "category"] = (
-            "supported" if n_sig == 2 else "partial" if n_sig else "inconclusive"
-        )
+                          ci_hi_points=hi * 100, **{k: res[k] for k in TEST_KEYS}))  # fmt: skip
+    stats = categorise(pd.DataFrame(stats))
     summary = paths.results / "summary"
     pd.DataFrame(table).to_csv(summary / "rq5_table.csv", index=False, float_format="%.6g")
     stats.to_csv(summary / "rq5_stats.csv", index=False, float_format="%.6g")
@@ -561,6 +608,10 @@ def summarise(_args) -> None:
         .reset_index()
     )
     ex_ba.to_csv(summary / "rq5_exploratory.csv", index=False, float_format="%.6g")
+    auc = pd.read_parquet(paths.runs / "rq5" / "segment_auc.parquet").drop(columns="git_sha")
+    auc.to_csv(summary / "rq5_auc.csv", index=False, float_format="%.6g")
+    years = recording_years(pd.read_csv(paths.audit / "rq5_audit_mumtaz.csv"))
+    years.to_csv(summary / "rq5_years_mumtaz.csv", index=False)
     figure(main, null_ba, paths.root / "docs" / "figures")
     log.info("rq5 summaries in %s", summary)
 
