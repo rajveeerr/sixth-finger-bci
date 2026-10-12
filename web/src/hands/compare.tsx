@@ -4,6 +4,7 @@ import "@fontsource/ibm-plex-mono/500.css";
 import { StrictMode, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { Plate } from "../components/Plate";
+import { ResultsBars, ResultsGauges } from "../explain/figures/Results";
 import type { Command } from "../store";
 import "../styles.css";
 import { IsoHand } from "./IsoHand";
@@ -56,6 +57,20 @@ function Compare() {
           <div className="dotted option-body">
             <ToonHand command={command} />
           </div>
+        </Plate>
+      </main>
+      <header className="masthead compare-section">
+        <div className="masthead-text">
+          <h1>Two ways to show the results</h1>
+          <p className="lede">The same five findings, with the same plain sentences.</p>
+        </div>
+      </header>
+      <main className="compare-grid">
+        <Plate fig={3} title="A. Dial gauges" hint="Drawn like the bench" className="plate-results">
+          <ResultsGauges />
+        </Plate>
+        <Plate fig={4} title="B. Simple bars" hint="Plain and quick to read" className="plate-results">
+          <ResultsBars />
         </Plate>
       </main>
     </div>

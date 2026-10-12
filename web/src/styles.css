@@ -394,3 +394,35 @@ button { font: inherit; color: inherit; }
 .ih-tip { fill: #2b3036; stroke: #1f272e; stroke-width: 0.9; }
 .strap > .iso-fill, .strap > .iso-top { fill: #e3e6e7; }
 @media (max-width: 700px) { .compare-grid { grid-template-columns: minmax(0, 1fr); } .plate-option .option-body { height: 420px; } }
+
+/* Results, two ways. */
+.compare-section { margin-top: 48px; }
+.plate-results .plate-body { padding: 18px; }
+.gauges { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 26px 22px; }
+.finding { margin: 0; }
+.finding-q { font-size: 17px; line-height: 1.35; font-weight: 600; color: var(--ink); min-height: 2.7em; }
+.gauge { max-width: 300px; margin: 4px auto 0; }
+.gauge-guess { fill: #dfe3e4; stroke: #848c92; stroke-width: 0.8; }
+.gauge-needle { fill: #111820; stroke: none; }
+.gauge-ghost { fill: #b4babe; stroke: none; }
+.finding-value { margin: 6px 0 0; font: 400 13px/1.4 var(--mono); color: var(--ink-2); }
+.finding-value b { font: 500 26px/1 var(--mono); color: var(--ink); margin-right: 4px; }
+.finding-other { color: var(--ink-3); }
+.finding-a { margin: 8px 0 0; font-size: 16px; line-height: 1.45; color: var(--ink-2); }
+.gauge-key { grid-column: 1 / -1; margin: 0; font: 400 12.5px/1.6 var(--mono); color: var(--ink-2); }
+.key-needle, .key-ghost, .key-guess { display: inline-block; width: 18px; height: 8px; margin: 0 4px 0 12px; vertical-align: middle; }
+.key-needle { background: #111820; }
+.key-ghost { background: #b4babe; }
+.key-guess { background: #dfe3e4; box-shadow: inset 0 0 0 1px #848c92; }
+.result-bars { display: grid; gap: 26px; }
+.finding-row { margin: 0; }
+.rbar { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: center; margin-top: 10px; }
+.rbar b { font: 500 22px/1 var(--mono); min-width: 3.2em; text-align: right; }
+.rbar-track { position: relative; height: 18px; background: #e7eaea; }
+.rbar-fill { position: absolute; left: 0; top: 0; bottom: 0; background: var(--ink); }
+.rbar-guess { position: absolute; top: -6px; bottom: -6px; width: 0; border-left: 2px dashed var(--sixth); }
+.rbar-guess i { position: absolute; top: -18px; left: -4px; font: normal 11px/1 var(--mono); color: #b9381a; white-space: nowrap; }
+.rbar-other { margin-top: 6px; grid-template-columns: minmax(0, 1fr) auto; font: 400 12.5px/1 var(--mono); color: var(--ink-3); }
+.rbar-other .rbar-track { height: 8px; }
+.rbar-other .rbar-fill { background: #b4babe; }
+@media (max-width: 700px) { .gauges { grid-template-columns: minmax(0, 1fr); } }
