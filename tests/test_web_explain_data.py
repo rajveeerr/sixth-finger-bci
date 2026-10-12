@@ -22,6 +22,14 @@ def test_page_numbers_match_the_results(module):
     assert module.build() == committed, "run: uv run python scripts/make_web_explain_data.py"
 
 
+def test_head_drawing_matches_the_template(module):
+    committed = json.loads(get_paths().root.joinpath(*module.OUT_HEAD).read_text())
+    head = module.head_model()
+    assert head == committed, "run: uv run python scripts/make_web_explain_data.py"
+    assert len(head["electrodes"]) == 40
+    assert max(max(f) for f in head["faces"]) < len(head["vertices"])
+
+
 def test_page_numbers_are_sane(module):
     data = module.build()
     assert len(data["electrodes"]) == 40

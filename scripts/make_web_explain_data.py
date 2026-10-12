@@ -9,6 +9,7 @@ never carries a number typed by hand. Run again whenever those summaries change.
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
 import mne
 import numpy as np
@@ -55,6 +56,22 @@ def electrodes() -> list[dict]:
 
 
 OUT = ("web", "src", "explain", "data.json")
+OUT_HEAD = ("web", "src", "explain", "head.json")
+
+
+def head_model() -> dict:
+    """MNE's template adult head (fsaverage's outer skin, bundled with MNE) in millimetres,
+    with the 40 electrodes of the colin27 10-05 montage, which is defined on the same head."""
+    folder = Path(mne.__file__).parent / "data" / "fsaverage"
+    surf = mne.read_bem_surfaces(folder / "fsaverage-head.fif", verbose=False)[0]
+    pos = mne.channels.make_standard_montage("colin27_1005").get_positions()
+    assert pos["coord_frame"] == "mri", pos["coord_frame"]
+    return {
+        "source": "mne/data/fsaverage/fsaverage-head.fif, colin27_1005 montage (MRI frame, mm)",
+        "vertices": [[r(v, 1) for v in p] for p in surf["rr"] * 1000],
+        "faces": surf["tris"].tolist(),
+        "electrodes": {name: [r(v, 1) for v in pos["ch_pos"][name] * 1000] for name in CHANNELS_40},
+    }
 
 
 def model_parameters() -> int:
@@ -184,10 +201,12 @@ def build() -> dict:
 
 
 def main() -> None:
-    out = get_paths().root.joinpath(*OUT)
+    root = get_paths().root
+    out = root.joinpath(*OUT)
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(build(), indent=1) + "\n")
-    print(f"wrote {'/'.join(OUT)}")
+    root.joinpath(*OUT_HEAD).write_text(json.dumps(head_model(), separators=(",", ":")) + "\n")
+    print(f"wrote {'/'.join(OUT)} and {'/'.join(OUT_HEAD)}")
 
 
 if __name__ == "__main__":
