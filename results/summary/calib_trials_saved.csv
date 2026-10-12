@@ -1,0 +1,19 @@
+pair,scenario,task,session,threshold,n_both_reach,n_only_first,n_only_second,n_neither,median_trials_saved,mean_trials_saved
+rct_tslr - ts_lr,S1_new_user,T2_rest_ah_sf,post,0.6,9,3,4,8,10,8.44444
+rct_tslr - ts_lr,S1_new_user,T2_rest_ah_sf,post,0.7,0,1,3,20,,
+rct_tslr - ts_lr,S1_new_user,T2_rest_ah_sf,pre,0.6,10,1,5,6,7,8.1
+rct_tslr - ts_lr,S1_new_user,T2_rest_ah_sf,pre,0.7,3,2,3,14,0,3
+rct_tslr - ts_lr,S1_new_user,T3_sf_vs_rest,post,0.7,21,2,0,1,2,1.85714
+rct_tslr - ts_lr,S1_new_user,T3_sf_vs_rest,pre,0.7,18,0,1,3,1,1.22222
+rct_tslr - ts_lr,S2_new_command,T2_rest_ah_sf,post,0.6,9,3,4,8,2,8.11111
+rct_tslr - ts_lr,S2_new_command,T2_rest_ah_sf,post,0.7,1,0,4,19,9,9
+rct_tslr - ts_lr,S2_new_command,T2_rest_ah_sf,pre,0.6,10,2,5,5,1,4
+rct_tslr - ts_lr,S2_new_command,T2_rest_ah_sf,pre,0.7,3,2,3,14,19,16
+rct_tslr - ts_lr,S2_new_command,T3_sf_vs_rest,post,0.7,21,2,0,1,2,2.19048
+rct_tslr - ts_lr,S2_new_command,T3_sf_vs_rest,pre,0.7,18,0,1,3,1,1.5
+eegnet_ea_ft - eegnet_scratch,S1_new_user,T2_rest_ah_sf,pre,0.6,13,4,2,3,20,15.8462
+eegnet_ea_ft - eegnet_scratch,S1_new_user,T2_rest_ah_sf,pre,0.7,2,6,6,8,20,20
+eegnet_ea_ft - eegnet_scratch,S1_new_user,T3_sf_vs_rest,pre,0.7,11,9,0,2,17,13
+eegnet_ea_ft - eegnet_scratch,S2_new_command,T2_rest_ah_sf,pre,0.6,13,4,2,3,20,13.1538
+eegnet_ea_ft - eegnet_scratch,S2_new_command,T2_rest_ah_sf,pre,0.7,2,6,6,8,20,20
+eegnet_ea_ft - eegnet_scratch,S2_new_command,T3_sf_vs_rest,pre,0.7,11,9,0,2,10,12.6364

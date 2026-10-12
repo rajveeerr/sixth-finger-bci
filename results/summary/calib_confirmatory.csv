@@ -1,0 +1,35 @@
+hypothesis,role,pair,session,population,draw_basis,n,n_nonzero,median_diff,mean_diff,ci_lo,ci_hi,W,p,r_rb,alternative,scenario,task,quantity,category,p_holm,family_category
+H2a,confirmatory,rct_tslr - ts_lr,post,all,random,24,24,0.100706,0.0716235,0.0228124,0.117072,64,0.0126048,0.573333,two-sided,S1_new_user,T2_rest_ah_sf,ALC,supported,,
+H2b,confirmatory,rct_tslr - ts_lr,post,all,random,24,24,0.0662772,0.0688232,0.0390486,0.0987889,265,0.00024724,0.766667,greater,S1_new_user,T2_rest_ah_sf,advantage at k=5 minus at k=all,supported,,
+H3a,confirmatory,rct_tslr - ts_lr,post,all,random,24,24,0.105886,0.103639,0.0503307,0.155939,48,0.00251639,0.68,two-sided,S2_new_command,T3_sf_vs_rest,ALC,supported,0.00503278,supported
+H3b,confirmatory,rct_tslr - ts_lr,post,all,random,24,24,0.0414516,0.0241508,-0.0243631,0.071922,117,0.359626,0.22,two-sided,S2_new_command,T2_rest_ah_sf,ALC,inconclusive,0.359626,supported
+H3c_k2,confirmatory,rct_tslr - ah_proxy,post,all,random,24,24,-0.0208122,-0.0387269,-0.0710987,-0.00790204,84,0.971787,-0.44,greater,S2_new_command,T3_sf_vs_rest,BA at k=2,inconclusive,1,inconclusive
+H3c_k5,confirmatory,rct_tslr - ah_proxy,post,all,random,24,24,-0.0112635,-0.0309829,-0.0706838,0.00635908,106,0.896192,-0.293333,greater,S2_new_command,T3_sf_vs_rest,BA at k=5,inconclusive,1,inconclusive
+H2a,confirmatory,rct_tslr - ts_lr,post,linked_merged,random,23,23,0.0895208,0.0728428,0.0214715,0.118763,58,0.0135286,0.57971,two-sided,S1_new_user,T2_rest_ah_sf,ALC,supported,,
+H2b,confirmatory,rct_tslr - ts_lr,post,linked_merged,random,23,23,0.0741855,0.073291,0.0446371,0.103442,250,0.000126719,0.811594,greater,S1_new_user,T2_rest_ah_sf,advantage at k=5 minus at k=all,supported,,
+H3a,confirmatory,rct_tslr - ts_lr,post,linked_merged,random,23,23,0.114868,0.0986551,0.0444333,0.150702,45,0.00345254,0.673913,two-sided,S2_new_command,T3_sf_vs_rest,ALC,supported,0.00690508,supported
+H3b,confirmatory,rct_tslr - ts_lr,post,linked_merged,random,23,23,0.0351241,0.0257987,-0.0219974,0.0721115,105,0.329405,0.23913,two-sided,S2_new_command,T2_rest_ah_sf,ALC,inconclusive,0.329405,supported
+H3c_k2,confirmatory,rct_tslr - ah_proxy,post,linked_merged,random,23,23,-0.0119212,-0.0398924,-0.0737719,-0.00740974,74,0.97578,-0.463768,greater,S2_new_command,T3_sf_vs_rest,BA at k=2,inconclusive,1,inconclusive
+H3c_k5,confirmatory,rct_tslr - ah_proxy,post,linked_merged,random,23,23,-0.00405172,-0.0321538,-0.0737301,0.00735724,100,0.876625,-0.275362,greater,S2_new_command,T3_sf_vs_rest,BA at k=5,inconclusive,1,inconclusive
+H2a,confirmatory,rct_tslr - ts_lr,pre,all,random,22,22,0.10583,0.115494,0.0665929,0.16722,21,0.000213146,0.833992,two-sided,S1_new_user,T2_rest_ah_sf,ALC,supported,,
+H2b,confirmatory,rct_tslr - ts_lr,pre,all,random,22,22,0.089955,0.0824186,0.0607813,0.102915,248,2.38419e-06,0.960474,greater,S1_new_user,T2_rest_ah_sf,advantage at k=5 minus at k=all,supported,,
+H3a,confirmatory,rct_tslr - ts_lr,pre,all,random,22,22,0.0939682,0.0523251,-0.00927381,0.110474,72,0.0794272,0.43083,two-sided,S2_new_command,T3_sf_vs_rest,ALC,inconclusive,0.158854,inconclusive
+H3b,confirmatory,rct_tslr - ts_lr,pre,all,random,22,22,0.0179793,0.0220155,-0.0347495,0.0786878,103,0.462778,0.185771,two-sided,S2_new_command,T2_rest_ah_sf,ALC,inconclusive,0.462778,inconclusive
+H3c_k2,confirmatory,rct_tslr - ah_proxy,pre,all,random,22,22,-0.0317659,-0.0476376,-0.0888049,-0.00499709,54,0.992208,-0.573123,greater,S2_new_command,T3_sf_vs_rest,BA at k=2,inconclusive,1,inconclusive
+H3c_k5,confirmatory,rct_tslr - ah_proxy,pre,all,random,22,22,-0.0122523,-0.0410154,-0.0803666,-0.00279364,70,0.96829,-0.44664,greater,S2_new_command,T3_sf_vs_rest,BA at k=5,inconclusive,1,inconclusive
+H2a,secondary,eegnet_ea_ft - eegnet_scratch,pre,all,random,22,22,0.241371,0.255987,0.192444,0.31851,3,2.38419e-06,0.976285,two-sided,S1_new_user,T2_rest_ah_sf,ALC,supported,,
+H2b,secondary,eegnet_ea_ft - eegnet_scratch,pre,all,random,22,22,0.195263,0.176917,0.13756,0.214981,252,4.76837e-07,0.992095,greater,S1_new_user,T2_rest_ah_sf,advantage at k=5 minus at k=all,supported,,
+H3a,secondary,eegnet_ea_ft - eegnet_scratch,pre,all,random,22,22,0.350726,0.387923,0.296061,0.482238,1,9.53674e-07,0.992095,two-sided,S2_new_command,T3_sf_vs_rest,ALC,supported,1.90735e-06,supported
+H3b,secondary,eegnet_ea_ft - eegnet_scratch,pre,all,random,22,22,0.192873,0.193393,0.12932,0.2556,10,2.0504e-05,0.920949,two-sided,S2_new_command,T2_rest_ah_sf,ALC,supported,2.0504e-05,supported
+H2a,confirmatory,rct_tslr - ts_lr,pre,all,chrono,22,22,0.133061,0.138634,0.0707119,0.210293,31,0.00109148,0.754941,two-sided,S1_new_user,T2_rest_ah_sf,ALC,supported,,
+H2b,confirmatory,rct_tslr - ts_lr,pre,all,chrono,22,22,0.130814,0.118063,0.0744345,0.158361,235,6.03199e-05,0.857708,greater,S1_new_user,T2_rest_ah_sf,advantage at k=5 minus at k=all,supported,,
+H3a,confirmatory,rct_tslr - ts_lr,pre,all,chrono,22,22,0.0773756,0.0765828,-0.0231795,0.173071,80,0.137489,0.367589,two-sided,S2_new_command,T3_sf_vs_rest,ALC,inconclusive,0.274979,inconclusive
+H3b,confirmatory,rct_tslr - ts_lr,pre,all,chrono,22,22,0.0202142,0.0247258,-0.0318208,0.0794563,96,0.336947,0.241107,two-sided,S2_new_command,T2_rest_ah_sf,ALC,inconclusive,0.336947,inconclusive
+H3c_k2,confirmatory,rct_tslr - ah_proxy,pre,all,chrono,22,22,-0.0615132,-0.0750746,-0.127358,-0.0254501,44,0.997362,-0.652174,greater,S2_new_command,T3_sf_vs_rest,BA at k=2,inconclusive,1,inconclusive
+H3c_k5,confirmatory,rct_tslr - ah_proxy,pre,all,chrono,22,21,-0.0299603,-0.04592,-0.0923035,0.00126239,63.5,0.96466,-0.450216,greater,S2_new_command,T3_sf_vs_rest,BA at k=5,inconclusive,1,inconclusive
+H2a,confirmatory,rct_tslr - ts_lr,pre,without_dev,random,20,20,0.117796,0.124701,0.0730139,0.1794,14,0.000209808,0.866667,two-sided,S1_new_user,T2_rest_ah_sf,ALC,supported,,
+H2b,confirmatory,rct_tslr - ts_lr,pre,without_dev,random,20,20,0.089955,0.0834447,0.0597722,0.105733,205,9.53674e-06,0.952381,greater,S1_new_user,T2_rest_ah_sf,advantage at k=5 minus at k=all,supported,,
+H3a,confirmatory,rct_tslr - ts_lr,pre,without_dev,random,20,20,0.0939682,0.0494142,-0.0185754,0.112911,65,0.142906,0.380952,two-sided,S2_new_command,T3_sf_vs_rest,ALC,inconclusive,0.285812,inconclusive
+H3b,confirmatory,rct_tslr - ts_lr,pre,without_dev,random,20,20,0.0179793,0.0342859,-0.0230432,0.0915801,77,0.311794,0.266667,two-sided,S2_new_command,T2_rest_ah_sf,ALC,inconclusive,0.311794,inconclusive
+H3c_k2,confirmatory,rct_tslr - ah_proxy,pre,without_dev,random,20,20,-0.0317659,-0.0453805,-0.0898959,-0.000462993,44,0.990383,-0.580952,greater,S2_new_command,T3_sf_vs_rest,BA at k=2,inconclusive,1,inconclusive
+H3c_k5,confirmatory,rct_tslr - ah_proxy,pre,without_dev,random,20,20,-0.0122523,-0.0393253,-0.083121,0.00177112,58,0.962074,-0.447619,greater,S2_new_command,T3_sf_vs_rest,BA at k=5,inconclusive,1,inconclusive
