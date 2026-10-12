@@ -8,6 +8,7 @@
   "results/summary/rq4_pseudo_online_switch_table.csv",
   "results/summary/demo_model.json",
   "results/summary/eda_erd_values.csv",
+  "results/summary/rq4_longitudinal_table.csv",
   "web/public/demo/model.onnx",
   "mne colin27_1005 template"
  ],
@@ -657,6 +658,45 @@
   ],
   "false_per_minute": 1.24,
   "latency_s": 3.67
+ },
+ "later": {
+  "same_session": 0.6122,
+  "post": {
+   "as_is": {
+    "mean": 0.4486,
+    "ci": [
+     0.4177,
+     0.4816
+    ],
+    "n": 22
+   },
+   "re_setup": {
+    "mean": 0.5967,
+    "ci": [
+     0.5569,
+     0.6346
+    ],
+    "n": 22
+   }
+  },
+  "follow": {
+   "as_is": {
+    "mean": 0.4407,
+    "ci": [
+     0.3927,
+     0.4899
+    ],
+    "n": 17
+   },
+   "re_setup": {
+    "mean": 0.5628,
+    "ci": [
+     0.527,
+     0.5997
+    ],
+    "n": 17
+   }
+  }
  },
  "demo": {
   "subject": "sub-08",

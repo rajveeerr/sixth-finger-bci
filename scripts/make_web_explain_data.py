@@ -161,6 +161,23 @@ def build() -> dict:
     sw = switch[switch.method == "eegnet_scratch"].set_index("metric")
     demo = json.loads((summary / "demo_model.json").read_text())
 
+    # Weeks later: the first session's model on the later sessions, as it is and after a
+    # short re-setup (5 new trials per command, re-centred); same method as `ts_lr`.
+    lon = pd.read_csv(summary / "rq4_longitudinal_table.csv")
+    lon = lon[lon.population == "all"]
+
+    def lon_row(session: str, arm: str, k: int) -> dict:
+        row = lon[(lon.session == session) & (lon.arm == arm) & (lon.k == k)].iloc[0]
+        return {"mean": r(row["mean"]), "ci": [r(row.ci_lo), r(row.ci_hi)], "n": int(row.n)}
+
+    within = curves[
+        (curves.scenario == "S1_new_user")
+        & (curves.task == "T2_rest_ah_sf")
+        & (curves.session == "pre")
+        & (curves.method == "ts_lr")
+        & (curves.population == "all")
+    ].sort_values("k")
+
     data = {
         "sources": [
             "results/summary/dl_baselines_subject_values.csv",
@@ -171,6 +188,7 @@ def build() -> dict:
             "results/summary/rq4_pseudo_online_switch_table.csv",
             "results/summary/demo_model.json",
             "results/summary/eda_erd_values.csv",
+            "results/summary/rq4_longitudinal_table.csv",
             "web/public/demo/model.onnx",
             "mne colin27_1005 template",
         ],
@@ -187,6 +205,17 @@ def build() -> dict:
             ],
             "false_per_minute": r(sw.loc["false_per_minute", "mean"], 2),
             "latency_s": r(sw.loc["latency_s", "mean"], 2),
+        },
+        "later": {
+            "same_session": r(within.iloc[-1]["mean"]),
+            "post": {
+                "as_is": lon_row("post", "pre_unchanged", 0),
+                "re_setup": lon_row("post", "recentred", 5),
+            },
+            "follow": {
+                "as_is": lon_row("follow", "pre_unchanged", 0),
+                "re_setup": lon_row("follow", "recentred", 5),
+            },
         },
         "demo": {
             "subject": demo["subject"],
