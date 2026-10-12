@@ -379,3 +379,18 @@ button { font: inherit; color: inherit; }
 .link-pin { fill: #ffffff; stroke: #1f272e; stroke-width: 1; }
 .link-tip { fill: #2b3036; }
 @media (prefers-reduced-motion: reduce) { .lamp, .link-strip { transition: none; } }
+
+/* The design options page (compare.html). */
+.compare-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 14px; }
+.plate-option .option-body { position: relative; height: 560px; display: grid; place-items: center; padding: 12px; }
+.plate-option .iso-hand { position: absolute; inset: 12px; width: calc(100% - 24px); height: calc(100% - 24px); }
+.ih-body { fill: #ffffff; stroke: none; }
+.ih-shade1 { fill: #eceeee; }
+.ih-shade0 { fill: #dcdfdf; }
+.ih-edge { fill: none; stroke: #1f272e; stroke-width: 0.9; stroke-linejoin: round; }
+.ih-strip { fill: none; stroke: #d4d8da; stroke-linecap: round; vector-effect: none; transition: stroke 0.2s; }
+.ih-strip.on { stroke: var(--sixth); }
+.ih-pin { fill: #ffffff; stroke: #1f272e; stroke-width: 0.9; }
+.ih-tip { fill: #2b3036; stroke: #1f272e; stroke-width: 0.9; }
+.strap > .iso-fill, .strap > .iso-top { fill: #e3e6e7; }
+@media (max-width: 700px) { .compare-grid { grid-template-columns: minmax(0, 1fr); } .plate-option .option-body { height: 420px; } }
