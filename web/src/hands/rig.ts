@@ -2,7 +2,7 @@
 // knuckles and round segments) wearing the robotic sixth finger on a wrist strap.
 // Centimetres; x toward the little finger, y out of the back of the hand, z up the fingers.
 
-import type { FingerPose, HandPose } from "../components/Hand/poses";
+import type { FingerPose, HandPose } from "./poses";
 
 export type P3 = [number, number, number];
 

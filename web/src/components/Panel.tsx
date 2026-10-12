@@ -19,8 +19,13 @@ export function Panel({ step, title, note, foot, className, testId, data, childr
         <span className="panel-step" aria-hidden="true">
           {step}
         </span>
-        <h2 className="panel-title">{title}</h2>
-        {note && <span className="panel-note">{note}</span>}
+        <div className="panel-heading">
+          <h2 className="panel-title">{title}</h2>
+          {note && <p className="panel-note">{note}</p>}
+        </div>
+        <span className="panel-fig" aria-hidden="true">
+          FIG_{String(step).padStart(3, "0")}
+        </span>
       </header>
       <div className="panel-body">{children}</div>
       {foot && <footer className="panel-foot">{foot}</footer>}

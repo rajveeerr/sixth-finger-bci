@@ -3,6 +3,14 @@
 
 export const PHASE_CODES = { rest: 1, prepare: 2, imagery: 3 } as const;
 
+/** A decoded window, drawn as a bracket over the trace it was read from. */
+export interface ReadMark {
+  end: number; // sample count (since reset) of the window's last sample
+  len: number; // window length in display samples
+  three: { kind: string; right: boolean | null };
+  switch: { kind: string; right: boolean | null };
+}
+
 export class EegRing {
   channels: string[] = [];
   data: Float32Array[] = [];
@@ -14,6 +22,9 @@ export class EegRing {
   sfreq = 125;
   version = 0; // bumped on every push, so the painter can skip unchanged frames
   trialT = 0; // seconds into the current trial at the newest sample (the trial strip's playhead)
+  total = 0; // samples pushed since the last reset
+  marks: ReadMark[] = []; // the windows the model has read that are still on screen
+  view: "three" | "switch" = "three"; // which reading the brackets show
   private currentPhase = 0;
   private currentTruth: string | null = null;
 
@@ -26,6 +37,20 @@ export class EegRing {
     this.truth = new Array(this.capacity).fill(null);
     this.write = 0;
     this.filled = 0;
+    this.total = 0;
+    this.marks = [];
+    this.version += 1;
+  }
+
+  /** Remember a decoded window ending at the newest sample. */
+  mark(m: Omit<ReadMark, "end">) {
+    this.marks.push({ ...m, end: this.total });
+    this.marks = this.marks.filter((k) => k.end > this.total - this.capacity);
+    this.version += 1;
+  }
+
+  setView(view: "three" | "switch") {
+    this.view = view;
     this.version += 1;
   }
 
@@ -47,6 +72,10 @@ export class EegRing {
       this.write = (this.write + 1) % this.capacity;
     }
     this.filled = Math.min(this.filled + n, this.capacity);
+    this.total += n;
+    if (this.marks.length && this.marks[0].end <= this.total - this.capacity) {
+      this.marks = this.marks.filter((k) => k.end > this.total - this.capacity);
+    }
     this.version += 1;
   }
 }

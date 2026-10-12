@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef } from "react";
 import { Plate } from "../../components/Plate";
-import { damp } from "../../components/Hand/spring";
+import { damp } from "../../hands/spring";
 import { shownCommand, useDemo, type Command } from "../../store";
 import { eegBuffer } from "../../stream/eegBuffer";
 import {

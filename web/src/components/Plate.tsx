@@ -28,7 +28,7 @@ export function Plate({ fig, title, hint, readout, caption, className, label, te
     >
       <div className="plate-frame">
         <div className="plate-head">
-          <span className="plate-fig">Fig. {fig}</span>
+          <span className="plate-fig">FIG_{String(fig).padStart(3, "0")}</span>
           <span className="plate-title">{title}</span>
         </div>
         <div className="plate-body">{children}</div>

@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { RECENT, shownCommand, useDemo } from "./store";
+import { eegBuffer } from "./stream/eegBuffer";
 import type { Prediction } from "./stream/types";
 
 function prediction(window: Prediction["window"], correct: boolean | null): Prediction {
@@ -62,19 +63,21 @@ describe("one-switch view", () => {
 describe("the trial strip and the recent row", () => {
   beforeEach(() => useDemo.getState().reset());
 
-  it("keeps this trial's window decisions and forgets them at the next trial", () => {
+  it("keeps the trial's timing and marks each read window on the chart", () => {
     const { applyPrediction, applyMessage } = useDemo.getState();
     applyMessage({ type: "trial_start", trial: 0, pass: 0, uid: "sub-08_x", n_samples: 3600, duration_s: 14.4, cue_onset_s: 8.6 });
+    eegBuffer.reset(["C3"], 125);
+    eegBuffer.push([[0, 0, 0]]);
+    const before = eegBuffer.marks.length;
     applyPrediction(prediction("rest", true));
     applyPrediction(prediction("sliding", null));
     applyPrediction(prediction("imagery", false));
-    let s = useDemo.getState();
-    expect(s.trialDecisions.map((p) => p.window)).toEqual(["rest", "imagery"]);
+    const s = useDemo.getState();
     expect([s.trialDuration, s.cueOnset]).toEqual([14.4, 8.6]);
+    expect(eegBuffer.marks.length - before).toBe(2); // sliding windows are not marked
+    expect(eegBuffer.marks.at(-1)).toMatchObject({ end: 3, len: 500, three: { kind: "affected_hand", right: false } });
     applyMessage({ type: "trial_start", trial: 1, pass: 0, uid: "sub-08_y", n_samples: 3600, duration_s: 14.4, cue_onset_s: 8.6 });
-    s = useDemo.getState();
-    expect(s.trialDecisions).toEqual([]);
-    expect(s.recent).toHaveLength(2); // the recent row runs across trials
+    expect(useDemo.getState().recent).toHaveLength(2); // the recent row runs across trials
   });
 
   it("keeps only the last RECENT decisions", () => {

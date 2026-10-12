@@ -1,4 +1,3 @@
-import { lazy, Suspense } from "react";
 import { Controls } from "./components/Controls";
 import { EEGPanel } from "./components/EEGPanel";
 import { ManualTestBanner } from "./components/ManualTestBanner";
@@ -10,11 +9,6 @@ import { Explain } from "./explain/Explain";
 import { IsoHand } from "./hands/IsoHand";
 import { shownCommand, useDemo } from "./store";
 import { useDemoStream } from "./stream/useDemoStream";
-
-// Two ways to draw the hand while the choice is open: ?hand=iso (default) or ?hand=3d.
-// The 3D one brings three.js, so it loads as its own chunk.
-const ToonHand = lazy(() => import("./hands/ToonHand").then((m) => ({ default: m.ToonHand })));
-const HAND_STYLE = new URLSearchParams(window.location.search).get("hand") === "3d" ? "3d" : "iso";
 
 const COMMAND_TEXT: Record<string, string> = {
   IDLE: "keep still",
@@ -36,19 +30,19 @@ export default function App() {
   return (
     <div className="app">
       <header className="masthead">
-        <div className="masthead-text">
-          <h1>Sixth-Finger BCI</h1>
-          <p className="lede">
-            Moving a robotic sixth finger just by imagining it. A stroke patient&apos;s recorded brain signals play below,
-            and our model reads them as they arrive.
+        <h1 className="wordmark">Sixth-Finger BCI</h1>
+        <div className="masthead-side">
+          <p className="tagline">Move a robotic sixth finger by imagining the movement.</p>
+          <p className="status">
+            {synthetic && <span className="chip chip-warn">Synthetic data</span>}
+            <span className="chip">
+              {subject ? `Patient ${subject}'s recorded brain signals, played back` : "Recorded brain signals, played back"}
+            </span>
+            <ModeBadge source={source} />
           </p>
         </div>
-        <div className="status">
-          {synthetic && <span className="chip chip-warn">Synthetic data</span>}
-          <span className="chip">{subject ? `Patient ${subject}, recorded, played back` : "Recorded, played back"}</span>
-          <ModeBadge source={source} />
-        </div>
       </header>
+      <div className="divider" aria-hidden="true" />
       {error && (
         <p className="error" role="alert">
           {error}
@@ -73,7 +67,7 @@ export default function App() {
         <Panel
           step={2}
           title="The hand it moves"
-          note={HAND_STYLE === "3d" ? "drag to turn" : "robotic finger on the wrist"}
+          note="the robotic finger is on the wrist"
           className="panel-hand"
           foot={
             <>
@@ -85,14 +79,8 @@ export default function App() {
             </>
           }
         >
-          <div className="hand-stage dotted" data-testid="hand" data-command={command}>
-            {HAND_STYLE === "3d" ? (
-              <Suspense fallback={<div className="hand hand-loading">Loading the 3D hand</div>}>
-                <ToonHand command={command} />
-              </Suspense>
-            ) : (
-              <IsoHand command={command} />
-            )}
+          <div className="hand-stage" data-testid="hand" data-command={command}>
+            <IsoHand command={command} />
           </div>
         </Panel>
         <PredictionCard />

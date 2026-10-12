@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef } from "react";
 import type { Command } from "../store";
-import { POSES } from "../components/Hand/poses";
-import { damp } from "../components/Hand/spring";
+import { POSES } from "./poses";
+import { damp } from "./spring";
 import * as K from "../explain/iso/kit";
 import {
   behindPalm,

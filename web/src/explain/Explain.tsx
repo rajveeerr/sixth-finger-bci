@@ -2,11 +2,8 @@ import { Plate } from "../components/Plate";
 import { BrainRhythm } from "./figures/BrainRhythm";
 import { PatientSees } from "./figures/PatientSees";
 import { RealLimb } from "./figures/RealLimb";
-import { ResultsBars, ResultsGauges } from "./figures/Results";
+import { ResultsGauges } from "./figures/Results";
 import { SignalChain } from "./figures/SignalChain";
-
-// Two ways to show the results while the choice is open: ?results=gauges (default) or bars.
-const RESULTS = new URLSearchParams(window.location.search).get("results") === "bars" ? "bars" : "gauges";
 
 /** The explanation under the demo: how it works, what we found, and the way to a real limb. */
 export function Explain() {
@@ -44,11 +41,11 @@ export function Explain() {
             <Plate
               fig={7}
               title="Five questions"
-              hint={RESULTS === "bars" ? "The dashed line is what guessing gets" : "The needle is our score"}
+              hint="The needle is our score"
               readout="22 patients"
               className="plate-results"
             >
-              {RESULTS === "bars" ? <ResultsBars /> : <ResultsGauges />}
+              <ResultsGauges />
             </Plate>
           </div>
         </div>

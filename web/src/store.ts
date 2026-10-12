@@ -26,8 +26,6 @@ interface DemoState {
   trialDuration: number; // seconds
   cueOnset: number; // seconds from the trial's start
   window: { start_s: number; end_s: number };
-  /** This trial's decisions on its rest and imagery windows, for the trial strip. */
-  trialDecisions: Prediction[];
   /** The last decisions on rest and imagery windows, oldest first. */
   recent: Prediction[];
   phase: PhaseName | null;
@@ -64,7 +62,6 @@ export const useDemo = create<DemoState>((set) => ({
   trialDuration: 0,
   cueOnset: 0,
   window: { start_s: 1, end_s: 5 },
-  trialDecisions: [],
   recent: [],
   phase: null,
   phaseTruth: null,
@@ -80,7 +77,10 @@ export const useDemo = create<DemoState>((set) => ({
   manualMode: false,
   error: null,
   setSource: (source) => set({ source }),
-  setView: (view) => set({ view }),
+  setView: (view) => {
+    eegBuffer.setView(view);
+    set({ view });
+  },
   setError: (error) => set({ error }),
   applyMessage: (m) => {
     switch (m.type) {
@@ -103,7 +103,6 @@ export const useDemo = create<DemoState>((set) => ({
           trialUid: m.uid,
           trialDuration: m.duration_s,
           cueOnset: m.cue_onset_s,
-          trialDecisions: [],
         });
         break;
       case "phase":
@@ -132,9 +131,15 @@ export const useDemo = create<DemoState>((set) => ({
       const scored = p.window === "imagery" && p.correct !== null;
       const switchScored = p.window !== "sliding" && p.truth !== null;
       const switchRight = switchScored && anyImagery(p) === (p.truth !== s.classes[0]?.name);
+      if (p.window !== "sliding" && p.trial === s.trial) {
+        eegBuffer.mark({
+          len: Math.round((s.window.end_s - s.window.start_s) * eegBuffer.sfreq),
+          three: { kind: p.label, right: p.correct },
+          switch: { kind: anyImagery(p) ? "imagery" : (s.classes[0]?.name ?? "rest"), right: switchScored ? switchRight : null },
+        });
+      }
       return {
         lastPrediction: p,
-        trialDecisions: p.window === "sliding" || p.trial !== s.trial ? s.trialDecisions : [...s.trialDecisions, p],
         recent: p.window === "sliding" ? s.recent : [...s.recent, p].slice(-RECENT),
         command: s.manualMode ? s.command : (p.command as Command),
         correct: s.correct + (scored && p.correct ? 1 : 0),
@@ -149,7 +154,6 @@ export const useDemo = create<DemoState>((set) => ({
   reset: () =>
     set({
       lastPrediction: null,
-      trialDecisions: [],
       recent: [],
       command: "IDLE",
       correct: 0,

@@ -1,12 +1,10 @@
 """The hand in its three poses, side by side (docs/figures/hand_poses.png).
 
 (cd web && npx playwright test e2e/poses.spec.ts)
-uv run python scripts/make_hand_poses_figure.py [iso|3d]  # the drawing style, iso by default
+uv run python scripts/make_hand_poses_figure.py
 """
 
 from __future__ import annotations
-
-import sys
 
 import matplotlib
 
@@ -22,11 +20,11 @@ POSES = [
 ]
 
 
-def main(style: str = "iso") -> None:
+def main() -> None:
     root = get_paths().root
     fig, axes = plt.subplots(1, 3, figsize=(10.5, 4.2))
     for ax, (command, label) in zip(axes, POSES, strict=True):
-        image = plt.imread(root / "web" / "test-results" / f"hand-{style}-{command}.png")
+        image = plt.imread(root / "web" / "test-results" / f"hand-iso-{command}.png")
         ax.imshow(image[4:-4, 4:-4])  # without the plate's hairline at the edges
         ax.set_title(f"{label}\n{command}", fontsize=10, family="monospace")
         ax.axis("off")
@@ -37,4 +35,4 @@ def main(style: str = "iso") -> None:
 
 
 if __name__ == "__main__":
-    main(*sys.argv[1:2])
+    main()

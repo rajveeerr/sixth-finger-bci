@@ -1,4 +1,4 @@
-import type { Command } from "../../store";
+import type { Command } from "../store";
 
 // Flexion angles in radians per joint (MCP, PIP, DIP); positive curls toward the palm.
 export type FingerPose = readonly [number, number, number];
