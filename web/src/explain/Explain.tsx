@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 import { BrainRhythm } from "./figures/BrainRhythm";
+import { HeadMap } from "./figures/HeadMap";
+import { ModelFacts } from "./figures/ModelFacts";
 import { PatientSees } from "./figures/PatientSees";
 import { RealLimb } from "./figures/RealLimb";
 import { ResultsGauges } from "./figures/Results";
@@ -38,8 +40,10 @@ export function Explain() {
         }
       >
         <SignalChain />
+        <HeadMap />
         <PatientSees />
         <BrainRhythm />
+        <ModelFacts />
       </Chapter>
       <Chapter
         id="found"

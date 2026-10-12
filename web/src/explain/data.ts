@@ -42,7 +42,14 @@ export interface ExplainData {
   };
   calibration: { scratch: CurvePoint[]; transfer: CurvePoint[] };
   switch: { detection: number; detection_ci: [number, number]; false_per_minute: number; latency_s: number };
-  demo: { subject: string; held_out_bal_acc: number; trials: number; training_trials: number; model_bytes: number };
+  demo: {
+    subject: string;
+    held_out_bal_acc: number;
+    trials: number;
+    training_trials: number;
+    model_bytes: number;
+    parameters: number;
+  };
 }
 
 export const data = raw as unknown as ExplainData;

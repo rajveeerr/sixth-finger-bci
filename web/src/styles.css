@@ -5,9 +5,9 @@
 :root {
   --page: #fafafa;
   --ink: #171717;
-  --ink-2: #525252;
-  --ink-3: #8f8f8f;
-  --ink-4: #bdbdbd;
+  --ink-2: #474747;
+  --ink-3: #707070;
+  --ink-4: #b0b0b0;
   --rule: #e6e6e6;
   --chip: #efefef;
   --rest: #b9b9b9;
@@ -271,20 +271,57 @@ code { font-family: var(--mono); font-size: 0.86em; background: var(--chip); pad
 
 /* What we found: one row per question, a dial on the left. */
 .findings { list-style: none; margin: 0; padding: 0; max-width: 800px; border-top: 1px solid var(--rule); }
-.finding { display: grid; grid-template-columns: 210px minmax(0, 1fr); gap: 30px; padding: 22px 0; border-bottom: 1px solid var(--rule); align-items: center; }
-.finding .gauge { max-width: 210px; }
-.finding-q { margin: 0; font-size: 15px; font-weight: 560; }
-.finding-value { margin: 3px 0 0; font-size: 14px; color: var(--ink-3); }
-.finding-a { margin: 10px 0 0; font-size: 15px; line-height: 1.6; color: var(--ink-2); }
+.finding { display: grid; grid-template-columns: 190px minmax(0, 1fr); gap: 34px; padding: 30px 0; border-bottom: 1px solid var(--rule); align-items: start; }
+.finding .gauge { max-width: 190px; margin-top: 4px; }
+.finding-q { margin: 0; font-size: 16px; font-weight: 560; }
+.finding-a { margin: 6px 0 14px; font-size: 15.5px; line-height: 1.6; color: var(--ink-2); }
 .finding-a em { color: var(--ink); }
+.finding-note { margin: 8px 0 0; font-size: 13.5px; color: var(--ink-3); }
+.figures-row { margin: 4px 0 0; display: flex; gap: 40px; flex-wrap: wrap; }
+.figures-row dt { font-size: 30px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.1; }
+.figures-row dd { margin: 2px 0 0; font-size: 13.5px; color: var(--ink-3); }
 .gauge-guess { fill: #e6e6e3; stroke: #8a8a8f; stroke-width: 0.8; }
 .gauge-needle { fill: var(--ink); stroke: none; }
 .gauge-ghost { fill: #b9b9b9; stroke: none; }
-.finding-key { padding: 14px 0 0; font-size: 13px; color: var(--ink-3); }
-.key-needle, .key-ghost, .key-guess { display: inline-block; width: 16px; height: 7px; border-radius: 2px; margin: 0 6px 0 14px; vertical-align: 0; }
-.key-needle { margin-left: 0; background: var(--ink); }
-.key-ghost { background: #b9b9b9; }
-.key-guess { background: #e6e6e3; box-shadow: inset 0 0 0 1px #8a8a8f; }
+
+/* Charts: hairline axes, ink dots, direct labels. */
+.chart { width: 100%; }
+.chart svg { display: block; overflow: visible; }
+.chart text { font-family: var(--sans); }
+.chart-tick { font-size: 12px; fill: var(--ink-3); }
+.chart-row { font-size: 13.5px; font-weight: 560; fill: var(--ink); }
+.chart-value { font-size: 13.5px; font-weight: 600; fill: var(--ink); }
+.chart-italic { font-family: var(--serif) !important; font-style: italic; font-size: 15px; fill: var(--ink-3); }
+.chart-axis { stroke: #cfcfcf; stroke-width: 1; }
+.chart-grid { stroke: #ececec; stroke-width: 1; }
+.chart-guess, .chart-marker line { stroke: #a8a8a8; stroke-width: 1; stroke-dasharray: 3 3; }
+.chart-dot { fill: var(--ink); fill-opacity: 0.72; stroke: var(--page); stroke-width: 1; }
+.chart-mean { stroke: var(--ink); stroke-width: 2; }
+.chart-slope { stroke: #c7c7c7; stroke-width: 1; }
+.chart-slope-mean { stroke: var(--ink); stroke-width: 2.2; }
+.chart-end { fill: var(--ink); }
+.chart-band { fill: rgba(23, 23, 23, 0.07); stroke: none; }
+.chart-line { fill: none; stroke: var(--ink); stroke-width: 2; }
+.chart-point { fill: var(--page); stroke: var(--ink); stroke-width: 1.5; }
+.chart-series.muted .chart-band { fill: rgba(23, 23, 23, 0.04); }
+.chart-series.muted .chart-line { stroke: #9c9c9c; stroke-dasharray: 5 4; }
+.chart-series.muted .chart-point { stroke: #9c9c9c; }
+.chart-series.muted .chart-row { fill: var(--ink-3); font-weight: 500; }
+.chart-columns { display: flex; justify-content: space-between; margin-top: 4px; font-size: 13px; color: var(--ink-3); }
+.chart-columns span { display: grid; text-align: center; width: 160px; }
+.chart-columns b { color: var(--ink); font-weight: 560; }
+
+/* The model in plain lines. */
+.facts { max-width: 800px; margin: 10px 0 0; }
+.facts-title { margin: 0 0 10px; font-size: 15px; font-weight: 560; }
+.facts dl { margin: 0; border-top: 1px solid var(--rule); }
+.facts dl > div { display: grid; grid-template-columns: 11em minmax(0, 1fr); gap: 20px; padding: 12px 0; border-bottom: 1px solid var(--rule); }
+.facts dt { font-weight: 560; }
+.facts dd { margin: 0; color: var(--ink-2); }
+
+/* The head: sensors as pins, the seven drawn in step 1 dark. */
+.pin-shown > .iso-fill, .pin-shown > .iso-top, .pin-shown > .iso-shade { fill: #2a2a2e !important; }
+.pin-motor > .iso-top { fill: #d9d9d6; }
 
 /* From the demo to a real limb: a ruled table. */
 .layers { list-style: none; margin: 0; padding: 0; font-size: 15px; max-width: 800px; border-top: 1px solid var(--rule); }
@@ -319,7 +356,9 @@ code { font-family: var(--mono); font-size: 0.86em; background: var(--chip); pad
   .ctl-hint { display: none; }
   .explain { margin-top: 60px; }
   .finding { grid-template-columns: minmax(0, 1fr); gap: 8px; }
-  .finding .gauge { max-width: 240px; margin: 0 auto; }
+  .finding .gauge { max-width: 220px; margin: 0 auto; }
+  .facts dl > div { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+  .figures-row { gap: 22px; }
   .sees-labels { height: auto; display: grid; gap: 6px; margin-top: 8px; }
   .sees-labels li { position: static; transform: none; text-align: left; white-space: normal; }
   .sees-labels b { display: inline; margin-right: 6px; }

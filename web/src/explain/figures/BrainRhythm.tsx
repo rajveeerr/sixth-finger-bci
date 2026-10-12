@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { Plate } from "../../components/Plate";
+import { DotStrip } from "../charts";
 import { data } from "../data";
 import * as K from "../iso/kit";
 
@@ -52,8 +53,8 @@ export function BrainRhythm() {
   return (
     <Plate
       title="What changes in the brain"
-      hint="A drawing of the effect; the size of the change is measured"
-      readout={`22 of 22 patients, ${Math.round(-data.erd.sixth_finger.mean)}% smaller on average`}
+      hint="The drawing shows the effect. Under it, one dot per patient: how much their rhythm fell."
+      readout={`Smaller in 22 of 22 patients for the sixth finger, by ${Math.round(-data.erd.sixth_finger.mean)}% on average`}
       caption={
         <>
           Over the part of the brain that moves the hand, the EEG has a steady rhythm (8 to 13 waves a second). When
@@ -69,6 +70,17 @@ export function BrainRhythm() {
         <span>Resting</span>
         <span>Imagining the movement</span>
       </div>
+      <DotStrip
+        rows={[
+          { label: "Hand", values: data.erd.affected_hand.values.map((v) => v / 100), mean: data.erd.affected_hand.mean / 100, colour: "var(--hand)" },
+          { label: "Sixth finger", values: data.erd.sixth_finger.values.map((v) => v / 100), mean: data.erd.sixth_finger.mean / 100, colour: "var(--sixth)" },
+        ]}
+        domain={[-0.8, 0.2]}
+        ticks={[-0.8, -0.6, -0.4, -0.2, 0, 0.2]}
+        format={(v) => `${v < 0 ? "−" : v > 0 ? "+" : ""}${Math.abs(Math.round(v * 100))}%`}
+        marker={{ at: 0, text: "no change" }}
+        label="How much the rhythm fell in each patient, imagining the hand and the sixth finger"
+      />
     </Plate>
   );
 }
