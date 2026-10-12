@@ -1,136 +1,98 @@
 import { useEffect, useRef } from "react";
 import { PHASE_CODES, eegBuffer, type EegRing } from "../stream/eegBuffer";
 
-// EEG chart paper: one row per display channel, the last 8 s, newest on the right. A band
-// along the top shows what the patient was asked to do, and a bracket marks each 4 s piece
-// the model read, with what it read and whether that was right. Drawn imperatively at most
-// 30 times a second, and only when something changed (no React state per sample).
+// The brain signal, kept to what a first-time viewer can follow: three sensors over the
+// hand area (left, middle, right of the head), the last 8 s, newest on the right. While
+// the patient imagines, the paper is faintly tinted; the 4 s piece the model read last is
+// boxed, with its reading on the box. Drawn at most 30 times a second, and only when
+// something changed (no React state per sample).
 
-const RANGE_UV = 30; // ± µV at a full row's half height
-const FONT = '500 11px "Inter Variable", Inter, system-ui, sans-serif';
+const SHOWN = ["C3", "Cz", "C4"];
+const NAMES: Record<string, string> = { C3: "left", Cz: "middle", C4: "right" };
+const RANGE_UV = 28; // ± µV at a row's half height
+const FONT = '500 12px "Inter Variable", Inter, system-ui, sans-serif';
+const SMALL = '450 11px "Inter Variable", Inter, system-ui, sans-serif';
 const INK = "#171717";
-const MUTED = "#8f8f8f";
-const DOT = "#d6d6d6";
-const SECOND = "#ececec";
+const MUTED = "#707070";
+const SECOND = "#efefef";
 const PAPER = "#fafafa";
-const TINT: Record<string, string> = { ready: "#f6f1e3", affected_hand: "#efefef", sixth_finger: "#fff2ec" };
-const BAND: Record<string, string> = { rest: "#e2e2e2", ready: "#d8c58f", affected_hand: "#3a3a3a", sixth_finger: "#ff5a1f" };
+const TINT: Record<string, string> = { affected_hand: "#f1f1f1", sixth_finger: "#fff3ed" };
 const KIND_COLOUR: Record<string, string> = {
-  rest: "#8f8f8f",
+  rest: "#707070",
   affected_hand: "#3a3a3a",
   sixth_finger: "#d9480f",
   imagery: "#d9480f",
 };
 const SAY: Record<string, string> = { rest: "Rest", affected_hand: "Hand", sixth_finger: "Sixth finger", imagery: "Move" };
 
-/** The phase key of a sample: rest, ready, or the imagery cue. */
-function keyOf(ring: EegRing, idx: number): string {
-  const code = ring.phase[idx];
-  if (code === PHASE_CODES.prepare) return "ready";
-  if (code === PHASE_CODES.imagery) return ring.truth[idx] ?? "imagery";
-  return "rest";
+function imageryAt(ring: EegRing, idx: number): string | null {
+  return ring.phase[idx] === PHASE_CODES.imagery ? (ring.truth[idx] ?? "imagery") : null;
+}
+
+function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
 }
 
 export function paint(ctx: CanvasRenderingContext2D, ring: EegRing, w: number, h: number, dpr: number) {
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.fillStyle = PAPER;
   ctx.fillRect(0, 0, w, h);
-  const labelW = 46;
-  const top = 30; // room for the instruction band and the read brackets
-  const plotW = w - labelW - 10;
-  const plotH = h - top - 22;
+  const labelW = 58;
+  const top = 36; // room for the reading's tab
+  const bottom = h - 22; // room for the time scale
+  const plotW = w - labelW - 6;
+  const plotH = bottom - top;
   const cap = ring.capacity || 1;
   const step = plotW / cap;
   const start = (ring.write - ring.filled + cap) % cap;
-  const offset = cap - ring.filled; // empty paper on the left until the buffer fills
-  const xOf = (i: number) => labelW + (offset + i) * step; // i: 0 = oldest sample on screen
+  const offset = cap - ring.filled;
+  const xOf = (i: number) => labelW + (offset + i) * step;
 
-  // What the patient was asked to do: a light tint behind the traces and a band on top.
+  // Imagining: a faint tint over the stretch where the patient was asked to imagine.
   let runStart = 0;
   for (let i = 1; i <= ring.filled; i++) {
-    const prev = keyOf(ring, (start + i - 1) % cap);
-    if (i < ring.filled && keyOf(ring, (start + i) % cap) === prev) continue;
-    const x0 = xOf(runStart);
-    const x1 = xOf(i);
-    if (TINT[prev]) {
+    const prev = imageryAt(ring, (start + i - 1) % cap);
+    if (i < ring.filled && imageryAt(ring, (start + i) % cap) === prev) continue;
+    if (prev && TINT[prev]) {
       ctx.fillStyle = TINT[prev];
-      ctx.fillRect(x0, top, x1 - x0, plotH);
+      ctx.fillRect(xOf(runStart), top - 8, xOf(i) - xOf(runStart), plotH + 8);
     }
-    ctx.fillStyle = BAND[prev] ?? BAND.rest;
-    ctx.fillRect(x0, 4, x1 - x0, 4);
     runStart = i;
   }
 
-  // The paper: a hairline every second and a dot every fifth of a second along each row.
-  const n = ring.channels.length;
-  const rowH = n ? plotH / n : plotH;
+  // A hairline every second, moving with the paper.
   const perSecond = ring.sfreq;
-  const phase = (ring.total % perSecond) / perSecond; // the grid moves with the paper
-  for (let k = -1; k <= cap / perSecond + 1; k++) {
-    const x = Math.round(labelW + (k - phase + 1) * perSecond * step) + 0.5;
-    if (x < labelW || x > labelW + plotW) continue;
-    ctx.fillStyle = SECOND;
-    ctx.fillRect(x, top, 1, plotH);
-  }
-  ctx.fillStyle = DOT;
-  for (let c = 0; c < n; c++) {
-    const y = Math.round(top + rowH * (c + 0.5));
-    for (let k = 0; k <= (cap / perSecond) * 5 + 5; k++) {
-      const x = labelW + (k / 5 - phase + 1) * perSecond * step;
-      if (x < labelW || x > labelW + plotW) continue;
-      ctx.fillRect(Math.round(x), y, 1.5, 1.5);
-    }
+  const phase = (ring.total % perSecond) / perSecond;
+  ctx.fillStyle = SECOND;
+  for (let k = 0; k <= cap / perSecond + 1; k++) {
+    const x = Math.round(labelW + (k - phase) * perSecond * step);
+    if (x >= labelW && x <= labelW + plotW) ctx.fillRect(x, top - 8, 1, plotH + 8);
   }
 
-  // The brackets: each 4 s piece the model read, with its reading and a tick or cross.
-  ctx.font = FONT;
+  // The three traces, each named by its sensor and its side of the head.
+  const rows = SHOWN.map((name) => ring.channels.indexOf(name)).filter((c) => c >= 0);
+  const rowH = rows.length ? plotH / rows.length : plotH;
   ctx.textBaseline = "middle";
-  const first = ring.total - ring.filled;
-  ring.marks.forEach((m, j) => {
-    const x1 = xOf(m.end - first);
-    const x0 = xOf(m.end - m.len - first);
-    if (x1 < labelW) return;
-    const read = ring.view === "switch" ? m.switch : m.three;
-    const colour = KIND_COLOUR[read.kind] ?? INK;
-    const newest = j === ring.marks.length - 1;
-    ctx.globalAlpha = newest ? 1 : 0.55;
-    ctx.fillStyle = colour;
-    ctx.globalAlpha *= 0.06;
-    ctx.fillRect(Math.max(x0, labelW), top, x1 - Math.max(x0, labelW), plotH);
-    ctx.globalAlpha = newest ? 1 : 0.55;
-    ctx.strokeStyle = colour;
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    const y = 15;
-    ctx.moveTo(Math.max(x0, labelW), y + 7);
-    ctx.lineTo(Math.max(x0, labelW), y);
-    ctx.lineTo(x1, y);
-    ctx.lineTo(x1, y + 7);
-    ctx.stroke();
-    const text = `read: ${SAY[read.kind] ?? read.kind} ${read.right === null ? "" : read.right ? "✓" : "✗"}`;
-    const tw = ctx.measureText(text).width + 12;
-    const tx = Math.min(Math.max((Math.max(x0, labelW) + x1) / 2 - tw / 2, labelW + 6), w - tw - 4);
-    ctx.globalAlpha = 1;
-    ctx.fillStyle = PAPER;
-    ctx.fillRect(tx, y - 8, tw, 16);
-    ctx.globalAlpha = newest ? 1 : 0.6;
-    ctx.fillStyle = colour;
-    ctx.fillText(text, tx + 6, y + 0.5);
-    ctx.globalAlpha = 1;
-  });
-
-  // The traces, and the channel names in the margin.
-  for (let c = 0; c < n; c++) {
-    const mid = top + rowH * (c + 0.5);
-    ctx.fillStyle = MUTED;
+  rows.forEach((c, r) => {
+    const mid = top + rowH * (r + 0.5);
     ctx.textAlign = "left";
-    ctx.fillText(ring.channels[c], 8, mid);
+    ctx.font = FONT;
+    ctx.fillStyle = INK;
+    ctx.fillText(ring.channels[c], 0, mid - 7);
+    ctx.font = SMALL;
+    ctx.fillStyle = MUTED;
+    ctx.fillText(NAMES[ring.channels[c]] ?? "", 0, mid + 8);
     ctx.strokeStyle = INK;
-    ctx.globalAlpha = 0.85;
-    ctx.lineWidth = 0.85;
+    ctx.lineWidth = 1.1;
     ctx.lineJoin = "round";
     ctx.beginPath();
-    const gain = (rowH * 0.48) / RANGE_UV;
+    const gain = (rowH * 0.42) / RANGE_UV;
     const row = ring.data[c];
     for (let i = 0; i < ring.filled; i++) {
       const v = Math.max(-RANGE_UV * 1.15, Math.min(RANGE_UV * 1.15, row[(start + i) % cap]));
@@ -140,33 +102,48 @@ export function paint(ctx: CanvasRenderingContext2D, ring: EegRing, w: number, h
       else ctx.lineTo(x, y);
     }
     ctx.stroke();
-    ctx.globalAlpha = 1;
+  });
+
+  // The 4 s the model read last: a box over the traces, its reading on a tab.
+  const first = ring.total - ring.filled;
+  const m = ring.marks[ring.marks.length - 1];
+  if (m) {
+    const x1 = xOf(m.end - first);
+    const x0 = Math.max(xOf(m.end - m.len - first), labelW);
+    if (x1 > labelW + 20) {
+      const read = ring.view === "switch" ? m.switch : m.three;
+      const colour = KIND_COLOUR[read.kind] ?? INK;
+      ctx.strokeStyle = colour;
+      ctx.lineWidth = 1.5;
+      roundRect(ctx, x0, top - 6, x1 - x0, plotH + 4, 6);
+      ctx.stroke();
+      const text = `Model read: ${SAY[read.kind] ?? read.kind} ${read.right === null ? "" : read.right ? "✓" : "✗"}`;
+      ctx.font = FONT;
+      const tw = ctx.measureText(text).width + 16;
+      const tx = Math.min(x0, w - tw - 2);
+      ctx.fillStyle = colour;
+      roundRect(ctx, tx, top - 32, tw, 22, 5);
+      ctx.fill();
+      ctx.fillStyle = "#ffffff";
+      ctx.textAlign = "left";
+      ctx.fillText(text, tx + 8, top - 21);
+    }
   }
 
-  // Now, at the right edge, and the scale: 1 s across, 20 µV up.
-  if (ring.filled) {
-    const xn = xOf(ring.filled - 1);
-    ctx.fillStyle = INK;
-    ctx.fillRect(Math.round(xn), top, 1, plotH);
-  }
-  // 1 s along the bottom right; 20 µV up the margin beside the last row.
-  const sx = labelW + plotW - perSecond * step;
-  const sy = h - 8;
-  ctx.fillStyle = INK;
-  ctx.fillRect(sx, sy, perSecond * step, 1.5);
+  // Now, at the right edge; 1 second of time at the bottom left.
+  ctx.font = SMALL;
   ctx.fillStyle = MUTED;
-  ctx.textAlign = "right";
-  ctx.fillText("1 s", sx - 6, sy);
-  if (n) {
-    const bar = (20 / RANGE_UV) * rowH * 0.48;
-    const mid = top + rowH * (n - 0.5);
+  if (ring.filled) {
+    const xn = Math.round(xOf(ring.filled - 1));
     ctx.fillStyle = INK;
-    ctx.fillRect(labelW - 6, mid - bar / 2, 1.5, bar);
+    ctx.fillRect(xn, top - 8, 1.5, plotH + 8);
     ctx.fillStyle = MUTED;
-    ctx.textAlign = "left";
-    ctx.fillText("20 µV", 8, h - 8);
+    ctx.textAlign = "right";
+    ctx.fillText("now", xn, h - 8);
   }
+  ctx.fillRect(labelW, h - 9, perSecond * step, 1.5);
   ctx.textAlign = "left";
+  ctx.fillText("1 second", labelW + perSecond * step + 6, h - 8);
 }
 
 export function EEGPanel() {
@@ -208,7 +185,7 @@ export function EEGPanel() {
       className="eeg-canvas"
       data-testid="eeg-panel"
       role="img"
-      aria-label="EEG of seven channels over the motor cortex, the last eight seconds"
+      aria-label="EEG from three sensors over the hand area, the last eight seconds, with the piece the model read last boxed"
     />
   );
 }

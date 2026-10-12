@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useDemo } from "../store";
+import { useDemo, type View } from "../store";
 import type { DemoStreamControls } from "../stream/useDemoStream";
 
 const SPEEDS = [1, 2, 4];
@@ -15,7 +15,7 @@ const Key = ({ children }: { children: string }) => <kbd className="key">{childr
 
 /** Playback, as quiet text buttons with their keys: Space pauses, the arrows change trial. */
 export function Controls({ stream }: { stream: DemoStreamControls }) {
-  const { paused, speed, trial, nTrials, source, mode } = useDemo();
+  const { paused, speed, trial, nTrials, source, mode, view, setView } = useDemo();
   const local = source === "browser" || source === "replay";
 
   useEffect(() => {
@@ -54,6 +54,13 @@ export function Controls({ stream }: { stream: DemoStreamControls }) {
           </button>
         ))}
       </span>
+      <span className="ctl-group" role="radiogroup" aria-label="How the reading is used">
+        {(["three", "switch"] as View[]).map((v) => (
+          <button key={v} role="radio" aria-checked={view === v} className={view === v ? "opt on" : "opt"} onClick={() => setView(v)}>
+            {v === "three" ? "Three choices" : "On/off switch"}
+          </button>
+        ))}
+      </span>
       <span className="ctl-group" role="radiogroup" aria-label="Decoding">
         <button role="radio" aria-checked={mode === "trial"} className={mode === "trial" ? "opt on" : "opt"}
           onClick={() => mode !== "trial" && setMode("trial")}>
@@ -63,9 +70,6 @@ export function Controls({ stream }: { stream: DemoStreamControls }) {
           onClick={() => mode !== "continuous" && setMode("continuous")}>
           Continuous (experimental)
         </button>
-      </span>
-      <span className="ctl-hint">
-        <Key>1</Key> <Key>2</Key> <Key>3</Key> test the hand
       </span>
       {local && (
         <button className="ctl ctl-quiet" onClick={stream.retry}>

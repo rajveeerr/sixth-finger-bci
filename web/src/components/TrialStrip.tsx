@@ -2,12 +2,9 @@ import { useEffect, useRef } from "react";
 import { useDemo } from "../store";
 import { eegBuffer } from "../stream/eegBuffer";
 
-const CUE_TEXT: Record<string, string> = { affected_hand: "Imagine: affected hand", sixth_finger: "Imagine: sixth finger" };
-
 /**
- * One trial drawn to scale: what the patient saw (rest, get ready, the cue), with a tick
- * every second and a playhead at the newest sample. The playhead moves on animation
- * frames, not React renders. The 4 s pieces the model reads are marked on the chart.
+ * One trial as a timer: rest, get ready, imagine, drawn to scale, with a marker at the
+ * newest sample. The marker moves on animation frames, not React renders.
  */
 export function TrialStrip() {
   const { trialDuration: dur, cueOnset: cue, phase, phaseTruth } = useDemo();
@@ -28,34 +25,37 @@ export function TrialStrip() {
     return () => cancelAnimationFrame(raf);
   }, [dur]);
 
-  if (!dur) return <div className="strip" data-testid="phase" data-phase="" aria-hidden="true" />;
-  const pct = (s: number) => `${(Math.max(0, Math.min(s, dur)) / dur) * 100}%`;
-  const span = (a: number, b: number) => ({ left: pct(a), width: `${((Math.min(b, dur) - a) / dur) * 100}%` });
+  if (!dur) return <div className="timer" data-testid="phase" data-phase="" aria-hidden="true" />;
+  const pct = (s: number) => (Math.max(0, Math.min(s, dur)) / dur) * 100;
   const prep = Math.max(cue - 1, 0);
   const cueKnown = phase === "imagery" && phaseTruth ? phaseTruth : "";
-  const seconds = Array.from({ length: Math.floor(dur) + 1 }, (_, i) => i);
+  const segs = [
+    { key: "rest", from: 0, to: prep, text: "rest" },
+    { key: "prepare", from: prep, to: cue, text: "" },
+    { key: "imagery", from: cue, to: dur, text: "imagine" },
+  ];
   return (
-    <div className="strip" data-testid="phase" data-phase={phase ?? ""}>
-      <div className="strip-phases">
-        <span className={phase === "rest" ? "on" : ""} style={span(0, prep)}>
-          <i className="cross" aria-hidden="true" />
-          Rest
-        </span>
-        <span className={phase === "prepare" ? "on" : ""} style={span(prep, cue)} title="Get ready">
-          <i className="ready-dot" aria-label="Get ready" />
-        </span>
-        <span className={phase === "imagery" ? "on" : ""} data-cue={cueKnown} style={span(cue, dur)}>
-          {CUE_TEXT[cueKnown] ?? "Imagine"}
-        </span>
-      </div>
-      <div className="strip-bar">
-        <span className="seg" data-seg="rest" style={span(0, prep)} />
-        <span className="seg" data-seg="prepare" style={span(prep, cue)} />
-        <span className="seg" data-seg="imagery" data-cue={cueKnown} style={span(cue, dur)} />
-        {seconds.map((s) => (
-          <i key={s} className="tick" data-major={s % 5 === 0 ? "" : undefined} style={{ left: pct(s) }} />
+    <div className="timer" data-testid="phase" data-phase={phase ?? ""} aria-hidden="true">
+      <div className="timer-bar">
+        {segs.map((s) => (
+          <span
+            key={s.key}
+            className="timer-seg"
+            data-seg={s.key}
+            data-on={phase === s.key ? "" : undefined}
+            data-cue={s.key === "imagery" ? cueKnown : undefined}
+            style={{ left: `${pct(s.from)}%`, width: `${pct(s.to) - pct(s.from)}%` }}
+          />
         ))}
-        <span className="playhead" ref={head} />
+        <span className="timer-head" ref={head} />
+      </div>
+      <div className="timer-labels">
+        {segs.map((s) => (
+          <span key={s.key} style={{ left: `${pct(s.from)}%` }} data-on={phase === s.key ? "" : undefined}>
+            {s.text}
+          </span>
+        ))}
+        <span className="timer-end">{Math.round(dur)} s</span>
       </div>
     </div>
   );
