@@ -1,65 +1,65 @@
 dataset,file,subject,group,kept,year,duration_s,n_segments,reason,split_group,git_sha
-mumtaz,H S1 EC.edf,H-S1,H,True,2011.0,300.0,71.0,,H-S1,55ec167
-mumtaz,H S2 EC.edf,H-S2,H,True,2011.0,302.0,74.0,,H-S2,55ec167
-mumtaz,H S3 EC.edf,H-S3,H,True,2011.0,301.0,74.0,,H-S3,55ec167
-mumtaz,H S4 EC.edf,H-S4,H,True,2013.0,301.0,73.0,,H-S4,55ec167
-mumtaz,H S5 EC.edf,H-S5,H,True,2013.0,303.0,74.0,,H-S5,55ec167
-mumtaz,H S6 EC.edf,H-S6,H,True,2013.0,301.0,72.0,,H-S6,55ec167
-mumtaz,H S7 EC.edf,H-S7,H,True,2011.0,356.0,74.0,,H-S7,55ec167
-mumtaz,H S8 EC.edf,H-S8,H,True,2013.0,302.0,73.0,,H-S8,55ec167
-mumtaz,H S9 EC.edf,H-S9,H,True,2013.0,301.0,74.0,,H-S9,55ec167
-mumtaz,H S10 EC.edf,H-S10,H,True,2011.0,376.0,75.0,,H-S10,55ec167
-mumtaz,H S11 EC.edf,H-S11,H,True,2011.0,300.0,72.0,,H-S11,55ec167
-mumtaz,H S12 EC.edf,H-S12,H,False,,,,not downloadable (HTTP 404),H-S12,55ec167
-mumtaz,H S13 EC.edf,H-S13,H,True,2013.0,300.0,72.0,,H-S13,55ec167
-mumtaz,H S14 EC.edf,H-S14,H,True,2013.0,302.0,74.0,,H-S14,55ec167
-mumtaz,H S15 EC.edf,H-S15,H,True,2013.0,300.0,73.0,,H-S15,55ec167
-mumtaz,H S16 EC.edf,H-S16,H,True,2013.0,292.0,71.0,,H-S16,55ec167
-mumtaz,H S17 EC.edf,H-S17,H,True,2011.0,309.0,75.0,,H-S17,55ec167
-mumtaz,H S18 EC.edf,H-S18,H,False,,,,not downloadable (HTTP 404),H-S18,55ec167
-mumtaz,H S19 EC.edf,H-S19,H,True,2013.0,300.0,67.0,,H-S19,55ec167
-mumtaz,H S20 EC.edf,H-S20,H,True,2011.0,307.0,75.0,,H-S20,55ec167
-mumtaz,H S21 EC.edf,H-S21,H,True,2013.0,301.0,74.0,,H-S21,55ec167
-mumtaz,H S22 EC.edf,H-S22,H,True,2013.0,301.0,74.0,,H-S22,55ec167
-mumtaz,H S23 EC.edf,H-S23,H,True,2013.0,302.0,60.0,,H-S23,55ec167
-mumtaz,H S24 EC.edf,H-S24,H,True,2013.0,299.0,71.0,,H-S24,55ec167
-mumtaz,H S25 EC.edf,H-S25,H,True,2013.0,301.0,74.0,,H-S25,55ec167
-mumtaz,H S26 EC.edf,H-S26,H,True,2013.0,302.0,73.0,,H-S26,55ec167
-mumtaz,H S27 EC.edf,H-S27,H,True,2013.0,300.0,73.0,,H-S27,55ec167
-mumtaz,H S28 EC.edf,H-S28,H,True,2013.0,301.0,74.0,,H-S28,55ec167
-mumtaz,H S29 EC.edf,H-S29,H,True,2011.0,303.0,74.0,,H-S29,55ec167
-mumtaz,H S30 EC.edf,H-S30,H,False,,,,byte-identical to H-S27,H-S30,55ec167
-mumtaz,MDD S1 EC.edf,MDD-S1,MDD,True,2013.0,303.0,42.0,,MDD-S1,55ec167
-mumtaz,MDD S2  EC.edf,MDD-S2,MDD,True,2013.0,297.0,67.0,,MDD-S2,55ec167
-mumtaz,MDD S3 EC.edf,MDD-S3,MDD,True,2013.0,180.0,43.0,,MDD-S3,55ec167
-mumtaz,MDD S4 EC.edf,MDD-S4,MDD,False,,,,not downloadable (HTTP 404),MDD-S4,55ec167
-mumtaz,MDD S5 EC.edf,MDD-S5,MDD,True,2013.0,302.0,73.0,,MDD-S5,55ec167
-mumtaz,MDD S6 EC.edf,MDD-S6,MDD,True,2013.0,302.0,74.0,,MDD-S6,55ec167
-mumtaz,MDD S7  EC.edf,MDD-S7,MDD,True,2013.0,300.0,68.0,,MDD-S7,55ec167
-mumtaz,MDD S8 EC.edf,MDD-S8,MDD,False,,,,not downloadable (HTTP 404),MDD-S8,55ec167
-mumtaz,MDD S9 EC.edf,MDD-S9,MDD,True,2013.0,300.0,73.0,,MDD-S9,55ec167
-mumtaz,MDD S10 EC.edf,MDD-S10,MDD,True,2013.0,301.0,74.0,,MDD-S10,55ec167
-mumtaz,MDD S11  EC.edf,MDD-S11,MDD,True,2013.0,299.0,73.0,,MDD-S11,55ec167
-mumtaz,MDD S12 EC.edf,MDD-S12,MDD,False,,,,not downloadable (HTTP 404),MDD-S12,55ec167
-mumtaz,MDD S13 EC.edf,MDD-S13,MDD,True,2013.0,300.0,73.0,,MDD-S13,55ec167
-mumtaz,MDD S14 EC.edf,MDD-S14,MDD,True,2013.0,300.0,71.0,,MDD-S14,55ec167
-mumtaz,MDD S15 EC.edf,MDD-S15,MDD,True,2013.0,300.0,66.0,,MDD-S15,55ec167
-mumtaz,MDD S16  EC.edf,MDD-S16,MDD,False,,,,not downloadable (HTTP 404),MDD-S16,55ec167
-mumtaz,MDD S17 EC.edf,MDD-S17,MDD,True,2013.0,297.0,71.0,,MDD-S17,55ec167
-mumtaz,MDD S18 EC.edf,MDD-S18,MDD,True,2013.0,300.0,72.0,,MDD-S18,55ec167
-mumtaz,MDD S19 EC.edf,MDD-S19,MDD,True,2013.0,299.0,73.0,,MDD-S19,55ec167
-mumtaz,MDD S20 EC.edf,MDD-S20,MDD,True,2013.0,299.0,63.0,,MDD-S20,55ec167
-mumtaz,MDD S21 EC.edf,MDD-S21,MDD,True,2013.0,300.0,72.0,,MDD-S21,55ec167
-mumtaz,MDD S22 EC.edf,MDD-S22,MDD,True,2013.0,297.0,72.0,,MDD-S22,55ec167
-mumtaz,MDD S23 EC.edf,MDD-S23,MDD,True,2013.0,303.0,73.0,,MDD-S23,55ec167
-mumtaz,MDD S24  EC.edf,MDD-S24,MDD,True,2013.0,301.0,74.0,,MDD-S24,55ec167
-mumtaz,MDD S25 EC.edf,MDD-S25,MDD,True,2013.0,300.0,70.0,,MDD-S25,55ec167
-mumtaz,MDD S26 EC.edf,MDD-S26,MDD,True,2013.0,300.0,72.0,,MDD-S26,55ec167
-mumtaz,MDD S27 EC.edf,MDD-S27,MDD,True,2013.0,301.0,74.0,,MDD-S27,55ec167
-mumtaz,MDD S28 EC.edf,MDD-S28,MDD,True,2013.0,301.0,65.0,,MDD-S28,55ec167
-mumtaz,MDD S29 EC.edf,MDD-S29,MDD,True,2013.0,300.0,73.0,,MDD-S29,55ec167
-mumtaz,MDD S30 EC.edf,MDD-S30,MDD,True,2013.0,241.0,59.0,,MDD-S30,55ec167
-mumtaz,MDD S31 EC.edf,MDD-S31,MDD,True,2013.0,302.0,74.0,,MDD-S31,55ec167
-mumtaz,MDD S32 EC.edf,MDD-S32,MDD,True,2013.0,299.0,69.0,,MDD-S32,55ec167
-mumtaz,MDD S33 EC.edf,MDD-S33,MDD,True,2013.0,298.0,67.0,,MDD-S33,55ec167
-mumtaz,MDD S34 EC.edf,MDD-S34,MDD,False,,,,byte-identical to MDD-S33,MDD-S34,55ec167
+mumtaz,H S1 EC.edf,H-S1,H,True,2011.0,300.0,71.0,,H-S1,8a4e066
+mumtaz,H S2 EC.edf,H-S2,H,True,2011.0,302.0,74.0,,H-S2,8a4e066
+mumtaz,H S3 EC.edf,H-S3,H,True,2011.0,301.0,74.0,,H-S3,8a4e066
+mumtaz,H S4 EC.edf,H-S4,H,True,2013.0,301.0,73.0,,H-S4,8a4e066
+mumtaz,H S5 EC.edf,H-S5,H,True,2013.0,303.0,74.0,,H-S5,8a4e066
+mumtaz,H S6 EC.edf,H-S6,H,True,2013.0,301.0,72.0,,H-S6,8a4e066
+mumtaz,H S7 EC.edf,H-S7,H,True,2011.0,356.0,74.0,,H-S7,8a4e066
+mumtaz,H S8 EC.edf,H-S8,H,True,2013.0,302.0,73.0,,H-S8,8a4e066
+mumtaz,H S9 EC.edf,H-S9,H,True,2013.0,301.0,74.0,,H-S9,8a4e066
+mumtaz,H S10 EC.edf,H-S10,H,True,2011.0,376.0,75.0,,H-S10,8a4e066
+mumtaz,H S11 EC.edf,H-S11,H,True,2011.0,300.0,72.0,,H-S11,8a4e066
+mumtaz,H S12 EC.edf,H-S12,H,False,,,,not downloadable (HTTP 404),H-S12,8a4e066
+mumtaz,H S13 EC.edf,H-S13,H,True,2013.0,300.0,72.0,,H-S13,8a4e066
+mumtaz,H S14 EC.edf,H-S14,H,True,2013.0,302.0,74.0,,H-S14,8a4e066
+mumtaz,H S15 EC.edf,H-S15,H,True,2013.0,300.0,73.0,,H-S15,8a4e066
+mumtaz,H S16 EC.edf,H-S16,H,True,2013.0,292.0,71.0,,H-S16,8a4e066
+mumtaz,H S17 EC.edf,H-S17,H,True,2011.0,309.0,75.0,,H-S17,8a4e066
+mumtaz,H S18 EC.edf,H-S18,H,False,,,,not downloadable (HTTP 404),H-S18,8a4e066
+mumtaz,H S19 EC.edf,H-S19,H,True,2013.0,300.0,67.0,,H-S19,8a4e066
+mumtaz,H S20 EC.edf,H-S20,H,True,2011.0,307.0,75.0,,H-S20,8a4e066
+mumtaz,H S21 EC.edf,H-S21,H,True,2013.0,301.0,74.0,,H-S21,8a4e066
+mumtaz,H S22 EC.edf,H-S22,H,True,2013.0,301.0,74.0,,H-S22,8a4e066
+mumtaz,H S23 EC.edf,H-S23,H,True,2013.0,302.0,60.0,,H-S23,8a4e066
+mumtaz,H S24 EC.edf,H-S24,H,True,2013.0,299.0,71.0,,H-S24,8a4e066
+mumtaz,H S25 EC.edf,H-S25,H,True,2013.0,301.0,74.0,,H-S25,8a4e066
+mumtaz,H S26 EC.edf,H-S26,H,True,2013.0,302.0,73.0,,H-S26,8a4e066
+mumtaz,H S27 EC.edf,H-S27,H,True,2013.0,300.0,73.0,,H-S27,8a4e066
+mumtaz,H S28 EC.edf,H-S28,H,True,2013.0,301.0,74.0,,H-S28,8a4e066
+mumtaz,H S29 EC.edf,H-S29,H,True,2011.0,303.0,74.0,,H-S29,8a4e066
+mumtaz,H S30 EC.edf,H-S30,H,False,,,,byte-identical to H-S27,H-S30,8a4e066
+mumtaz,MDD S1 EC.edf,MDD-S1,MDD,True,2013.0,303.0,42.0,,MDD-S1,8a4e066
+mumtaz,MDD S2  EC.edf,MDD-S2,MDD,True,2013.0,297.0,67.0,,MDD-S2,8a4e066
+mumtaz,MDD S3 EC.edf,MDD-S3,MDD,True,2013.0,180.0,43.0,,MDD-S3,8a4e066
+mumtaz,MDD S4 EC.edf,MDD-S4,MDD,False,,,,not downloadable (HTTP 404),MDD-S4,8a4e066
+mumtaz,MDD S5 EC.edf,MDD-S5,MDD,True,2013.0,302.0,73.0,,MDD-S5,8a4e066
+mumtaz,MDD S6 EC.edf,MDD-S6,MDD,True,2013.0,302.0,74.0,,MDD-S6,8a4e066
+mumtaz,MDD S7  EC.edf,MDD-S7,MDD,True,2013.0,300.0,68.0,,MDD-S7,8a4e066
+mumtaz,MDD S8 EC.edf,MDD-S8,MDD,False,,,,not downloadable (HTTP 404),MDD-S8,8a4e066
+mumtaz,MDD S9 EC.edf,MDD-S9,MDD,True,2013.0,300.0,73.0,,MDD-S9,8a4e066
+mumtaz,MDD S10 EC.edf,MDD-S10,MDD,True,2013.0,301.0,74.0,,MDD-S10,8a4e066
+mumtaz,MDD S11  EC.edf,MDD-S11,MDD,True,2013.0,299.0,73.0,,MDD-S11,8a4e066
+mumtaz,MDD S12 EC.edf,MDD-S12,MDD,False,,,,not downloadable (HTTP 404),MDD-S12,8a4e066
+mumtaz,MDD S13 EC.edf,MDD-S13,MDD,True,2013.0,300.0,73.0,,MDD-S13,8a4e066
+mumtaz,MDD S14 EC.edf,MDD-S14,MDD,True,2013.0,300.0,71.0,,MDD-S14,8a4e066
+mumtaz,MDD S15 EC.edf,MDD-S15,MDD,True,2013.0,300.0,66.0,,MDD-S15,8a4e066
+mumtaz,MDD S16  EC.edf,MDD-S16,MDD,False,,,,not downloadable (HTTP 404),MDD-S16,8a4e066
+mumtaz,MDD S17 EC.edf,MDD-S17,MDD,True,2013.0,297.0,71.0,,MDD-S17,8a4e066
+mumtaz,MDD S18 EC.edf,MDD-S18,MDD,True,2013.0,300.0,72.0,,MDD-S18,8a4e066
+mumtaz,MDD S19 EC.edf,MDD-S19,MDD,True,2013.0,299.0,73.0,,MDD-S19,8a4e066
+mumtaz,MDD S20 EC.edf,MDD-S20,MDD,True,2013.0,299.0,63.0,,MDD-S20,8a4e066
+mumtaz,MDD S21 EC.edf,MDD-S21,MDD,True,2013.0,300.0,72.0,,MDD-S21,8a4e066
+mumtaz,MDD S22 EC.edf,MDD-S22,MDD,True,2013.0,297.0,72.0,,MDD-S22,8a4e066
+mumtaz,MDD S23 EC.edf,MDD-S23,MDD,True,2013.0,303.0,73.0,,MDD-S23,8a4e066
+mumtaz,MDD S24  EC.edf,MDD-S24,MDD,True,2013.0,301.0,74.0,,MDD-S24,8a4e066
+mumtaz,MDD S25 EC.edf,MDD-S25,MDD,True,2013.0,300.0,70.0,,MDD-S25,8a4e066
+mumtaz,MDD S26 EC.edf,MDD-S26,MDD,True,2013.0,300.0,72.0,,MDD-S26,8a4e066
+mumtaz,MDD S27 EC.edf,MDD-S27,MDD,True,2013.0,301.0,74.0,,MDD-S27,8a4e066
+mumtaz,MDD S28 EC.edf,MDD-S28,MDD,True,2013.0,301.0,65.0,,MDD-S28,8a4e066
+mumtaz,MDD S29 EC.edf,MDD-S29,MDD,True,2013.0,300.0,73.0,,MDD-S29,8a4e066
+mumtaz,MDD S30 EC.edf,MDD-S30,MDD,True,2013.0,241.0,59.0,,MDD-S30,8a4e066
+mumtaz,MDD S31 EC.edf,MDD-S31,MDD,True,2013.0,302.0,74.0,,MDD-S31,8a4e066
+mumtaz,MDD S32 EC.edf,MDD-S32,MDD,True,2013.0,299.0,69.0,,MDD-S32,8a4e066
+mumtaz,MDD S33 EC.edf,MDD-S33,MDD,True,2013.0,298.0,67.0,,MDD-S33,8a4e066
+mumtaz,MDD S34 EC.edf,MDD-S34,MDD,False,,,,byte-identical to MDD-S33,MDD-S34,8a4e066

@@ -1,0 +1,7 @@
+task,channels,n,mean,ci_lo,ci_hi
+T1_ah_vs_sf,all_40,22,0.594632,0.56842,0.619513
+T1_ah_vs_sf,central_14,22,0.563907,0.529296,0.604018
+T1_ah_vs_sf,parieto_occipital_5,22,0.614949,0.566183,0.665459
+T3_sf_vs_rest,all_40,22,0.822489,0.767952,0.872821
+T3_sf_vs_rest,central_14,22,0.840451,0.790766,0.88538
+T3_sf_vs_rest,parieto_occipital_5,22,0.732378,0.67199,0.792243
