@@ -139,3 +139,33 @@ def subject_metrics(runs: list[RunReplay]) -> dict:
         "itr_bits_per_min": itr_bits_per_minute(p_correct),
         "command_switches": switches,
     }
+
+
+def any_imagery(proba: np.ndarray) -> np.ndarray:
+    """The one-switch view (added after the P08 results): P(rest) against P(AH) + P(SF)."""
+    return np.column_stack([proba[:, REST], proba[:, AH] + proba[:, SF]])
+
+
+def switch_metrics(runs: list[RunReplay]) -> dict:
+    """One-switch replay: an imagery period (AH or SF) is detected by any activation inside it;
+    false activations as in protocol §6b."""
+    n_img = hit = false = 0
+    rest_s, latency = 0.0, []
+    for run in runs:
+        acts, sf_ = run.activations, run.sfreq
+        for p in run.periods.itertuples():
+            inside = acts[_in(acts["sample"].to_numpy(), p.start, p.stop)]
+            if p.kind == "rest":
+                rest_s += (p.stop - p.start) / sf_
+                false += len(inside)
+            else:
+                n_img += 1
+                if len(inside):
+                    hit += 1
+                    latency.append((inside["sample"].iloc[0] - p.start) / sf_)
+    return {
+        "n_imagery_periods": n_img,
+        "imagery_detection_rate": hit / n_img if n_img else np.nan,
+        "false_per_minute": false / (rest_s / 60) if rest_s else np.nan,
+        "latency_s": float(np.median(latency)) if latency else np.nan,
+    }

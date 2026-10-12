@@ -67,3 +67,14 @@ def test_the_gate_is_reset_for_every_run():
     first = po.replay(sure_sf, gate)
     assert first[0] == 0 and first[-1] == 2  # dwell and smoothing delay the first command
     np.testing.assert_array_equal(po.replay(sure_sf, gate), first)
+
+
+def test_the_one_switch_view_merges_both_imagery_classes():
+    proba = np.array([[0.5, 0.3, 0.2], [0.1, 0.1, 0.8]])
+    np.testing.assert_allclose(po.any_imagery(proba), [[0.5, 0.5], [0.1, 0.9]])
+    per = pd.DataFrame(dict(kind=["rest", "AH", "rest", "SF"], start=[0, 2000, 3500, 5500],
+                            stop=[1750, 3500, 5250, 7000]))  # fmt: skip
+    acts = pd.DataFrame({"sample": [2600, 4000], "command": [1, 1]})
+    m = po.switch_metrics([po.RunReplay(per, acts, 250)])
+    assert m["imagery_detection_rate"] == 0.5 and m["latency_s"] == pytest.approx(2.4)
+    assert m["false_per_minute"] == pytest.approx(1 / (14 / 60))

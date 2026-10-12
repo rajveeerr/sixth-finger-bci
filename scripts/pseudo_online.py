@@ -31,6 +31,7 @@ from sixthfinger.paths import current_git_sha, get_paths
 log = logging.getLogger("pseudo_online")
 EXPERIMENT = "rq4_pseudo_online"
 FLAGGED = ("sub-01", "sub-03")
+SFREQ = 250.0  # the processed runs' rate; run_signal refuses any other
 METHOD_ORDER = ["csp_lda", "ts_lr", "rct_tslr", "eegnet_scratch"]
 
 
@@ -107,6 +108,25 @@ def demo_subject(paths) -> str:
     return g.loc[(g.bal_acc - g.bal_acc.median()).abs().idxmin(), "subject"]
 
 
+def one_switch(rows: pd.DataFrame, gate_cls) -> pd.DataFrame:
+    """Added after the P08 results: the same decoders and gate on P(rest) against
+    P(AH) + P(SF), replayed from the stored probabilities; any imagery period counts."""
+    out = []
+    for r in rows.itertuples():
+        stem = replay_dir() / f"{r.subject}_{r.method}"
+        tl = pd.read_parquet(f"{stem}_timeline.parquet")
+        per = pd.read_parquet(f"{stem}_periods.parquet")
+        runs = []
+        for run, g in tl.groupby("run"):
+            proba = po.any_imagery(g[["p_rest", "p_ah", "p_sf"]].to_numpy())
+            ends = np.rint(g.t.to_numpy() * SFREQ).astype(int)
+            acts = po.activations(po.replay(proba, gate_cls), ends)
+            runs.append(po.RunReplay(per[per.run == run], acts, SFREQ))
+        out.append(dict(subject=r.subject, method=r.method, flagged=r.flagged,
+                        **po.switch_metrics(runs)))  # fmt: skip
+    return pd.DataFrame(out)
+
+
 def summarise() -> None:
     paths = get_paths()
     rows = pd.concat([pd.read_parquet(f) for f in sorted(replay_dir().glob("*_metrics.parquet"))])
@@ -127,6 +147,17 @@ def summarise() -> None:
                               median=float(np.median(v)) if len(v) else np.nan))  # fmt: skip
     pd.DataFrame(table).to_csv(summary / "rq4_pseudo_online_table.csv", index=False,
                                float_format="%.6g")  # fmt: skip
+    switch = one_switch(rows, po.load_gate_class())
+    switch.to_csv(summary / "rq4_pseudo_online_switch.csv", index=False, float_format="%.6g")
+    st = []
+    for method, g in switch.groupby("method"):
+        for metric in ("imagery_detection_rate", "false_per_minute", "latency_s"):
+            mean, lo, hi = bootstrap_ci(g[metric].dropna().to_numpy())
+            st.append(dict(method=method, metric=metric, n=int(g[metric].notna().sum()),
+                           mean=mean, ci_lo=lo, ci_hi=hi))  # fmt: skip
+    pd.DataFrame(st).to_csv(summary / "rq4_pseudo_online_switch_table.csv", index=False,
+                            float_format="%.6g")  # fmt: skip
+    print(pd.DataFrame(st).to_string(index=False))
     repro = reproduction(paths)
     repro.to_csv(summary / "rq4_pseudo_online_repro.csv", index=False, float_format="%.3g")
     print(repro.to_string(index=False))
