@@ -57,7 +57,9 @@ def assign_trials(codes: list[str]) -> list[int]:
     return out
 
 
-def cut_run(path: Path, cfg: DataConfig) -> tuple[list, list[dict]]:
+def run_signal(path: Path, cfg: DataConfig):
+    """A run's continuous signal as the windows are cut from it: kept channels, volts, CAR40
+    if configured. Returns (data, record); the pseudo-online replay (P09) reads runs here."""
     rec = read_eeglab_mat(path)
     if rec.sfreq != cfg.signal.sfreq:
         raise ValueError(f"{path.name}: sfreq {rec.sfreq} != config {cfg.signal.sfreq}")
@@ -65,6 +67,11 @@ def cut_run(path: Path, cfg: DataConfig) -> tuple[list, list[dict]]:
     data = rec.data_uv[idx].astype(np.float32) * np.float32(cfg.signal.scale_to_volts)
     if cfg.signal.car40:
         data -= data.mean(axis=0, keepdims=True)
+    return data, rec
+
+
+def cut_run(path: Path, cfg: DataConfig) -> tuple[list, list[dict]]:
+    data, rec = run_signal(path, cfg)
     sf = rec.sfreq
     start_off = round(cfg.window.tmin * sf)
     n_times = cfg.n_times

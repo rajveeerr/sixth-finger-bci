@@ -9,7 +9,7 @@ import math
 import subprocess
 import time
 from collections import defaultdict
-from collections.abc import Iterable, Iterator
+from collections.abc import Callable, Iterable, Iterator
 from dataclasses import dataclass, field, replace
 from datetime import UTC, datetime
 from functools import partial
@@ -260,6 +260,8 @@ class RunContext:
     base_hash: str
     processed: Path | None = None
     store: object | None = None  # CovarianceStore when a method reads covariances
+    # Called with (unit key, fitted method) after every calibration fit (P09 pseudo-online).
+    on_fitted: Callable | None = None
     models_dir: Path | None = None
 
     def skip(self, key: dict) -> bool:
@@ -376,6 +378,7 @@ def run_experiment(
     processed_dir: Path | None = None,
     data_cfg: DataConfig | None = None,
     proto: ProtocolConfig | None = None,
+    on_fitted: Callable | None = None,
 ) -> Path:
     """Run every unit of the experiment that is not in its scores file yet; return the file.
 
@@ -445,6 +448,7 @@ def run_experiment(
         processed=processed_dir or paths.processed,
         store=store,
         models_dir=paths.models / "pretrained",
+        on_fitted=on_fitted,
     )
     _refuse_changed_settings(ctx, out_path)
     log.info("%s: %d units already in %s", exp.name, len(ctx.done), out_path)
@@ -920,6 +924,8 @@ class _CalibUnit:
         try:
             method = self._fitted(train_md, unl_md, src, draw)
             fit_seconds = time.perf_counter() - t0
+            if ctx.on_fitted is not None:
+                ctx.on_fitted(key, method)
             proba = self._predict(method, self.test)
             said_ah = self._predict(method, self.ah_test) if len(self.ah_test) else None
         except UndefinedCell as err:

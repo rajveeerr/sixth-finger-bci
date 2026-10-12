@@ -1,0 +1,13 @@
+# P09 Study 4: the decoders of the pseudo-online replay (protocol §6b). S1, three-class, pre,
+# k = all, fitted by the same runner as rq2_calib_s1, so each trial-locked row must equal P08's.
+# scripts/pseudo_online.py runs it with a hook that replays runs 03-04 through the command gate.
+name: rq4_pseudo_online
+protocol: calibration
+tasks: [T2_rest_ah_sf]
+sessions: [pre]
+subjects: all
+scenarios: [S1_new_user]
+methods: [csp_lda, ts_lr, rct_tslr, eegnet_scratch]
+k_grid: [20]
+draws: from_protocol
+mirror: false
