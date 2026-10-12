@@ -1,7 +1,8 @@
-import { decidedKind, isRight, labelOf } from "../decision";
+import { decidedKind, isRight } from "../decision";
 import { RECENT, useDemo, type View } from "../store";
 import type { Prediction } from "../stream/types";
-import { Plate } from "./Plate";
+import { Lamp } from "./Lamp";
+import { Panel } from "./Panel";
 
 const SOURCE_TEXT: Record<Prediction["source"], string> = {
   server: "Decided on the server",
@@ -9,104 +10,105 @@ const SOURCE_TEXT: Record<Prediction["source"], string> = {
   replay: "Stored by the same model",
 };
 
-const VIEW_NOTE: Record<View, string> = {
-  three: "The three commands it was trained on.",
-  switch: "Any imagined movement flexes the finger: the use our results support.",
+/** What each class is called on screen, in plain words. */
+const SAY: Record<string, string> = {
+  rest: "Rest",
+  affected_hand: "Hand",
+  sixth_finger: "Sixth finger",
+  imagery: "Move",
+};
+const TOLD: Record<string, string> = {
+  rest: "Rest",
+  affected_hand: "Imagine moving the hand",
+  sixth_finger: "Imagine moving the sixth finger",
 };
 
-/** Fig. 3: the decision of the last window, in the chosen view, against the cue the patient saw. */
+/** Step 3: the model's decision on the last 4 s, against what the patient was told. */
 export function PredictionCard() {
   const { lastPrediction: p, recent, classes, view, correct, total, switchCorrect, switchTotal, setView } = useDemo();
   const decided = p ? decidedKind(p, view, classes) : null;
   const right = p ? isRight(p, view, classes) : null;
   const probs = p ? (p.smoothed ?? p.probs) : [];
-  const bars =
+  const lamps =
     view === "three"
-      ? classes.map((c, i) => ({ key: c.name, label: c.label, value: probs[i] ?? 0 }))
+      ? classes.map((c, i) => ({ key: c.name, value: probs[i] ?? 0 }))
       : [
-          { key: classes[0]?.name ?? "rest", label: "Rest", value: probs[0] ?? 0 },
-          { key: "imagery", label: "Any imagery", value: (probs[1] ?? 0) + (probs[2] ?? 0) },
+          { key: classes[0]?.name ?? "rest", value: probs[0] ?? 0 },
+          { key: "imagery", value: (probs[1] ?? 0) + (probs[2] ?? 0) },
         ];
   const tally =
     view === "three"
       ? total
-        ? `${correct} of ${total} imagery cues right`
-        : "No imagery cue yet"
+        ? `${correct} of ${total} imagined movements read right`
+        : "No imagined movement yet"
       : switchTotal
         ? `${switchCorrect} of ${switchTotal} windows right, rest and imagery`
-        : "No window yet";
-  const provenance = p ? `${SOURCE_TEXT[p.source]}${p.experimental ? ", continuous" : ""}` : "";
-  const latency = p && p.source !== "replay" ? `${p.latency_ms.toFixed(1)} ms` : "";
+        : "No decision yet";
   return (
-    <Plate
-      fig={3}
-      title="What the decoder read"
-      hint={provenance}
-      readout={latency}
-      className="plate-decision"
+    <Panel
+      step={3}
+      title="What the model decided"
+      note="every 4 s"
+      className="panel-decision"
       testId="prediction"
       data={{ "data-label": decided ?? "", "data-view": view }}
-    >
-      <section className="readout">
-        <div className="readout-group">
-          <div className="segmented" role="radiogroup" aria-label="How the decoder is used">
+      foot={
+        <>
+          <span>
+            {p ? SOURCE_TEXT[p.source] : ""}
+            {p && p.source !== "replay" ? `, ${p.latency_ms.toFixed(0)} ms` : ""}
+          </span>
+          <span className="segmented" role="radiogroup" aria-label="How the decision is used">
             {(["three", "switch"] as View[]).map((v) => (
-              <button
-                key={v}
-                role="radio"
-                aria-checked={view === v}
-                className={view === v ? "on" : ""}
-                onClick={() => setView(v)}
-              >
-                {v === "three" ? "Three commands" : "One switch"}
+              <button key={v} role="radio" aria-checked={view === v} className={view === v ? "on" : ""}
+                onClick={() => setView(v)}>
+                {v === "three" ? "Three choices" : "On/off switch"}
               </button>
             ))}
-          </div>
-          <p className="view-note">{VIEW_NOTE[view]}</p>
+          </span>
+        </>
+      }
+    >
+      <dl className="verdict">
+        <div className="verdict-row">
+          <dt>The patient was told</dt>
+          <dd className="told" data-kind={p?.truth ?? ""}>
+            {p ? (TOLD[p.truth ?? ""] ?? "") : "…"}
+          </dd>
         </div>
-        <div className="readout-group">
-          <p className="decision" data-kind={decided ?? "none"} aria-live="polite">
-            {p ? labelOf(classes, decided) : "Waiting for the first 4 s window"}
-          </p>
-          <dl className="bars">
-            {bars.map((b) => (
-              <div key={b.key} className="bar" data-kind={b.key} data-top={b.key === decided ? "" : undefined}>
-                <dt>{b.label}</dt>
-                <dd>
-                  <span className="track">
-                    <span className="fill" style={{ transform: `scaleX(${b.value})` }} />
-                  </span>
-                  <span className="pct">{Math.round(b.value * 100)}%</span>
-                </dd>
-              </div>
-            ))}
-          </dl>
-        </div>
-        <div className="readout-group">
-          {p && (
-            <p className="cue" data-correct={right === null ? "" : String(right)}>
-              <span className="cue-told">
-                Asked to {p.truth === classes[0]?.name ? "rest" : `imagine ${labelOf(classes, p.truth).toLowerCase()}`}
+        <div className="verdict-row">
+          <dt>The model read</dt>
+          <dd className="decision" data-kind={decided ?? "none"} aria-live="polite">
+            {p ? (SAY[decided ?? ""] ?? decided) : "Waiting for the first 4 s"}
+            {right !== null && (
+              <span className="mark" data-right={String(right)}>
+                {right ? "✓ right" : "✗ wrong"}
               </span>
-              {right !== null && <span className="mark">{right ? "✓ right" : "✗ wrong"}</span>}
-            </p>
-          )}
-          <div className="recent">
-            <ol aria-label="The last decisions, oldest first">
-              {Array.from({ length: RECENT }, (_, i) => {
-                const d = recent[recent.length - RECENT + i];
-                if (!d) return <li key={i} className="empty" />;
-                const r = isRight(d, view, classes);
-                return (
-                  <li key={i} data-kind={decidedKind(d, view, classes)} data-right={String(r)}
-                    title={`${labelOf(classes, decidedKind(d, view, classes))}, ${r ? "right" : "wrong"}`} />
-                );
-              })}
-            </ol>
-            <span className="tally">{tally}</span>
-          </div>
+            )}
+          </dd>
         </div>
-      </section>
-    </Plate>
+      </dl>
+      <ol className="lamps" aria-label="How sure the model is of each choice">
+        {lamps.map((l) => (
+          <li key={l.key} data-kind={l.key} data-on={l.key === decided ? "" : undefined}>
+            <Lamp kind={l.key} on={l.key === decided} />
+            <span className="lamp-name">{SAY[l.key] ?? l.key}</span>
+            <span className="lamp-pct">{Math.round(l.value * 100)}%</span>
+          </li>
+        ))}
+      </ol>
+      <div className="recent">
+        <ol aria-label="The last decisions, oldest first">
+          {Array.from({ length: RECENT }, (_, i) => {
+            const d = recent[recent.length - RECENT + i];
+            if (!d) return <li key={i} className="empty" />;
+            const r = isRight(d, view, classes);
+            const k = decidedKind(d, view, classes);
+            return <li key={i} data-kind={k} data-right={String(r)} title={`${SAY[k] ?? k}, ${r ? "right" : "wrong"}`} />;
+          })}
+        </ol>
+        <span className="tally">{tally}</span>
+      </div>
+    </Panel>
   );
 }

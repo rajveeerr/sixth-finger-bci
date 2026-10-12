@@ -1,11 +1,11 @@
 import type { DemoSource } from "./types";
 
 const LABELS: Record<DemoSource, string> = {
-  connecting: "Connecting to the server",
-  server: "Decoding on the server",
-  "loading-browser": "Loading the model in this browser",
-  browser: "Decoding in this browser",
-  replay: "Replaying stored decisions",
+  connecting: "Connecting",
+  server: "Model running on the server",
+  "loading-browser": "Loading the model",
+  browser: "Model running in this browser",
+  replay: "Showing stored decisions",
 };
 
 export function ModeBadge({ source }: { source: DemoSource }) {
