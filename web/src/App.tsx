@@ -13,7 +13,7 @@ import { useDemoStream } from "./stream/useDemoStream";
 const COMMAND_TEXT: Record<string, string> = {
   IDLE: "keep still",
   HAND_GRASP: "close the hand",
-  SIXTH_FINGER_FLEX: "bend the sixth finger",
+  SIXTH_FINGER_FLEX: "bend the finger",
 };
 
 export default function App() {
@@ -75,7 +75,7 @@ export default function App() {
                 {manual ? "Test pose " : ""}
                 {command}: {COMMAND_TEXT[command]}
               </span>
-              <span>Keys 1, 2, 3 test it</span>
+              <span className="muted">keys 1, 2, 3 test it</span>
             </>
           }
         >
