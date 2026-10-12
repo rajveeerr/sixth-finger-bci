@@ -1,0 +1,9 @@
+dataset,pipeline,protocol,n_segments,auc
+mumtaz,bp_lr,segment_cv,3950,0.993966
+mumtaz,bp_lr,subject_cv,3950,0.887575
+mumtaz,ts_lr,segment_cv,3950,0.997921
+mumtaz,ts_lr,subject_cv,3950,0.839077
+modma,bp_lr,segment_cv,3484,0.930251
+modma,bp_lr,subject_cv,3484,0.519686
+modma,ts_lr,segment_cv,3484,0.977071
+modma,ts_lr,subject_cv,3484,0.50314
