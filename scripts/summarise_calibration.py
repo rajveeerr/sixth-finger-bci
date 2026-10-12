@@ -395,6 +395,14 @@ def nosignal(runs: Path) -> pd.DataFrame:
     return g.assign(passes=(g.mean_bal_acc - g.chance).abs() <= g.tolerance)
 
 
+def demo_method(cur: pd.DataFrame) -> pd.DataFrame:
+    """Protocol 10: the highest group mean, S1, T2, k = all, pre (descriptive, not a test)."""
+    g = cur[(cur.scenario == S1) & (cur.task == T2) & (cur.session == "pre")
+            & (cur.population == "all") & (cur.k == max(cur.k))]  # fmt: skip
+    g = g.sort_values("mean", ascending=False)[["method", "mean", "ci_lo", "ci_hi", "n"]]
+    return g.assign(demo_method=[True] + [False] * (len(g) - 1))
+
+
 # Figures -------------------------------------------------------------------------------------
 
 COLOURS = {"ts_lr": "#1f77b4", "rct_tslr": "#d62728", "csp_lda": "#9467bd", "mdm": "#8c564b",
@@ -557,6 +565,7 @@ def main() -> None:
         ("calib_sanity_vs_p06", sanity_vs_p06(values, paths.runs)),
         ("calib_zeroshot_check", zero_shot_check(values, summary)),
         ("calib_nosignal", nosignal(paths.runs)),
+        ("calib_demo_method", demo_method(cur)),
     ):
         if len(table):
             table.to_csv(summary / f"{name}.csv", index=False, float_format="%.6g")
