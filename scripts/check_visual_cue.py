@@ -17,7 +17,7 @@ import pandas as pd
 from sixthfinger.config import load_data_config
 from sixthfinger.data.epochs import load_windows
 from sixthfinger.evaluation.metrics import score
-from sixthfinger.evaluation.runner import method_params, task_windows
+from sixthfinger.evaluation.runner import method_params
 from sixthfinger.evaluation.stats import bootstrap_ci
 from sixthfinger.models.registry import Batch, make_method
 from sixthfinger.paths import current_git_sha, get_paths
@@ -32,8 +32,9 @@ TASKS = {"T3_sf_vs_rest": [0, 2], "T1_ah_vs_sf": [1, 2]}
 
 
 def decode(X, md: pd.DataFrame, classes: list[int], channels: list[int] | None) -> float:
-    pool, test = md[md.run.isin([1, 2])], md[md.run.isin([3, 4])]
-    train, test = task_windows(pool, classes), task_windows(test, classes)
+    # P06's within-session rule: every window whose label is one of the task's classes.
+    rows = md[md.label.isin(classes)]
+    train, test = rows[rows.run.isin([1, 2])], rows[rows.run.isin([3, 4])]
     Xc = X if channels is None else X[:, channels]
     m = make_method("ts_lr", n_classes=2, **method_params("ts_lr", get_paths().configs))
     m.fit(Batch(Xc[train.index], train.label.to_numpy(), train))
