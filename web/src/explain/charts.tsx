@@ -67,7 +67,7 @@ export function DotStrip({
 }) {
   const [ref, w] = useWidth<HTMLDivElement>();
   const labelled = rows.some((r) => r.label) && w >= 520;
-  const left = labelled ? 120 : 4;
+  const left = labelled ? 190 : 4;
   const right = w - 10;
   const rowH = rows.length > 1 ? 62 : 70;
   const top = 26;
@@ -195,10 +195,21 @@ export interface Series {
 }
 
 /** Accuracy against setup time, with the 95% interval as a faint band. */
-export function Curves({ series, guess, label }: { series: Series[]; guess: number; label: string }) {
+export function Curves({
+  series,
+  guess,
+  label,
+  reach,
+}: {
+  series: Series[];
+  guess: number;
+  label: string;
+  /** Mark how long the second series takes to reach the first series' first value. */
+  reach?: { minutes: number; text: string };
+}) {
   const [ref, w] = useWidth<HTMLDivElement>();
   const h = 240;
-  const left = 40;
+  const left = 78;
   const right = w - 8;
   const top = 14;
   const bottom = h - 42;
@@ -210,7 +221,7 @@ export function Curves({ series, guess, label }: { series: Series[]; guess: numb
         {[0.4, 0.5, 0.6, 0.7].map((t) => (
           <g key={t}>
             <line x1={left} x2={right} y1={y(t)} y2={y(t)} className="chart-grid" />
-            <text x={left - 8} y={y(t) + 4} textAnchor="end" className="chart-tick">
+            <text x={left - 44} y={y(t) + 4} textAnchor="end" className="chart-tick">
               {pct(t)}
             </text>
           </g>
@@ -226,8 +237,17 @@ export function Curves({ series, guess, label }: { series: Series[]; guess: numb
           </text>
         ))}
         <text x={(left + right) / 2} y={bottom + 36} textAnchor="middle" className="chart-tick">
-          minutes of setup with the new patient
+          minutes the new patient spends on practice trials
         </text>
+        {reach && series[0] && (
+          <g className="chart-reach">
+            <line x1={x(series[0].points[0].x)} x2={x(reach.minutes)} y1={y(series[0].points[0].y)} y2={y(series[0].points[0].y)} />
+            <line x1={x(reach.minutes)} x2={x(reach.minutes)} y1={y(series[0].points[0].y)} y2={bottom} />
+            <text x={x(reach.minutes) + 6} y={bottom - 8} className="chart-italic">
+              {reach.text}
+            </text>
+          </g>
+        )}
         {series.map((s) => {
           const band =
             s.points.map((p, i) => `${i ? "L" : "M"}${x(p.x)} ${y(p.hi)}`).join("") +
@@ -242,6 +262,9 @@ export function Curves({ series, guess, label }: { series: Series[]; guess: numb
               {s.points.map((p) => (
                 <circle key={p.x} cx={x(p.x)} cy={y(p.y)} r={3} className="chart-point" />
               ))}
+              <text x={x(first.x) - 6} y={y(first.y) + 4} textAnchor="end" className="chart-value">
+                {pct(first.y)}
+              </text>
               <text x={x(first.x) + 10} y={y(first.y) + (s.muted ? 20 : -12)} className="chart-row">
                 {s.label}
               </text>
@@ -249,6 +272,35 @@ export function Curves({ series, guess, label }: { series: Series[]; guess: numb
           );
         })}
       </svg>
+    </div>
+  );
+}
+
+export interface BarRow {
+  label: string;
+  value: number;
+  strong?: boolean;
+}
+
+/** A few labelled bars on one scale, with where guessing lands. */
+export function Bars({ rows, guess, label }: { rows: BarRow[]; guess?: number; label: string }) {
+  return (
+    <div className="hbars" role="img" aria-label={label}>
+      {rows.map((r) => (
+        <div key={r.label} className="hbar" data-strong={r.strong ? "" : undefined}>
+          <span className="hbar-label">{r.label}</span>
+          <span className="hbar-track">
+            <span className="hbar-fill" style={{ width: pct(r.value) }} />
+            {guess !== undefined && <span className="hbar-guess" style={{ left: pct(guess) }} />}
+          </span>
+          <span className="hbar-value">{pct(r.value)}</span>
+        </div>
+      ))}
+      {guess !== undefined && (
+        <p className="hbar-note">
+          <span className="hbar-guess-key" /> guessing, {pct(guess)}
+        </p>
+      )}
     </div>
   );
 }

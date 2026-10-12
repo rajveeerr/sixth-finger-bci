@@ -24,7 +24,7 @@ const a0 = (AZIMUTH * Math.PI) / 180;
 const POSE: HeadPose = {
   origin: [HEAD.cx, HEAD.cy, TOP + 18 - HEAD_CUT * HEAD_SCALE],
   scale: HEAD_SCALE,
-  nose: [Math.cos(a0) * 0.6 - Math.sin(a0) * 0.8, Math.sin(a0) * 0.6 + Math.cos(a0) * 0.8],
+  nose: [Math.cos(a0) * 0.3 - Math.sin(a0) * 0.95, Math.sin(a0) * 0.3 + Math.cos(a0) * 0.95],
   cutMm: HEAD_CUT,
 };
 

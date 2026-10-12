@@ -1,4 +1,4 @@
-import { Curves, DotStrip, Slope } from "../charts";
+import { Bars, Curves, DotStrip, Slope } from "../charts";
 import { data } from "../data";
 import { FINDINGS, type Finding } from "../findings";
 import { Gauge } from "./Gauge";
@@ -30,7 +30,7 @@ function Evidence({ f }: { f: Finding }) {
         band={{ from: L.published[0], to: L.published[1], text: "published" }}
         labels={[
           <>
-            <b>The old way</b> test trials seen in training
+            <b>The published way</b> test trials used in building it
           </>,
           <>
             <b>Tested fairly</b> test trials kept apart
@@ -49,7 +49,22 @@ function Evidence({ f }: { f: Finding }) {
           { label: "From scratch", points: toSeries(data.calibration.scratch), muted: true },
         ]}
         guess={1 / 3}
-        label="Accuracy against minutes of setup, starting from other patients and from scratch"
+        reach={{ minutes: data.calibration.scratch.find((p) => p.mean >= data.calibration.transfer[0].mean - 0.005)?.minutes ?? 4.7, text: "from scratch reaches it here" }}
+        label="Accuracy against minutes of practice, starting from other patients and from scratch"
+      />
+    );
+  }
+  if (f.key === "later") {
+    const L = data.later;
+    return (
+      <Bars
+        rows={[
+          { label: "Same day as it was built", value: L.same_session },
+          { label: "Two weeks later, as it was", value: L.post.as_is.mean, strong: true },
+          { label: "Two weeks later, after 5 practice trials of each movement", value: L.post.re_setup.mean },
+        ]}
+        guess={1 / 3}
+        label="Accuracy of the first session's model on the same day, two weeks later, and after a re-setup"
       />
     );
   }
@@ -80,6 +95,7 @@ export function ResultsGauges() {
         <li key={f.key} className="finding">
           <Gauge value={f.value} other={f.other?.value} guess={f.guess} label={`${f.question} ${pct(f.value)}`} />
           <div className="finding-text">
+            <p className="finding-kicker">Question {f.answers}</p>
             <h3 className="finding-q">{f.question}</h3>
             <p className="finding-a">
               <em>{f.lead}</em> {f.answer}

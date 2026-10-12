@@ -50,36 +50,55 @@ export function BrainRhythm() {
     for (const [x, y] of K.corners(PAPER, 0)) out.push(K.solidSvg(K.cylinder(x, y, 4, TOP, 3, P, 16), { tone: "hi" }));
     return out.join("");
   }, [fall]);
+  const fmt = (v: number) => `${v < 0 ? "−" : v > 0 ? "+" : ""}${Math.abs(Math.round(v * 100))}%`;
   return (
-    <Plate
-      title="The rhythm, resting and imagining"
-      hint="The drawing shows the effect. Under it, one dot per patient: how much their rhythm fell."
-      readout={`Smaller in 22 of 22 patients for the sixth finger, by ${Math.round(-data.erd.sixth_finger.mean)}% on average`}
-      caption={
-        <>
-          The rhythm runs at 8 to 13 waves a second. While these patients imagined moving, it got{" "}
-          <strong>about a third smaller</strong>, in every one of them for the sixth finger.
-        </>
-      }
-    >
-      <svg className="iso-svg rhythm-svg dotted" viewBox={`0 0 ${W} ${H}`} role="img" aria-label="A brain rhythm that gets smaller after the cue">
-        <g dangerouslySetInnerHTML={{ __html: svg }} />
-      </svg>
-      <div className="rhythm-labels">
-        <span>Resting</span>
-        <span>Imagining the movement</span>
-      </div>
-      <DotStrip
-        rows={[
-          { label: "Hand", values: data.erd.affected_hand.values.map((v) => v / 100), mean: data.erd.affected_hand.mean / 100, colour: "var(--hand)" },
-          { label: "Sixth finger", values: data.erd.sixth_finger.values.map((v) => v / 100), mean: data.erd.sixth_finger.mean / 100, colour: "var(--sixth)" },
-        ]}
-        domain={[-0.8, 0.2]}
-        ticks={[-0.8, -0.6, -0.4, -0.2, 0, 0.2]}
-        format={(v) => `${v < 0 ? "−" : v > 0 ? "+" : ""}${Math.abs(Math.round(v * 100))}%`}
-        marker={{ at: 0, text: "no change" }}
-        label="How much the rhythm fell in each patient, imagining the hand and the sixth finger"
-      />
-    </Plate>
+    <>
+      <Plate
+        title="The rhythm, before and during imagining"
+        hint="A drawing of the effect. Left of the dashed line the patient is resting; right of it, imagining the movement."
+        caption={
+          <>
+            Over the part of the brain that moves the hands, the EEG carries a rhythm of 8 to 13 waves a second. When
+            the patient starts to imagine moving, <mark>the rhythm gets smaller</mark>. That drop is what the model
+            learns to spot.
+          </>
+        }
+      >
+        <svg className="iso-svg rhythm-svg dotted" viewBox={`0 0 ${W} ${H}`} role="img" aria-label="A brain rhythm that gets smaller after the cue">
+          <g dangerouslySetInnerHTML={{ __html: svg }} />
+        </svg>
+        <div className="rhythm-labels">
+          <span>Resting</span>
+          <span>Imagining the movement</span>
+        </div>
+      </Plate>
+      <Plate
+        title="Measured in every patient"
+        hint="Each dot is one patient: how much smaller their rhythm was while imagining than in the second before the cue. Left of the dashed line means smaller."
+        readout={`Smaller in 22 of 22 patients for the sixth finger, by ${Math.round(-data.erd.sixth_finger.mean)}% on average.`}
+      >
+        <DotStrip
+          rows={[
+            {
+              label: "Imagining the hand",
+              values: data.erd.affected_hand.values.map((v) => v / 100),
+              mean: data.erd.affected_hand.mean / 100,
+              colour: "var(--hand)",
+            },
+            {
+              label: "Imagining the sixth finger",
+              values: data.erd.sixth_finger.values.map((v) => v / 100),
+              mean: data.erd.sixth_finger.mean / 100,
+              colour: "var(--sixth)",
+            },
+          ]}
+          domain={[-0.8, 0.2]}
+          ticks={[-0.8, -0.6, -0.4, -0.2, 0, 0.2]}
+          format={fmt}
+          marker={{ at: 0, text: "no change" }}
+          label="How much smaller the rhythm got in each patient while imagining the hand and the sixth finger"
+        />
+      </Plate>
+    </>
   );
 }

@@ -3,8 +3,9 @@ import { PHASE_CODES, eegBuffer, type EegRing } from "../stream/eegBuffer";
 
 // The brain signal, kept to what a first-time viewer can follow: three sensors over the
 // hand area (left, middle, right of the head), the last 8 s, newest on the right. While
-// the patient imagines, the paper is faintly tinted; the 4 s piece the model read last is
-// boxed, with its reading on the box. Drawn at most 30 times a second, and only when
+// the patient imagines, the paper is faintly tinted. New signal comes in at the right edge
+// and moves left through a fixed frame over the newest 4 s, which is what the model reads;
+// each reading stamps the frame and the stamp moves on with the paper. Drawn at most 30 times a second, and only when
 // something changed (no React state per sample).
 
 const SHOWN = ["C3", "Cz", "C4"];
@@ -104,33 +105,53 @@ export function paint(ctx: CanvasRenderingContext2D, ring: EegRing, w: number, h
     ctx.stroke();
   });
 
-  // The 4 s the model read last: a box over the traces, its reading on a tab.
+  // The reading frame: fixed over the newest 4 s at the right, where the signal comes in.
+  // When the model reads, the frame is stamped with its reading and the stamp travels left
+  // with the paper; older stamps fade as they go.
   const first = ring.total - ring.filled;
-  const m = ring.marks[ring.marks.length - 1];
-  if (m) {
+  const winLen = ring.marks[ring.marks.length - 1]?.len ?? Math.round(4 * ring.sfreq);
+  const right = labelW + plotW;
+  const fx0 = right - winLen * step;
+  const newest = ring.marks[ring.marks.length - 1];
+  const justRead = newest && ring.total - newest.end < ring.sfreq * 1.2;
+  ctx.font = FONT;
+  ctx.textAlign = "left";
+  ring.marks.forEach((m, j) => {
     const x1 = xOf(m.end - first);
     const x0 = Math.max(xOf(m.end - m.len - first), labelW);
-    if (x1 > labelW + 20) {
-      const read = ring.view === "switch" ? m.switch : m.three;
-      const colour = KIND_COLOUR[read.kind] ?? INK;
-      ctx.strokeStyle = colour;
-      ctx.lineWidth = 1.5;
-      roundRect(ctx, x0, top - 6, x1 - x0, plotH + 4, 6);
-      ctx.stroke();
-      const text = `Model read: ${SAY[read.kind] ?? read.kind} ${read.right === null ? "" : read.right ? "✓" : "✗"}`;
-      ctx.font = FONT;
-      const tw = ctx.measureText(text).width + 16;
-      const tx = Math.min(x0, w - tw - 2);
-      ctx.fillStyle = colour;
-      roundRect(ctx, tx, top - 32, tw, 22, 5);
-      ctx.fill();
-      ctx.fillStyle = "#ffffff";
-      ctx.textAlign = "left";
-      ctx.fillText(text, tx + 8, top - 21);
-    }
+    if (x1 < labelW + 20) return;
+    const read = ring.view === "switch" ? m.switch : m.three;
+    const colour = KIND_COLOUR[read.kind] ?? INK;
+    const age = ring.marks.length - 1 - j;
+    ctx.globalAlpha = age === 0 ? 1 : 0.45;
+    ctx.strokeStyle = colour;
+    ctx.lineWidth = 1.5;
+    roundRect(ctx, x0, top - 6, x1 - x0, plotH + 4, 6);
+    ctx.stroke();
+    const text = `${age === 0 && justRead ? "Model read: " : ""}${SAY[read.kind] ?? read.kind} ${read.right === null ? "" : read.right ? "✓" : "✗"}`;
+    const tw = ctx.measureText(text).width + 16;
+    const tx = Math.min(x0, w - tw - 2);
+    ctx.fillStyle = colour;
+    roundRect(ctx, tx, top - 32, tw, 22, 5);
+    ctx.fill();
+    ctx.fillStyle = "#ffffff";
+    ctx.fillText(text, tx + 8, top - 21);
+    ctx.globalAlpha = 1;
+  });
+  if (!justRead) {
+    ctx.setLineDash([4, 4]);
+    ctx.strokeStyle = MUTED;
+    ctx.lineWidth = 1.2;
+    roundRect(ctx, fx0, top - 6, right - fx0, plotH + 4, 6);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = MUTED;
+    ctx.textAlign = "right";
+    ctx.fillText("The model reads the newest 4 s", right, top - 21);
+    ctx.textAlign = "left";
   }
 
-  // Now, at the right edge; 1 second of time at the bottom left.
+  // Where the signal comes in, and 1 second of time.
   ctx.font = SMALL;
   ctx.fillStyle = MUTED;
   if (ring.filled) {
@@ -139,7 +160,14 @@ export function paint(ctx: CanvasRenderingContext2D, ring: EegRing, w: number, h
     ctx.fillRect(xn, top - 8, 1.5, plotH + 8);
     ctx.fillStyle = MUTED;
     ctx.textAlign = "right";
-    ctx.fillText("now", xn, h - 8);
+    ctx.fillText("new signal comes in here", xn, h - 8);
+    const tw = ctx.measureText("new signal comes in here").width;
+    ctx.fillRect(xn - tw - 30, h - 8.5, 20, 1.2);
+    ctx.beginPath();
+    ctx.moveTo(xn - tw - 30, h - 8);
+    ctx.lineTo(xn - tw - 25, h - 11);
+    ctx.lineTo(xn - tw - 25, h - 5);
+    ctx.fill();
   }
   ctx.fillRect(labelW, h - 9, perSecond * step, 1.5);
   ctx.textAlign = "left";

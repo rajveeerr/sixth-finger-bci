@@ -6,7 +6,7 @@ import * as K from "../iso/kit";
 
 // A real head (MNE's template) in an EEG cap on a turned stand, three-quarter view from
 // the front left, with the 40 electrodes where the cap puts them; the seven drawn in the
-// demo are dark.
+// demo are white.
 
 const W = 560;
 const H = 480;
@@ -17,7 +17,7 @@ const a = (AZ * Math.PI) / 180;
 const POSE: HeadPose = {
   origin: [0, 10, 150],
   scale: 1,
-  nose: [Math.cos(a) * 0.45 - Math.sin(a) * 0.89, Math.sin(a) * 0.45 + Math.cos(a) * 0.89],
+  nose: [Math.cos(a) * 0.3 - Math.sin(a) * 0.95, Math.sin(a) * 0.3 + Math.cos(a) * 0.95],
   cutMm: -95,
 };
 const place = placeHead(POSE);
@@ -46,8 +46,8 @@ export function HeadMap() {
   const shown = data.electrodes.filter((e) => e.shown).map((e) => e.name);
   return (
     <Plate
-      title="An EEG cap, 40 sensors"
-      hint={`The dark ones are the seven drawn in the demo: ${shown.join(", ")}. They sit over the motor cortex, the strip across the top of the head that moves the body.`}
+      title="An EEG cap with 40 sensors"
+      hint={`Each sensor picks up the voltage under it. The seven white ones are drawn in the demo (${shown.join(", ")}); they sit over the strip of brain that moves the body.`}
       readout="The left side of the brain moves the right hand, and the right side the left."
     >
       <svg className="iso-svg head-svg" viewBox={`0 0 ${W} ${H}`} role="img" aria-label="A head wearing an EEG cap with 40 sensors">

@@ -87,17 +87,14 @@ const LABELS = [
   { title: "Get ready", text: "a grey circle, 1 s" },
   { title: "Imagine", text: "hand or sixth finger, 6 s" },
 ];
-/** Where under the drawing a monitor's label goes, as a share of its width. */
-const labelX = (s: (typeof SEGMENTS)[number]) => (at([tx((s.from + s.to) / 2), SCREEN.y, 0])[0] / W) * 100;
 
 /** What the patient sees in one trial, and the two 4 s pieces the model reads. */
 export function PatientSees() {
   const svg = useMemo(() => art(), []);
   return (
     <Plate
-      title="What the patient sees"
-      hint="One trial, 14 s, drawn to scale"
-      readout="80 trials a session"
+      title="One trial, as the patient sees it"
+      hint="14 seconds, drawn to scale along the strip."
       caption={
         <>
           A cross means rest. A grey circle means get ready. Then the screen asks the patient to imagine moving the
@@ -110,8 +107,8 @@ export function PatientSees() {
         <g dangerouslySetInnerHTML={{ __html: svg }} />
       </svg>
       <ol className="sees-labels">
-        {LABELS.map((l, i) => (
-          <li key={l.title} style={{ left: `${labelX(SEGMENTS[i])}%` }}>
+        {LABELS.map((l) => (
+          <li key={l.title}>
             <b>{l.title}</b> {l.text}
           </li>
         ))}

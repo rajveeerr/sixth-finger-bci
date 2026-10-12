@@ -3,7 +3,7 @@
 // head.json) and the electrodes are the 10-05 montage defined on that same head, so every
 // sensor sits where a cap puts it. Faces turned to the viewer are painted back to front in
 // the kit's four tones; the cap is the scalp above its seam, a shade darker; outlines are
-// the edges where the surface turns away.
+// the edges where the surface turns away. A chin strap holds the cap on.
 
 import { data } from "../data";
 import mesh from "../head.json";
@@ -81,7 +81,7 @@ const VERTEX_NORMALS: V3[] = (() => {
     neighbours[c].add(a).add(b);
   }
   acc = acc.map(unit);
-  for (let pass = 0; pass < 8; pass++) {
+  for (let pass = 0; pass < 3; pass++) {
     acc = acc.map((n, i) => unit([...neighbours[i]].reduce((s, j) => add(s, acc[j]), n)));
   }
   return acc;
@@ -98,6 +98,10 @@ const ABOVE_SEAM = (() => {
   const slope = (zf - zb) / (yf - yb);
   return (v: V3) => v[2] - (zb - 12 + (v[1] - yb) * slope);
 })();
+
+/** The chin strap: the plane through both ears' level and under the chin (it holds the
+ * left-right axis); where it crosses the bare skin is the strap. */
+const STRAP = (v: V3) => 85 * (v[1] + 5) + 45 * (v[2] + 15);
 
 interface Corner {
   m: V3; // template millimetres
@@ -189,6 +193,10 @@ export function headSvg(P: K.Projection, pose: HeadPose): Head {
     if (parts.cut.length === 2) {
       items.push({ depth: Math.max(...parts.cut.map(depthOfCorner)) + bias, kind: "seam", d: K.pathOf(parts.cut.map(flatOf)) });
     }
+    const strap = split(parts.neg, STRAP);
+    if (strap.cut.length === 2) {
+      items.push({ depth: Math.max(...strap.cut.map(depthOfCorner)) + bias, kind: "strap", d: K.pathOf(strap.cut.map(flatOf)) });
+    }
     for (const [poly, cap] of [
       [parts.pos, true],
       [parts.neg, false],
@@ -215,7 +223,7 @@ export function headSvg(P: K.Projection, pose: HeadPose): Head {
   }
   const body = runs
     .map((r) => {
-      if (r.kind === "edge" || r.kind === "seam") return `<path class="head-${r.kind}" d="${r.d}"/>`;
+      if (r.kind === "edge" || r.kind === "seam" || r.kind === "strap") return `<path class="head-${r.kind}" d="${r.d}"/>`;
       const cap = r.kind.startsWith("cap");
       return `<path class="head-${cap ? "cap" : "skin"}" data-tone="${r.kind.slice(cap ? 3 : 4)}" d="${r.d}"/>`;
     })

@@ -26,6 +26,12 @@ export interface CurvePoint {
   ci: [number, number];
 }
 
+export interface Scored {
+  mean: number;
+  ci: [number, number];
+  n: number;
+}
+
 export interface ExplainData {
   electrodes: Electrode[];
   erd: Record<"affected_hand" | "sixth_finger", { values: number[]; mean: number }>;
@@ -42,6 +48,11 @@ export interface ExplainData {
   };
   calibration: { scratch: CurvePoint[]; transfer: CurvePoint[] };
   switch: { detection: number; detection_ci: [number, number]; false_per_minute: number; latency_s: number };
+  later: {
+    same_session: number;
+    post: { as_is: Scored; re_setup: Scored };
+    follow: { as_is: Scored; re_setup: Scored };
+  };
   demo: {
     subject: string;
     held_out_bal_acc: number;
