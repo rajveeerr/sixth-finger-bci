@@ -8,6 +8,7 @@
   "results/summary/rq4_pseudo_online_switch_table.csv",
   "results/summary/demo_model.json",
   "results/summary/eda_erd_values.csv",
+  "web/public/demo/model.onnx",
   "mne colin27_1005 template"
  ],
  "electrodes": [
@@ -662,6 +663,7 @@
   "held_out_bal_acc": 0.7407,
   "trials": 36,
   "training_trials": 39,
-  "model_bytes": 21812
+  "model_bytes": 21812,
+  "parameters": 3195
  }
 }

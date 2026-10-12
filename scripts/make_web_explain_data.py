@@ -12,6 +12,7 @@ import json
 
 import mne
 import numpy as np
+import onnx
 import pandas as pd
 
 from sixthfinger.data.channels import CHANNELS_40
@@ -54,6 +55,12 @@ def electrodes() -> list[dict]:
 
 
 OUT = ("web", "src", "explain", "data.json")
+
+
+def model_parameters() -> int:
+    """The numbers in the demo's model as the browser runs it (the exported ONNX graph)."""
+    model = onnx.load(get_paths().root / "web" / "public" / "demo" / "model.onnx")
+    return int(sum(np.prod(t.dims) for t in model.graph.initializer))
 
 
 def build() -> dict:
@@ -147,6 +154,7 @@ def build() -> dict:
             "results/summary/rq4_pseudo_online_switch_table.csv",
             "results/summary/demo_model.json",
             "results/summary/eda_erd_values.csv",
+            "web/public/demo/model.onnx",
             "mne colin27_1005 template",
         ],
         "electrodes": electrodes(),
@@ -169,6 +177,7 @@ def build() -> dict:
             "trials": demo["trials_whole"],
             "training_trials": demo["n_training_trials"],
             "model_bytes": demo["parity"]["bytes"],
+            "parameters": model_parameters(),
         },
     }
     return data
