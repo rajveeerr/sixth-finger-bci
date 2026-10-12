@@ -38,26 +38,14 @@ code { font-family: var(--mono); font-size: 0.86em; background: var(--chip); pad
 :focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; border-radius: 3px; }
 .muted { color: var(--ink-3); }
 
-/* The page: chapters listed in the left margin, one reading column, figures that may run
-   into the right margin. */
-.page {
-  display: grid; grid-template-columns: 210px minmax(0, 1fr); column-gap: 48px;
-  max-width: 1400px; margin: 0 auto; padding: 0 40px;
-}
-.column { min-width: 0; padding: 56px 0 0; --text: 760px; }
-.toc { position: sticky; top: 0; align-self: start; height: 100svh; padding: 60px 0 24px; font-size: 14px; }
-.toc a { color: var(--ink-3); text-decoration: none; }
-.toc a:hover { color: var(--ink); }
-.toc-name { display: block; color: var(--ink) !important; font-weight: 560; margin-bottom: 26px; }
-.toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 11px; }
-.toc li a { display: flex; gap: 10px; align-items: baseline; }
-.toc-num { font: italic 400 15px/1 var(--serif); width: 14px; color: var(--ink-4); }
-.toc li[data-active] a { color: var(--ink); }
-.toc li[data-active] .toc-num { color: var(--ink); }
+/* The page: one reading column, centred, with figures that may run into a right margin. */
+.page { padding: 0 40px; }
+.column { min-width: 0; max-width: 760px; margin: 0 auto; padding: 64px 0 0; --text: 760px; }
+/* Wide things (the bench, the demo) break out of the column on both sides. */
+.bleed { margin-left: calc((760px - min(1180px, 100vw - 80px)) / 2); margin-right: calc((760px - min(1180px, 100vw - 80px)) / 2); }
 
 .intro { max-width: var(--text); margin-bottom: 40px; }
 .intro-title { margin: 0; font-size: 15px; font-weight: 560; }
-@media (min-width: 1101px) { .intro-title { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); } }
 .lede { margin: 14px 0 0; font-size: 30px; line-height: 1.22; letter-spacing: -0.02em; font-weight: 500; }
 .lede em { font-size: 1.12em; font-weight: 400; letter-spacing: 0; }
 .intro-text { margin: 22px 0 0; font-size: 17px; line-height: 1.65; color: var(--ink-2); }
@@ -157,12 +145,15 @@ code { font-family: var(--mono); font-size: 0.86em; background: var(--chip); pad
 .chapter-lede p { margin: 0 0 14px; font-size: 17px; line-height: 1.65; }
 .chapter-lede p + p { color: var(--ink-2); }
 
-.plate { margin: 0 0 52px; display: grid; grid-template-columns: minmax(0, var(--text)) minmax(0, 1fr); column-gap: 40px; align-items: end; }
+.plate { margin: 0 0 56px; }
 .plate-art { min-width: 0; }
-.plate-side { display: grid; gap: 6px; align-content: end; font-size: 13.5px; color: var(--ink-3); padding-bottom: 8px; max-width: 280px; }
+/* Under each figure: its name, how to read it and what it shows, as one small note. */
+.plate-side { display: block; margin-top: 12px; font-size: 13.5px; line-height: 1.55; color: var(--ink-3); }
+.plate-side > * + *::before { content: " "; }
 .plate-title { color: var(--ink); font-weight: 560; }
+.plate-title::after { content: "."; }
 .plate-readout { color: var(--ink-2); }
-.plate-caption { grid-column: 1; margin: 14px 0 0; font-size: 15px; line-height: 1.6; color: var(--ink-2); max-width: 70ch; }
+.plate-caption { margin: 10px 0 0; font-size: 15.5px; line-height: 1.6; color: var(--ink-2); }
 .plate-caption strong { color: var(--ink); font-weight: 560; }
 .plate-chain { margin-bottom: 10px; }
 .figure-hand { height: 380px; position: relative; }
@@ -315,10 +306,8 @@ code { font-family: var(--mono); font-size: 0.86em; background: var(--chip); pad
   .step-told { grid-column: 1 / -1; }
   .patient-screen { flex: none; height: 200px; }
   .step-signal, .step-read { height: 460px; }
-  .page { grid-template-columns: minmax(0, 1fr); padding: 0 28px; }
-  .toc { display: none; }
-  .plate { grid-template-columns: minmax(0, 1fr); row-gap: 10px; }
-  .plate-side { padding-bottom: 0; }
+  .page { padding: 0 28px; }
+  .bleed { margin-left: 0; margin-right: 0; }
 }
 /* Phone: everything stacks. */
 @media (max-width: 700px) {

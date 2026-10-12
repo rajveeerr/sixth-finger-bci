@@ -5,7 +5,6 @@ import { ManualTestBanner } from "./components/ManualTestBanner";
 import { ModeBadge } from "./components/ModeBadge";
 import { Plate } from "./components/Plate";
 import { PredictionCard } from "./components/PredictionCard";
-import { Toc, type TocItem } from "./components/Toc";
 import { Told } from "./components/Told";
 import { data } from "./explain/data";
 import { BrainRhythm } from "./explain/figures/BrainRhythm";
@@ -19,16 +18,6 @@ import { IsoHand } from "./hands/IsoHand";
 import { useDemo } from "./store";
 import { useDemoStream } from "./stream/useDemoStream";
 
-const CHAPTERS: TocItem[] = [
-  { id: "idea", title: "The idea" },
-  { id: "recordings", title: "The recordings" },
-  { id: "brain", title: "What changes in the brain" },
-  { id: "model", title: "The model" },
-  { id: "demo", title: "Watch it work" },
-  { id: "found", title: "What we found" },
-  { id: "limb", title: "Toward a real limb" },
-];
-
 export default function App() {
   const stream = useDemoStream();
   const source = useDemo((s) => s.source);
@@ -37,7 +26,6 @@ export default function App() {
   const patient = data.demo.subject.replace("sub-0", "").replace("sub-", "");
   return (
     <div className="page" id="top">
-      <Toc items={CHAPTERS} />
       <main className="column">
         <header className="intro">
           <h1 className="intro-title">Sixth-Finger BCI</h1>
@@ -153,7 +141,7 @@ export default function App() {
             </p>
           }
         >
-          <div className="demo">
+          <div className="demo bleed">
             <div className="demo-status">
               {synthetic && <span className="warn">Synthetic data</span>}
               <ModeBadge source={source} />

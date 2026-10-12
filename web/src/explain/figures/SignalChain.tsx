@@ -137,9 +137,8 @@ export function SignalChain() {
   return (
     <Plate
         title="The whole system on one bench"
-        hint="It runs live with the demo in chapter 5: the paper carries the same signal, the lamp lights with the same reading."
-        readout={<span className="command" data-command={command}>{command}</span>}
-        className="plate-chain"
+        hint="It moves with the live demo further down."
+        className="plate-chain bleed"
         caption={
           <>
             Left to right: a head in an EEG cap; an amplifier that writes the brain signal onto paper; a frame that
