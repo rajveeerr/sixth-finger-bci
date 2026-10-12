@@ -18,7 +18,7 @@ def test_doctor_runs():
     assert "accelerator" in result.output
 
 
-def test_unimplemented_command_names_its_phase():
-    result = runner.invoke(app, ["export", "demo"])
-    assert result.exit_code == 2
-    assert "P10" in result.output
+def test_export_demo_is_a_command():
+    result = runner.invoke(app, ["export", "demo", "--help"])
+    assert result.exit_code == 0
+    assert "demo bundle" in result.output

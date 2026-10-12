@@ -1,0 +1,13 @@
+# P10: the demo decoder, fitted by the P08 runner for the demo patient (S1, three classes,
+# pre, k = all, seed 0), exactly as rq2_calib_s1 fits that unit. Used by
+# `sixthfinger export demo` (src/sixthfinger/export/demo_bundle.py), not run on its own.
+name: demo_model
+protocol: calibration
+tasks: [T2_rest_ah_sf]
+sessions: [pre]
+subjects: all
+scenarios: [S1_new_user]
+methods: [eegnet_scratch]
+k_grid: [20]
+draws: from_protocol
+mirror: false

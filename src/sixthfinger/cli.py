@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import logging
 import platform
 import shutil
@@ -29,15 +30,6 @@ def _setup_logging(verbose: bool) -> None:
         format="%(asctime)s %(levelname)s %(name)s: %(message)s",
         datefmt="%H:%M:%S",
     )
-
-
-def _not_yet(phase: str, what: str) -> None:
-    typer.secho(
-        f"'{what}' is implemented in phase {phase} (see the phase plan). Nothing was run.",
-        fg=typer.colors.YELLOW,
-        err=True,
-    )
-    raise typer.Exit(code=2)
 
 
 @app.callback()
@@ -243,8 +235,14 @@ def run(
 
 @export_app.command("demo")
 def export_demo() -> None:
-    """Export the demo model to ONNX and build the demo bundle."""
-    _not_yet("P10", "export demo")
+    """Export the demo model to ONNX and build the demo bundle (web/public/demo)."""
+    from sixthfinger.export.demo_bundle import build_demo_bundle
+
+    paths = get_paths()
+    info = build_demo_bundle(paths.root / "web" / "public" / "demo",
+                             paths.results / "summary" / "demo_model.json")  # fmt: skip
+    keys = ("subject", "method", "trials_whole", "held_out_bal_acc", "parity")
+    typer.echo(json.dumps({k: info[k] for k in keys}, indent=1))
 
 
 if __name__ == "__main__":

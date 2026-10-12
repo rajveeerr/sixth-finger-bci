@@ -17,7 +17,7 @@ HAS_PAPER  := $(wildcard paper/main.tex)
 HAS_REPORT := $(wildcard report/Makefile)
 HAS_BOOT   := $(wildcard _workspace/tools/bootstrap.sh)
 
-.PHONY: help setup data verify-data audit epochs test test-real lint format check \
+.PHONY: help setup data verify-data audit epochs demo-bundle test test-real lint format check \
         server web demo e2e figures paper report doctor health clean
 
 help: ## List targets
@@ -73,6 +73,9 @@ epochs: ## Cut and cache the 4 s windows (phase P03); SUBJECTS=sub-01,sub-03 for
 
 test: ## Unit tests on synthetic data (no download needed)
 	$(UV) run pytest -q -m "not real_data"
+
+demo-bundle: ## Export the demo model and rebuild web/public/demo (phase P10)
+	$(UV) run sixthfinger export demo
 
 test-real: ## Tests that need the downloaded dataset
 	$(UV) run pytest -q -m real_data
