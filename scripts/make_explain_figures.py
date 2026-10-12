@@ -1,4 +1,4 @@
-"""P09 Study 5: what the decoders look at.
+"""P09 Study 5 (exploratory): what the decoders look at.
 
 uv run python scripts/make_explain_figures.py
 

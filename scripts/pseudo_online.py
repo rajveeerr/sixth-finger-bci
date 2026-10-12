@@ -1,4 +1,5 @@
-"""P09 Study 4: replay the test runs of every `pre` session through the demo's command gate.
+"""P09 Study 4 (exploratory): replay the test runs of every `pre` session through the demo's
+command gate.
 
 uv run python scripts/pseudo_online.py --subjects sub-01 sub-03   # the development subjects
 uv run python scripts/pseudo_online.py                            # everyone else
