@@ -1,0 +1,667 @@
+{
+ "sources": [
+  "results/summary/dl_baselines_subject_values.csv",
+  "results/summary/dl_baselines_table.csv",
+  "results/summary/rq1_subject_values.csv",
+  "results/summary/rq1_stats.csv",
+  "results/summary/calib_curves.csv",
+  "results/summary/rq4_pseudo_online_switch_table.csv",
+  "results/summary/demo_model.json",
+  "results/summary/eda_erd_values.csv",
+  "mne colin27_1005 template"
+ ],
+ "electrodes": [
+  {
+   "name": "AF3",
+   "x": -0.3383,
+   "y": 0.7713,
+   "shown": false,
+   "motor": false
+  },
+  {
+   "name": "AF4",
+   "x": 0.3507,
+   "y": 0.7633,
+   "shown": false,
+   "motor": false
+  },
+  {
+   "name": "Fz",
+   "x": 0.0025,
+   "y": 0.4596,
+   "shown": false,
+   "motor": false
+  },
+  {
+   "name": "F1",
+   "x": -0.2239,
+   "y": 0.4636,
+   "shown": false,
+   "motor": false
+  },
+  {
+   "name": "F2",
+   "x": 0.2401,
+   "y": 0.4686,
+   "shown": false,
+   "motor": false
+  },
+  {
+   "name": "F3",
+   "x": -0.4582,
+   "y": 0.4844,
+   "shown": false,
+   "motor": false
+  },
+  {
+   "name": "F4",
+   "x": 0.4716,
+   "y": 0.494,
+   "shown": false,
+   "motor": false
+  },
+  {
+   "name": "F5",
+   "x": -0.696,
+   "y": 0.5186,
+   "shown": false,
+   "motor": false
+  },
+  {
+   "name": "F6",
+   "x": 0.7078,
+   "y": 0.5193,
+   "shown": false,
+   "motor": false
+  },
+  {
+   "name": "FCz",
+   "x": 0.0026,
+   "y": 0.1907,
+   "shown": false,
+   "motor": true
+  },
+  {
+   "name": "FC1",
+   "x": -0.2489,
+   "y": 0.1901,
+   "shown": false,
+   "motor": true
+  },
+  {
+   "name": "FC2",
+   "x": 0.2566,
+   "y": 0.195,
+   "shown": false,
+   "motor": true
+  },
+  {
+   "name": "FC3",
+   "x": -0.5113,
+   "y": 0.193,
+   "shown": true,
+   "motor": true
+  },
+  {
+   "name": "FC4",
+   "x": 0.5208,
+   "y": 0.1983,
+   "shown": true,
+   "motor": true
+  },
+  {
+   "name": "FC5",
+   "x": -0.7872,
+   "y": 0.1901,
+   "shown": false,
+   "motor": false
+  },
+  {
+   "name": "FC6",
+   "x": 0.7911,
+   "y": 0.1983,
+   "shown": false,
+   "motor": false
+  },
+  {
+   "name": "Cz",
+   "x": 0.0025,
+   "y": -0.0581,
+   "shown": true,
+   "motor": true
+  },
+  {
+   "name": "C1",
+   "x": -0.2429,
+   "y": -0.0671,
+   "shown": false,
+   "motor": true
+  },
+  {
+   "name": "C2",
+   "x": 0.2556,
+   "y": -0.0653,
+   "shown": false,
+   "motor": true
+  },
+  {
+   "name": "C3",
+   "x": -0.502,
+   "y": -0.0893,
+   "shown": true,
+   "motor": true
+  },
+  {
+   "name": "C4",
+   "x": 0.5146,
+   "y": -0.0836,
+   "shown": true,
+   "motor": true
+  },
+  {
+   "name": "C5",
+   "x": -0.7699,
+   "y": -0.132,
+   "shown": false,
+   "motor": true
+  },
+  {
+   "name": "C6",
+   "x": 0.7789,
+   "y": -0.1192,
+   "shown": false,
+   "motor": true
+  },
+  {
+   "name": "CP1",
+   "x": -0.2197,
+   "y": -0.2926,
+   "shown": false,
+   "motor": true
+  },
+  {
+   "name": "CP2",
+   "x": 0.2374,
+   "y": -0.2911,
+   "shown": false,
+   "motor": true
+  },
+  {
+   "name": "CP3",
+   "x": -0.4494,
+   "y": -0.3324,
+   "shown": true,
+   "motor": true
+  },
+  {
+   "name": "CP4",
+   "x": 0.4652,
+   "y": -0.3257,
+   "shown": true,
+   "motor": true
+  },
+  {
+   "name": "CP5",
+   "x": -0.6852,
+   "y": -0.4008,
+   "shown": false,
+   "motor": false
+  },
+  {
+   "name": "CP6",
+   "x": 0.6986,
+   "y": -0.3865,
+   "shown": false,
+   "motor": false
+  },
+  {
+   "name": "Pz",
+   "x": 0.002,
+   "y": -0.4942,
+   "shown": false,
+   "motor": false
+  },
+  {
+   "name": "P3",
+   "x": -0.369,
+   "y": -0.5485,
+   "shown": false,
+   "motor": false
+  },
+  {
+   "name": "P4",
+   "x": 0.3827,
+   "y": -0.54,
+   "shown": false,
+   "motor": false
+  },
+  {
+   "name": "P5",
+   "x": -0.5468,
+   "y": -0.6201,
+   "shown": false,
+   "motor": false
+  },
+  {
+   "name": "P6",
+   "x": 0.5524,
+   "y": -0.6177,
+   "shown": false,
+   "motor": false
+  },
+  {
+   "name": "POz",
+   "x": 0.0015,
+   "y": -0.7072,
+   "shown": false,
+   "motor": false
+  },
+  {
+   "name": "PO3",
+   "x": -0.2681,
+   "y": -0.7406,
+   "shown": false,
+   "motor": false
+  },
+  {
+   "name": "PO4",
+   "x": 0.2713,
+   "y": -0.744,
+   "shown": false,
+   "motor": false
+  },
+  {
+   "name": "PO5",
+   "x": -0.3843,
+   "y": -0.7884,
+   "shown": false,
+   "motor": false
+  },
+  {
+   "name": "PO6",
+   "x": 0.3929,
+   "y": -0.7843,
+   "shown": false,
+   "motor": false
+  },
+  {
+   "name": "CPz",
+   "x": 0.0023,
+   "y": -0.2828,
+   "shown": false,
+   "motor": true
+  }
+ ],
+ "erd": {
+  "affected_hand": {
+   "values": [
+    -28.3,
+    -46.6,
+    -30.0,
+    -68.9,
+    -58.0,
+    -23.1,
+    -17.3,
+    -19.1,
+    -13.9,
+    -31.1,
+    -46.8,
+    2.0,
+    -31.4,
+    -52.7,
+    -16.6,
+    -42.0,
+    -38.0,
+    -20.7,
+    -7.9,
+    -35.5,
+    -56.3,
+    -21.6
+   ],
+   "mean": -32.0
+  },
+  "sixth_finger": {
+   "values": [
+    -15.6,
+    -41.2,
+    -31.4,
+    -71.0,
+    -63.7,
+    -28.4,
+    -27.1,
+    -25.1,
+    -25.6,
+    -16.8,
+    -49.0,
+    -19.3,
+    -45.4,
+    -57.4,
+    -21.4,
+    -47.5,
+    -47.9,
+    -14.7,
+    -9.4,
+    -39.3,
+    -53.1,
+    -35.6
+   ],
+   "mean": -35.7
+  }
+ },
+ "tasks": [
+  {
+   "key": "T3_sf_vs_rest",
+   "label": "Rest or sixth finger",
+   "chance": 0.5,
+   "mean": 0.7623,
+   "ci": [
+    0.7121,
+    0.812
+   ],
+   "values": [
+    0.6125,
+    0.6417,
+    0.7607,
+    0.7855,
+    0.8291,
+    0.817,
+    0.7377,
+    0.8066,
+    0.9414,
+    0.6958,
+    0.8559,
+    0.614,
+    0.8964,
+    0.5792,
+    0.6222,
+    0.8761,
+    0.7941,
+    0.6217,
+    0.5959,
+    0.9143,
+    0.9561,
+    0.8169
+   ]
+  },
+  {
+   "key": "T2_rest_ah_sf",
+   "label": "All three",
+   "chance": 0.3333,
+   "mean": 0.6374,
+   "ci": [
+    0.5918,
+    0.6796
+   ],
+   "values": [
+    0.4417,
+    0.7278,
+    0.6954,
+    0.6977,
+    0.5685,
+    0.5736,
+    0.6026,
+    0.6529,
+    0.7741,
+    0.7667,
+    0.6464,
+    0.4927,
+    0.7449,
+    0.6083,
+    0.5642,
+    0.7114,
+    0.6936,
+    0.4944,
+    0.4051,
+    0.7173,
+    0.7167,
+    0.7268
+   ]
+  },
+  {
+   "key": "T1_ah_vs_sf",
+   "label": "Hand or sixth finger",
+   "chance": 0.5,
+   "mean": 0.6157,
+   "ci": [
+    0.576,
+    0.6547
+   ],
+   "values": [
+    0.4667,
+    0.6083,
+    0.7667,
+    0.575,
+    0.4711,
+    0.593,
+    0.5583,
+    0.6983,
+    0.7579,
+    0.7333,
+    0.55,
+    0.4346,
+    0.6623,
+    0.6333,
+    0.6667,
+    0.5965,
+    0.6458,
+    0.5648,
+    0.6083,
+    0.7175,
+    0.5083,
+    0.7276
+   ]
+  }
+ ],
+ "leak": {
+  "subjects": [
+   "sub-01",
+   "sub-02",
+   "sub-03",
+   "sub-04",
+   "sub-05",
+   "sub-06",
+   "sub-07",
+   "sub-08",
+   "sub-09",
+   "sub-10",
+   "sub-11",
+   "sub-12",
+   "sub-13",
+   "sub-14",
+   "sub-15",
+   "sub-16",
+   "sub-17",
+   "sub-18",
+   "sub-19",
+   "sub-20",
+   "sub-23",
+   "sub-24"
+  ],
+  "replica": [
+   0.7308,
+   0.955,
+   0.7588,
+   0.9225,
+   0.8075,
+   0.8892,
+   0.7446,
+   0.7913,
+   0.8504,
+   0.8458,
+   0.8387,
+   0.8004,
+   0.7063,
+   0.9321,
+   0.9237,
+   0.8258,
+   0.8237,
+   0.7846,
+   0.6071,
+   0.8488,
+   0.7712,
+   0.6825
+  ],
+  "leakfree": [
+   0.4971,
+   0.5162,
+   0.5717,
+   0.5275,
+   0.5871,
+   0.7954,
+   0.6317,
+   0.6617,
+   0.7887,
+   0.6837,
+   0.4508,
+   0.5092,
+   0.5962,
+   0.4704,
+   0.64,
+   0.4888,
+   0.5783,
+   0.4317,
+   0.435,
+   0.735,
+   0.7175,
+   0.5496
+  ],
+  "mean_replica": 0.811,
+  "mean_leakfree": 0.5847,
+  "mean_diff_points": 22.6,
+  "n_positive": 22,
+  "published": [
+   0.8509,
+   0.8602
+  ]
+ },
+ "calibration": {
+  "scratch": [
+   {
+    "k": 1,
+    "minutes": 0.467,
+    "mean": 0.3956,
+    "ci": [
+     0.3701,
+     0.4257
+    ]
+   },
+   {
+    "k": 2,
+    "minutes": 0.933,
+    "mean": 0.46,
+    "ci": [
+     0.4295,
+     0.4915
+    ]
+   },
+   {
+    "k": 3,
+    "minutes": 1.4,
+    "mean": 0.479,
+    "ci": [
+     0.4459,
+     0.5131
+    ]
+   },
+   {
+    "k": 5,
+    "minutes": 2.333,
+    "mean": 0.5231,
+    "ci": [
+     0.4886,
+     0.5571
+    ]
+   },
+   {
+    "k": 10,
+    "minutes": 4.667,
+    "mean": 0.5613,
+    "ci": [
+     0.5202,
+     0.5996
+    ]
+   },
+   {
+    "k": 20,
+    "minutes": 9.333,
+    "mean": 0.6122,
+    "ci": [
+     0.565,
+     0.6549
+    ]
+   }
+  ],
+  "transfer": [
+   {
+    "k": 1,
+    "minutes": 0.467,
+    "mean": 0.5605,
+    "ci": [
+     0.5211,
+     0.6001
+    ]
+   },
+   {
+    "k": 2,
+    "minutes": 0.933,
+    "mean": 0.5708,
+    "ci": [
+     0.5289,
+     0.6137
+    ]
+   },
+   {
+    "k": 3,
+    "minutes": 1.4,
+    "mean": 0.5695,
+    "ci": [
+     0.5249,
+     0.6146
+    ]
+   },
+   {
+    "k": 5,
+    "minutes": 2.333,
+    "mean": 0.5717,
+    "ci": [
+     0.5284,
+     0.6168
+    ]
+   },
+   {
+    "k": 10,
+    "minutes": 4.667,
+    "mean": 0.5727,
+    "ci": [
+     0.5284,
+     0.6181
+    ]
+   },
+   {
+    "k": 20,
+    "minutes": 9.333,
+    "mean": 0.5784,
+    "ci": [
+     0.5339,
+     0.6243
+    ]
+   }
+  ]
+ },
+ "switch": {
+  "detection": 0.6489,
+  "detection_ci": [
+   0.5716,
+   0.7192
+  ],
+  "false_per_minute": 1.24,
+  "latency_s": 3.67
+ },
+ "demo": {
+  "subject": "sub-08",
+  "held_out_bal_acc": 0.7407,
+  "trials": 36,
+  "training_trials": 39,
+  "model_bytes": 21812
+ }
+}
