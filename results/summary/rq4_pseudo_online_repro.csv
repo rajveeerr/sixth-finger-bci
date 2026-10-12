@@ -1,0 +1,5 @@
+method,n,max_abs_diff
+csp_lda,22,0
+eegnet_scratch,22,0.0735
+rct_tslr,22,0.0175
+ts_lr,22,0

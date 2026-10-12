@@ -161,14 +161,26 @@ def figure(rows: pd.DataFrame, subject: str, figures) -> None:
     shade = {"rest": "0.9", "AH": "#ffe0b3", "SF": "#d0e4f5"}
     for p in per[per.t0 < t_end].itertuples():
         b.axvspan(p.t0, p.t1, color=shade[p.kind], lw=0)
-    w = tl[tl.t <= t_end]
+    w = tl[tl.t <= t_end].reset_index(drop=True)
+    # Windows skipped at a boundary leave a gap: break the lines there.
+    gap = np.r_[False, np.diff(w.t.to_numpy()) > po.STRIDE_S * 1.5]
+    w.loc[gap, ["p_sf", "p_ah"]] = np.nan
     b.plot(w.t, w.p_sf, color="#1f77b4", lw=0.8, label="P(SF)")
     b.plot(w.t, w.p_ah, color="#ff7f0e", lw=0.8, label="P(AH)")
-    b.step(w.t, np.where(w.active == po.SF, 1.05, np.where(w.active == po.AH, 1.0, np.nan)),
-           where="post", color="k", lw=2, label="gate output")  # fmt: skip
+    for command, y, colour in ((po.AH, 1.12, "#ff7f0e"), (po.SF, 1.2, "#1f77b4")):
+        on = np.where(w.active == command, y, np.nan)
+        b.plot(w.t, on, color=colour, lw=3, solid_capstyle="butt",
+               label=f"gate: {po.COMMANDS[command]}")  # fmt: skip
+    from matplotlib.patches import Patch
+
+    handles = b.get_legend_handles_labels()[0] + [
+        Patch(color=c, label=f"{k} period") for k, c in shade.items()
+    ]
     b.set_xlabel(f"time in run {run:02d} (s), {subject}, eegnet_scratch")
-    b.set_ylim(0, 1.1)
-    b.legend(frameon=False, fontsize=6, ncol=3, loc="lower right")
+    b.set_ylim(0, 1.3)
+    b.set_yticks([0, 0.5, 1])
+    b.legend(handles=handles, frameon=False, fontsize=5.5, ncol=4, loc="upper center",
+             bbox_to_anchor=(0.5, -0.22))  # fmt: skip
     save(fig, figures, "rq4_pseudo_online")
 
 
