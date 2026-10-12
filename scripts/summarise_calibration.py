@@ -455,14 +455,26 @@ def figure_trials_saved(eff: pd.DataFrame, figures: Path) -> None:
     e = eff[(eff.scenario == S1) & (eff.task == T2) & (eff.session == "pre")]
     a, b = (e[e.method == m].set_index("subject") for m in PAIR)
     both = a.join(b, lsuffix="_rct", rsuffix="_ts", how="inner")
-    fig, ax = plt.subplots(figsize=(3.4, 3.4))
-    cap = 30
-    x = both.k_star_60_ts.fillna(cap)
-    y = both.k_star_60_rct.fillna(cap)
-    ax.scatter(x, y, s=14, color="0.2")
-    ax.plot([0, cap], [0, cap], color="0.6", lw=0.8)
-    ax.set_xlabel("k*60, ts_lr (30 = never)")
-    ax.set_ylabel("k*60, rct_tslr (30 = never)")
+    never = 30  # drawn past "all" (20) for patients who never reach 60 %
+    pts = pd.DataFrame(
+        {"ts": both.k_star_60_ts.fillna(never), "rct": both.k_star_60_rct.fillna(never)}
+    )
+    counts = pts.value_counts().rename("n").reset_index()
+    fig, ax = plt.subplots(figsize=(3.6, 3.6))
+    ax.scatter(counts.ts, counts.rct, s=25 * counts.n, color="0.25", alpha=0.8)
+    for r in counts.itertuples():
+        if r.n > 1:
+            ax.annotate(
+                str(r.n), (r.ts, r.rct), xytext=(6, 4), textcoords="offset points", fontsize=7
+            )
+    ax.plot([0, never], [0, never], color="0.6", lw=0.8)
+    ticks = [0, 5, 10, 20, never]
+    labels = ["0", "5", "10", "all", "never"]
+    ax.set_xticks(ticks, labels)
+    ax.set_yticks(ticks, labels)
+    ax.set_xlabel("k* for 60 %, ts_lr (trials per class)")
+    ax.set_ylabel("k* for 60 %, rct_tslr")
+    ax.set_title("S1, three-class, pre (marker size = patients)", fontsize=8)
     save(fig, figures, "rq2_trials_saved")
 
 
