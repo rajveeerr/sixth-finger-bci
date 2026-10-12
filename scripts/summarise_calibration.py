@@ -292,13 +292,16 @@ def trials_saved(eff: pd.DataFrame, pair, scenario, task, session, thr: int) -> 
     e = eff[(eff.scenario == scenario) & (eff.task == task) & (eff.session == session)]
     a, b = (e[e.method == m].set_index("subject") for m in pair)
     both = a.join(b, lsuffix="_a", rsuffix="_b", how="inner")
-    reach = both[~both[f"{cen}_a"] & ~both[f"{cen}_b"]]
+    # The censored columns are object dtype (empty for thresholds a task does not use), and
+    # ~ on a Python bool is -2: make them real booleans first.
+    ca, cb = (both[f"{cen}_{x}"].astype("boolean") for x in ("a", "b"))
+    reach = both[(~ca & ~cb).to_numpy()]
     saved = reach[f"{col}_b"] - reach[f"{col}_a"]
     return dict(pair=f"{pair[0]} - {pair[1]}", scenario=scenario, task=task, session=session,
                 threshold=thr / 100, n_both_reach=len(reach),
-                n_only_first=int((~both[f"{cen}_a"] & both[f"{cen}_b"]).sum()),
-                n_only_second=int((both[f"{cen}_a"] & ~both[f"{cen}_b"]).sum()),
-                n_neither=int((both[f"{cen}_a"] & both[f"{cen}_b"]).sum()),
+                n_only_first=int((~ca & cb).sum()),
+                n_only_second=int((ca & ~cb).sum()),
+                n_neither=int((ca & cb).sum()),
                 median_trials_saved=float(saved.median()) if len(saved) else np.nan,
                 mean_trials_saved=float(saved.mean()) if len(saved) else np.nan)  # fmt: skip
 

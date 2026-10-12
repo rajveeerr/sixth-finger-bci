@@ -106,3 +106,12 @@ def test_the_no_signal_check_flags_a_method_far_from_chance(cal, tmp_path):
     out = cal.nosignal(tmp_path).set_index(["task", "method"]).passes
     assert out[("T2_rest_ah_sf", "ok")] and not out[("T2_rest_ah_sf", "leaky")]
     assert out[("T3_sf_vs_rest", "ok")]
+
+
+def test_trials_saved_counts_every_subject_once(cal):
+    values = cal.subject_values(_scores(gain=0.05, ah_gain=0.0))
+    eff = cal.efficiency(values)
+    for task, thr in (("T2_rest_ah_sf", 60), ("T3_sf_vs_rest", 70)):
+        r = cal.trials_saved(eff, ("rct_tslr", "ts_lr"), "S1_new_user", task, "pre", thr)
+        total = r["n_both_reach"] + r["n_only_first"] + r["n_only_second"] + r["n_neither"]
+        assert total == 22
