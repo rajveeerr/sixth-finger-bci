@@ -1,0 +1,15 @@
+# P09 Study 1 (lean finish, DECISIONS 59): hemisphere mirroring for transfer, classical methods
+# only. The same units as rq2_calib_s1 (S1, three-class, pre, random draws) with every
+# left-hemiplegic patient's channels mirrored, targets and sources alike; compared with P08's
+# unmirrored rows, which also ran on Kaggle CPUs.
+name: rq4_mirror
+protocol: calibration
+tasks: [T2_rest_ah_sf]
+sessions: [pre]
+subjects: all
+scenarios: [S1_new_user]
+methods: [pooled_tslr, rct_tslr]
+k_grid: [0, 2, 5, 10]
+draws: from_protocol
+chrono_methods: []
+mirror: true
