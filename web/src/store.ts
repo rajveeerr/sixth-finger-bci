@@ -7,6 +7,7 @@ export type Command = "IDLE" | "HAND_GRASP" | "SIXTH_FINGER_FLEX";
 // results support (P09): any imagery against rest flexes the sixth finger.
 export type View = "three" | "switch";
 export type PhaseName = "rest" | "prepare" | "imagery";
+export const RECENT = 16;
 
 /** Rest against either imagery, from the smoothed probabilities when the gate ran. */
 export function anyImagery(p: Prediction): boolean {
@@ -22,6 +23,13 @@ interface DemoState {
   nTrials: number;
   trial: number;
   trialUid: string;
+  trialDuration: number; // seconds
+  cueOnset: number; // seconds from the trial's start
+  window: { start_s: number; end_s: number };
+  /** This trial's decisions on its rest and imagery windows, for the trial strip. */
+  trialDecisions: Prediction[];
+  /** The last decisions on rest and imagery windows, oldest first. */
+  recent: Prediction[];
   phase: PhaseName | null;
   phaseTruth: string | null;
   paused: boolean;
@@ -53,6 +61,11 @@ export const useDemo = create<DemoState>((set) => ({
   nTrials: 0,
   trial: 0,
   trialUid: "",
+  trialDuration: 0,
+  cueOnset: 0,
+  window: { start_s: 1, end_s: 5 },
+  trialDecisions: [],
+  recent: [],
   phase: null,
   phaseTruth: null,
   paused: false,
@@ -75,17 +88,30 @@ export const useDemo = create<DemoState>((set) => ({
         if (eegBuffer.channels.join() !== m.display_channels.join() || !eegBuffer.capacity) {
           eegBuffer.reset(m.display_channels, m.display_sfreq);
         }
-        set({ synthetic: m.synthetic, classes: m.classes, mode: m.mode, nTrials: m.n_trials, speed: m.speed });
+        set({
+          synthetic: m.synthetic,
+          classes: m.classes,
+          mode: m.mode,
+          nTrials: m.n_trials,
+          speed: m.speed,
+          window: m.window,
+        });
         break;
       case "trial_start":
-        set({ trial: m.trial, trialUid: m.uid });
+        set({
+          trial: m.trial,
+          trialUid: m.uid,
+          trialDuration: m.duration_s,
+          cueOnset: m.cue_onset_s,
+          trialDecisions: [],
+        });
         break;
       case "phase":
         eegBuffer.setPhase(m.phase, m.truth);
         set({ phase: m.phase, phaseTruth: m.truth });
         break;
       case "eeg":
-        eegBuffer.push(m.data);
+        eegBuffer.push(m.data, m.t);
         break;
       case "prediction":
         useDemo.getState().applyPrediction(m);
@@ -108,6 +134,8 @@ export const useDemo = create<DemoState>((set) => ({
       const switchRight = switchScored && anyImagery(p) === (p.truth !== s.classes[0]?.name);
       return {
         lastPrediction: p,
+        trialDecisions: p.window === "sliding" || p.trial !== s.trial ? s.trialDecisions : [...s.trialDecisions, p],
+        recent: p.window === "sliding" ? s.recent : [...s.recent, p].slice(-RECENT),
         command: s.manualMode ? s.command : (p.command as Command),
         correct: s.correct + (scored && p.correct ? 1 : 0),
         total: s.total + (scored ? 1 : 0),
@@ -121,6 +149,8 @@ export const useDemo = create<DemoState>((set) => ({
   reset: () =>
     set({
       lastPrediction: null,
+      trialDecisions: [],
+      recent: [],
       command: "IDLE",
       correct: 0,
       total: 0,

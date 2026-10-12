@@ -12,6 +12,7 @@ for (const { width, height, name } of [
       () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
     );
     expect(overflow).toBeLessThanOrEqual(0);
-    await page.screenshot({ path: `test-results/layout-${name}.png`, fullPage: true });
+    await page.screenshot({ path: `test-results/layout-${name}.png` });
+    await page.screenshot({ path: `test-results/layout-${name}-full.png`, fullPage: true });
   });
 }

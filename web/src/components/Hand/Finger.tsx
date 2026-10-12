@@ -1,34 +1,18 @@
 import { useFrame, useThree } from "@react-three/fiber";
-import { useEffect, useRef } from "react";
-import type { Group, Material } from "three";
+import { useEffect, useMemo, useRef } from "react";
+import type { Group } from "three";
+import { phalanxGeometry, nailGeometry } from "./geometry";
+import { CAST, NAIL } from "./materials";
 import type { FingerPose } from "./poses";
 import { dampAll } from "./spring";
 
 const LAMBDA = 10;
 
-/** A capsule that rotates about its base: the mesh is shifted up by half its length. */
-export function Phalanx({ length, radius, material }: { length: number; radius: number; material: Material }) {
-  return (
-    <mesh position-y={length / 2} material={material} castShadow>
-      <capsuleGeometry args={[radius, Math.max(length - 2 * radius, 0.01), 6, 14]} />
-    </mesh>
-  );
-}
-
-export interface FingerProps {
-  lengths: readonly [number, number, number];
-  radius: number;
-  target: FingerPose;
-  material: Material;
-  /** Drawn at each joint (the robotic finger's discs). */
-  joint?: (index: number) => React.ReactNode;
-}
-
 /**
- * Three phalanges, each a group rotated about x at its base; positive flexion curls toward
- * the palm (−z, away from the viewer). Angles move by a damped spring through refs.
+ * Three joints that follow a target pose with a damped spring, rotating each joint group
+ * about x (positive flexion curls toward the palm, −z). Renders only while they move.
  */
-export function Finger({ lengths, radius, target, material, joint }: FingerProps) {
+export function useJoints(target: FingerPose) {
   const j0 = useRef<Group>(null);
   const j1 = useRef<Group>(null);
   const j2 = useRef<Group>(null);
@@ -49,18 +33,43 @@ export function Finger({ lengths, radius, target, material, joint }: FingerProps
     });
     if (!settled.current) invalidate();
   });
+  return [j0, j1, j2] as const;
+}
 
-  const radii = [radius, radius * 0.92, radius * 0.85];
+export interface FingerProps {
+  lengths: readonly [number, number, number];
+  radius: number;
+  target: FingerPose;
+  /** The tip ends in a nail (not the thumb's metacarpal chain). */
+  nail?: boolean;
+}
+
+/** A finger of the cast: three phalanges, each turning about a sphere at its joint. */
+export function Finger({ lengths, radius, target, nail = true }: FingerProps) {
+  const [j0, j1, j2] = useJoints(target);
+  const radii = useMemo(() => [radius, radius * 0.9, radius * 0.82, radius * 0.74], [radius]);
+  const shapes = useMemo(
+    () => ({
+      p: [0, 1, 2].map((i) => phalanxGeometry(lengths[i], radii[i], radii[i + 1], i === 2)),
+      nail: nailGeometry(radii[2] * 1.25, lengths[2] * 0.62),
+    }),
+    [lengths, radii],
+  );
   return (
     <group ref={j0}>
-      {joint?.(0)}
-      <Phalanx length={lengths[0]} radius={radii[0]} material={material} />
+      <mesh geometry={shapes.p[0]} material={CAST} />
       <group ref={j1} position-y={lengths[0]}>
-        {joint?.(1)}
-        <Phalanx length={lengths[1]} radius={radii[1]} material={material} />
+        <mesh geometry={shapes.p[1]} material={CAST} />
         <group ref={j2} position-y={lengths[1]}>
-          {joint?.(2)}
-          <Phalanx length={lengths[2]} radius={radii[2]} material={material} />
+          <mesh geometry={shapes.p[2]} material={CAST} />
+          {nail && (
+            <mesh
+              geometry={shapes.nail}
+              material={NAIL}
+              position={[0, lengths[2] * 0.36, radii[2] * 0.8]}
+              rotation-x={-0.08}
+            />
+          )}
         </group>
       </group>
     </group>

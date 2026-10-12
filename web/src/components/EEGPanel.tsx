@@ -6,19 +6,19 @@ import { PHASE_CODES, eegBuffer, type EegRing } from "../stream/eegBuffer";
 // most 30 times a second, and only when new samples arrived (no React state per sample).
 
 const RANGE_UV = 20; // ± µV at full row height
-const INK = "#15222c";
-const MUTED = "#5c6e77";
-const GRID_MINOR = "#e2ebe7";
-const GRID_MAJOR = "#c8d8d2";
+const INK = "#161d24";
+const MUTED = "#4b5761";
+const GRID_MINOR = "#eceeee";
+const GRID_MAJOR = "#d5dadc";
 const SHADE: Record<number, string> = {
-  [PHASE_CODES.rest]: "#eef3f1",
-  [PHASE_CODES.prepare]: "#fbf0d6",
+  [PHASE_CODES.rest]: "#f4f5f4",
+  [PHASE_CODES.prepare]: "#f4ecd6",
 };
-const CUE_SHADE: Record<string, string> = { affected_hand: "#e1ebf7", sixth_finger: "#fbe3dc" };
+const CUE_SHADE: Record<string, string> = { affected_hand: "#e3e9f9", sixth_finger: "#fbe5dd" };
 
 export function paint(ctx: CanvasRenderingContext2D, ring: EegRing, w: number, h: number, dpr: number) {
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  ctx.fillStyle = "#f6f9f8";
+  ctx.fillStyle = "#fbfbfa";
   ctx.fillRect(0, 0, w, h);
   const labelW = 44;
   const plotW = w - labelW;
@@ -60,7 +60,7 @@ export function paint(ctx: CanvasRenderingContext2D, ring: EegRing, w: number, h
   const n = ring.channels.length;
   if (!n) return;
   const rowH = h / n;
-  ctx.font = "600 12px system-ui, -apple-system, sans-serif";
+  ctx.font = '500 12px "IBM Plex Mono", ui-monospace, monospace';
   ctx.textBaseline = "middle";
   for (let c = 0; c < n; c++) {
     const mid = rowH * (c + 0.5);
@@ -89,7 +89,7 @@ export function paint(ctx: CanvasRenderingContext2D, ring: EegRing, w: number, h
   // Scale: 1 s and 20 µV, bottom right, on a patch of paper so no trace runs through it.
   const bx = w - 12 - perSecond * step;
   const by = h - 10;
-  ctx.fillStyle = "rgba(246, 249, 248, 0.92)";
+  ctx.fillStyle = "rgba(251, 251, 250, 0.94)";
   ctx.fillRect(bx - 46, by - rowH * 0.45 - 4, perSecond * step + 54, rowH * 0.45 + 10);
   ctx.strokeStyle = INK;
   ctx.lineWidth = 2;
@@ -99,7 +99,7 @@ export function paint(ctx: CanvasRenderingContext2D, ring: EegRing, w: number, h
   ctx.lineTo(bx + perSecond * step, by);
   ctx.stroke();
   ctx.fillStyle = INK;
-  ctx.font = "12px system-ui, -apple-system, sans-serif";
+  ctx.font = '12px "IBM Plex Mono", ui-monospace, monospace';
   ctx.textBaseline = "bottom";
   ctx.textAlign = "right";
   ctx.fillText("1 s", bx + perSecond * step, by - 3);

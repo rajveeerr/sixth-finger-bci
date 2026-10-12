@@ -13,6 +13,7 @@ export class EegRing {
   filled = 0;
   sfreq = 125;
   version = 0; // bumped on every push, so the painter can skip unchanged frames
+  trialT = 0; // seconds into the current trial at the newest sample (the trial strip's playhead)
   private currentPhase = 0;
   private currentTruth: string | null = null;
 
@@ -34,10 +35,11 @@ export class EegRing {
     if (phase === "rest") this.currentTruth = null;
   }
 
-  /** data: display channels × samples, microvolts. */
-  push(data: number[][]) {
+  /** data: display channels × samples, microvolts; t: the chunk's start in the trial, seconds. */
+  push(data: number[][], t?: number) {
     if (!this.capacity || !data.length) return;
     const n = data[0].length;
+    if (t !== undefined) this.trialT = t + n / this.sfreq;
     for (let i = 0; i < n; i++) {
       for (let c = 0; c < this.data.length; c++) this.data[c][this.write] = data[c]?.[i] ?? 0;
       this.phase[this.write] = this.currentPhase;

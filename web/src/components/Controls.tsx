@@ -26,12 +26,14 @@ export function Controls({ stream }: { stream: DemoStreamControls }) {
           </button>
         ))}
       </div>
-      <button disabled={!nTrials} onClick={() => stream.control({ type: "jump", trial: trial - 1 })}>
-        Previous trial
-      </button>
-      <button disabled={!nTrials} onClick={() => stream.control({ type: "jump", trial: trial + 1 })}>
-        Next trial
-      </button>
+      <div className="pair" role="group" aria-label="Trial">
+        <button disabled={!nTrials} onClick={() => stream.control({ type: "jump", trial: trial - 1 })}>
+          Previous trial
+        </button>
+        <button disabled={!nTrials} onClick={() => stream.control({ type: "jump", trial: trial + 1 })}>
+          Next trial
+        </button>
+      </div>
       <div className="segmented" role="radiogroup" aria-label="Decoding">
         <button role="radio" aria-checked={mode === "trial"} className={mode === "trial" ? "on" : ""}
           onClick={() => mode !== "trial" && setMode("trial")}>

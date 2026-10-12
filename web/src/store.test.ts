@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { shownCommand, useDemo } from "./store";
+import { RECENT, shownCommand, useDemo } from "./store";
 import type { Prediction } from "./stream/types";
 
 function prediction(window: Prediction["window"], correct: boolean | null): Prediction {
@@ -56,5 +56,32 @@ describe("one-switch view", () => {
     const rest = { ...p, probs: [0.8, 0.1, 0.1] };
     expect(shownCommand({ manualMode: false, command: "IDLE", view: "switch", lastPrediction: rest })).toBe("IDLE");
     expect(shownCommand({ manualMode: true, command: "HAND_GRASP", view: "switch", lastPrediction: rest })).toBe("HAND_GRASP");
+  });
+});
+
+describe("the trial strip and the recent row", () => {
+  beforeEach(() => useDemo.getState().reset());
+
+  it("keeps this trial's window decisions and forgets them at the next trial", () => {
+    const { applyPrediction, applyMessage } = useDemo.getState();
+    applyMessage({ type: "trial_start", trial: 0, pass: 0, uid: "sub-08_x", n_samples: 3600, duration_s: 14.4, cue_onset_s: 8.6 });
+    applyPrediction(prediction("rest", true));
+    applyPrediction(prediction("sliding", null));
+    applyPrediction(prediction("imagery", false));
+    let s = useDemo.getState();
+    expect(s.trialDecisions.map((p) => p.window)).toEqual(["rest", "imagery"]);
+    expect([s.trialDuration, s.cueOnset]).toEqual([14.4, 8.6]);
+    applyMessage({ type: "trial_start", trial: 1, pass: 0, uid: "sub-08_y", n_samples: 3600, duration_s: 14.4, cue_onset_s: 8.6 });
+    s = useDemo.getState();
+    expect(s.trialDecisions).toEqual([]);
+    expect(s.recent).toHaveLength(2); // the recent row runs across trials
+  });
+
+  it("keeps only the last RECENT decisions", () => {
+    const { applyPrediction } = useDemo.getState();
+    for (let i = 0; i < RECENT + 5; i++) applyPrediction({ ...prediction("imagery", true), t: i });
+    const s = useDemo.getState();
+    expect(s.recent).toHaveLength(RECENT);
+    expect(s.recent[0].t).toBe(5);
   });
 });
