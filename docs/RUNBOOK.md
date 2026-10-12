@@ -66,7 +66,10 @@ units. Full scores go to `results/runs/<experiment>/scores.parquet`
 | RQ3 calibration, new command | same with `rq3_calib_s2.yaml` | P08 | same | same |
 | Transfer values (P08 step 4.5) | `uv run python scripts/select_transfer_hparams.py --methods rct_tslr rct_mdm eegnet_ea_ft` | P08 | Mac | 30 min |
 | RQ5 depression leakage | `uv run python scripts/rq5_depression.py fetch`, then `audit`, `run`, `summarise` | P09 | Mac | minutes after a 2.5 GB download |
-| RQ4 studies | `rq4_mirror.yaml`, `rq4_longitudinal.yaml`, `rq4_channels.yaml` | P09 | Mac | hours |
+| RQ4 mirroring | Kaggle shards of `configs/experiments/rq4_mirror.yaml` (`push.sh rq4-mirror-<i> cpu run ... --subjects ... --jobs 4`), then `merge_scores.py` | P09 | Kaggle CPU | 40-60 min per shard |
+| RQ4 stability over time | `uv run python scripts/rq4_longitudinal.py` | P09 | Mac | 20 min |
+| RQ4 pseudo-online replay | `uv run python scripts/pseudo_online.py` (fits through the runner and replays runs 03-04 through `server/app/gate.py`) | P09 | Mac | 35 min |
+| RQ4 explainability and visual-cue check | `uv run python scripts/make_explain_figures.py`; `uv run python scripts/check_visual_cue.py` | P09 | Mac | 10 min each |
 
 Quick versions for debugging: add `--quick` (small k grid, two draws) and
 `--subjects sub-01,sub-03`.
@@ -84,7 +87,8 @@ Summaries and figures:
 | `uv run python scripts/make_eda_figures.py --session pre --out docs/figures` | P04 | `docs/figures/eda_*` |
 | `uv run python scripts/summarise_rq1.py` | P06 | `results/summary/rq1_*`, `docs/figures/rq1_*` |
 | `uv run python scripts/summarise_calibration.py` | P08 | `results/summary/calib_*`, `rq3_sf_vs_ah.csv`, `docs/figures/rq2_*`, `rq3_*` |
-| `uv run python scripts/summarise_rq4.py` | P09 | `results/summary/rq4_*`, `docs/figures/rq4_*` |
+| `uv run python scripts/summarise_rq4.py` | P09 | `results/summary/rq4_mirror*`, `docs/figures/rq4_mirror_effect` |
+| `uv run python scripts/pseudo_online.py --summarise` | P09 | `results/summary/rq4_pseudo_online*`, `docs/figures/rq4_pseudo_online` |
 
 How to verify a result: every row of every scores file carries `git_sha`,
 `config_hash` and `data_manifest_sha`. Runs made on the development machine
