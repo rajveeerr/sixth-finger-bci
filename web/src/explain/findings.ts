@@ -2,6 +2,7 @@
 // each of the five questions in "What we set out to find", in the same order.
 
 import { data } from "./data";
+import type { Split } from "./figures/LearnTest";
 
 export interface Finding {
   key: string;
@@ -27,6 +28,8 @@ export interface Finding {
   note: string;
   /** How we reached the answer, in a few plain sentences, and where the page shows it. */
   how: string;
+  /** What the model learned from and what it was tested on, drawn above the "how". */
+  split?: Split;
   see: { href: string; text: string }[];
 }
 
@@ -89,6 +92,28 @@ export const FINDINGS: Finding[] = [
     ],
     note: "Three choices (rest, hand, sixth finger), so guessing gets 33%. The shaded bands show where the true average very likely lies, given only 22 patients.",
     how: `For each patient in turn we pretended they were new. Their first two runs supplied the practice trials (from 1 to 20 of each movement) and their last two runs the test, which the model never saw. "Already learned from other patients" means the model was also trained on the other ${data.leak.subjects.length - 1} patients' recordings, after each person's signals were shifted to a common centre so that the differences between people matter less.`,
+    split: {
+      label: "What the model learned from and what it was tested on, for each patient in turn",
+      rows: [
+        {
+          title: "Other patients",
+          note: "skipped when starting from nothing",
+          many: true,
+          runs: ["learn", "learn", "learn", "learn"],
+          learns: "learns from all their sessions, shifted to a common centre",
+          sometimes: true,
+        },
+        {
+          title: "The new patient",
+          note: "session 1",
+          runs: ["pick", "pick", "test", "test"],
+          picked: 6,
+          learns: "learns from 1 to 20 trials of each movement in runs 1 and 2",
+          tested: "tested on runs 3 and 4",
+        },
+      ],
+      note: "Dark squares in runs 1 and 2: one example of the practice trials, which were picked at random.",
+    },
     see: [
       { href: "#setup-flow", text: "The new patient's steps, above" },
       { href: "#recordings", text: "Runs and sessions, in chapter 2" },
@@ -107,6 +132,18 @@ export const FINDINGS: Finding[] = [
     answer: `Imagining the sixth finger is told apart from resting ${pct(task("T3_sf_vs_rest").mean)} of the time. Some of that may not be the imagining: during rest the screen shows a cross and during imagining a picture, and sensors at the back of the head, over the parts that handle sight, can also tell the two apart. Told apart from imagining the hand, ${pct(task("T1_ah_vs_sf").mean)}, a little over guessing: the rhythm drops by about the same amount for both. A model trained only on imagining the hand picked out sixth-finger imagining about as well as one trained on the sixth finger itself. So the demo also offers an on/off switch.`,
     note: "One dot per patient, for each two-way choice: trained on the patient's first two runs, tested on the last two. The black line is the average.",
     how: "For each patient, a model learned each two-way choice from the first two runs and was tested on the last two. A model trained to find imagined hand movements was then asked to find imagined sixth-finger movements, and compared with a model trained on those.",
+    split: {
+      label: "What each model learned from and what it was tested on",
+      rows: [
+        {
+          title: "Each patient",
+          note: "session 1, each two-way choice",
+          runs: ["learn", "learn", "test", "test"],
+          learns: "learns from runs 1 and 2",
+          tested: "tested on runs 3 and 4",
+        },
+      ],
+    },
     see: [
       { href: "#model", text: "The model, in chapter 6" },
       { href: "#brain", text: "What changes in the brain, in chapter 3" },
@@ -122,7 +159,19 @@ export const FINDINGS: Finding[] = [
     lead: "Partly. It catches about 2 in 3 imagined movements, but switches on by mistake too often for a device yet.",
     answer: `Played as if live, without being told when the instruction came, the finger switches on about ${Math.round(data.switch.latency_s)} s after the patient starts imagining: the model needs a few seconds of imagining inside the 4 s it reads. While the patient rests, it switches on by mistake about ${Math.round(data.switch.false_per_minute)} time a minute.`,
     note: `Every half second the model reads the newest 4 s and gives the chance that a movement is being imagined (hand and sixth finger added together). A running average steadies that chance; the finger turns on when it is above 60% twice in a row, and off when it falls below 45%. Average of ${data.switch.n} patients.`,
-    how: "We played each patient's last two runs to the model as one unbroken signal, a reading every half second, without telling it when the instructions came, and counted when the finger would have switched on: while the patient imagined (caught) or while they rested (a mistake).",
+    how: "We played each of a patient's last two runs to the model as one unbroken signal, a reading every half second, without telling it when the instructions came, and counted when the finger would have switched on: while the patient imagined (caught) or while they rested (a mistake).",
+    split: {
+      label: "What the model learned from and what it was played",
+      rows: [
+        {
+          title: "Each patient",
+          note: "session 1",
+          runs: ["learn", "learn", "replay", "replay"],
+          learns: "learns from runs 1 and 2",
+          tested: "runs 3 and 4 each played start to end, a reading every half second",
+        },
+      ],
+    },
     see: [{ href: "#demo", text: "Try it in the demo: continuous mode with the on/off switch" }],
   },
   {
@@ -138,6 +187,27 @@ export const FINDINGS: Finding[] = [
     answer: `Brain signals change between days: the cap sits a little differently, the person feels different, and therapy may change the brain. On the new day the patient does 5 practice trials of each movement, a little over 2 minutes, and the model is adjusted to them. Two weeks later that takes it from ${pct(L.post.as_is.mean)} back to ${pct(L.post.re_setup.mean)}, close to the ${pct(L.same_session)} on the day it was built.`,
     note: `Three choices, so guessing gets 33%. ${L.post.as_is.n} patients two weeks later and ${L.follow.as_is.n} a month later, those with usable recordings of both days.`,
     how: "The model built from a patient's first session was tested unchanged on their sessions two weeks and a month later. Then it was adjusted to the new day with 5 practice trials of each movement and tested again.",
+    split: {
+      label: "What the first session's model learned from and what it was tested on, weeks later",
+      rows: [
+        {
+          title: "Session 1",
+          note: "the model is built",
+          runs: ["learn", "learn", "learn", "learn"],
+          learns: "learns from all four runs",
+        },
+        {
+          title: "Sessions 2 and 3",
+          note: "two weeks and a month later",
+          runs: ["pick", "pick", "test", "test"],
+          picked: 10,
+          learns: "only when adjusted: 5 trials of each movement in runs 1 and 2",
+          sometimes: true,
+          tested: "tested on runs 3 and 4",
+        },
+      ],
+      note: "Dark squares in runs 1 and 2: one example of a random pick. The score on the day it was built uses the usual split instead: it learns from runs 1 and 2 of session 1 and is tested on its runs 3 and 4.",
+    },
     see: [{ href: "#recordings", text: "The three sessions, in chapter 2" }],
   },
 ];
