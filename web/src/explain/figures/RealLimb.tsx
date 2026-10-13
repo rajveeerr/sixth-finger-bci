@@ -16,14 +16,13 @@ const LAYERS: { id: string; name: string; demo: string; real: string; sim?: bool
 export function RealLimb() {
   return (
     <Plate
-      title="Seven steps, five of them real"
+      title="This demo against a real system, step by step"
       hint="Hatched: drawn, not built"
-      readout="steps 1 to 5 are real"
       testId="real-limb"
       caption={
         <>
-          A real system would send the same command to a motor driving a robotic finger. It would also need the
-          EEG live, safety checks against false starts, and a short setup for each user.
+          Steps 1 to 5 are the real thing here; steps 6 and 7 are drawn. A real system would also need the EEG
+          live, safety checks against false starts, and a short setup for each user (<a href="#answer-2">question 2</a>).
         </>
       }
     >

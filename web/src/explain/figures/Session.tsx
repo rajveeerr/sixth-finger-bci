@@ -1,4 +1,5 @@
 import { Plate } from "../../components/Plate";
+import { TherapyTerm } from "../refs";
 
 // How the recordings are organised: a trial is one 14 s round; a run is 20 trials in a row;
 // a session is one visit of 4 runs. Runs 1 and 2 teach the model, runs 3 and 4 test it. Each
@@ -13,7 +14,12 @@ export function Session() {
     <Plate
       title="Trials, runs and sessions"
       hint="One square is one trial: 14 s of rest, get ready, imagine."
-      readout="Patients 21 and 22 lost their first session to a data problem (see chapter 5), so most results use 22 patients."
+      readout={
+        <>
+          Patients 21 and 22 lost their first session to a data problem (<a href="#checks">chapter 5</a>), so most
+          results use 22 patients.
+        </>
+      }
     >
       <div className="session">
         <div className="session-runs">
@@ -41,7 +47,9 @@ export function Session() {
           <li>
             <b>Session 1</b> before therapy
           </li>
-          <li className="session-gap">two weeks of therapy</li>
+          <li className="session-gap">
+            <TherapyTerm />
+          </li>
           <li>
             <b>Session 2</b> after therapy
           </li>

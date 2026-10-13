@@ -30,7 +30,7 @@ const ROWS = [
     found:
       "In the published analysis, the spatial filters (CSP) were fitted on all the trials before some were set aside for testing, so the test was not on unseen data.",
     how: "Reading the authors' analysis code, then rebuilding their method both ways on the same data.",
-    did: "Measured the effect. It explains the published 85% (chapter 8).",
+    did: "Measured the effect: it is where the published 85% came from (question 1 in chapter 8).",
     leak: true,
   },
 ];

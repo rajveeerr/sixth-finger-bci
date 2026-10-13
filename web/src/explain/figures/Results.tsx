@@ -8,15 +8,19 @@ const task = (key: string) => data.tasks.find((t) => t.key === key)!;
 
 /** The evidence under each answer: every patient where there is one value each. */
 function Evidence({ f }: { f: Finding }) {
-  if (f.key === "moving" || f.key === "which") {
-    const t = task(f.key === "moving" ? "T3_sf_vs_rest" : "T1_ah_vs_sf");
+  if (f.key === "sixth") {
+    const rest = task("T3_sf_vs_rest");
+    const which = task("T1_ah_vs_sf");
     return (
       <DotStrip
-        rows={[{ values: t.values, mean: t.mean }]}
+        rows={[
+          { label: "Sixth finger or resting?", values: rest.values, mean: rest.mean },
+          { label: "Hand or sixth finger?", values: which.values, mean: which.mean },
+        ]}
         domain={[0.3, 1]}
         ticks={[0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]}
-        marker={{ at: t.chance, text: "guessing" }}
-        label={`${f.question} One dot per patient.`}
+        marker={{ at: 0.5, text: "guessing" }}
+        label="Accuracy of each patient's model on two two-way choices"
       />
     );
   }
@@ -59,9 +63,11 @@ function Evidence({ f }: { f: Finding }) {
     return (
       <Bars
         rows={[
-          { label: "Same day as it was built", value: L.same_session },
+          { label: "On the day it was built", value: L.same_session },
           { label: "Two weeks later, as it was", value: L.post.as_is.mean, strong: true },
           { label: "Two weeks later, after 5 practice trials of each movement", value: L.post.re_setup.mean },
+          { label: "A month after therapy, as it was", value: L.follow.as_is.mean, strong: true },
+          { label: "A month after therapy, after 5 practice trials of each", value: L.follow.re_setup.mean },
         ]}
         guess={1 / 3}
         label="Accuracy of the first session's model on the same day, two weeks later, and after a re-setup"
@@ -92,10 +98,12 @@ export function ResultsGauges() {
   return (
     <ol className="findings">
       {FINDINGS.map((f) => (
-        <li key={f.key} className="finding">
+        <li key={f.key} className="finding" id={`answer-${f.answers}`}>
           <Gauge value={f.value} other={f.other?.value} guess={f.guess} label={`${f.question} ${pct(f.value)}`} />
           <div className="finding-text">
-            <p className="finding-kicker">Question {f.answers}</p>
+            <p className="finding-kicker">
+              <a href={`#question-${f.answers}`}>Question {f.answers}</a>
+            </p>
             <h3 className="finding-q">{f.question}</h3>
             <p className="finding-a">
               <em>{f.lead}</em> {f.answer}
