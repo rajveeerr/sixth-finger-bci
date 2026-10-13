@@ -491,8 +491,14 @@ code {
 }
 .chapter-rule {
   flex: 1;
+  min-width: 16px;
   height: 1px;
   background: var(--rule);
+}
+@media (max-width: 420px) {
+  .chapter h2 {
+    white-space: normal;
+  }
 }
 .chapter-num {
   font: italic 400 20px/1 var(--serif);

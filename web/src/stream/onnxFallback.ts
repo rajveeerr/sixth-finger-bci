@@ -2,7 +2,9 @@
 // unreachable. The model file is checked against the manifest's sha256 first, so a stale
 // or partial download moves the demo on to the replay instead of decoding with it.
 
-import * as ort from "onnxruntime-web";
+// The wasm-only build: about half the download of the default one, which also carries
+// the WebGPU and WebNN back ends this small model never uses.
+import * as ort from "onnxruntime-web/wasm";
 import { applyPreprocessing, softmax, type Manifest } from "./bundle";
 import type { Predictor } from "./localStream";
 

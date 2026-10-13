@@ -9,13 +9,17 @@ import type { ControlMessage, Mode } from "./types";
 export interface DemoStreamControls {
   control: (message: ControlMessage) => void;
   retry: () => void;
+  /** Whether there is a server to go back to. */
+  hasServer: boolean;
 }
 
 export function streamSettings(search: string) {
   const params = new URLSearchParams(search);
   const mode: Mode = params.get("mode") === "continuous" ? "continuous" : "trial";
   const speed = Number(params.get("speed")) || 1;
-  const serverUrl = params.get("server") || import.meta.env.VITE_SERVER_URL || "http://localhost:8000";
+  // "none" builds a site that only decodes in the browser (a static host with no server).
+  const asked = params.get("server") || import.meta.env.VITE_SERVER_URL || "http://localhost:8000";
+  const serverUrl = asked === "none" ? "" : asked;
   return { mode, speed, serverUrl };
 }
 
@@ -36,5 +40,6 @@ export function useDemoStream(): DemoStreamControls {
   return {
     control: (message) => controller.current?.control(message),
     retry: () => controller.current?.retry(),
+    hasServer: streamSettings(window.location.search).serverUrl !== "",
   };
 }

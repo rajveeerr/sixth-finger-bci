@@ -9,6 +9,7 @@ import { nextSource, type SourceEvent } from "./sourceMachine";
 import type { ControlMessage, Mode, ServerMessage, SourceState } from "./types";
 
 export interface ControllerOptions {
+  /** Empty for a site without a server: it starts on the in-browser model. */
   serverUrl: string;
   mode: Mode;
   speed: number;
@@ -41,8 +42,9 @@ export class DemoController {
   }
 
   start() {
+    if (!this.opts.serverUrl) this.source = "loading-browser";
     this.opts.onSource(this.source);
-    this.enter("connecting");
+    this.enter(this.source);
   }
 
   stop() {
@@ -55,7 +57,7 @@ export class DemoController {
 
   /** "Try server again". */
   retry() {
-    this.dispatch("retry");
+    if (this.opts.serverUrl) this.dispatch("retry");
   }
 
   control(message: ControlMessage) {

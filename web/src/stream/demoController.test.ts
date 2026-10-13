@@ -13,12 +13,12 @@ const replay: Predictor = { source: "replay", sliding: false, predict: async () 
 // Virtual time that also yields to the event loop, so the controller's promises settle.
 const timer: Timer = { now: () => 0, sleep: () => new Promise((r) => setTimeout(r, 0)) };
 
-function setup(opts: { server: "hello" | "fail"; decoder: Predictor | "missing" }) {
+function setup(opts: { server: "hello" | "fail" | "none"; decoder: Predictor | "missing" }) {
   const sources: SourceState[] = [];
   const messages: ServerMessage[] = [];
   let handlers!: StreamHandlers;
   const c = new DemoController({
-    serverUrl: "http://localhost:8000",
+    serverUrl: opts.server === "none" ? "" : "http://localhost:8000",
     mode: "trial",
     speed: 1,
     onMessage: (m) => messages.push(m),
@@ -49,6 +49,17 @@ describe("DemoController", () => {
     c.start();
     await settle();
     expect(sources).toEqual(["connecting", "server"]);
+    c.stop();
+  });
+
+  it("starts on the in-browser model when the site has no server", async () => {
+    const { c, sources, messages } = setup({ server: "none", decoder: ok });
+    c.start();
+    await until(() => expect(messages.some((m) => m.type === "prediction" && m.source === "browser")).toBe(true));
+    expect(sources).toEqual(["loading-browser", "browser"]);
+    c.retry();
+    await settle();
+    expect(sources.at(-1)).toBe("browser");
     c.stop();
   });
 

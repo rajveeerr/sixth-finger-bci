@@ -13,6 +13,13 @@ test("without a server the demo decodes in the browser and moves the hand", asyn
   await expect(page.getByTestId("hand")).not.toHaveAttribute("data-command", "IDLE", { timeout: 15_000 });
 });
 
+test("a site built without a server goes straight to the in-browser model", async ({ page }) => {
+  await page.goto("/?speed=8&server=none");
+  await expect(page.getByTestId("mode-badge")).toHaveAttribute("data-source", "browser", { timeout: 15_000 });
+  await expect(page.getByTestId("prediction")).not.toHaveAttribute("data-label", "", { timeout: 10_000 });
+  await expect(page.getByRole("button", { name: "Try the server again" })).toHaveCount(0);
+});
+
 test("the one-switch view flexes the sixth finger for any imagery", async ({ page }) => {
   await page.goto(`/?speed=8&${NO_SERVER}`);
   await page.getByRole("radio", { name: "On/off switch" }).click();

@@ -71,7 +71,7 @@ export function Controls({ stream }: { stream: DemoStreamControls }) {
           Continuous (experimental)
         </button>
       </span>
-      {local && (
+      {local && stream.hasServer && (
         <button className="ctl ctl-quiet" onClick={stream.retry}>
           Try the server again
         </button>
