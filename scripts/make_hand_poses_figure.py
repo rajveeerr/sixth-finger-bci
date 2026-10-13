@@ -30,7 +30,7 @@ def main() -> None:
         ax.axis("off")
     fig.tight_layout()
     out = root / "docs" / "figures" / "hand_poses.png"
-    fig.savefig(out, dpi=200, facecolor="white")
+    fig.savefig(out, dpi=200, facecolor="white", bbox_inches="tight", pad_inches=0.15)
     print(f"wrote {out.relative_to(root)}")
 
 

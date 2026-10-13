@@ -17,5 +17,11 @@ for (const { width, height, name } of [
     expect(overflow).toBeLessThanOrEqual(0);
     await page.screenshot({ path: `test-results/layout-${name.replace(/ /g, "-")}.png` });
     await page.screenshot({ path: `test-results/layout-${name.replace(/ /g, "-")}-full.png`, fullPage: true });
+    // The demo itself, for the report (docs/figures/demo_projector.png and demo_phone.png).
+    await page.locator("#demo").scrollIntoViewIfNeeded();
+    await page.evaluate(() => document.querySelector("#demo")!.scrollIntoView({ block: "start" }));
+    await page.waitForTimeout(600);
+    if (width >= 1024) await page.screenshot({ path: `test-results/demo-${name.replace(/ /g, "-")}.png` });
+    else await page.locator(".demo").screenshot({ path: `test-results/demo-${name.replace(/ /g, "-")}.png` });
   });
 }
