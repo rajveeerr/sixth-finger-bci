@@ -129,9 +129,9 @@ export default function App() {
               </p>
             </li>
             <li id="question-2">
-              <h3>How much practice does the model need from a new patient?</h3>
+              <h3>How much practice does a new patient need before the model works?</h3>
               <p>
-                Learning from the new patient alone, or also from patients recorded before.{" "}
+                Starting from nothing, or from a model that has already learned from other patients.{" "}
                 <a href="#answer-2">Answer</a>
               </p>
             </li>
@@ -173,7 +173,9 @@ export default function App() {
           lede={
             <p>
               Before any test, we went through the recordings and the published analysis, looking for anything that
-              could make a result look better than it is. We found four problems.
+              could make a result look better than it is. We found four problems: three in the shared recordings and one
+              in how the paper tested its method. None was in our model; the fourth is why the paper&apos;s 85% is too
+              high.
             </p>
           }
         >
@@ -249,10 +251,11 @@ export default function App() {
             <li>
               <h3>The same mistake, measured in other data</h3>
               <p>
-                We repeated the check on two public datasets of imagined hand movements from healthy volunteers, and on
-                EEG used to detect depression, where a related leak (the same person on both sides of the test) is a
-                known risk. It raised the score in every dataset we checked, by {LEAK_RANGE[0]} to {LEAK_RANGE[1]}{" "}
-                points (the figure below).
+                We repeated the check on two public datasets of imagined hand movements from healthy volunteers. As a
+                second, unrelated test, we also checked EEG studies that try to detect depression, where a related leak
+                (the same person on both sides of the test) is a known risk; this project is not about depression. The
+                leak raised the score in every dataset we checked, by {LEAK_RANGE[0]} to {LEAK_RANGE[1]} points (the
+                figure below).
               </p>
             </li>
             <li>

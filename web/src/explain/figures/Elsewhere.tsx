@@ -29,7 +29,7 @@ const MOTOR_WHY =
 const DEPRESSION_WHY =
   "Each person's recording is cut into 4 s pieces. Leaky: pieces of the same person go into both learning and testing, so the model can recognise the person instead of depression. Fair: all of a person's pieces stay on one side.";
 
-const GROUPS: { title: string; rows: Row[] }[] = [
+const GROUPS: { title: string; about?: string; rows: Row[] }[] = [
   {
     title: "Imagined movement",
     rows: [
@@ -53,6 +53,8 @@ const GROUPS: { title: string; rows: Row[] }[] = [
   },
   {
     title: "Depression from resting EEG",
+    about:
+      "Not part of the sixth-finger work: a second, unrelated field where EEG studies often test this way, used to check whether the mistake matters beyond our recordings.",
     rows: E.depression.map((d) => ({
       key: `${d.dataset}-${d.pipeline}`,
       name: `${NAMES[d.dataset] ?? d.dataset}, ${METHOD[d.pipeline] ?? d.pipeline}`,
@@ -93,6 +95,7 @@ export function Elsewhere() {
         {GROUPS.map((g) => (
           <section key={g.title}>
             <h4>{g.title}</h4>
+            {g.about && <p className="dumbbell-about">{g.about}</p>}
             {g.rows.map((r) => (
               <button
                 type="button"

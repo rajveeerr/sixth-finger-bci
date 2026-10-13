@@ -139,14 +139,14 @@ function Step({ i, side }: { i: number; side: Side }) {
 export function BciLoop() {
   const head = useMemo(() => headArt(), []);
   const pc = useMemo(() => computerArt(), []);
-  const [side, setSide] = useState<Side>("real");
+  const [side, setSide] = useState<Side>("demo");
   return (
     <figure
       className="loop bleed"
       aria-label="A brain-computer interface: brain signal, model, robotic finger, and back"
     >
       <div className="toggle loop-toggle" role="radiogroup" aria-label="Show the loop">
-        {(["real", "demo"] as Side[]).map((v) => (
+        {(["demo", "real"] as Side[]).map((v) => (
           <button key={v} type="button" role="radio" aria-checked={side === v} onClick={() => setSide(v)}>
             {v === "real" ? "In a real system" : "In this demo"}
           </button>

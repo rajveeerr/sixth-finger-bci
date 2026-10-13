@@ -19,8 +19,8 @@ function SetupEvidence() {
     <>
       <Curves
         series={[
-          { label: "Learning also from other patients", points: toSeries(T) },
-          { label: "From the patient alone", points: toSeries(S), muted: true },
+          { label: "Already learned from other patients", points: toSeries(T) },
+          { label: "Starting from nothing", points: toSeries(S), muted: true },
         ]}
         guess={1 / 3}
         at={T[i].minutes}
@@ -38,8 +38,8 @@ function SetupEvidence() {
         />
       </div>
       <p className="chart-say" aria-live="polite">
-        After {T[i].k} practice trial{T[i].k > 1 ? "s" : ""} of each movement ({minutes(T[i].minutes)}): learning also
-        from other patients <b>{pct(T[i].mean)}</b>, from the patient alone <b>{pct(S[i].mean)}</b>.
+        After {T[i].k} practice trial{T[i].k > 1 ? "s" : ""} of each movement ({minutes(T[i].minutes)}): already learned
+        from other patients <b>{pct(T[i].mean)}</b>, starting from nothing <b>{pct(S[i].mean)}</b>.
       </p>
       <SetupFlow />
     </>
@@ -200,6 +200,13 @@ export function ResultsGauges() {
         <h3 className="finding-q">{f.question}</h3>
         <p className="finding-lead">{f.lead}</p>
         <p className="finding-a">{f.answer}</p>
+        {f.points && (
+          <ul className="finding-points">
+            {f.points.map((p) => (
+              <li key={p}>{p}</li>
+            ))}
+          </ul>
+        )}
         <Evidence key={f.key} f={f} />
         <p className="finding-note">{f.note}</p>
         <div className="how">

@@ -1,8 +1,8 @@
 import { data, pct } from "../data";
 
 // What a new patient goes through before the model can read them, three ways, with the
-// practice drawn to scale: learning from the patient alone, learning also from patients
-// recorded before, and coming back on another day. Every time and score is from data.json.
+// practice drawn to scale: starting from nothing, starting from a model that has already
+// learned from other patients, and coming back on another day. Every time and score is from data.json.
 
 const S = data.calibration.scratch;
 const T = data.calibration.transfer;
@@ -16,7 +16,7 @@ const time = (min: number) =>
 
 const LANES = [
   {
-    name: "Learning from the patient alone",
+    name: "Starting from nothing",
     before: null,
     k: reach.k,
     minutes: reach.minutes,
@@ -24,7 +24,7 @@ const LANES = [
     score: reach.mean,
   },
   {
-    name: "Learning also from other patients",
+    name: "Already learned from other patients",
     before: `Done once, beforehand: ${others} patients recorded earlier`,
     k: T[0].k,
     minutes: T[0].minutes,

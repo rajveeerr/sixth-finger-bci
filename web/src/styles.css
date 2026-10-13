@@ -1081,6 +1081,15 @@ code {
   line-height: 1.6;
   color: var(--ink-2);
 }
+.finding-points {
+  margin: -8px 0 18px;
+  padding: 0 0 0 20px;
+  display: grid;
+  gap: 6px;
+  font-size: 16px;
+  line-height: 1.55;
+  color: var(--ink-2);
+}
 .chart-say {
   margin: 6px 0 0;
   min-height: 1.5em;
@@ -2137,6 +2146,12 @@ code {
   margin: 16px 0 4px;
   font-size: 13px;
   font-weight: 600;
+  color: var(--ink-3);
+}
+.dumbbell-about {
+  margin: -2px 0 6px;
+  font-size: 13px;
+  line-height: 1.45;
   color: var(--ink-3);
 }
 .dumbbells section:first-child h4 {

@@ -21,6 +21,8 @@ export interface Finding {
   /** The short answer, then the rest of it. */
   lead: string;
   answer: string;
+  /** The answer's steps, when a list says it more plainly than a paragraph. */
+  points?: string[];
   /** How the evidence under the answer was measured. */
   note: string;
   /** How we reached the answer, in a few plain sentences, and where the page shows it. */
@@ -38,6 +40,9 @@ const scratchReach = data.calibration.scratch.find((p) => p.mean >= T0.mean - 0.
 export const PRACTICE_S = Math.round((T0.minutes * 60) / 10) * 10;
 /** Minutes from scratch, to the nearest minute. */
 export const SCRATCH_MIN = Math.round(scratchReach);
+const S_END = data.calibration.scratch[data.calibration.scratch.length - 1];
+const T_END = data.calibration.transfer[data.calibration.transfer.length - 1];
+const OTHERS = data.leak.subjects.length - 1;
 /** Practice trials of each movement the patient's own model needs to match that. */
 export const SCRATCH_K = data.calibration.scratch.find((p) => p.minutes === scratchReach)?.k ?? NaN;
 
@@ -63,16 +68,22 @@ export const FINDINGS: Finding[] = [
   {
     key: "setup",
     answers: 2,
-    question: "How much practice does the model need from a new patient?",
+    question: "How much practice does a new patient need before the model works?",
     short: "A new patient",
     scale: "after 30 s; guessing 33%",
     value: data.calibration.transfer[0].mean,
-    other: { value: data.calibration.scratch[0].mean, label: "from the patient alone" },
+    other: { value: data.calibration.scratch[0].mean, label: "starting from nothing" },
     guess: 1 / 3,
-    lead: `With help from other patients, ${PRACTICE_S} seconds of practice does what ${SCRATCH_MIN} minutes does alone.`,
-    answer: `Before the model can read a new patient, the patient does a few practice trials so it can learn their signals. Learning from those alone, it needs about ${SCRATCH_K} trials of each movement (${SCRATCH_MIN} minutes) to be right ${pct(T0.mean)} of the time on the three choices. Learning also from patients recorded before, it gets there after one trial of each (${PRACTICE_S} seconds). That is a head start, not a better model: with more practice, the model that learns from the patient alone catches up and then does better.`,
+    lead: `About ${PRACTICE_S} seconds if the model has already learned from other patients; about ${SCRATCH_MIN} minutes if it starts from nothing.`,
+    answer:
+      "Every person's brain signals look a little different, so the model needs examples from each new patient. The patient imagines each movement a few times while the screen says which one; each example takes about 15 seconds.",
+    points: [
+      `Starting from nothing, the model needs ${SCRATCH_K} examples of each movement (about ${SCRATCH_MIN} minutes) to be right ${pct(T0.mean)} of the time on the three choices. Guessing gets 33%.`,
+      `Having already learned from the other ${OTHERS} patients, it is right ${pct(T0.mean)} of the time after 1 example of each (about ${PRACTICE_S} seconds).`,
+      `With much more practice (about ${Math.round(S_END.minutes)} minutes), the model that started from nothing ends a little ahead, ${pct(S_END.mean)} against ${pct(T_END.mean)}. So learning from others saves time at the start; it does not make the model better in the end.`,
+    ],
     note: "Three choices (rest, hand, sixth finger), so guessing gets 33%. The shaded bands show where the true average very likely lies, given only 22 patients.",
-    how: `For each patient in turn we pretended they were new. Their first two runs supplied the practice trials (from 1 to 20 of each movement) and their last two runs the test, which the model never saw. "Learning also from other patients" used the other ${data.leak.subjects.length - 1} patients' recordings too, after each person's signals were shifted to a common centre so that the differences between people matter less.`,
+    how: `For each patient in turn we pretended they were new. Their first two runs supplied the practice trials (from 1 to 20 of each movement) and their last two runs the test, which the model never saw. "Already learned from other patients" means the model was also trained on the other ${data.leak.subjects.length - 1} patients' recordings, after each person's signals were shifted to a common centre so that the differences between people matter less.`,
     see: [
       { href: "#setup-flow", text: "The new patient's steps, above" },
       { href: "#recordings", text: "Runs and sessions, in chapter 2" },
