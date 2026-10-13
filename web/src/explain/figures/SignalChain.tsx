@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type FocusEvent, type KeyboardEvent } from "react";
 import { Plate } from "../../components/Plate";
 import { damp } from "../../hands/spring";
 import { shownCommand, useDemo, type Command } from "../../store";
@@ -6,6 +6,7 @@ import { eegBuffer } from "../../stream/eegBuffer";
 import {
   buildChain,
   fingerPoints,
+  LIFT,
   LINK_R,
   PAPER_Z,
   PARTS,
@@ -18,6 +19,8 @@ import {
   VIEW_H,
   VIEW_W,
   P,
+  type Layer,
+  type PartId,
 } from "../iso/chain";
 import { axisVector } from "../iso/kit";
 
@@ -59,6 +62,29 @@ function inkPaths(): [string, string] {
   }
   return [fresh.join(""), old.join("")];
 }
+
+/** How a run of the bench answers a part: rise with it, bend a wire's end with it, or stay bright where it is. */
+function modeOf(layer: Layer, part: PartId) {
+  if (layer.kind === "wire") return layer.part === part ? "from" : layer.to === part ? "to" : undefined;
+  if (layer.hold === part) return "hold";
+  if (layer.part !== part) return undefined;
+  return layer.kind === "part" || layer.kind === "shadow" ? "up" : "hold";
+}
+
+/** The part under the pointer: its drawing, the hit area under it, its shadow or its pin. */
+function partAt(target: EventTarget | null) {
+  const el = (target as Element | null)?.closest?.("[data-hit]");
+  return el ? Number(el.getAttribute("data-hit")) : null;
+}
+
+const STEP: Record<string, (i: number) => number> = {
+  ArrowRight: (i) => i + 1,
+  ArrowDown: (i) => i + 1,
+  ArrowLeft: (i) => i - 1,
+  ArrowUp: (i) => i - 1,
+  Home: () => 0,
+  End: () => PARTS.length - 1,
+};
 
 /**
  * The signal chain as a bench instrument. It is live: the paper carries the demo's EEG, the
@@ -136,12 +162,75 @@ export function SignalChain() {
 
   const lit = LAMP_OF[command];
   const [part, setPart] = useState<number | null>(null);
+  const on = part === null ? undefined : PARTS[part].id;
+  // The part let go of stays bright while the rest fades back, and the dimming filter stays
+  // on until that fade is over, so nothing blinks.
+  const [last, setLast] = useState<PartId>();
+  const [dim, setDim] = useState(false);
+  if (on && (on !== last || !dim)) {
+    setLast(on);
+    setDim(true);
+  }
+  useEffect(() => {
+    if (on || !dim) return;
+    const t = window.setTimeout(() => setDim(false), 300);
+    return () => window.clearTimeout(t);
+  }, [on, dim]);
+  const liftOf = (layer: Layer) => (on ? modeOf(layer, on) : last && modeOf(layer, last) ? "hold" : undefined);
   const pins = useMemo(() => PARTS.map((p) => project(p.at)), []);
+  // Everything about a run but whether it is lifted, so a pick only touches attributes, never the drawing.
+  const runs = useMemo(
+    () =>
+      art.layers.map((layer) => ({
+        layer,
+        html: layer.live ? undefined : { __html: layer.svg },
+        className: layer.kind === "hits" ? "part-hits" : layer.kind === "shadow" ? "part-shadow" : `piece piece-${layer.kind}`,
+        hit: layer.kind === "part" || layer.kind === "shadow" ? PARTS.findIndex((p) => p.id === layer.part) : undefined,
+        style: layer.bend ? ({ "--bend-from": layer.bend[0], "--bend-to": layer.bend[1] } as CSSProperties) : undefined,
+      })),
+    [art],
+  );
+  const live = (name: Layer["live"]) => {
+    if (name === "ink-old") return <path ref={inkOld} className="ink ink-old" />;
+    if (name === "ink-new") return <path ref={inkNew} className="ink ink-new" />;
+    return (
+      <g className="finger" data-active={command === "SIXTH_FINGER_FLEX" ? "" : undefined}>
+        {[0, 1, 2].map((i) => (
+          <path key={`o${i}`} ref={(el) => { links.current[i] = el; }} className="link-edge"
+            strokeWidth={LINK_R[i] * 2 * UNIT + 1.8} />
+        ))}
+        {[0, 1, 2].map((i) => (
+          <path key={`f${i}`} ref={(el) => { links.current[3 + i] = el; }} className="link-body"
+            strokeWidth={LINK_R[i] * 2 * UNIT} />
+        ))}
+        {[0, 1, 2].map((i) => (
+          <path key={`s${i}`} ref={(el) => { links.current[6 + i] = el; }} className="link-strip"
+            strokeWidth={2 * UNIT} />
+        ))}
+        {[0, 1, 2, 3].map((i) => (
+          <circle key={i} ref={(el) => { joints.current[i] = el; }} r={(i === 3 ? 3.4 : 1.7) * UNIT}
+            className={i === 3 ? "link-tip" : "link-pin"} />
+        ))}
+      </g>
+    );
+  };
+  // One tab stop per row of controls; the arrow keys walk the parts within it.
+  const stop = part ?? 0;
+  const walk = (i: number) => (e: KeyboardEvent<HTMLElement | SVGElement>) => {
+    const to = STEP[e.key]?.(i);
+    if (to === undefined) return;
+    e.preventDefault();
+    const row = e.currentTarget.closest("svg, ol")?.querySelectorAll<HTMLElement | SVGElement>("[tabindex]");
+    row?.[(to + PARTS.length) % PARTS.length]?.focus();
+  };
+  const leave = (e: FocusEvent) => {
+    if (partAt(e.relatedTarget) === null) setPart(null);
+  };
   return (
     <Plate
         title="The whole system on one bench"
         hint="It moves with the live demo further down."
-        readout={part === null ? "Point at or tap a number to see what each part does." : <><b>{PARTS[part].name}.</b> {PARTS[part].text}</>}
+        readout={part === null ? "Point at or tap a part to lift it off the bench and see what it does." : <><b>{PARTS[part].name}.</b> {PARTS[part].text}</>}
         className="plate-chain bleed"
       >
         <svg
@@ -151,34 +240,30 @@ export function SignalChain() {
           role="group"
           aria-label="A bench model of the signal chain: head with electrodes, amplifier, paper with EEG, a 4 s frame, the decoder with three lamps and the robotic finger"
           data-lit={lit}
+          data-on={on}
+          data-dim={dim ? "" : undefined}
+          style={{ "--lift": `${-LIFT}px` } as CSSProperties}
+          onPointerOver={(e) => e.pointerType !== "touch" && setPart(partAt(e.target))}
+          onPointerLeave={(e) => e.pointerType === "mouse" && setPart(null)}
+          onClick={(e) => setPart(partAt(e.target))}
         >
-          <g dangerouslySetInnerHTML={{ __html: art.back }} />
-          <path ref={inkOld} className="ink ink-old" />
-          <path ref={inkNew} className="ink ink-new" />
-          <g dangerouslySetInnerHTML={{ __html: art.front }} />
-          <g className="finger" data-active={command === "SIXTH_FINGER_FLEX" ? "" : undefined}>
-            {[0, 1, 2].map((i) => (
-              <path key={`o${i}`} ref={(el) => { links.current[i] = el; }} className="link-edge"
-                strokeWidth={LINK_R[i] * 2 * UNIT + 1.8} />
-            ))}
-            {[0, 1, 2].map((i) => (
-              <path key={`f${i}`} ref={(el) => { links.current[3 + i] = el; }} className="link-body"
-                strokeWidth={LINK_R[i] * 2 * UNIT} />
-            ))}
-            {[0, 1, 2].map((i) => (
-              <path key={`s${i}`} ref={(el) => { links.current[6 + i] = el; }} className="link-strip"
-                strokeWidth={2 * UNIT} />
-            ))}
-            {[0, 1, 2, 3].map((i) => (
-              <circle key={i} ref={(el) => { joints.current[i] = el; }} r={(i === 3 ? 3.4 : 1.7) * UNIT}
-                className={i === 3 ? "link-tip" : "link-pin"} />
-            ))}
-          </g>
+          <defs>
+            <filter id="chain-dim" colorInterpolationFilters="sRGB" x="-10%" y="-25%" width="120%" height="150%">
+              <feFlood className="chain-dim" />
+              <feComposite in2="SourceGraphic" operator="in" />
+              <feComposite in2="SourceGraphic" operator="over" />
+            </filter>
+          </defs>
+          {runs.map(({ layer, html, className, hit, style }, i) => (
+            <g key={i} className={className} data-hit={hit} data-lift={liftOf(layer)} style={style} dangerouslySetInnerHTML={html}>
+              {layer.live ? live(layer.live) : undefined}
+            </g>
+          ))}
           {pins.map(([x, y], i) => (
-            <g key={PARTS[i].name} className="part-pin" data-on={part === i ? "" : undefined} tabIndex={0} role="button"
+            <g key={PARTS[i].id} className="part-pin" data-hit={i}
+              data-on={part === i ? "" : undefined} tabIndex={i === stop ? 0 : -1} role="button" aria-pressed={part === i}
               aria-label={`${PARTS[i].name}: ${PARTS[i].text}`}
-              onPointerEnter={() => setPart(i)} onPointerLeave={(e) => e.pointerType === "mouse" && setPart(null)}
-              onFocus={() => setPart(i)} onClick={() => setPart(i)}>
+              onFocus={() => setPart(i)} onBlur={leave} onKeyDown={walk(i)}>
               <circle cx={x} cy={y} r={13} />
               <text x={x} y={y + 4.5} textAnchor="middle">{i + 1}</text>
             </g>
@@ -186,9 +271,14 @@ export function SignalChain() {
         </svg>
         <ol className="part-names">
           {PARTS.map((p, i) => (
-            <li key={p.name} data-on={part === i ? "" : undefined} onPointerEnter={() => setPart(i)}
-              onPointerLeave={(e) => e.pointerType === "mouse" && setPart(null)} onClick={() => setPart(i)}>
-              <b>{i + 1}</b> {p.name}
+            <li key={p.id}>
+              <button type="button" data-hit={i} data-on={part === i ? "" : undefined}
+                aria-pressed={part === i} tabIndex={i === stop ? 0 : -1}
+                onPointerEnter={(e) => e.pointerType !== "touch" && setPart(i)}
+                onPointerLeave={(e) => e.pointerType === "mouse" && setPart(null)}
+                onFocus={() => setPart(i)} onBlur={leave} onClick={() => setPart(i)} onKeyDown={walk(i)}>
+                <b>{i + 1}</b> {p.name}
+              </button>
             </li>
           ))}
         </ol>
