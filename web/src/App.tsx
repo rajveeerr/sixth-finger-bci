@@ -1,11 +1,7 @@
 import { Chapter } from "./components/Chapter";
-import { Controls } from "./components/Controls";
-import { EEGPanel } from "./components/EEGPanel";
+import { DemoStage } from "./components/DemoStage";
 import { IntroHand } from "./components/IntroHand";
 import { ManualTestBanner } from "./components/ManualTestBanner";
-import { ModeBadge } from "./components/ModeBadge";
-import { PredictionCard } from "./components/PredictionCard";
-import { Told } from "./components/Told";
 import { data, pct } from "./explain/data";
 import { BciLoop } from "./explain/figures/BciLoop";
 import { BrainRhythm } from "./explain/figures/BrainRhythm";
@@ -20,16 +16,10 @@ import { SignalChain } from "./explain/figures/SignalChain";
 import { PRACTICE_S, SCRATCH_MIN } from "./explain/findings";
 import { LINKS } from "./explain/links";
 import { CspTerm, CueTerm, DatasetRef, EegnetRef, EegTerm, ModelTerm, TherapyTerm } from "./explain/refs";
-import { useDemo } from "./store";
 import { useDemoStream } from "./stream/useDemoStream";
-
-const task = (key: string) => data.tasks.find((t) => t.key === key)!;
 
 export default function App() {
   const stream = useDemoStream();
-  const source = useDemo((s) => s.source);
-  const synthetic = useDemo((s) => s.synthetic);
-  const error = useDemo((s) => s.error);
   const patient = data.demo.subject.replace("sub-0", "").replace("sub-", "");
   return (
     <div className="page" id="top">
@@ -52,48 +42,6 @@ export default function App() {
             A B.Tech minor project by Rajveer Singh, Vivek Yadav and Ansh Dahiya, guided by Dr. Suman Lata.
           </p>
         </header>
-
-        <section className="short" aria-labelledby="short-title">
-          <h2 id="short-title">In short</h2>
-          <dl>
-            <div>
-              <dt>
-                <a href="#answer-3">Can a computer tell when a patient imagines the sixth finger?</a>
-              </dt>
-              <dd>
-                Mostly: {pct(task("T3_sf_vs_rest").mean)} of the time, told apart from resting, though part of that may
-                be the picture on the screen.
-              </dd>
-            </div>
-            <div>
-              <dt>
-                <a href="#answer-3">Can it tell the sixth finger from the hand?</a>
-              </dt>
-              <dd>
-                Barely: {pct(task("T1_ah_vs_sf").mean)}, where guessing gets 50%. So for now the finger works as an
-                on/off switch.
-              </dd>
-            </div>
-            <div>
-              <dt>
-                <a href="#answer-1">The study that shared these recordings reported 85%. Does it hold?</a>
-              </dt>
-              <dd>
-                No. Tested on trials it had not seen, the same method gets {pct(data.leak.mean_leakfree)}; guessing gets
-                50%.
-              </dd>
-            </div>
-            <div>
-              <dt>
-                <a href="#answer-2">How much practice does a new patient need?</a>
-              </dt>
-              <dd>
-                About {PRACTICE_S} seconds if the model also learns from other patients; {SCRATCH_MIN} minutes if it
-                learns from the patient alone.
-              </dd>
-            </div>
-          </dl>
-        </section>
 
         <Chapter
           id="idea"
@@ -252,48 +200,7 @@ export default function App() {
             </p>
           }
         >
-          <div className="demo bleed">
-            <div className="demo-status">
-              {synthetic && <span className="warn">Synthetic data</span>}
-              <ModeBadge source={source} />
-            </div>
-            {error && (
-              <p className="error" role="alert">
-                {error}
-              </p>
-            )}
-            <div className="stage">
-              <Told />
-              <section className="step step-signal" aria-label="The brain signal">
-                <h3 className="step-title">
-                  <span className="step-num">2</span> Their brain signal
-                </h3>
-                <p className="step-note">Three of the 40 sensors, over the part of the brain that moves the hands</p>
-                <EEGPanel />
-              </section>
-              <PredictionCard />
-            </div>
-            <Controls stream={stream} />
-            <dl className="modes">
-              <div>
-                <dt>Three choices or on/off switch</dt>
-                <dd>
-                  Three choices: the model picks rest, hand or sixth finger, and the finger bends only for sixth finger.
-                  On/off switch: the finger bends whenever the model thinks either movement is imagined. Our results
-                  support the switch, since the model can barely tell the two movements apart.
-                </dd>
-              </div>
-              <div>
-                <dt>Per trial or continuous</dt>
-                <dd>
-                  Per trial: the model reads two fixed 4 s stretches of each trial, one in the rest and one in the
-                  imagining, placed from the moment the instruction appeared. Continuous: it reads the newest 4 s every
-                  half second without knowing when the instruction came, as a real device would, and makes more
-                  mistakes.
-                </dd>
-              </div>
-            </dl>
-          </div>
+          <DemoStage stream={stream} />
         </Chapter>
 
         <Chapter

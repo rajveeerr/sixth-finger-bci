@@ -1758,64 +1758,6 @@ code {
   }
 }
 
-/* In short: four questions a reader would ask, each with its answer in a line. */
-.short {
-  max-width: var(--text);
-  margin: 0 0 24px;
-}
-.short h2 {
-  margin: 0 0 14px;
-  font-size: 13.5px;
-  font-weight: 560;
-  color: var(--ink-3);
-}
-.short dl {
-  margin: 0;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  border-top: 1px solid var(--rule);
-}
-.short dl > div {
-  padding: 16px 24px 18px 0;
-  border-bottom: 1px solid var(--rule);
-}
-.short dl > div:nth-child(even) {
-  padding: 16px 0 18px 24px;
-  border-left: 1px solid var(--rule);
-}
-.short dt {
-  font-size: 14px;
-  line-height: 1.45;
-  color: var(--ink-3);
-}
-.short dt a {
-  color: inherit;
-  text-decoration: none;
-}
-.short dt a:hover {
-  color: var(--ink);
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-.short dd {
-  margin: 6px 0 0;
-  font-size: 18px;
-  line-height: 1.4;
-  font-weight: 500;
-  letter-spacing: -0.01em;
-  text-wrap: pretty;
-}
-@media (max-width: 700px) {
-  .short dl {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .short dl > div,
-  .short dl > div:nth-child(even) {
-    padding: 14px 0 16px;
-    border-left: 0;
-  }
-}
-
 /* The research questions. */
 .questions {
   list-style: none;
@@ -2514,5 +2456,53 @@ code {
   }
   .loop-back {
     width: 100%;
+  }
+}
+
+/* The demo alone on one screen (/live). */
+.live-main {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 28px 0 24px;
+}
+.live-head {
+  display: flex;
+  align-items: baseline;
+  gap: 24px;
+  margin-bottom: 18px;
+}
+.live-head h1 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.live-head h1 a {
+  color: var(--ink);
+  text-decoration: none;
+}
+.live-head p {
+  margin: 0;
+  font-size: 15px;
+  color: var(--ink-2);
+}
+.live .demo {
+  margin: 0;
+}
+.live-foot {
+  margin: 18px 0 0;
+  font-size: 14px;
+}
+.live-foot a {
+  color: var(--ink);
+  text-underline-offset: 3px;
+  text-decoration-color: var(--ink-4);
+}
+@media (max-width: 700px) {
+  .live-head {
+    display: block;
+  }
+  .live-head p {
+    margin-top: 6px;
   }
 }
