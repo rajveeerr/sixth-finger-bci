@@ -103,8 +103,14 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             await websocket.close(code=1013, reason="too many streams, try again later")
             return
 
-        await websocket.accept()
+        # Count the stream before awaiting the handshake, so connections arriving together
+        # cannot all pass the limit check above.
         app.state.active_streams += 1
+        try:
+            await websocket.accept()
+        except Exception:
+            app.state.active_streams -= 1
+            raise
         session = StreamSession(
             app.state.bundle,
             app.state.decoder,

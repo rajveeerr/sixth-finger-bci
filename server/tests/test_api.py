@@ -102,6 +102,28 @@ def test_controls_pause_and_jump(client):
             pytest.fail("no error reply to an unknown control message")
 
 
+def test_bad_controls_get_an_error_and_the_stream_goes_on(client):
+    with client.websocket_connect("/ws/stream?speed=10000") as ws:
+        assert ws.receive_json()["type"] == "hello"
+        ws.send_json({"type": "pause"})
+        while not (lambda m: m["type"] == "status" and m["paused"])(ws.receive_json()):
+            pass
+        ws.send_text("[]")
+        for _ in range(50):
+            if ws.receive_json()["type"] == "error":
+                break
+        else:
+            pytest.fail("no error reply to a control that is not an object")
+        ws.send_text('{"type": "speed", "value": NaN}')
+        for _ in range(50):
+            message = ws.receive_json()
+            if message["type"] == "status":
+                assert message["speed"] == 1.0
+                break
+        else:
+            pytest.fail("no status reply to a NaN speed")
+
+
 def test_stream_limit(bundle_dir):
     settings = Settings(bundle_dir=bundle_dir, max_speed=1.0, max_streams=1)
     with (

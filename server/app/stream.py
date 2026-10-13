@@ -1,6 +1,7 @@
 """Replays held-out trials as if they were being recorded, and decodes them."""
 
 import asyncio
+import math
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from typing import Any, Literal
@@ -133,6 +134,9 @@ class StreamSession:
         self._history = np.zeros((len(m.channels), 0), dtype=np.float32)
 
     def _clamp(self, speed: float) -> float:
+        # min and max pass NaN through, and a NaN speed would stop the clock from sleeping.
+        if not math.isfinite(speed):
+            return 1.0
         return float(min(max(speed, 0.25), self.max_speed))
 
     def hello(self) -> Message:
@@ -154,6 +158,8 @@ class StreamSession:
         }
 
     def handle_control(self, message: Message) -> Message | None:
+        if not isinstance(message, dict):
+            raise TypeError("a control message must be a JSON object")
         kind = message.get("type")
         clock = self._clock
         if clock is None:
