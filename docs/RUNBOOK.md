@@ -117,8 +117,9 @@ numbers.
 | Both | `make demo` | now; full demo after P11 | server on :8000, web on :5173 |
 | Rebuild the bundle from the trained model | `make demo-bundle` | P10 | `web/public/demo/` with the real model and held-out trials, < 25 MB |
 | Browser-only preview (no server) | `npm --prefix web run build && npm --prefix web run preview` | P11 | `http://localhost:4173`; badge shows "in-browser" |
-| Live demo | https://sixth-finger-bci.vercel.app (static, built with `VITE_SERVER_URL=none`) | P12 | badge "Model running in this browser" within a few seconds |
-| Redeploy | from a clean `git archive HEAD web` folder: `bunx vercel@latest link --yes --project sixth-finger-bci`, then `bunx vercel@latest deploy --prod --yes` | P12 | the project's `VITE_SERVER_URL` (Production) stays `none` |
+| Live demo | https://sixth-finger-bci.vercel.app (static page and a model function, built with `VITE_SERVER_URL=none`, `VITE_DECODE_URL=/api/decode`) | P12 | badge "Model running on the server" within a few seconds; "in this browser" if the function cannot be reached |
+| Model function | `curl -s https://sixth-finger-bci.vercel.app/api/decode` | P12 | `{"ok": true, ...}` with the bundle model's sha256; `web/api/decode.py`, checked by `tests/test_web_decode_api.py` |
+| Redeploy | from a clean `git archive HEAD web` folder: `bunx vercel@latest link --yes --project sixth-finger-bci`, then `bunx vercel@latest deploy --prod --yes` | P12 | the project's Production variables stay `VITE_SERVER_URL=none`, `VITE_DECODE_URL=/api/decode` |
 | Check the live demo | `DEPLOYED_URL=https://sixth-finger-bci.vercel.app npx --prefix web playwright test e2e/deployed.spec.ts` | P12 | 2 passed |
 | Backup video | not in git (videos are never committed); where it is in §9 | P12 | a 2-minute screen recording of the demo |
 | Offline check | `npx --prefix web playwright test e2e/offline.spec.ts` | P12 | the built site decodes with every other host unreachable |
@@ -174,7 +175,10 @@ results within small run-to-run differences (GPU arithmetic is not bit-exact).
 
 ## 9. Live URLs
 
-- Web demo: https://sixth-finger-bci.vercel.app (decodes in the browser; no server)
-- Inference server: not deployed (optional in the lean P12); `make server` runs it locally
+- Web demo: https://sixth-finger-bci.vercel.app, and https://sixthfinger.rajveers.com once its DNS
+  record exists (CNAME `sixthfinger` at the rajveers.com DNS host, value given by
+  `bunx vercel@latest domains verify sixthfinger.rajveers.com`)
+- Model server: the Vercel function `/api/decode` on the same site (one window per request); the
+  streaming WebSocket server (`server/`) is not hosted, `make server` runs it locally
 - Backup demo video: on the reference Mac at `~/Movies/sixth-finger-bci-demo-backup.mp4`
   (2 min, 1366×768); copy it to a USB stick and a shared drive and add the link here
