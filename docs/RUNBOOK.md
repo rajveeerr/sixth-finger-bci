@@ -117,8 +117,11 @@ numbers.
 | Both | `make demo` | now; full demo after P11 | server on :8000, web on :5173 |
 | Rebuild the bundle from the trained model | `make demo-bundle` | P10 | `web/public/demo/` with the real model and held-out trials, < 25 MB |
 | Browser-only preview (no server) | `npm --prefix web run build && npm --prefix web run preview` | P11 | `http://localhost:4173`; badge shows "in-browser" |
-| Live demo | web: `https://<project>.vercel.app`; server: `https://<hf-user>-sixth-finger-bci.hf.space/health` | P12 | badge "server" (after the free server wakes) |
-| Backup video | not in git (videos are never committed); link in §9 | P12 | a 2-minute screen recording of the demo |
+| Live demo | https://sixth-finger-bci.vercel.app (static, built with `VITE_SERVER_URL=none`) | P12 | badge "Model running in this browser" within a few seconds |
+| Redeploy | from a clean `git archive HEAD web` folder: `bunx vercel@latest link --yes --project sixth-finger-bci`, then `bunx vercel@latest deploy --prod --yes` | P12 | the project's `VITE_SERVER_URL` (Production) stays `none` |
+| Check the live demo | `DEPLOYED_URL=https://sixth-finger-bci.vercel.app npx --prefix web playwright test e2e/deployed.spec.ts` | P12 | 2 passed |
+| Backup video | not in git (videos are never committed); where it is in §9 | P12 | a 2-minute screen recording of the demo |
+| Offline check | `npx --prefix web playwright test e2e/offline.spec.ts` | P12 | the built site decodes with every other host unreachable |
 
 How to verify the demo is honest and working:
 
@@ -171,8 +174,7 @@ results within small run-to-run differences (GPU arithmetic is not bit-exact).
 
 ## 9. Live URLs
 
-To be filled in phase P12:
-
-- Web demo: TBD
-- Inference server: TBD
-- Backup demo video (shared drive): TBD
+- Web demo: https://sixth-finger-bci.vercel.app (decodes in the browser; no server)
+- Inference server: not deployed (optional in the lean P12); `make server` runs it locally
+- Backup demo video: on the reference Mac at `~/Movies/sixth-finger-bci-demo-backup.mp4`
+  (2 min, 1366×768); copy it to a USB stick and a shared drive and add the link here

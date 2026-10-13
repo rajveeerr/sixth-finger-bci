@@ -12,8 +12,11 @@ Team: Rajveer Singh, Vivek Yadav, Ansh Dahiya. Guide: Dr. Suman Lata.
 ## What this project does
 
 A person imagines a movement. Their EEG is recorded. A decoder recognises which
-movement was imagined, and a 3D hand on screen performs it, including an extra
+movement was imagined, and a drawn hand on screen performs it, including an extra
 robotic "sixth finger" that does not exist on the human body.
+
+Live demo: https://sixth-finger-bci.vercel.app (the model runs in the browser,
+on held-out trials of one patient).
 
 The research question behind the demo:
 
@@ -36,7 +39,7 @@ and at follow-up.
 | `tests/` | Unit tests, including data-leakage checks |
 | `notebooks/` | Exploratory analysis (outputs stripped) |
 | `server/` | FastAPI inference service that streams predictions over WebSocket |
-| `web/` | React + Three.js demo: live EEG view and the 3D hand |
+| `web/` | React demo page: the project explained, live EEG view and the hand |
 | `paper/` | Research paper (LaTeX, IEEE format) |
 | `report/` | Project report |
 | `docs/` | Runbook, dataset card, results and figures |
@@ -47,7 +50,7 @@ and at follow-up.
 make setup        # Python env (uv), web deps, git hooks
 make data         # download and verify the dataset (about 3.5 GB)
 make test         # unit tests and leakage checks
-make demo         # inference server + 3D demo on http://localhost:5173
+make demo         # inference server + demo page on http://localhost:5173
 ```
 
 Every command, what it should print and how to tell that it worked is in
