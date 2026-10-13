@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { buildChain, fingerPoints, LINKS, PAPER, PEN_X, PX_PER_S, ROW_Y, SECONDS, WINDOW_X1 } from "./chain";
 
-describe("the bench of Fig. 4", () => {
+describe("the bench", () => {
   it("draws every part with finite coordinates", () => {
     const art = buildChain();
     expect(art.back.length).toBeGreaterThan(1000);

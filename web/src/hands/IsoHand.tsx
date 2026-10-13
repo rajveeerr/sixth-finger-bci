@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useId, useMemo, useRef } from "react";
 import type { Command } from "../store";
 import { POSES } from "./poses";
 import { damp } from "./spring";
@@ -15,7 +15,7 @@ import {
   type Piece,
 } from "./rig";
 
-// Option A: the hand as an isometric drawing in the bench's finish. The fixed parts are
+// The hand as an isometric drawing in the bench's finish. The fixed parts are
 // drawn once with the drawing core; the moving pieces (segments, knuckles, the robotic
 // links) are round, so each is a stadium or a circle with tone bands, sorted by depth
 // and redrawn only while the hand moves.
@@ -152,17 +152,25 @@ function pieceSvg(p: Piece, id: string, lit: boolean): string {
   return `${out}</g>`;
 }
 
-function dynamicArt(pose: (typeof POSES)[Command], lit: boolean) {
+/** The moving pieces; `scope` keeps their clip-path ids apart when several hands are on the page. */
+function dynamicArt(pose: (typeof POSES)[Command], lit: boolean, scope: string) {
   const all = pieces(pose);
   const order = (list: Piece[]) => [...list].sort((p, q) => K.depthOf(centroid(p), P) - K.depthOf(centroid(q), P));
   const behind = order(all.filter(behindPalm));
   const front = order(all.filter((p) => !behindPalm(p)));
-  const draw = (list: Piece[], tag: string) => list.map((p, i) => pieceSvg(p, `ih-${tag}${i}`, lit)).join("");
+  const draw = (list: Piece[], tag: string) => list.map((p, i) => pieceSvg(p, `${scope}-${tag}${i}`, lit)).join("");
   return { behind: draw(behind, "b"), front: draw(front, "f") };
 }
 
-/** Option A: the hand as an isometric drawing, posed by the command. */
+const SAYS: Record<Command, string> = {
+  IDLE: "at rest",
+  HAND_GRASP: "the hand closed",
+  SIXTH_FINGER_FLEX: "the sixth finger bent",
+};
+
+/** The hand as an isometric drawing, posed by the command. */
 export function IsoHand({ command }: { command: Command }) {
+  const scope = `ih${useId().replace(/[^a-zA-Z0-9]/g, "")}`;
   const art = useMemo(() => staticArt(), []);
   const behind = useRef<SVGGElement>(null);
   const front = useRef<SVGGElement>(null);
@@ -183,17 +191,17 @@ export function IsoHand({ command }: { command: Command }) {
         cur[i] = still ? goal[i] : damp(cur[i], goal[i], 10, dt);
         if (Math.abs(cur[i] - goal[i]) > 1e-3) moving = true;
       }
-      const d = dynamicArt(unflat(cur), command === "SIXTH_FINGER_FLEX");
+      const d = dynamicArt(unflat(cur), command === "SIXTH_FINGER_FLEX", scope);
       if (behind.current) behind.current.innerHTML = d.behind;
       if (front.current) front.current.innerHTML = d.front;
       if (moving) raf = requestAnimationFrame(frame);
     };
     raf = requestAnimationFrame(frame);
     return () => cancelAnimationFrame(raf);
-  }, [command]);
+  }, [command, scope]);
 
   return (
-    <svg className="iso-svg iso-hand" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`Hand model, ${command}`}>
+    <svg className="iso-svg iso-hand" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`The hand, ${SAYS[command]}`}>
       <g dangerouslySetInnerHTML={{ __html: art.back }} />
       <g ref={behind} />
       <g dangerouslySetInnerHTML={{ __html: art.palm }} />

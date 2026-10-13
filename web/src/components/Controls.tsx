@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useDemo, type View } from "../store";
 import type { DemoStreamControls } from "../stream/useDemoStream";
+import { demoInView, keyForDemo } from "./demoKeys";
 
 const SPEEDS = [1, 2, 4];
 
@@ -8,6 +9,7 @@ function setMode(mode: "trial" | "continuous") {
   const url = new URL(window.location.href);
   if (mode === "trial") url.searchParams.delete("mode");
   else url.searchParams.set("mode", mode);
+  url.hash = "demo"; // come back to the demo, not the top of the page
   window.location.assign(url.toString());
 }
 
@@ -20,7 +22,7 @@ export function Controls({ stream }: { stream: DemoStreamControls }) {
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.metaKey || e.ctrlKey || e.altKey || e.target instanceof HTMLInputElement) return;
+      if (!keyForDemo(e) || !demoInView()) return;
       const s = useDemo.getState();
       if (e.key === " " && !(e.target instanceof HTMLButtonElement)) {
         e.preventDefault();

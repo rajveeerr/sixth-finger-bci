@@ -150,9 +150,14 @@ export function ResultsGauges() {
     return () => window.removeEventListener("hashchange", onHash);
   }, []);
   const f = FINDINGS[open];
+  // The address follows the open answer, so a link to it opens it again later.
+  const show = (i: number) => {
+    setOpen(i);
+    window.history.replaceState(null, "", `#answer-${FINDINGS[i].answers}`);
+  };
   const go = (i: number) => {
     const n = (i + FINDINGS.length) % FINDINGS.length;
-    setOpen(n);
+    show(n);
     tabs.current[n]?.focus();
   };
   return (
@@ -171,7 +176,7 @@ export function ResultsGauges() {
             aria-controls="answer-panel"
             tabIndex={open === i ? 0 : -1}
             className="answer-tab"
-            onClick={() => setOpen(i)}
+            onClick={() => show(i)}
             onKeyDown={(e) => {
               if (e.key === "ArrowRight") go(i + 1);
               if (e.key === "ArrowLeft") go(i - 1);

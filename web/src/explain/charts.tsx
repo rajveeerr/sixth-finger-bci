@@ -106,7 +106,8 @@ export function DotStrip({
                   className="chart-dot"
                   style={{ fill: row.colour }}
                   onPointerEnter={() => setHover({ row: i, i: j })}
-                  onPointerLeave={() => setHover(null)}
+                  onPointerLeave={(e) => e.pointerType === "mouse" && setHover(null)}
+                  onClick={() => setHover({ row: i, i: j })}
                 />
               ))}
               {hover?.row === i && (
@@ -235,7 +236,8 @@ export function Slope({
             y2={y(b[i])}
             className="chart-hit"
             onPointerEnter={() => setHover(i)}
-            onPointerLeave={() => setHover(null)}
+            onPointerLeave={(e) => e.pointerType === "mouse" && setHover(null)}
+            onClick={() => setHover(i)}
           />
         ))}
       </svg>
@@ -246,7 +248,7 @@ export function Slope({
       </div>
       <p className="chart-say" aria-live="polite">
         {hover === null
-          ? "Point at a line to see one patient."
+          ? "Point at or tap a line to see one patient."
           : `${names?.[hover] ?? "One patient"}: ${pct(a[hover])} the published way, ${pct(b[hover])} tested fairly.`}
       </p>
     </div>

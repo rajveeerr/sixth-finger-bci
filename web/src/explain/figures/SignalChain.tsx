@@ -61,8 +61,8 @@ function inkPaths(): [string, string] {
 }
 
 /**
- * Fig. 4: the signal chain as a bench instrument. It is live: the paper carries the EEG of
- * Fig. 1, the lit lamp is the command of Fig. 3, and the finger moves with Fig. 2's.
+ * The signal chain as a bench instrument. It is live: the paper carries the demo's EEG, the
+ * lit lamp is the demo's command, and the finger moves with the demo's hand.
  */
 export function SignalChain() {
   const art = useMemo(() => buildChain(), []);
@@ -141,14 +141,14 @@ export function SignalChain() {
     <Plate
         title="The whole system on one bench"
         hint="It moves with the live demo further down."
-        readout={part === null ? "Point at a number to see what each part does." : <><b>{PARTS[part].name}.</b> {PARTS[part].text}</>}
+        readout={part === null ? "Point at or tap a number to see what each part does." : <><b>{PARTS[part].name}.</b> {PARTS[part].text}</>}
         className="plate-chain bleed"
       >
         <svg
           ref={svg}
           className="iso-svg chain dotted"
           viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
-          role="img"
+          role="group"
           aria-label="A bench model of the signal chain: head with electrodes, amplifier, paper with EEG, a 4 s frame, the decoder with three lamps and the robotic finger"
           data-lit={lit}
         >
@@ -177,8 +177,8 @@ export function SignalChain() {
           {pins.map(([x, y], i) => (
             <g key={PARTS[i].name} className="part-pin" data-on={part === i ? "" : undefined} tabIndex={0} role="button"
               aria-label={`${PARTS[i].name}: ${PARTS[i].text}`}
-              onPointerEnter={() => setPart(i)} onPointerLeave={() => setPart(null)}
-              onFocus={() => setPart(i)} onBlur={() => setPart(null)} onClick={() => setPart(i)}>
+              onPointerEnter={() => setPart(i)} onPointerLeave={(e) => e.pointerType === "mouse" && setPart(null)}
+              onFocus={() => setPart(i)} onClick={() => setPart(i)}>
               <circle cx={x} cy={y} r={13} />
               <text x={x} y={y + 4.5} textAnchor="middle">{i + 1}</text>
             </g>
@@ -186,7 +186,8 @@ export function SignalChain() {
         </svg>
         <ol className="part-names">
           {PARTS.map((p, i) => (
-            <li key={p.name} data-on={part === i ? "" : undefined} onPointerEnter={() => setPart(i)} onPointerLeave={() => setPart(null)}>
+            <li key={p.name} data-on={part === i ? "" : undefined} onPointerEnter={() => setPart(i)}
+              onPointerLeave={(e) => e.pointerType === "mouse" && setPart(null)} onClick={() => setPart(i)}>
               <b>{i + 1}</b> {p.name}
             </li>
           ))}

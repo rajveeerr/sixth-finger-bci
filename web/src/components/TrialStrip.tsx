@@ -11,18 +11,28 @@ export function TrialStrip() {
   const head = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
-    if (!dur) return;
+    const el = head.current;
+    if (!dur || !el) return;
     let raf = 0;
     let shown = -1;
+    let visible = false;
     const frame = () => {
-      raf = requestAnimationFrame(frame);
+      raf = visible ? requestAnimationFrame(frame) : 0;
       const t = Math.min(eegBuffer.trialT, dur);
-      if (Math.abs(t - shown) < 0.01 || !head.current) return;
+      if (Math.abs(t - shown) < 0.01) return;
       shown = t;
-      head.current.style.left = `${(t / dur) * 100}%`;
+      el.style.left = `${(t / dur) * 100}%`;
     };
-    raf = requestAnimationFrame(frame);
-    return () => cancelAnimationFrame(raf);
+    // The marker only moves while the strip is on screen.
+    const seen = new IntersectionObserver(([entry]) => {
+      visible = entry.isIntersecting;
+      if (visible && !raf) raf = requestAnimationFrame(frame);
+    });
+    seen.observe(el.parentElement ?? el);
+    return () => {
+      cancelAnimationFrame(raf);
+      seen.disconnect();
+    };
   }, [dur]);
 
   if (!dur) return <div className="timer" data-testid="phase" data-phase="" aria-hidden="true" />;

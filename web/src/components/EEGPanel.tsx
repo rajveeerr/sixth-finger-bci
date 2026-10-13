@@ -194,17 +194,24 @@ export function EEGPanel() {
     const observer = new ResizeObserver(resize);
     observer.observe(canvas);
     resize();
+    // Paint only while the panel is on screen; off screen the loop sleeps.
+    let visible = false;
     const frame = (now: number) => {
-      raf = requestAnimationFrame(frame);
+      raf = visible ? requestAnimationFrame(frame) : 0;
       if (now - last < 33 || eegBuffer.version === drawn || !size.w) return;
       last = now;
       drawn = eegBuffer.version;
       paint(ctx, eegBuffer, size.w, size.h, size.dpr);
     };
-    raf = requestAnimationFrame(frame);
+    const seen = new IntersectionObserver(([entry]) => {
+      visible = entry.isIntersecting;
+      if (visible && !raf) raf = requestAnimationFrame(frame);
+    });
+    seen.observe(canvas);
     return () => {
       cancelAnimationFrame(raf);
       observer.disconnect();
+      seen.disconnect();
     };
   }, []);
   return (

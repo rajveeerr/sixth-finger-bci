@@ -19,16 +19,24 @@ const SAY: Record<string, string> = {
 
 /** Step 3: the model's reading of the last 4 s, whether it was right, and the hand moving. */
 export function PredictionCard() {
-  const { lastPrediction: p, classes, view, correct, total, switchCorrect, switchTotal, manualMode } = useDemo();
+  const { lastPrediction: p, classes, view, mode, correct, total, switchCorrect, switchTotal, manualMode } = useDemo();
   const command = useDemo(shownCommand);
   const decided = p ? decidedKind(p, view, classes) : null;
   const right = p ? isRight(p, view, classes) : null;
-  const probs = p ? (p.smoothed ?? p.probs) : [];
-  const sure = !p ? 0 : view === "three" ? Math.max(...probs) : Math.max(probs[0] ?? 0, (probs[1] ?? 0) + (probs[2] ?? 0));
+  // The same probabilities the reading came from: the raw ones name the command, the
+  // smoothed ones (when there are any) decide the switch.
+  const smoothed = p ? (p.smoothed ?? p.probs) : [];
+  const sure = !p
+    ? 0
+    : view === "three"
+      ? Math.max(...p.probs)
+      : Math.max(smoothed[0] ?? 0, (smoothed[1] ?? 0) + (smoothed[2] ?? 0));
   const surePct = Math.min(99, Math.round(sure * 100));
   const asked = !p ? "" : p.truth === classes[0]?.name ? "resting" : `asked to imagine ${p.truth === "sixth_finger" ? "the sixth finger" : "the hand"}`;
   const tally =
-    view === "three"
+    mode === "continuous"
+      ? "A reading every half second, not counted in the score"
+      : view === "three"
       ? total
         ? `${correct} of ${total} imagined movements read right so far`
         : "No imagined movement read yet"

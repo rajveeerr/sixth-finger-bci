@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useDemo, type Command } from "../store";
+import { keyForDemo } from "./demoKeys";
 
 const KEYS: Record<string, Command> = { "1": "IDLE", "2": "HAND_GRASP", "3": "SIXTH_FINGER_FLEX" };
 
@@ -8,7 +9,7 @@ export function ManualTestBanner() {
   const manual = useDemo((s) => s.manualMode);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.target instanceof HTMLInputElement || e.metaKey || e.ctrlKey || e.altKey) return;
+      if (!keyForDemo(e)) return;
       if (KEYS[e.key]) useDemo.getState().setManualCommand(KEYS[e.key]);
       else if (e.key === "Escape") useDemo.getState().endManual();
     };

@@ -10,7 +10,7 @@ const RUNS = [1, 2, 3, 4];
 const PER_RUN = 20;
 
 function say(run: number | null, trial: number | null) {
-  if (run === null) return "One square is one trial of 14 seconds. Point at a run or a trial.";
+  if (run === null) return "One square is one trial, about 15 seconds. Point at or tap a run or a trial.";
   const use =
     run <= 2
       ? "The model learns from it."
@@ -28,7 +28,7 @@ export function Session() {
       hint="80 trials make a session, about 20 minutes."
       className="plate-session"
     >
-      <div className="session" onPointerLeave={() => setAt(null)}>
+      <div className="session" onPointerLeave={(e) => e.pointerType === "mouse" && setAt(null)}>
         <div className="session-runs">
           {RUNS.map((r) => (
             <button
@@ -49,6 +49,10 @@ export function Session() {
                     key={t}
                     data-on={at?.run === r && at.trial === t ? "" : undefined}
                     onPointerEnter={() => setAt({ run: r, trial: t })}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setAt({ run: r, trial: t });
+                    }}
                   />
                 ))}
               </span>
