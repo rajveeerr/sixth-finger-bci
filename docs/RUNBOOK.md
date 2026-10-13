@@ -175,10 +175,10 @@ results within small run-to-run differences (GPU arithmetic is not bit-exact).
 
 ## 9. Live URLs
 
-- Web demo: https://sixth-finger-bci.vercel.app, and https://sixthfinger.rajveers.com once its DNS
-  record exists (CNAME `sixthfinger` at the rajveers.com DNS host, value given by
-  `bunx vercel@latest domains verify sixthfinger.rajveers.com`)
-- Model server: the Vercel function `/api/decode` on the same site (one window per request); the
+- Web demo: https://sixthfinger.rajveers.com (CNAME `sixthfinger` at the rajveers.com DNS
+  host), also https://sixth-finger-bci.vercel.app; the demo alone, for presenting, at `/live`
+- Model server: the Vercel function `/api/decode` on the same site, in Mumbai (`bom1`), one window
+  per request (about 0.2 s round trip from Delhi, a few ms of it the model); the
   streaming WebSocket server (`server/`) is not hosted, `make server` runs it locally
 - Backup demo video: on the reference Mac at `~/Movies/sixth-finger-bci-demo-backup.mp4`
   (2 min, 1366×768); copy it to a USB stick and a shared drive and add the link here

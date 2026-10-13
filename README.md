@@ -15,8 +15,9 @@ A person imagines a movement. Their EEG is recorded. A decoder recognises which
 movement was imagined, and a drawn hand on screen performs it, including an extra
 robotic "sixth finger" that does not exist on the human body.
 
-Live demo: https://sixth-finger-bci.vercel.app (the model runs on the site's server,
-or in the browser if that cannot be reached, on held-out trials of one patient).
+Live demo: https://sixthfinger.rajveers.com (the demo alone at `/live`). The model runs on
+the site's server, or in the browser if that cannot be reached or the reader chooses it, on
+held-out trials of one patient.
 
 The research question behind the demo:
 
