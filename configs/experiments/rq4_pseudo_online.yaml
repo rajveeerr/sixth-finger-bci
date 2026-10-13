@@ -1,5 +1,6 @@
 # P09 Study 4: the decoders of the pseudo-online replay (protocol §6b). S1, three-class, pre,
-# k = all, fitted by the same runner as rq2_calib_s1, so each trial-locked row must equal P08's.
+# k = all, fitted by the same runner as rq2_calib_s1: the classical rows equal P08's, the
+# rct_tslr and EEGNet refits differ a little across machines (rq4_pseudo_online_repro.csv).
 # scripts/pseudo_online.py runs it with a hook that replays runs 03-04 through the command gate.
 name: rq4_pseudo_online
 protocol: calibration

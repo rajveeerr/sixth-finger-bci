@@ -6,7 +6,9 @@ uv run python scripts/pseudo_online.py                            # everyone els
 uv run python scripts/pseudo_online.py --summarise                # tables and figure
 
 Each decoder is fitted by the P08 runner itself (configs/experiments/rq4_pseudo_online.yaml:
-S1, three-class, k = all), so its trial-locked row must equal P08's `rq2_calib_s1` row. A
+S1, three-class, k = all). The classical decoders' trial-locked rows equal P08's `rq2_calib_s1`
+rows; rct_tslr and EEGNet refits differ from them by up to 0.0175 and 0.0735 across machines
+(results/summary/rq4_pseudo_online_repro.csv). A
 hook then replays runs 03-04 as continuous signals (protocol §6b, `evaluation/pseudo_online`)
 and writes one file per subject and method under results/runs/rq4_pseudo_online/replay/.
 A resumed run skips fitted units, and their replay files stay. sub-01 and sub-03 are flagged

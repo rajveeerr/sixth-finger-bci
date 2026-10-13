@@ -26,7 +26,7 @@ module are harmless.
 | Download + verify | `make data` | now | downloads `processeddata.zip` (3.5 GB, resumable), checks md5 `7a3138c1…`, unzips, verifies, deletes the zip | `data/processed/` has 268 `.mat` files |
 | Re-verify | `make verify-data` | now | `OK: 268 .mat files, sizes match processeddata_listing.tsv` | exit code 0 |
 | Integrity audit | `make audit` | P02 | writes `results/audit/inventory.csv`, `event_flags.csv`, `near_duplicates.csv`, `raw_crc_duplicates.csv`, `audit_report.md` | sub-02 post/follow pairs at r ≥ 0.9; 8 duplicate groups in the raw archive |
-| Cut windows | `make epochs` (subset: `make epochs SUBJECTS=sub-01,sub-03`) | P03 | `data/derived/epochs/*.npz` (66 files), `metadata.parquet`, `manifest.json`, `results/audit/epoch_counts.csv` | ≈ 10 500 windows of shape (40, 1000); `doctor` shows 66 cached session files |
+| Cut windows | `make epochs` (subset: `make epochs SUBJECTS=sub-01,sub-03`) | P03 | `data/derived/epochs/*.npz` (64 files), `metadata.parquet`, `manifest.json`, `results/audit/epoch_counts.csv` | 9615 windows of shape (40, 1000); `doctor` shows 64 cached session files |
 
 If the download stops, run `make data` again; it resumes. Never use figshare's
 "Download all".
@@ -39,7 +39,7 @@ If the download stops, run `make data` again; it resumes. Never use figshare's
 | Python unit tests only | `make test` | all pass (synthetic data, no download needed) |
 | Tests that need the real data | `make test-real` | pass once data and cache exist |
 | Lint / auto-format | `make lint` / `make format` | clean |
-| Server tests | `uv run --project server pytest -q server/tests` | `23 passed` at setup (more later) |
+| Server tests | `cd server && uv run pytest -q` | `24 passed` |
 | Web unit tests | `npm --prefix web run test` | all pass |
 | Web type check / lint / build | `npm --prefix web run typecheck`, `run lint`, `run build` | no errors; `web/dist/` created |
 | Browser tests | `npx --prefix web playwright install chromium` (once), then `make e2e` | all pass |
