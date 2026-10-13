@@ -69,6 +69,28 @@ const onServer: Predictor = { ...ok, source: "server" };
 const failing: Predictor = { source: "server", sliding: true, predict: async () => { throw new Error("502"); } };
 
 describe("DemoController with a model server over HTTP", () => {
+  it("goes to the in-browser model when asked, and back to the server on retry", async () => {
+    const { c, sources, messages } = setupHttp(onServer);
+    c.start();
+    await until(() => expect(sources.at(-1)).toBe("server"));
+    c.useBrowser();
+    await until(() => expect(messages.some((m) => m.type === "prediction" && m.source === "browser")).toBe(true));
+    c.retry();
+    await until(() => expect(sources.at(-1)).toBe("server"));
+    expect(sources).toEqual(["connecting", "server", "loading-browser", "browser", "connecting", "server"]);
+    c.stop();
+  });
+
+  it("switches to continuous mode on the same source without starting over", async () => {
+    const { c, sources, messages } = setupHttp(onServer);
+    c.start();
+    await until(() => expect(sources.at(-1)).toBe("server"));
+    c.setMode("continuous");
+    await until(() => expect(messages.some((m) => m.type === "hello" && m.mode === "continuous")).toBe(true));
+    expect(sources.at(-1)).toBe("server");
+    c.stop();
+  });
+
   it("decodes every window on the server when it answers", async () => {
     const { c, sources, messages } = setupHttp(onServer);
     c.start();
@@ -129,6 +151,16 @@ describe("DemoController", () => {
     c.start();
     await until(() => expect(messages.some((m) => m.type === "prediction" && m.source === "replay")).toBe(true));
     expect(sources).toEqual(["connecting", "loading-browser", "browser", "replay"]);
+    c.stop();
+  });
+
+  it("connects again in the new mode when the mode changes on the streaming server", async () => {
+    const { c, sources } = setup({ server: "hello", decoder: ok });
+    c.start();
+    await settle();
+    c.setMode("continuous");
+    await settle();
+    expect(sources).toEqual(["connecting", "server", "connecting", "server"]);
     c.stop();
   });
 

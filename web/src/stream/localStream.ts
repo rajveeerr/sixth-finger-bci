@@ -65,6 +65,11 @@ export class LocalStream {
   private history: Float32Array[] | null = null;
   private readonly gate = new CommandGate();
   private send: Send = () => {};
+  // Decisions are asked for when their window is complete but sent in order as they come
+  // back, so a slow model (a server across the network) never holds up the signal.
+  private outbox: Promise<void> = Promise.resolve();
+  private epoch = 0;
+  private failure: unknown = null;
 
   constructor(
     private readonly bundle: LoadedBundle,
@@ -116,6 +121,7 @@ export class LocalStream {
   }
 
   jump(trial: number) {
+    this.epoch += 1;
     this.jumpTo = ((trial % this.bundle.manifest.trials.length) + this.bundle.manifest.trials.length) %
       this.bundle.manifest.trials.length;
     if (this.paused) this.resume();
@@ -159,17 +165,48 @@ export class LocalStream {
     };
   }
 
-  private async prediction(
+  /** Ask for a window's decision now; send it, in order, once it is back. */
+  private decide(
     trial: number,
     t: number,
     window: Prediction["window"],
     x: Float32Array,
     truth: string | null,
     span: [number, number],
-  ): Promise<Prediction> {
+    send: Send,
+  ) {
+    const nCh = this.bundle.manifest.channels.length;
+    const asked = this.predictor.predict(x, nCh, x.length / nCh, { trial, window });
+    asked.catch(() => {}); // reported through the outbox below
+    const epoch = this.epoch;
+    this.outbox = this.outbox
+      .then(async () => {
+        const decision = await asked;
+        if (this.stopped || epoch !== this.epoch) return;
+        send(this.prediction(trial, t, window, truth, span, decision));
+      })
+      .catch((err) => {
+        this.failure ??= err;
+      });
+    // A quick model (in this browser) answers before the next piece of signal goes out;
+    // a slow one does not hold the signal back.
+    return Promise.race([this.outbox, this.timer.sleep(0)]);
+  }
+
+  /** Stop the stream with the model's error, so the controller can fall back. */
+  private check() {
+    if (this.failure) throw this.failure;
+  }
+
+  private prediction(
+    trial: number,
+    t: number,
+    window: Prediction["window"],
+    truth: string | null,
+    span: [number, number],
+    { probs, latencyMs }: Decision,
+  ): Prediction {
     const m = this.bundle.manifest;
-    const nCh = m.channels.length;
-    const { probs, latencyMs } = await this.predictor.predict(x, nCh, x.length / nCh, { trial, window });
     const labelId = probs.indexOf(Math.max(...probs));
     const label = m.classes[labelId].name;
     const message: Prediction = {
@@ -232,7 +269,7 @@ export class LocalStream {
     } else if (this.mode === "trial") {
       const truth = event.window === "rest" ? m.classes[0].name : truthName;
       const x = windowOf(rows, event.start, event.stop);
-      send(await this.prediction(index, t, event.window!, x, truth, [event.start, event.stop]));
+      await this.decide(index, t, event.window!, x, truth, [event.start, event.stop], send);
     }
   }
 
@@ -272,6 +309,7 @@ export class LocalStream {
       }
       const stop = Math.min(pos + this.opts.chunkSamples, info.n_samples);
       await this.waitUntil(baseTime + stop / m.sfreq);
+      this.check();
       if (this.stopped || this.jumpTo !== null) return;
       const data = displayIdx.map((c) => {
         const out: number[] = [];
@@ -285,7 +323,7 @@ export class LocalStream {
             const x = windowOf(context, prev + end - nTimes, prev + end);
             const centre = end - Math.floor(nTimes / 2);
             const truth = centre >= cue ? truthName : m.classes[0].name;
-            send(await this.prediction(index, end / m.sfreq, "sliding", x, truth, [end - nTimes, end]));
+            await this.decide(index, end / m.sfreq, "sliding", x, truth, [end - nTimes, end], send);
           }
         }
       }
@@ -295,6 +333,8 @@ export class LocalStream {
       await this.emitEvent(events[next], index, rows, truthName, send);
       next += 1;
     }
+    await this.outbox; // the trial's last decision goes out before it ends
+    this.check();
     send({ type: "trial_end", trial: index });
     this.history = rows.map((row) => row.slice(row.length - nTimes));
   }

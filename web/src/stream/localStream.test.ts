@@ -35,6 +35,28 @@ async function firstTrial(speed: number, mode: "trial" | "continuous" = "trial")
 }
 
 describe("LocalStream", () => {
+  it("keeps the signal flowing while a slow model answers, and sends its decisions in order", async () => {
+    const bundle = readDemoBundle();
+    const timer = fakeTimer();
+    const slow: Predictor = {
+      source: "server",
+      sliding: true,
+      predict: () => new Promise((r) => setTimeout(() => r({ probs: [0.7, 0.2, 0.1], latencyMs: 300 }), 5)),
+    };
+    const stream = new LocalStream(bundle, slow, { mode: "trial", speed: 1, loop: false, timer });
+    const messages: ServerMessage[] = [];
+    await stream.run((m) => {
+      messages.push(m);
+      if (m.type === "trial_end") stream.stop();
+    });
+    const preds = messages.filter((m) => m.type === "prediction") as Prediction[];
+    expect(preds.map((p) => p.window)).toEqual(["rest", "imagery"]);
+    const first = messages.findIndex((m) => m.type === "prediction");
+    const eegBefore = messages.slice(0, first).filter((m) => m.type === "eeg").length;
+    expect(eegBefore).toBeGreaterThan((5 * bundle.manifest.sfreq) / 20); // more than the 5 s the window needed
+    expect(messages[messages.length - 1].type).toBe("trial_end");
+  });
+
   it("sends the server's messages in the server's order", async () => {
     const { messages } = await firstTrial(1);
     const kinds = messages.map(({ m }) => m.type).filter((t) => t !== "eeg");

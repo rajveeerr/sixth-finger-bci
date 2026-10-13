@@ -9,6 +9,10 @@ import type { ControlMessage, Mode } from "./types";
 export interface DemoStreamControls {
   control: (message: ControlMessage) => void;
   retry: () => void;
+  /** Per trial or continuous, without reloading the page. */
+  setMode: (mode: Mode) => void;
+  /** Decode in this browser even though a server is there. */
+  useBrowser: () => void;
   /** Whether there is a server to go back to. */
   hasServer: boolean;
 }
@@ -71,6 +75,14 @@ export function useDemoStream(): DemoStreamControls {
   return {
     control: (message) => controller.current?.control(message),
     retry: () => controller.current?.retry(),
+    setMode: (mode) => {
+      const url = new URL(window.location.href);
+      if (mode === "trial") url.searchParams.delete("mode");
+      else url.searchParams.set("mode", mode);
+      window.history.replaceState(null, "", url);
+      controller.current?.setMode(mode);
+    },
+    useBrowser: () => controller.current?.useBrowser(),
     hasServer: (() => {
       const { serverUrl, decodeUrl } = streamSettings(window.location.search);
       return serverUrl !== "" || decodeUrl !== "";

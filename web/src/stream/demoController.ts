@@ -38,11 +38,14 @@ export class DemoController {
   private bundle: LoadedBundle | null = null;
   private decoder: Predictor | null = null;
   private remote: Predictor | null = null;
+  private running: Predictor | null = null;
+  private mode: Mode;
   private readonly base: string;
 
   constructor(private readonly opts: ControllerOptions) {
     this.base = opts.base ?? "/demo";
     this.speed = opts.speed;
+    this.mode = opts.mode;
   }
 
   private get hasServer() {
@@ -61,6 +64,29 @@ export class DemoController {
     this.local?.stop();
     this.connection = null;
     this.local = null;
+  }
+
+  /** Switch between per-trial and continuous decoding without leaving the current trial. */
+  setMode(mode: Mode) {
+    if (mode === this.mode) return;
+    this.mode = mode;
+    if (this.source === "server" && this.connection) {
+      // The streaming server takes the mode when it connects, so connect again; the old
+      // connection closes after the new attempt has begun, so its close is ignored.
+      const old = this.connection;
+      this.connection = null;
+      this.source = "connecting";
+      this.opts.onSource(this.source);
+      this.enter("connecting");
+      old.close();
+    } else if (this.running) {
+      this.runLocal(this.running);
+    }
+  }
+
+  /** Decode in this browser even though a server is there. */
+  useBrowser() {
+    this.dispatch("use-browser");
   }
 
   /** "Try server again". */
@@ -122,7 +148,8 @@ export class DemoController {
       this.local?.stop();
       this.local = null;
       const connect = this.opts.connect ?? connectServer;
-      this.connection = connect(this.opts.serverUrl, this.opts.mode, {
+      let conn: StreamConnection | null = null;
+      conn = connect(this.opts.serverUrl, this.mode, {
         onMessage: (m) => {
           if (!current() && this.source !== "server") return;
           if (m.type === "hello" && this.source === "connecting") {
@@ -132,12 +159,17 @@ export class DemoController {
           this.forward(m);
         },
         onClose: () => {
+          // A connection we have already replaced (a new mode) closing is not a failure.
+          if (conn && this.connection !== conn) return;
           if (this.source === "connecting" || this.source === "server") this.dispatch("server-failed");
         },
       }, { speed: this.speed });
+      this.connection = conn;
     } else if (state === "loading-browser") {
       this.connection?.close();
       this.connection = null;
+      this.local?.stop();
+      this.local = null;
       void (async () => {
         try {
           const bundle = await this.getBundle();
@@ -174,8 +206,9 @@ export class DemoController {
   private runLocal(predictor: Predictor) {
     const bundle = this.bundle!;
     this.local?.stop();
+    this.running = predictor;
     const stream = new LocalStream(bundle, predictor, {
-      mode: this.opts.mode,
+      mode: this.mode,
       speed: this.speed,
       startTrial: this.trial,
       timer: this.opts.timer,

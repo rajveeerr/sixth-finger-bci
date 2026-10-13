@@ -5,20 +5,12 @@ import { demoInView, keyForDemo } from "./demoKeys";
 
 const SPEEDS = [1, 2, 4];
 
-function setMode(mode: "trial" | "continuous") {
-  const url = new URL(window.location.href);
-  if (mode === "trial") url.searchParams.delete("mode");
-  else url.searchParams.set("mode", mode);
-  url.hash = "demo"; // come back to the demo, not the top of the page
-  window.location.assign(url.toString());
-}
-
 const Key = ({ children }: { children: string }) => <kbd className="key">{children}</kbd>;
 
 /** Playback, as quiet text buttons with their keys: Space pauses, the arrows change trial. */
 export function Controls({ stream }: { stream: DemoStreamControls }) {
   const { paused, speed, trial, nTrials, source, mode, view, setView } = useDemo();
-  const local = source === "browser" || source === "replay";
+  const local = source === "loading-browser" || source === "browser" || source === "replay";
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -65,18 +57,25 @@ export function Controls({ stream }: { stream: DemoStreamControls }) {
       </span>
       <span className="ctl-group" role="radiogroup" aria-label="Decoding">
         <button role="radio" aria-checked={mode === "trial"} className={mode === "trial" ? "opt on" : "opt"}
-          onClick={() => mode !== "trial" && setMode("trial")}>
+          onClick={() => mode !== "trial" && stream.setMode("trial")}>
           Per trial
         </button>
         <button role="radio" aria-checked={mode === "continuous"} className={mode === "continuous" ? "opt on" : "opt"}
-          onClick={() => mode !== "continuous" && setMode("continuous")}>
+          onClick={() => mode !== "continuous" && stream.setMode("continuous")}>
           Continuous (experimental)
         </button>
       </span>
-      {local && stream.hasServer && (
-        <button className="ctl ctl-quiet" onClick={stream.retry}>
-          Try the server again
-        </button>
+      {stream.hasServer && (
+        <span className="ctl-group" role="radiogroup" aria-label="Where the model runs">
+          <button role="radio" aria-checked={!local} className={!local ? "opt on" : "opt"}
+            onClick={() => local && stream.retry()}>
+            On the server
+          </button>
+          <button role="radio" aria-checked={local} className={local ? "opt on" : "opt"}
+            onClick={() => !local && stream.useBrowser()}>
+            In this browser
+          </button>
+        </span>
       )}
     </nav>
   );

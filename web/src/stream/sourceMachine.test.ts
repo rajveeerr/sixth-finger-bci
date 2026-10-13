@@ -6,6 +6,8 @@ const ARROWS: [SourceState, SourceEvent, SourceState][] = [
   ["connecting", "hello", "server"],
   ["connecting", "server-failed", "loading-browser"],
   ["server", "server-failed", "loading-browser"],
+  ["connecting", "use-browser", "loading-browser"],
+  ["server", "use-browser", "loading-browser"],
   ["loading-browser", "browser-ready", "browser"],
   ["loading-browser", "browser-failed", "replay"],
   ["browser", "browser-failed", "replay"],
