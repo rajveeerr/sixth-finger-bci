@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Plate } from "../../components/Plate";
+import { PaperRef } from "../refs";
 import * as K from "../iso/kit";
 
 // One trial as three monitors on a bench, in the order the patient sees them: a cross
@@ -209,7 +210,12 @@ export function PatientSees() {
   return (
     <Plate
       title="One trial, as the patient sees it"
-      hint="14 seconds as the article describes it, drawn to scale (in the recordings a trial runs about 15 s, the cue coming about 8.6 s in). The brackets are the two 4 s pieces the model reads."
+      hint={
+        <>
+          Drawn to scale as <PaperRef /> describes it: 7 s rest, 1 s get ready, 6 s imagining, 14 s in all. The brackets
+          are the 4 seconds the model reads: one from the rest, one from the imagining.
+        </>
+      }
       className="plate-sees"
     >
       <svg
@@ -265,6 +271,15 @@ export function PatientSees() {
       <p className="scrub-say" aria-live="polite">
         {t === null ? "Play the trial, or drag through it." : moment(t)}
       </p>
+      <details className="aside">
+        <summary>Why the demo&apos;s trials run about 15 s, not 14</summary>
+        <p>
+          In the recorded files the instruction to imagine comes about 8.6 s after the rest begins, not 8, and each
+          trial starts about 15.5 s after the one before: every trial was started by a key press, and that pause is not
+          in the paper&apos;s description. The model&apos;s 4 s pieces are cut from the times marked in the files, so
+          the difference changes no result.
+        </p>
+      </details>
     </Plate>
   );
 }

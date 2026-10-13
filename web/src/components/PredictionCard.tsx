@@ -1,12 +1,13 @@
 import { decidedKind, isRight } from "../decision";
 import { IsoHand } from "../hands/IsoHand";
+import { SureTerm } from "../explain/refs";
 import { shownCommand, useDemo } from "../store";
 import type { Prediction } from "../stream/types";
 
 const SOURCE_TEXT: Record<Prediction["source"], string> = {
   server: "Decided on the server",
   browser: "Decided in this browser",
-  replay: "Stored by the same model",
+  replay: "Worked out earlier by the same model and saved",
 };
 
 /** What each reading is called on screen, in plain words. */
@@ -14,7 +15,7 @@ const SAY: Record<string, string> = {
   rest: "Rest",
   affected_hand: "Hand",
   sixth_finger: "Sixth finger",
-  imagery: "Move",
+  imagery: "Imagining",
 };
 
 /** Step 3: the model's reading of the last 4 s, whether it was right, and the hand moving. */
@@ -32,19 +33,29 @@ export function PredictionCard() {
       ? Math.max(...p.probs)
       : Math.max(smoothed[0] ?? 0, (smoothed[1] ?? 0) + (smoothed[2] ?? 0));
   const surePct = Math.min(99, Math.round(sure * 100));
-  const asked = !p ? "" : p.truth === classes[0]?.name ? "resting" : `asked to imagine ${p.truth === "sixth_finger" ? "the sixth finger" : "the hand"}`;
+  const asked = !p
+    ? ""
+    : p.truth === classes[0]?.name
+      ? "resting"
+      : `asked to imagine ${p.truth === "sixth_finger" ? "the sixth finger" : "the hand"}`;
   const tally =
     mode === "continuous"
       ? "A reading every half second, not counted in the score"
       : view === "three"
-      ? total
-        ? `${correct} of ${total} imagined movements read right so far`
-        : "No imagined movement read yet"
-      : switchTotal
-        ? `${switchCorrect} of ${switchTotal} windows right, rest and imagery`
-        : "No reading yet";
+        ? total
+          ? `${correct} of ${total} imagined movements read right so far (rest is not counted here)`
+          : "No imagined movement read yet"
+        : switchTotal
+          ? `${switchCorrect} of ${switchTotal} pieces of 4 s read right, resting and imagining`
+          : "No reading yet";
   return (
-    <section className="step step-read" aria-label="What the model reads" data-testid="prediction" data-label={decided ?? ""} data-view={view}>
+    <section
+      className="step step-read"
+      aria-label="What the model reads"
+      data-testid="prediction"
+      data-label={decided ?? ""}
+      data-view={view}
+    >
       <h3 className="step-title">
         <span className="step-num">3</span> The model reads
       </h3>
@@ -59,7 +70,7 @@ export function PredictionCard() {
       <p className="step-note read-about">
         {p ? (
           <>
-            From the last 4 s, while the patient was <b>{asked}</b>. {surePct}% sure.
+            From the last 4 s, while the patient was <b>{asked}</b>. <SureTerm>{surePct}% sure</SureTerm>.
           </>
         ) : (
           "The first reading comes 5 s into the trial."

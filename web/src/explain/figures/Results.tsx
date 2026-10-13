@@ -3,6 +3,7 @@ import { Bars, Curves, DotStrip, Slope } from "../charts";
 import { data } from "../data";
 import { FINDINGS, type Finding } from "../findings";
 import { Gauge } from "./Gauge";
+import { SetupFlow } from "./SetupFlow";
 
 const pct = (v: number) => `${Math.round(v * 100)}%`;
 const task = (key: string) => data.tasks.find((t) => t.key === key)!;
@@ -18,8 +19,8 @@ function SetupEvidence() {
     <>
       <Curves
         series={[
-          { label: "Starting from other patients", points: toSeries(T) },
-          { label: "From scratch", points: toSeries(S), muted: true },
+          { label: "Learning also from other patients", points: toSeries(T) },
+          { label: "From the patient alone", points: toSeries(S), muted: true },
         ]}
         guess={1 / 3}
         at={T[i].minutes}
@@ -37,9 +38,10 @@ function SetupEvidence() {
         />
       </div>
       <p className="chart-say" aria-live="polite">
-        After {T[i].k} practice trial{T[i].k > 1 ? "s" : ""} of each movement ({minutes(T[i].minutes)}): from other
-        patients <b>{pct(T[i].mean)}</b>, from scratch <b>{pct(S[i].mean)}</b>.
+        After {T[i].k} practice trial{T[i].k > 1 ? "s" : ""} of each movement ({minutes(T[i].minutes)}): learning also
+        from other patients <b>{pct(T[i].mean)}</b>, from the patient alone <b>{pct(S[i].mean)}</b>.
       </p>
+      <SetupFlow />
     </>
   );
 }
@@ -53,7 +55,7 @@ function LaterEvidence() {
       <div className="toggle" role="radiogroup" aria-label="On the new day">
         {[false, true].map((on) => (
           <button key={String(on)} type="button" role="radio" aria-checked={setup === on} onClick={() => setSetup(on)}>
-            {on ? "After 5 practice trials of each" : "As it was"}
+            {on ? "Adjusted with 5 practice trials of each" : "Unchanged"}
           </button>
         ))}
       </div>
@@ -99,7 +101,7 @@ function Evidence({ f }: { f: Finding }) {
         names={L.subjects.map((s) => `Patient ${Number(s.replace("sub-", ""))}`)}
         labels={[
           <>
-            <b>The published way</b> test trials used in building it
+            <b>The published way</b> test trials also used to build the method
           </>,
           <>
             <b>Tested fairly</b> test trials kept apart
@@ -116,7 +118,7 @@ function Evidence({ f }: { f: Finding }) {
     <dl className="figures-row">
       <div>
         <dt>{pct(s.detection)}</dt>
-        <dd>of tries switch it on</dd>
+        <dd>of imagining periods switch it on</dd>
       </div>
       <div>
         <dt>{s.latency_s.toFixed(1)} s</dt>
@@ -124,7 +126,7 @@ function Evidence({ f }: { f: Finding }) {
       </div>
       <div>
         <dt>{s.false_per_minute.toFixed(1)}</dt>
-        <dd>false switches a minute</dd>
+        <dd>mistaken switches per minute of rest</dd>
       </div>
     </dl>
   );
@@ -185,7 +187,9 @@ export function ResultsGauges() {
             <Gauge value={g.value} other={g.other?.value} guess={g.guess} />
             <span className="answer-tab-n">Question {g.answers}</span>
             <span className="answer-tab-name">{g.short}</span>
-            <span className="answer-tab-value">{pct(g.value)}</span>
+            <span className="answer-tab-value">
+              <b>{pct(g.value)}</b> {g.scale}
+            </span>
           </button>
         ))}
       </div>
@@ -198,6 +202,17 @@ export function ResultsGauges() {
         <p className="finding-a">{f.answer}</p>
         <Evidence key={f.key} f={f} />
         <p className="finding-note">{f.note}</p>
+        <div className="how">
+          <h4>How we found this</h4>
+          <p>{f.how}</p>
+          <ul>
+            {f.see.map((s) => (
+              <li key={s.href}>
+                <a href={s.href}>{s.text}</a>
+              </li>
+            ))}
+          </ul>
+        </div>
       </section>
     </div>
   );

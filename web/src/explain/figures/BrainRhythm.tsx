@@ -85,7 +85,7 @@ export function BrainRhythm() {
         hint="A drawing of the effect, 8 to 13 waves a second. Switch between resting and imagining."
         readout={
           imagining
-            ? `Imagining: ${Math.round(fall * 100)}% less power (grey: the size at rest), the average over ${sf.length} patients. This drop is what the model learns to spot.`
+            ? `Imagining: the rhythm's power falls by ${Math.round(fall * 100)}% on average over ${sf.length} patients (grey: its size at rest). This drop is what the model learns to spot.`
             : "Resting: the rhythm at its usual size."
         }
       >
@@ -115,8 +115,8 @@ export function BrainRhythm() {
       </Plate>
       <Plate
         title="Measured in every patient"
-        hint="Each dot is one patient: how much the rhythm's power fell while imagining, against the second before the cue. Left of the dashed line means it fell."
-        readout={`It fell in ${sf.filter((v) => v < 0).length} of ${sf.length} patients for the sixth finger, by ${Math.round(-data.erd.sixth_finger.mean)}% on average.`}
+        hint="Each dot is one patient: how much the rhythm's power fell while imagining, compared with the one second just before the instruction. Left of the dashed line means it fell."
+        readout={`It fell in ${sf.filter((v) => v < 0).length} of ${sf.length} patients for the sixth finger, by ${Math.round(-data.erd.sixth_finger.mean)}% on average, and by about as much for the hand, which is why the two are hard to tell apart.`}
       >
         <DotStrip
           rows={[

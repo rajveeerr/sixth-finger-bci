@@ -10,6 +10,8 @@ export interface Finding {
   question: string;
   /** A few words for the dial that opens this answer. */
   short: string;
+  /** What the dial's number means, so the five can be read side by side. */
+  scale: string;
   /** The main score, 0 to 1. */
   value: number;
   /** A second score to compare with (the faulty test, or starting from scratch). */
@@ -21,6 +23,9 @@ export interface Finding {
   answer: string;
   /** How the evidence under the answer was measured. */
   note: string;
+  /** How we reached the answer, in a few plain sentences, and where the page shows it. */
+  how: string;
+  see: { href: string; text: string }[];
 }
 
 const task = (key: string) => data.tasks.find((t) => t.key === key)!;
@@ -33,64 +38,90 @@ const scratchReach = data.calibration.scratch.find((p) => p.mean >= T0.mean - 0.
 export const PRACTICE_S = Math.round((T0.minutes * 60) / 10) * 10;
 /** Minutes from scratch, to the nearest minute. */
 export const SCRATCH_MIN = Math.round(scratchReach);
+/** Practice trials of each movement the patient's own model needs to match that. */
+export const SCRATCH_K = data.calibration.scratch.find((p) => p.minutes === scratchReach)?.k ?? NaN;
 
 export const FINDINGS: Finding[] = [
   {
     key: "leak",
     answers: 1,
     question: "Is the published 85% real?",
-    short: "The published 85%",
+    short: "Tested fairly",
+    scale: "guessing gets 50%",
     value: data.leak.mean_leakfree,
     other: { value: data.leak.mean_replica, label: "tested the published way" },
     guess: 0.5,
-    lead: "No: it was measured on trials the method had already seen.",
-    answer: `Like marking an exam with questions the student saw in advance. Tested on trials kept apart, the same method tells the hand from the sixth finger ${pct(data.leak.mean_leakfree)} of the time; guessing gets 50%.`,
-    note: `One line per patient: the same method (CSP with LDA) scored the published way and properly. All ${data.leak.n_positive} of ${data.leak.subjects.length} fell. Our rebuild of the published way gives ${pct(data.leak.mean_replica)}; the paper reports 85 to 86%.`,
+    lead: "No. The method had already seen the trials it was tested on.",
+    answer: `It is like marking an exam with questions the student saw in advance. Tested on trials kept apart, the same method tells imagining the hand from imagining the sixth finger ${pct(data.leak.mean_leakfree)} of the time, where guessing gets 50%.`,
+    note: `Each grey line is one patient, scored the published way (left) and fairly (right); the black line is the average. All ${data.leak.n_positive} of ${data.leak.subjects.length} scored lower when tested fairly. Our rebuild of the published way gives ${pct(data.leak.mean_replica)}, close to the paper's 85 to 86%.`,
+    how: "We rebuilt the paper's method from its published code and scored it twice on the same patients and trials. Once as the paper did: the method's first step learned from all the trials, and only then were some set aside for testing. Once fairly: that step learned only from the trials used for learning. Nothing else changed.",
+    see: [
+      { href: "#checks", text: "Problem 4 in chapter 5, and how we spotted it" },
+      { href: "#elsewhere", text: "The same mistake in other data" },
+    ],
   },
   {
     key: "setup",
     answers: 2,
-    question: "How long must a new patient practise before it works?",
+    question: "How much practice does the model need from a new patient?",
     short: "A new patient",
+    scale: "after 30 s; guessing 33%",
     value: data.calibration.transfer[0].mean,
-    other: { value: data.calibration.scratch[0].mean, label: "from scratch" },
+    other: { value: data.calibration.scratch[0].mean, label: "from the patient alone" },
     guess: 1 / 3,
-    lead: `About ${PRACTICE_S} seconds, if the model starts from other patients.`,
-    answer: `One practice trial of each movement (about ${PRACTICE_S} s) gives ${pct(T0.mean)} on the three choices. From scratch, the model gets ${pct(data.calibration.scratch[0].mean)} and needs about ${SCRATCH_MIN} minutes to catch up.`,
-    note: "Three choices (rest, hand, sixth finger), so guessing gets 33%. The shaded bands show the range the average could be in (95%).",
+    lead: `With help from other patients, ${PRACTICE_S} seconds of practice does what ${SCRATCH_MIN} minutes does alone.`,
+    answer: `Before the model can read a new patient, the patient does a few practice trials so it can learn their signals. Learning from those alone, it needs about ${SCRATCH_K} trials of each movement (${SCRATCH_MIN} minutes) to be right ${pct(T0.mean)} of the time on the three choices. Learning also from patients recorded before, it gets there after one trial of each (${PRACTICE_S} seconds). That is a head start, not a better model: with more practice, the model that learns from the patient alone catches up and then does better.`,
+    note: "Three choices (rest, hand, sixth finger), so guessing gets 33%. The shaded bands show where the true average very likely lies, given only 22 patients.",
+    how: `For each patient in turn we pretended they were new. Their first two runs supplied the practice trials (from 1 to 20 of each movement) and their last two runs the test, which the model never saw. "Learning also from other patients" used the other ${data.leak.subjects.length - 1} patients' recordings too, after each person's signals were shifted to a common centre so that the differences between people matter less.`,
+    see: [
+      { href: "#setup-flow", text: "The new patient's steps, above" },
+      { href: "#recordings", text: "Runs and sessions, in chapter 2" },
+    ],
   },
   {
     key: "sixth",
     answers: 3,
     question: "Is the sixth finger a command of its own?",
-    short: "The sixth finger alone",
+    short: "Sixth finger or hand",
+    scale: "guessing gets 50%",
     value: task("T1_ah_vs_sf").mean,
     other: { value: task("T3_sf_vs_rest").mean, label: "telling it from resting" },
     guess: 0.5,
-    lead: "Not yet: the model tells imagining from resting, but barely which movement.",
-    answer: `Against resting, ${pct(task("T3_sf_vs_rest").mean)}; part of that may be the picture on the screen rather than the imagining, since sensors over the visual areas also tell them apart. Against imagining the hand, ${pct(task("T1_ah_vs_sf").mean)}, a little over guessing: in the EEG the two look alike, and a detector of any imagined movement did as well. So the demo also offers an on/off switch.`,
+    lead: "Not yet. The model tells imagining from resting, but barely which movement.",
+    answer: `Imagining the sixth finger is told apart from resting ${pct(task("T3_sf_vs_rest").mean)} of the time. Some of that may not be the imagining: during rest the screen shows a cross and during imagining a picture, and sensors at the back of the head, over the parts that handle sight, can also tell the two apart. Told apart from imagining the hand, ${pct(task("T1_ah_vs_sf").mean)}, a little over guessing: the rhythm drops by about the same amount for both. A model trained only on imagining the hand picked out sixth-finger imagining about as well as one trained on the sixth finger itself. So the demo also offers an on/off switch.`,
     note: "One dot per patient, for each two-way choice: trained on the patient's first two runs, tested on the last two. The black line is the average.",
+    how: "For each patient, a model learned each two-way choice from the first two runs and was tested on the last two. A model trained to find imagined hand movements was then asked to find imagined sixth-finger movements, and compared with a model trained on those.",
+    see: [
+      { href: "#model", text: "The model, in chapter 6" },
+      { href: "#brain", text: "What changes in the brain, in chapter 3" },
+    ],
   },
   {
     key: "switch",
     answers: 4,
     question: "Would it work live, as a simple on/off switch?",
     short: "Live, as a switch",
+    scale: "of imagining periods caught",
     value: data.switch.detection,
-    lead: "Partly: it switches on about 2 times in 3, but too often by mistake for a device yet.",
-    answer: `Played as if live, without being told when the cue came, the finger switches on about ${Math.round(data.switch.latency_s)} s after the patient starts imagining, and switches on by mistake about ${Math.round(data.switch.false_per_minute)} time a minute while they rest.`,
-    note: `A reading every 0.5 s through a gate: on after two readings in a row with imagining above 60% (smoothed), off below 45%. Average of ${data.switch.n} patients.`,
+    lead: "Partly. It catches about 2 in 3 imagined movements, but switches on by mistake too often for a device yet.",
+    answer: `Played as if live, without being told when the instruction came, the finger switches on about ${Math.round(data.switch.latency_s)} s after the patient starts imagining: the model needs a few seconds of imagining inside the 4 s it reads. While the patient rests, it switches on by mistake about ${Math.round(data.switch.false_per_minute)} time a minute.`,
+    note: `Every half second the model reads the newest 4 s and gives the chance that a movement is being imagined (hand and sixth finger added together). A running average steadies that chance; the finger turns on when it is above 60% twice in a row, and off when it falls below 45%. Average of ${data.switch.n} patients.`,
+    how: "We played each patient's last two runs to the model as one unbroken signal, a reading every half second, without telling it when the instructions came, and counted when the finger would have switched on: while the patient imagined (caught) or while they rested (a mistake).",
+    see: [{ href: "#demo", text: "Try it in the demo: continuous mode with the on/off switch" }],
   },
   {
     key: "later",
     answers: 5,
     question: "Does a model still work on another day?",
     short: "Another day",
+    scale: `unchanged; ${pct(L.post.re_setup.mean)} after adjusting`,
     value: L.post.as_is.mean,
     other: { value: L.same_session, label: "on the day it was built" },
     guess: 1 / 3,
-    lead: "Not on its own, but a few practice trials bring it back.",
-    answer: `Brain signals drift between days: the cap sits a little differently, the person feels different, and therapy may change the brain. Five practice trials of each movement on the new day let the model re-align, from ${pct(L.post.as_is.mean)} back to ${pct(L.post.re_setup.mean)} two weeks later.`,
+    lead: "Not unchanged, but a few practice trials on the day bring it back.",
+    answer: `Brain signals change between days: the cap sits a little differently, the person feels different, and therapy may change the brain. On the new day the patient does 5 practice trials of each movement, a little over 2 minutes, and the model is adjusted to them. Two weeks later that takes it from ${pct(L.post.as_is.mean)} back to ${pct(L.post.re_setup.mean)}, close to the ${pct(L.same_session)} on the day it was built.`,
     note: `Three choices, so guessing gets 33%. ${L.post.as_is.n} patients two weeks later and ${L.follow.as_is.n} a month later, those with usable recordings of both days.`,
+    how: "The model built from a patient's first session was tested unchanged on their sessions two weeks and a month later. Then it was adjusted to the new day with 5 practice trials of each movement and tested again.",
+    see: [{ href: "#recordings", text: "The three sessions, in chapter 2" }],
   },
 ];

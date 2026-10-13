@@ -24,7 +24,7 @@ const KIND_COLOUR: Record<string, string> = {
   sixth_finger: "#d9480f",
   imagery: "#d9480f",
 };
-const SAY: Record<string, string> = { rest: "Rest", affected_hand: "Hand", sixth_finger: "Sixth finger", imagery: "Move" };
+const SAY: Record<string, string> = { rest: "Rest", affected_hand: "Hand", sixth_finger: "Sixth finger", imagery: "Imagining" };
 
 function imageryAt(ring: EegRing, idx: number): string | null {
   return ring.phase[idx] === PHASE_CODES.imagery ? (ring.truth[idx] ?? "imagery") : null;

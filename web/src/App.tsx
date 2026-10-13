@@ -10,6 +10,7 @@ import { data, pct } from "./explain/data";
 import { BciLoop } from "./explain/figures/BciLoop";
 import { BrainRhythm } from "./explain/figures/BrainRhythm";
 import { DataChecks } from "./explain/figures/DataChecks";
+import { Elsewhere } from "./explain/figures/Elsewhere";
 import { HeadMap } from "./explain/figures/HeadMap";
 import { ModelFacts } from "./explain/figures/ModelFacts";
 import { PatientSees } from "./explain/figures/PatientSees";
@@ -18,7 +19,7 @@ import { Session } from "./explain/figures/Session";
 import { SignalChain } from "./explain/figures/SignalChain";
 import { PRACTICE_S, SCRATCH_MIN } from "./explain/findings";
 import { LINKS } from "./explain/links";
-import { CspTerm, CueTerm, DatasetRef, EegnetRef, TherapyTerm } from "./explain/refs";
+import { CspTerm, CueTerm, DatasetRef, EegnetRef, EegTerm, ModelTerm, TherapyTerm } from "./explain/refs";
 import { useDemo } from "./store";
 import { useDemoStream } from "./stream/useDemoStream";
 
@@ -42,9 +43,10 @@ export default function App() {
           <p className="hero-text">
             After a stroke, many people can no longer use one hand well. A robotic sixth finger, worn at the wrist, can
             help it hold things, if it moves when the wearer wants. Many cannot press a button, so the wish is read from
-            the brain through an EEG cap: a <a href="#bci">brain-computer interface</a>, or BCI. We took recordings of
-            24 stroke patients imagining that movement, tested how well a computer can learn to read them, and built a{" "}
-            <a href="#demo">live demo</a> that reads one patient&apos;s signals as they play.
+            the brain through an <EegTerm /> cap: a <a href="#bci">brain-computer interface</a>, or BCI. We took
+            recordings of 24 stroke patients imagining that movement, tested how well a computer{" "}
+            <ModelTerm>model</ModelTerm> can learn to read them, and built a <a href="#demo">live demo</a> that reads
+            one patient&apos;s signals as the recording plays.
           </p>
           <p className="hero-meta">
             A B.Tech minor project by Rajveer Singh, Vivek Yadav and Ansh Dahiya, guided by Dr. Suman Lata.
@@ -74,16 +76,20 @@ export default function App() {
             </div>
             <div>
               <dt>
-                <a href="#answer-1">Was the published 85% right?</a>
+                <a href="#answer-1">The study that shared these recordings reported 85%. Does it hold?</a>
               </dt>
-              <dd>No. Tested fairly, the same method gets {pct(data.leak.mean_leakfree)}.</dd>
+              <dd>
+                No. Tested on trials it had not seen, the same method gets {pct(data.leak.mean_leakfree)}; guessing gets
+                50%.
+              </dd>
             </div>
             <div>
               <dt>
-                <a href="#answer-2">How long must a new patient practise?</a>
+                <a href="#answer-2">How much practice does a new patient need?</a>
               </dt>
               <dd>
-                About {PRACTICE_S} seconds if the model starts from other patients, instead of {SCRATCH_MIN} minutes.
+                About {PRACTICE_S} seconds if the model also learns from other patients; {SCRATCH_MIN} minutes if it
+                learns from the patient alone.
               </dd>
             </div>
           </dl>
@@ -154,7 +160,7 @@ export default function App() {
               Our main question: can a model that has already learned from other patients be set up for a new patient
               quickly, even for a movement the body never had? Every new user first gives the model some practice
               trials, and a stroke patient tires quickly, so fewer is better. Around it, five questions, each answered
-              in <a href="#found">chapter 8</a>.
+              in <a href="#found">chapter 8</a>; what is new in all this is in <a href="#new">chapter 9</a>.
             </p>
           }
         >
@@ -167,9 +173,10 @@ export default function App() {
               </p>
             </li>
             <li id="question-2">
-              <h3>How long must a new patient practise before it works?</h3>
+              <h3>How much practice does the model need from a new patient?</h3>
               <p>
-                Starting from other patients&apos; model, or from scratch. <a href="#answer-2">Answer</a>
+                Learning from the new patient alone, or also from patients recorded before.{" "}
+                <a href="#answer-2">Answer</a>
               </p>
             </li>
             <li id="question-3">
@@ -182,7 +189,8 @@ export default function App() {
             <li id="question-4">
               <h3>Would it work live, as a simple on/off switch?</h3>
               <p>
-                In real use nobody tells the model when the <CueTerm /> came. <a href="#answer-4">Answer</a>
+                In real use nobody tells the model when the <CueTerm /> came, so it must watch all the time and decide
+                by itself when imagining starts. <a href="#answer-4">Answer</a>
               </p>
             </li>
             <li id="question-5">
@@ -197,7 +205,7 @@ export default function App() {
             <p>
               We wrote these questions down, with how we would test each and what would count as a yes, before running
               the tests on all the patients, so the results could not bend the questions. Every test is on trials the
-              model never saw while learning, and we checked the data first (chapter 5).
+              model never saw while learning, and we checked the data first (<a href="#checks">chapter 5</a>).
             </p>
           </details>
         </Chapter>
@@ -225,7 +233,8 @@ export default function App() {
               The demo runs <EegnetRef />, a small neural network built for EEG. It is one model that chooses between
               three things at once: resting, imagining the hand, or imagining the sixth finger. For some questions we
               also trained simpler two-way versions, such as sixth finger or rest, and compared EEGNet with older
-              methods such as <CspTerm />.
+              methods such as <CspTerm />: tested fairly, EEGNet scored a little higher at telling the movements apart,
+              and about the same at telling imagining from rest.
             </p>
           }
         >
@@ -238,8 +247,8 @@ export default function App() {
           title="Watch it work"
           lede={
             <p>
-              Patient {patient}&apos;s last two runs, which the model never trained on, play here at real speed. Read
-              left to right.
+              Patient {patient}&apos;s last two runs, which the model never trained on, play here at real speed. Follow
+              the three panels in order: what the patient is told, their brain signal, what the model reads.
             </p>
           }
         >
@@ -269,15 +278,17 @@ export default function App() {
               <div>
                 <dt>Three choices or on/off switch</dt>
                 <dd>
-                  Three choices shows the model as trained. The on/off switch bends the finger for any imagined
-                  movement, the use our results support.
+                  Three choices: the model picks rest, hand or sixth finger, and the finger bends only for sixth finger.
+                  On/off switch: the finger bends whenever the model thinks either movement is imagined. Our results
+                  support the switch, since the model can barely tell the two movements apart.
                 </dd>
               </div>
               <div>
                 <dt>Per trial or continuous</dt>
                 <dd>
-                  Per trial reads each trial&apos;s two 4 s pieces, timed from the cue. Continuous reads the newest 4 s
-                  every half second without being told when the cue came, as a live system would, and makes more
+                  Per trial: the model reads two fixed 4 s stretches of each trial, one in the rest and one in the
+                  imagining, placed from the moment the instruction appeared. Continuous: it reads the newest 4 s every
+                  half second without knowing when the instruction came, as a real device would, and makes more
                   mistakes.
                 </dd>
               </div>
@@ -300,8 +311,69 @@ export default function App() {
         </Chapter>
 
         <Chapter
-          id="bci"
+          id="new"
           n={9}
+          title="What this project adds"
+          lede={
+            <p>
+              The accuracy did not go up: tested fairly, the hand and the sixth finger are told apart about 6 times in
+              10, not 8 or 9. What we added is a fair measure of what these recordings can do, the reason the published
+              number was higher, and how quickly a new patient could start.
+            </p>
+          }
+        >
+          <ol className="adds">
+            <li>
+              <h3>A fair test of a published result</h3>
+              <p>
+                We found the step that raised the paper&apos;s 85% and measured it: {pct(data.leak.mean_leakfree)}{" "}
+                tested fairly, lower for every one of the {data.leak.subjects.length} patients (
+                <a href="#answer-1">question 1</a>).
+              </p>
+            </li>
+            <li>
+              <h3>The same mistake, measured in other data</h3>
+              <p>
+                We repeated the check on two public datasets of imagined hand movements from healthy volunteers, and on
+                EEG used to detect depression, where the same kind of leak is a known risk. It inflated the score every
+                time (the figure below).
+              </p>
+            </li>
+            <li>
+              <h3>A check of the shared recordings</h3>
+              <p>
+                Four problems in the public data and its analysis, found by comparing every pair of runs and dealt with
+                before any result was looked at (<a href="#checks">chapter 5</a>).
+              </p>
+            </li>
+            <li>
+              <h3>How fast a new patient can start, for a movement the body never had</h3>
+              <p>
+                {PRACTICE_S} seconds of practice with help from other patients, against {SCRATCH_MIN} minutes alone (
+                <a href="#answer-2">question 2</a>).
+              </p>
+            </li>
+            <li>
+              <h3>What the sixth finger can be used as today</h3>
+              <p>
+                Not yet a command of its own, but an on/off switch, tested as if live, and what happens weeks later (
+                <a href="#answer-3">questions 3 to 5</a>).
+              </p>
+            </li>
+            <li>
+              <h3>An open demo</h3>
+              <p>
+                The model runs on trials it never saw, on our server or, if that cannot be reached, in your browser; the
+                code, the results and the data audit are public (<a href="#more">read more</a>).
+              </p>
+            </li>
+          </ol>
+          <Elsewhere />
+        </Chapter>
+
+        <Chapter
+          id="bci"
+          n={10}
           title="What a BCI is, and how it could be used"
           lede={
             <p>
@@ -322,8 +394,9 @@ export default function App() {
               <h3>Help the brain recover</h3>
               <p>
                 BCI therapy: the patient imagines a movement over and over, and each time the BCI picks it up, a robot
-                or a screen answers with that movement. Closing the loop is being studied as a way to help the brain
-                re-learn to move; 14 patients in this study had <TherapyTerm>two weeks of it</TherapyTerm>.
+                or a screen answers with that movement. Showing the patient the result each time is being studied as a
+                way to help the brain re-learn to move; 14 patients in this study had{" "}
+                <TherapyTerm>two weeks of it</TherapyTerm>.
               </p>
             </li>
             <li>
@@ -333,7 +406,7 @@ export default function App() {
           </ol>
         </Chapter>
 
-        <Chapter id="more" n={10} title="Read more">
+        <Chapter id="more" n={11} title="Read more">
           <ul className="links">
             {Object.values(LINKS).map((l) => (
               <li key={l.url}>

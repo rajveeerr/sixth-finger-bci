@@ -8,27 +8,27 @@ const ROWS = [
   {
     what: "Two sessions that are one recording",
     found:
-      'Patient 2\'s "after therapy" and "follow-up" sessions are the same files, byte for byte, though they are meant to be a month apart.',
-    how: "We fingerprinted the raw file of each of the 268 runs and compared the signals of every pair of runs, 35,778 pairs in all.",
+      'Patient 2\'s "after therapy" and "follow-up" sessions are exactly the same files, though they are meant to be a month apart.',
+    how: "We gave the raw file of each of the 268 runs a checksum (a short code that changes if any part of the file changes) and compared the signals of every pair of runs, 35,778 pairs in all.",
     did: "Kept one copy",
   },
   {
     what: "Two patients with the same recording",
     found:
-      "Patients 21 and 22 share identical raw files for their first session, yet the order of their cues differs, so one set of labels does not belong to its signal.",
-    how: "The same comparison, then checking the order of the cues in each.",
+      "Patients 21 and 22 share identical raw files for their first session, yet the lists of which movement was asked for, and when, differ. One list cannot belong to that signal.",
+    how: "The same comparison, then reading each session's list of instructions.",
     did: "Dropped both: we cannot tell whose labels are right",
   },
   {
     what: "A broken run",
-    found: "One of patient 15's follow-up runs lasts 48 seconds and has no imagery cue in it.",
-    how: "Counting the cues and the length of every run.",
+    found: "One of patient 15's follow-up runs lasts 48 seconds and has no instruction to imagine in it.",
+    how: "Counting the instructions in every run and measuring its length.",
     did: "Dropped that run",
   },
   {
     what: "Test trials used to build the method",
     found:
-      "In the published analysis, the spatial filters (CSP) were fitted on all the trials before some were set aside for testing, so the test was not on unseen data.",
+      "In the published analysis, the method's first step (CSP, which learns how best to combine the sensors) learned from every trial, including the ones later used to test it. So the test was not on unseen data.",
     how: "Reading the authors' analysis code, then rebuilding their method both ways on the same data.",
     did: "Measured it: the published 85% came from this",
     leak: true,
@@ -60,8 +60,8 @@ export function DataChecks() {
       </ol>
       <p className="checks-note">
         Open a row for what was wrong and how we found it. We decided what to drop before looking at any result, so the
-        choice could not favour one. The full record is in our <a href={LINKS.audit.url}>data audit report</a> and{" "}
-        <a href={LINKS.card.url}>dataset card</a>.
+        choice could not push any result up. The full record is in our <a href={LINKS.audit.url}>data audit report</a>{" "}
+        and <a href={LINKS.card.url}>dataset card</a>.
       </p>
     </div>
   );

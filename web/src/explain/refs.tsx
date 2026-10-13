@@ -59,8 +59,9 @@ export function EegnetRef({ children = "EEGNet" }: { children?: ReactNode }) {
       href={LINKS.eegnet.url}
       card={
         <>
-          <b>EEGNet</b> A small neural network designed for EEG (Lawhern et al., Journal of Neural Engineering, 2018).
-          It learns which sensors and which rhythms tell the choices apart.
+          <b>EEGNet</b> A small neural network designed for EEG (Lawhern et al., Journal of Neural Engineering, 2018):
+          layers of simple sums whose weights are learned from examples. It learns which sensors and which rhythms tell
+          the choices apart.
           <span className="ref-link">Opens the paper</span>
         </>
       }
@@ -84,4 +85,69 @@ export function CspTerm({ children = "CSP with LDA" }: { children?: ReactNode })
       {children}
     </Ref>
   );
+}
+
+export function ModelTerm({ children = "model" }: { children?: ReactNode }) {
+  return (
+    <Ref
+      card={
+        <>
+          <b>Model</b> A computer program that learned from examples which brain signals go with which instruction.
+          Shown new signal, it says which instruction it most likely goes with.
+        </>
+      }
+    >
+      {children}
+    </Ref>
+  );
+}
+
+export function EegTerm({ children = "EEG" }: { children?: ReactNode }) {
+  return (
+    <Ref
+      card={
+        <>
+          <b>EEG</b> Electroencephalography: the tiny voltages the brain makes, millionths of a volt, picked up by
+          sensors resting on the scalp. Safe and painless; nothing goes into the head.
+        </>
+      }
+    >
+      {children}
+    </Ref>
+  );
+}
+
+export function ScoreTerm({ children }: { children: ReactNode }) {
+  return (
+    <Ref
+      card={
+        <>
+          <b>How the score is counted</b> How often each choice is read right, averaged over the choices (rest, hand,
+          sixth finger), so a model that always says &quot;rest&quot; cannot score well. Guessing scores one in the
+          number of choices.
+        </>
+      }
+    >
+      {children}
+    </Ref>
+  );
+}
+
+export function SureTerm({ children }: { children: ReactNode }) {
+  return (
+    <Ref
+      card={
+        <>
+          <b>How sure</b> How strongly the model leans to this answer, from its own estimate. It is not how often it is
+          right; that is the tally below.
+        </>
+      }
+    >
+      {children}
+    </Ref>
+  );
+}
+
+export function PaperRef({ children = "the dataset's paper" }: { children?: ReactNode }) {
+  return <DatasetRef>{children}</DatasetRef>;
 }

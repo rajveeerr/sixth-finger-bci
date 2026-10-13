@@ -107,7 +107,7 @@ const STEPS: { name: string; demo: string; real: string; drawn?: boolean }[] = [
   },
   {
     name: "Decide",
-    demo: "The trained model, running in this browser, turns each 4 s of signal into a command.",
+    demo: "The trained model, on our server or in this browser, turns each 4 s of signal into a command.",
     real: "The same model, set up for each wearer with a short practice.",
   },
   {
