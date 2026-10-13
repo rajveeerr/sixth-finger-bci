@@ -16,8 +16,8 @@ export function ModelFacts() {
           Brain signals differ from person to person: the shape of the head, where the stroke was, how each person
           imagines a movement. A model learned on one person reads another poorly, so each patient gets their own, as is
           usual for BCIs. It can learn from that patient alone, or also from other patients and then be adjusted to this
-          one (<a href="#answer-2">question 2</a>). For the results we built one for each of the {kept} patients we
-          kept; two were dropped (<a href="#checks">chapter 5</a>).
+          one (<a href="#answer-2">question 2</a>). For the results we built one for each of the {kept} patients with a
+          usable first session; two lost theirs to a data problem (<a href="#checks">chapter 5</a>).
         </>
       ),
     },

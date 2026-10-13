@@ -9,7 +9,6 @@ const T = data.calibration.transfer;
 const perTrialPair = T[0].minutes / T[0].k; // one trial of each movement, in minutes
 const reach = S.find((p) => p.mean >= T[0].mean - 0.005) ?? S[S.length - 1];
 const RESETUP_K = 5;
-const others = data.leak.subjects.length - 1;
 
 const time = (min: number) =>
   min < 1 ? `about ${Math.round((min * 60) / 10) * 10} s` : `about ${Math.round(min)} min`;
@@ -25,10 +24,10 @@ const LANES = [
   },
   {
     name: "Already learned from other patients",
-    before: `Done once, beforehand: ${others} patients recorded earlier`,
+    before: "Done once, beforehand: the recordings of all the other patients",
     k: T[0].k,
     minutes: T[0].minutes,
-    learns: `Learns from these trials and the ${others} others`,
+    learns: "Learns from these trials and the other patients",
     score: T[0].mean,
   },
   {
