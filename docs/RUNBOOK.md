@@ -178,8 +178,10 @@ results within small run-to-run differences (GPU arithmetic is not bit-exact).
 - Web demo: https://sixthfinger.rajveers.com (CNAME `sixthfinger` at the rajveers.com DNS
   host), also https://sixth-finger-bci.vercel.app; the demo alone, for presenting, at `/live`
 - Streaming server on Render (optional): New > Blueprint in Render, pick this repository
-  (`render.yaml`: Docker, free plan, Singapore, health check `/health`, `ALLOWED_ORIGINS` set to the
-  two site addresses). Then set the Vercel variable `VITE_SERVER_URL` to the service's
+  (`render.yaml`: Python, root directory `server`, build `uv sync --frozen --no-dev`, start
+  `.venv/bin/uvicorn app.main:app --host 0.0.0.0 --port $PORT`, free plan, Singapore, health check
+  `/health`, `ALLOWED_ORIGINS` set to the two site addresses). The same values work in Render's
+  "New Web Service" form. Then set the Vercel variable `VITE_SERVER_URL` to the service's
   `https://…onrender.com` address and redeploy the site. The page wakes the server when it opens,
   decodes in the browser until the server answers, then moves to it, and pings it every 10 minutes
   while it is open; an outside monitor (e.g. every 10 minutes on `/health`) keeps it awake between
