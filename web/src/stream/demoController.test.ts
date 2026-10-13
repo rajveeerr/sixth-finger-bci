@@ -34,6 +34,9 @@ function setup(opts: { server: "hello" | "fail" | "none"; decoder: Predictor | "
       return opts.decoder;
     },
     loadReplay: async () => replay,
+    ping: async () => {
+      throw new Error("asleep");
+    },
     timer,
   });
   return { c, sources, messages, server: () => handlers };
@@ -43,7 +46,9 @@ const settle = (ms = 30) => new Promise((r) => setTimeout(r, ms));
 // Wait for a condition rather than a fixed time: the suite may run on a busy machine.
 const until = (check: () => void) => vi.waitFor(check, { timeout: 5000, interval: 10 });
 
-function setupHttp(remote: Predictor | "down") {
+function setupHttp(remote: Predictor | "down" | (() => Promise<Predictor>), ping: () => Promise<void> = async () => {
+  throw new Error("asleep");
+}) {
   const sources: SourceState[] = [];
   const messages: ServerMessage[] = [];
   const c = new DemoController({
@@ -57,9 +62,11 @@ function setupHttp(remote: Predictor | "down") {
     loadDecoder: async () => ok,
     loadRemote: async () => {
       if (remote === "down") throw new Error("no function");
-      return remote;
+      return typeof remote === "function" ? remote() : remote;
     },
     loadReplay: async () => replay,
+    ping,
+    upgradeEveryMs: 20,
     timer,
   });
   return { c, sources, messages };
@@ -69,6 +76,36 @@ const onServer: Predictor = { ...ok, source: "server" };
 const failing: Predictor = { source: "server", sliding: true, predict: async () => { throw new Error("502"); } };
 
 describe("DemoController with a model server over HTTP", () => {
+  it("starts in the browser while the server sleeps, and moves to it once it wakes", async () => {
+    // The first connection fails (the server is still waking), so the browser stands in.
+    let awake = false;
+    const { c, sources } = setupHttp(
+      async () => {
+        if (!awake) throw new Error("waking");
+        return onServer;
+      },
+      async () => {
+        if (!awake) throw new Error("asleep");
+      },
+    );
+    c.start();
+    await until(() => expect(sources.at(-1)).toBe("browser"));
+    awake = true;
+    await until(() => expect(sources.at(-1)).toBe("server"));
+    c.stop();
+  });
+
+  it("stays in the browser the reader chose, even when the server wakes", async () => {
+    const { c, sources } = setupHttp(onServer, async () => {});
+    c.start();
+    await until(() => expect(sources.at(-1)).toBe("server"));
+    c.useBrowser();
+    await until(() => expect(sources.at(-1)).toBe("browser"));
+    await settle(120);
+    expect(sources.at(-1)).toBe("browser");
+    c.stop();
+  });
+
   it("goes to the in-browser model when asked, and back to the server on retry", async () => {
     const { c, sources, messages } = setupHttp(onServer);
     c.start();

@@ -1,4 +1,5 @@
-# Inference server image for a Hugging Face Docker Space (port 7860) or any container host.
+# Inference server image for Render (render.yaml), a Hugging Face Docker Space or any container host;
+# it listens on $PORT (7860 unless the host sets it).
 # Build from the repository root:  docker build -f server/Dockerfile -t sixthfinger-server .
 FROM python:3.12-slim
 

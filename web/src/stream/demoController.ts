@@ -24,6 +24,10 @@ export interface ControllerOptions {
   loadDecoder?: (base: string, bundle: LoadedBundle) => Promise<Predictor>;
   loadReplay?: (base: string, bundle: LoadedBundle) => Promise<Predictor>;
   loadRemote?: (url: string, bundle: LoadedBundle) => Promise<Predictor>;
+  /** Wakes the server and resolves once it answers (a free host sleeps when idle). */
+  ping?: (url: string) => Promise<void>;
+  /** How often to look for a woken server while the browser stands in. */
+  upgradeEveryMs?: number;
   timer?: Timer;
 }
 
@@ -41,6 +45,12 @@ export class DemoController {
   private running: Predictor | null = null;
   private mode: Mode;
   private readonly base: string;
+  // While the browser stands in for a sleeping server, look for it now and then and move
+  // back once it answers; never after the reader chose the browser, and only twice a visit
+  // so a server that answers but cannot stream does not flip the demo back and forth.
+  private chosenBrowser = false;
+  private upgrades = 0;
+  private upgradeTimer: ReturnType<typeof setTimeout> | undefined;
 
   constructor(private readonly opts: ControllerOptions) {
     this.base = opts.base ?? "/demo";
@@ -52,13 +62,44 @@ export class DemoController {
     return !!this.opts.serverUrl || !!this.opts.decodeUrl;
   }
 
+  private get healthUrl(): string | null {
+    if (this.opts.serverUrl) return `${this.opts.serverUrl.replace(/\/+$/, "")}/health`;
+    return this.opts.decodeUrl || null;
+  }
+
+  private ping(): Promise<void> {
+    const url = this.healthUrl;
+    if (!url) return Promise.reject(new Error("no server"));
+    return (this.opts.ping ?? defaultPing)(url);
+  }
+
   start() {
     if (!this.hasServer) this.source = "loading-browser";
+    else void this.ping().catch(() => {}); // starts a sleeping server waking at once
     this.opts.onSource(this.source);
     this.enter(this.source);
   }
 
+  private scheduleUpgrade() {
+    clearTimeout(this.upgradeTimer);
+    if (!this.hasServer || this.chosenBrowser || this.upgrades >= 2) return;
+    this.upgradeTimer = setTimeout(() => {
+      const local = this.source === "browser" || this.source === "replay";
+      if (!local || this.chosenBrowser) return;
+      this.ping().then(
+        () => {
+          if ((this.source === "browser" || this.source === "replay") && !this.chosenBrowser) {
+            this.upgrades += 1;
+            this.dispatch("retry");
+          }
+        },
+        () => this.scheduleUpgrade(),
+      );
+    }, this.opts.upgradeEveryMs ?? 15_000);
+  }
+
   stop() {
+    clearTimeout(this.upgradeTimer);
     this.generation += 1;
     this.connection?.close();
     this.local?.stop();
@@ -84,13 +125,21 @@ export class DemoController {
     }
   }
 
+  /** A free host sleeps after some minutes without visitors; an open page keeps it awake. */
+  keepWarm() {
+    if (this.hasServer) void this.ping().catch(() => {});
+  }
+
   /** Decode in this browser even though a server is there. */
   useBrowser() {
+    this.chosenBrowser = true;
+    clearTimeout(this.upgradeTimer);
     this.dispatch("use-browser");
   }
 
-  /** "Try server again". */
+  /** "Try server again", or the reader choosing the server. */
   retry() {
+    this.chosenBrowser = false;
     if (this.hasServer) this.dispatch("retry");
   }
 
@@ -149,21 +198,26 @@ export class DemoController {
       this.local = null;
       const connect = this.opts.connect ?? connectServer;
       let conn: StreamConnection | null = null;
-      conn = connect(this.opts.serverUrl, this.mode, {
-        onMessage: (m) => {
-          if (!current() && this.source !== "server") return;
-          if (m.type === "hello" && this.source === "connecting") {
-            this.dispatch("hello");
-            if (this.trial > 0) this.connection?.send({ type: "jump", trial: this.trial });
-          }
-          this.forward(m);
+      conn = connect(
+        this.opts.serverUrl,
+        this.mode,
+        {
+          onMessage: (m) => {
+            if (!current() && this.source !== "server") return;
+            if (m.type === "hello" && this.source === "connecting") {
+              this.dispatch("hello");
+              if (this.trial > 0) this.connection?.send({ type: "jump", trial: this.trial });
+            }
+            this.forward(m);
+          },
+          onClose: () => {
+            // A connection we have already replaced (a new mode) closing is not a failure.
+            if (conn && this.connection !== conn) return;
+            if (this.source === "connecting" || this.source === "server") this.dispatch("server-failed");
+          },
         },
-        onClose: () => {
-          // A connection we have already replaced (a new mode) closing is not a failure.
-          if (conn && this.connection !== conn) return;
-          if (this.source === "connecting" || this.source === "server") this.dispatch("server-failed");
-        },
-      }, { speed: this.speed });
+        { speed: this.speed },
+      );
       this.connection = conn;
     } else if (state === "loading-browser") {
       this.connection?.close();
@@ -184,6 +238,7 @@ export class DemoController {
       })();
     } else if (state === "browser") {
       this.runLocal(this.decoder!);
+      this.scheduleUpgrade();
     } else if (state === "replay") {
       this.local?.stop();
       void (async () => {
@@ -232,6 +287,17 @@ export class DemoController {
 async function defaultLoadDecoder(base: string, bundle: LoadedBundle): Promise<Predictor> {
   const { loadBrowserDecoder } = await import("./onnxFallback");
   return loadBrowserDecoder(base, bundle.manifest);
+}
+
+/** Resolves once the server answers at all; `no-cors`, since only its waking matters here. */
+async function defaultPing(url: string): Promise<void> {
+  const abort = new AbortController();
+  const timer = setTimeout(() => abort.abort(), 90_000);
+  try {
+    await fetch(url, { mode: "no-cors", cache: "no-store", signal: abort.signal });
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 async function defaultLoadRemote(url: string, bundle: LoadedBundle): Promise<Predictor> {

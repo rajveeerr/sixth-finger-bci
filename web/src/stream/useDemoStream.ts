@@ -67,8 +67,12 @@ export function useDemoStream(): DemoStreamControls {
       }
     };
     document.addEventListener("visibilitychange", onVisibility);
+    const warm = setInterval(() => {
+      if (!document.hidden) c.keepWarm();
+    }, 10 * 60_000);
     return () => {
       document.removeEventListener("visibilitychange", onVisibility);
+      clearInterval(warm);
       c.stop();
     };
   }, []);

@@ -1,0 +1,18 @@
+# The streaming inference server (server/) on Render, as a Blueprint: in Render choose
+# New > Blueprint and pick this repository. The free plan sleeps after 15 minutes without
+# visitors; the demo page wakes it and decodes in the browser until it answers.
+services:
+  - type: web
+    name: sixth-finger-bci-server
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: ./server/Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: ALLOWED_ORIGINS
+        value: https://sixthfinger.rajveers.com,https://sixth-finger-bci.vercel.app
+      - key: MAX_STREAMS
+        value: "8"
