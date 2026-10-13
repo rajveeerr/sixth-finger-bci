@@ -43,6 +43,52 @@ const settle = (ms = 30) => new Promise((r) => setTimeout(r, ms));
 // Wait for a condition rather than a fixed time: the suite may run on a busy machine.
 const until = (check: () => void) => vi.waitFor(check, { timeout: 5000, interval: 10 });
 
+function setupHttp(remote: Predictor | "down") {
+  const sources: SourceState[] = [];
+  const messages: ServerMessage[] = [];
+  const c = new DemoController({
+    serverUrl: "",
+    decodeUrl: "/api/decode",
+    mode: "trial",
+    speed: 1,
+    onMessage: (m) => messages.push(m),
+    onSource: (s) => sources.push(s),
+    loadBundle: async () => bundle,
+    loadDecoder: async () => ok,
+    loadRemote: async () => {
+      if (remote === "down") throw new Error("no function");
+      return remote;
+    },
+    loadReplay: async () => replay,
+    timer,
+  });
+  return { c, sources, messages };
+}
+
+const onServer: Predictor = { ...ok, source: "server" };
+const failing: Predictor = { source: "server", sliding: true, predict: async () => { throw new Error("502"); } };
+
+describe("DemoController with a model server over HTTP", () => {
+  it("decodes every window on the server when it answers", async () => {
+    const { c, sources, messages } = setupHttp(onServer);
+    c.start();
+    await until(() => expect(messages.some((m) => m.type === "prediction" && m.source === "server")).toBe(true));
+    expect(sources).toEqual(["connecting", "server"]);
+    c.stop();
+  });
+
+  it("moves to the in-browser model when the server is down or a window fails", async () => {
+    for (const remote of ["down", failing] as const) {
+      const { c, sources, messages } = setupHttp(remote);
+      c.start();
+      await until(() => expect(messages.some((m) => m.type === "prediction" && m.source === "browser")).toBe(true));
+      expect(sources.at(-1)).toBe("browser");
+      expect(sources).toContain("loading-browser");
+      c.stop();
+    }
+  });
+});
+
 describe("DemoController", () => {
   it("uses the server when it says hello", async () => {
     const { c, sources } = setup({ server: "hello", decoder: ok });

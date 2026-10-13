@@ -22,4 +22,13 @@ describe("streamSettings on a built site", () => {
     vi.stubEnv("VITE_SERVER_URL", "https://server.example");
     expect(streamSettings("").serverUrl).toBe("https://server.example");
   });
+
+  it("uses the site's model server only when there is no streaming server", () => {
+    vi.stubEnv("DEV", false);
+    vi.stubEnv("VITE_SERVER_URL", "none");
+    vi.stubEnv("VITE_DECODE_URL", "/api/decode");
+    expect(streamSettings("")).toMatchObject({ serverUrl: "", decodeUrl: "/api/decode" });
+    expect(streamSettings("?server=none")).toMatchObject({ serverUrl: "", decodeUrl: "" });
+    expect(streamSettings("?server=http://127.0.0.1:9").decodeUrl).toBe("");
+  });
 });

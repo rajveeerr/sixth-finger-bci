@@ -1,0 +1,3 @@
+# For api/decode.py, the demo's model as a Vercel function (same versions as server/).
+numpy==2.5.3
+onnxruntime==1.30.0

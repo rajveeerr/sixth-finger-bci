@@ -32,7 +32,10 @@ export function streamSettings(search: string) {
   const linkOk = !!link && (import.meta.env.DEV || link === "none" || isLoopback(link));
   const asked = (linkOk ? link : null) || import.meta.env.VITE_SERVER_URL || "http://localhost:8000";
   const serverUrl = asked === "none" ? "" : asked;
-  return { mode, speed, serverUrl };
+  // A model server on the site itself (a path such as /api/decode), used only when there is no
+  // streaming server; a link saying server=none turns it off too.
+  const decodeUrl = serverUrl || link === "none" ? "" : import.meta.env.VITE_DECODE_URL || "";
+  return { mode, speed, serverUrl, decodeUrl };
 }
 
 export function useDemoStream(): DemoStreamControls {
@@ -68,6 +71,9 @@ export function useDemoStream(): DemoStreamControls {
   return {
     control: (message) => controller.current?.control(message),
     retry: () => controller.current?.retry(),
-    hasServer: streamSettings(window.location.search).serverUrl !== "",
+    hasServer: (() => {
+      const { serverUrl, decodeUrl } = streamSettings(window.location.search);
+      return serverUrl !== "" || decodeUrl !== "";
+    })(),
   };
 }

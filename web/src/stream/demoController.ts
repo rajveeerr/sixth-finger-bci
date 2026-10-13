@@ -9,8 +9,10 @@ import { nextSource, type SourceEvent } from "./sourceMachine";
 import type { ControlMessage, Mode, ServerMessage, SourceState } from "./types";
 
 export interface ControllerOptions {
-  /** Empty for a site without a server: it starts on the in-browser model. */
+  /** Empty for a site without a streaming server: it starts on the in-browser model. */
   serverUrl: string;
+  /** A model server answering one window at a time over HTTP (used when there is no streaming server). */
+  decodeUrl?: string;
   mode: Mode;
   speed: number;
   base?: string;
@@ -21,6 +23,7 @@ export interface ControllerOptions {
   loadBundle?: (base: string) => Promise<LoadedBundle>;
   loadDecoder?: (base: string, bundle: LoadedBundle) => Promise<Predictor>;
   loadReplay?: (base: string, bundle: LoadedBundle) => Promise<Predictor>;
+  loadRemote?: (url: string, bundle: LoadedBundle) => Promise<Predictor>;
   timer?: Timer;
 }
 
@@ -34,6 +37,7 @@ export class DemoController {
   private local: LocalStream | null = null;
   private bundle: LoadedBundle | null = null;
   private decoder: Predictor | null = null;
+  private remote: Predictor | null = null;
   private readonly base: string;
 
   constructor(private readonly opts: ControllerOptions) {
@@ -41,8 +45,12 @@ export class DemoController {
     this.speed = opts.speed;
   }
 
+  private get hasServer() {
+    return !!this.opts.serverUrl || !!this.opts.decodeUrl;
+  }
+
   start() {
-    if (!this.opts.serverUrl) this.source = "loading-browser";
+    if (!this.hasServer) this.source = "loading-browser";
     this.opts.onSource(this.source);
     this.enter(this.source);
   }
@@ -57,15 +65,15 @@ export class DemoController {
 
   /** "Try server again". */
   retry() {
-    if (this.opts.serverUrl) this.dispatch("retry");
+    if (this.hasServer) this.dispatch("retry");
   }
 
   control(message: ControlMessage) {
     if (message.type === "pause") this.paused = true;
     if (message.type === "resume" || message.type === "jump") this.paused = false;
     if (message.type === "speed") this.speed = message.value;
-    if (this.source === "server") {
-      this.connection?.send(message);
+    if (this.source === "server" && this.connection) {
+      this.connection.send(message);
       return;
     }
     const local = this.local;
@@ -92,7 +100,25 @@ export class DemoController {
   private enter(state: SourceState) {
     const generation = ++this.generation;
     const current = () => generation === this.generation;
-    if (state === "connecting") {
+    if (state === "connecting" && !this.opts.serverUrl && this.opts.decodeUrl) {
+      const url = this.opts.decodeUrl;
+      this.local?.stop();
+      this.local = null;
+      void (async () => {
+        try {
+          const bundle = await this.getBundle();
+          const remote = await (this.opts.loadRemote ?? defaultLoadRemote)(url, bundle);
+          if (!current()) return;
+          this.remote = remote;
+          this.dispatch("hello");
+        } catch (err) {
+          console.warn("model server unavailable:", err);
+          if (current()) this.dispatch("server-failed");
+        }
+      })();
+    } else if (state === "server" && this.remote && !this.connection) {
+      this.runLocal(this.remote);
+    } else if (state === "connecting") {
       this.local?.stop();
       this.local = null;
       const connect = this.opts.connect ?? connectServer;
@@ -163,7 +189,8 @@ export class DemoController {
       .catch((err) => {
         if (this.local !== stream) return;
         console.warn("in-browser inference failed:", err);
-        if (predictor.source === "browser") this.dispatch("browser-failed");
+        if (predictor.source === "server") this.dispatch("server-failed");
+        else if (predictor.source === "browser") this.dispatch("browser-failed");
         else this.opts.onError?.(`The replay stopped: ${String(err)}`);
       });
   }
@@ -172,6 +199,11 @@ export class DemoController {
 async function defaultLoadDecoder(base: string, bundle: LoadedBundle): Promise<Predictor> {
   const { loadBrowserDecoder } = await import("./onnxFallback");
   return loadBrowserDecoder(base, bundle.manifest);
+}
+
+async function defaultLoadRemote(url: string, bundle: LoadedBundle): Promise<Predictor> {
+  const { loadRemoteDecoder } = await import("./remoteDecoder");
+  return loadRemoteDecoder(url, bundle.manifest);
 }
 
 async function defaultLoadReplay(base: string, bundle: LoadedBundle): Promise<Predictor> {
