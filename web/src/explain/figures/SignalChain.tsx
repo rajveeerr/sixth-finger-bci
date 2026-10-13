@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Plate } from "../../components/Plate";
 import { damp } from "../../hands/spring";
 import { shownCommand, useDemo, type Command } from "../../store";
@@ -8,6 +8,7 @@ import {
   fingerPoints,
   LINK_R,
   PAPER_Z,
+  PARTS,
   PEN_X,
   project,
   PX_PER_S,
@@ -134,18 +135,14 @@ export function SignalChain() {
   }, []);
 
   const lit = LAMP_OF[command];
+  const [part, setPart] = useState<number | null>(null);
+  const pins = useMemo(() => PARTS.map((p) => project(p.at)), []);
   return (
     <Plate
         title="The whole system on one bench"
         hint="It moves with the live demo further down."
+        readout={part === null ? "Point at a number to see what each part does." : <><b>{PARTS[part].name}.</b> {PARTS[part].text}</>}
         className="plate-chain bleed"
-        caption={
-          <>
-            Left to right: a head in an EEG cap; an amplifier that writes the brain signal onto paper; a frame that
-            holds the newest <strong>4 seconds</strong>; the model, which lights one of three lamps (rest, hand, sixth
-            finger); and the robotic finger, which bends when the sixth-finger lamp is lit.
-          </>
-        }
       >
         <svg
           ref={svg}
@@ -177,7 +174,23 @@ export function SignalChain() {
                 className={i === 3 ? "link-tip" : "link-pin"} />
             ))}
           </g>
+          {pins.map(([x, y], i) => (
+            <g key={PARTS[i].name} className="part-pin" data-on={part === i ? "" : undefined} tabIndex={0} role="button"
+              aria-label={`${PARTS[i].name}: ${PARTS[i].text}`}
+              onPointerEnter={() => setPart(i)} onPointerLeave={() => setPart(null)}
+              onFocus={() => setPart(i)} onBlur={() => setPart(null)} onClick={() => setPart(i)}>
+              <circle cx={x} cy={y} r={13} />
+              <text x={x} y={y + 4.5} textAnchor="middle">{i + 1}</text>
+            </g>
+          ))}
         </svg>
+        <ol className="part-names">
+          {PARTS.map((p, i) => (
+            <li key={p.name} data-on={part === i ? "" : undefined} onPointerEnter={() => setPart(i)} onPointerLeave={() => setPart(null)}>
+              <b>{i + 1}</b> {p.name}
+            </li>
+          ))}
+        </ol>
       </Plate>
   );
 }

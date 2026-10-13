@@ -1,12 +1,12 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Plate } from "../../components/Plate";
 import { DotStrip } from "../charts";
 import { data } from "../data";
 import * as K from "../iso/kit";
 
-// A sheet of chart paper on a bench with one rhythm drawn across it: steady while the
-// patient rests, smaller once they imagine the movement, by the average fall measured
-// in the 22 patients. The wave is a drawing of the effect; its size change is real.
+// A sheet of chart paper on a bench with one rhythm drawn across it. The reader switches
+// between resting and imagining, and the rhythm shrinks by the average fall measured in
+// the 22 patients. The wave is a drawing of the effect; its size change is real.
 
 const W = 900;
 const H = 260;
@@ -14,19 +14,17 @@ const TOP = 8;
 const BENCH: K.Plan = { x: 0, y: 0, w: 620, d: 150, r: 8 };
 const PAPER: K.Plan = { x: 30, y: 24, w: 560, d: 96, r: 2 };
 const Z = TOP + 0.8;
-const CUE = PAPER.x + PAPER.w * 0.5;
 
 const P = K.fitProjection([...K.boxCorners(BENCH, -6, TOP), [BENCH.w, 0, TOP + 20]], W, H, { pad: 10, azimuth: 70 });
 const at = (p: K.Point3) => K.iso(p, P);
 
-function wave(fall: number) {
+function wave(scale: number) {
   const pts: K.Point3[] = [];
   const yc = PAPER.y + PAPER.d / 2;
-  const amp = 30;
+  const amp = 30 * scale;
   for (let x = PAPER.x + 14; x <= PAPER.x + PAPER.w - 14; x += 0.6) {
-    const after = 1 / (1 + Math.exp(-(x - CUE) / 6)); // a smooth change at the cue
-    const a = amp * (1 - fall * after) * (0.82 + 0.18 * Math.sin(x / 23));
-    pts.push([x, yc + a * Math.sin(x / 3.1) + 3 * Math.sin(x / 1.3), Z]);
+    const a = amp * (0.82 + 0.18 * Math.sin(x / 23));
+    pts.push([x, yc + a * Math.sin(x / 3.1) + 3 * scale * Math.sin(x / 1.3), Z]);
   }
   return K.pathOf(pts.map(at));
 }
@@ -41,36 +39,77 @@ export function BrainRhythm() {
     out.push(K.lineSvg(K.planOutline(PAPER, Z, P), { tone: "mid" }));
     // faint chart grid on the paper
     const grid: string[] = [];
-    for (let x = PAPER.x + 20; x < PAPER.x + PAPER.w; x += 20) grid.push(K.lineOnTop([x, PAPER.y], [x, PAPER.y + PAPER.d], Z, P));
-    for (let y = PAPER.y + 16; y < PAPER.y + PAPER.d; y += 16) grid.push(K.lineOnTop([PAPER.x, y], [PAPER.x + PAPER.w, y], Z, P));
+    for (let x = PAPER.x + 20; x < PAPER.x + PAPER.w; x += 20)
+      grid.push(K.lineOnTop([x, PAPER.y], [x, PAPER.y + PAPER.d], Z, P));
+    for (let y = PAPER.y + 16; y < PAPER.y + PAPER.d; y += 16)
+      grid.push(K.lineOnTop([PAPER.x, y], [PAPER.x + PAPER.w, y], Z, P));
     out.push(K.lineSvg(grid.join(""), { tone: "faint" }));
-    out.push(`<path class="cue-line" d="${K.lineOnTop([CUE, PAPER.y - 6], [CUE, PAPER.y + PAPER.d + 6], Z, P)}"/>`);
-    out.push(`<path class="rhythm" d="${wave(fall)}"/>`);
     // corner clips that hold the paper
     for (const [x, y] of K.corners(PAPER, 0)) out.push(K.solidSvg(K.cylinder(x, y, 4, TOP, 3, P, 16), { tone: "hi" }));
     return out.join("");
-  }, [fall]);
+  }, []);
+  const [imagining, setImagining] = useState(false);
+  const [scale, setScale] = useState(1);
+  const scaleNow = useRef(1);
+  const raf = useRef(0);
+  useEffect(() => () => cancelAnimationFrame(raf.current), []);
+  // The wave eases to its new size in a third of a second, only when the reader switches.
+  const show = (on: boolean) => {
+    setImagining(on);
+    cancelAnimationFrame(raf.current);
+    const to = on ? 1 - fall : 1;
+    const from = scaleNow.current;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      scaleNow.current = to;
+      setScale(to);
+      return;
+    }
+    let start = -1;
+    const step = (now: number) => {
+      if (start < 0) start = now;
+      const k = Math.min(1, (now - start) / 320);
+      const v = from + (to - from) * (1 - (1 - k) ** 3);
+      scaleNow.current = v;
+      setScale(v);
+      if (k < 1) raf.current = requestAnimationFrame(step);
+    };
+    raf.current = requestAnimationFrame(step);
+  };
   const fmt = (v: number) => `${v < 0 ? "−" : v > 0 ? "+" : ""}${Math.abs(Math.round(v * 100))}%`;
   return (
     <>
       <Plate
-        title="The rhythm, before and during imagining"
-        hint="A drawing of the effect. Left of the dashed line the patient is resting; right of it, imagining the movement."
-        caption={
-          <>
-            Over the part of the brain that moves the hands, the EEG carries a rhythm of 8 to 13 waves a second. When
-            the patient starts to imagine moving, <mark>the rhythm gets smaller</mark>. That drop is what the model
-            learns to spot.
-          </>
+        title="The rhythm over the hand area"
+        hint="A drawing of the effect, 8 to 13 waves a second. Switch between resting and imagining."
+        readout={
+          imagining
+            ? `Imagining: ${Math.round(fall * 100)}% smaller (grey: the size at rest), the average over 22 patients. This drop is what the model learns to spot.`
+            : "Resting: the rhythm at its usual size."
         }
       >
-        <svg className="iso-svg rhythm-svg dotted" viewBox={`0 0 ${W} ${H}`} role="img" aria-label="A brain rhythm that gets smaller after the cue">
-          <g dangerouslySetInnerHTML={{ __html: svg }} />
-        </svg>
-        <div className="rhythm-labels">
-          <span>Resting</span>
-          <span>Imagining the movement</span>
+        <div className="toggle rhythm-toggle" role="radiogroup" aria-label="What the patient is doing">
+          {[false, true].map((on) => (
+            <button
+              key={String(on)}
+              type="button"
+              role="radio"
+              aria-checked={imagining === on}
+              onClick={() => show(on)}
+            >
+              {on ? "Imagining the movement" : "Resting"}
+            </button>
+          ))}
         </div>
+        <svg
+          className="iso-svg rhythm-svg dotted"
+          viewBox={`0 0 ${W} ${H}`}
+          role="img"
+          aria-label={imagining ? "The rhythm, smaller while imagining" : "The rhythm while resting"}
+        >
+          <g dangerouslySetInnerHTML={{ __html: svg }} />
+          {scale < 0.999 && <path className="rhythm-ghost" d={wave(1)} />}
+          <path className="rhythm" d={wave(scale)} />
+        </svg>
       </Plate>
       <Plate
         title="Measured in every patient"

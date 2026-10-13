@@ -71,6 +71,15 @@ export const P = K.fitProjection(
   { pad: 14, azimuth: AZIMUTH },
 );
 
+/** The parts the figure names, each numbered on the bench's front edge under it. */
+export const PARTS = [
+  { name: "EEG cap", text: "40 sensors on the scalp pick up the brain's tiny voltage.", x: HEAD.cx },
+  { name: "Amplifier", text: "Makes the signal millions of times stronger and writes it onto the paper.", x: AMP.x + AMP.w / 2 },
+  { name: "4 s frame", text: "Holds the newest 4 seconds of signal: what the model reads each time.", x: PEN_X + 2 * PX_PER_S },
+  { name: "Model", text: "Reads those 4 seconds and lights one lamp: rest, hand or sixth finger.", x: DECODER.x + DECODER.w / 2 },
+  { name: "Robotic finger", text: "Bends when the sixth-finger lamp lights.", x: POST.x },
+].map((part) => ({ ...part, at: [part.x, BENCH.d - 13, TOP] as K.Point3 }));
+
 /** Screen units per world unit. */
 export const UNIT = Math.abs(K.axisVector(P, [0, 0, 1])[1]) / Math.cos(Math.PI / 6);
 

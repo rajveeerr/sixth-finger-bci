@@ -266,13 +266,5 @@ export function headSvg(P: K.Projection, pose: HeadPose): Head {
   };
 }
 
-/** Template points that bound the head above a cut, for fitting a projection. */
-export const HEAD_BOUNDS: V3[] = [
-  [-86, 0, 0],
-  [86, 0, 0],
-  [0, 98, -20],
-  [0, -123, 0],
-  [0, 0, 100],
-  [-60, -40, -60],
-  [60, -40, -60],
-];
+/** Every eighth vertex of the head above the usual neck cut, for fitting a projection. */
+export const HEAD_BOUNDS: V3[] = VERTS.filter((v, i) => i % 8 === 0 && v[2] > -95);

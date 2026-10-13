@@ -1,61 +1,83 @@
+import { useState } from "react";
 import { Plate } from "../../components/Plate";
 import { TherapyTerm } from "../refs";
 
 // How the recordings are organised: a trial is one 14 s round; a run is 20 trials in a row;
-// a session is one visit of 4 runs. Runs 1 and 2 teach the model, runs 3 and 4 test it. Each
-// patient came for three sessions.
+// a session is one visit of 4 runs. Runs 1 and 2 teach the model, runs 3 and 4 test it.
+// Pointing at a run or a trial says what it is, so the figure itself carries no paragraphs.
 
 const RUNS = [1, 2, 3, 4];
-const TRIALS = Array.from({ length: 20 }, (_, i) => i);
+const PER_RUN = 20;
+
+function say(run: number | null, trial: number | null) {
+  if (run === null) return "One square is one trial of 14 seconds. Point at a run or a trial.";
+  const use =
+    run <= 2
+      ? "The model learns from it."
+      : "The model never sees it while learning; it is tested on it, and the demo plays it.";
+  if (trial === null) return `Run ${run}: 20 trials in a row, about 5 minutes. ${use}`;
+  return `Trial ${(run - 1) * PER_RUN + trial + 1} of 80, in run ${run}. ${use}`;
+}
 
 /** One session as four runs of twenty trials, and the three sessions over time. */
 export function Session() {
+  const [at, setAt] = useState<{ run: number; trial: number | null } | null>(null);
   return (
     <Plate
       title="Trials, runs and sessions"
-      hint="One square is one trial: 14 s of rest, get ready, imagine."
-      readout={
-        <>
-          Patients 21 and 22 lost their first session to a data problem (<a href="#checks">chapter 5</a>), so most
-          results use 22 patients.
-        </>
-      }
+      hint="80 trials make a session, about 20 minutes."
+      className="plate-session"
     >
-      <div className="session">
+      <div className="session" onPointerLeave={() => setAt(null)}>
         <div className="session-runs">
           {RUNS.map((r) => (
-            <div key={r} className="session-run" data-use={r <= 2 ? "learn" : "test"}>
+            <button
+              type="button"
+              key={r}
+              className="session-run"
+              data-use={r <= 2 ? "learn" : "test"}
+              data-on={at?.run === r ? "" : undefined}
+              onPointerEnter={() => setAt({ run: r, trial: null })}
+              onFocus={() => setAt({ run: r, trial: null })}
+              onClick={() => setAt({ run: r, trial: null })}
+              aria-label={say(r, null)}
+            >
               <span className="session-run-name">Run {r}</span>
               <span className="session-trials" aria-hidden="true">
-                {TRIALS.map((t) => (
-                  <i key={t} />
+                {Array.from({ length: PER_RUN }, (_, t) => (
+                  <i
+                    key={t}
+                    data-on={at?.run === r && at.trial === t ? "" : undefined}
+                    onPointerEnter={() => setAt({ run: r, trial: t })}
+                  />
                 ))}
               </span>
-              <span className="session-run-note">20 trials, about 5 min</span>
-            </div>
+            </button>
           ))}
         </div>
-        <div className="session-split">
-          <p>
-            <b>Runs 1 and 2: the model learns.</b> 40 trials, 20 of each movement.
-          </p>
-          <p>
-            <b>Runs 3 and 4: the model is tested.</b> 40 trials it has never seen. The demo plays these.
-          </p>
+        <div className="session-brackets" aria-hidden="true">
+          <span data-use="learn">the model learns</span>
+          <span data-use="test">the model is tested</span>
         </div>
-        <ol className="session-visits">
+        <p className="session-say" aria-live="polite">
+          {say(at?.run ?? null, at?.trial ?? null)}
+        </p>
+        <ol className="session-visits" aria-label="The three sessions">
           <li>
-            <b>Session 1</b> before therapy
+            <b>Session 1</b>
+            <span>before therapy</span>
           </li>
           <li className="session-gap">
             <TherapyTerm />
           </li>
           <li>
-            <b>Session 2</b> after therapy
+            <b>Session 2</b>
+            <span>after therapy</span>
           </li>
           <li className="session-gap">one month</li>
           <li>
-            <b>Session 3</b> follow-up
+            <b>Session 3</b>
+            <span>follow-up</span>
           </li>
         </ol>
       </div>

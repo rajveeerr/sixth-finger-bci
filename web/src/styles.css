@@ -72,7 +72,8 @@ code {
   max-width: 760px;
   margin: 0 auto;
   padding: 64px 0 0;
-  --text: 760px;
+  /* Prose stays near 70 characters a line; figures use the whole column or more. */
+  --text: 620px;
 }
 /* Wide things (the bench, the demo) break out of the column on both sides. */
 .bleed {
@@ -80,32 +81,38 @@ code {
   margin-right: calc((760px - min(1180px, 100vw - 80px)) / 2);
 }
 
-/* Desktop: the words on the left, the hand beside them. Phone: the hand under the headline. */
-.intro {
-  display: grid;
-  grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.75fr);
-  column-gap: 48px;
-  grid-template-areas: "top hand" "body hand";
-  align-items: end;
-  margin-bottom: 40px;
+/* The opening, centred: the name, one line, the hand to try, then the paragraph. */
+.hero {
+  margin: 0 auto 64px;
+  padding-top: 36px;
+  text-align: center;
 }
-.intro-top {
-  grid-area: top;
-  min-width: 0;
+.hero-name {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 560;
 }
-.intro-body {
-  grid-area: body;
-  min-width: 0;
-  align-self: start;
+.hero-line {
+  margin: 14px auto 0;
+  max-width: 660px;
+  font-size: 34px;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  font-weight: 500;
+  text-wrap: balance;
+}
+.hero-line em {
+  font-size: 1.12em;
+  font-weight: 400;
+  letter-spacing: 0;
 }
 .intro-hand {
-  grid-area: hand;
-  margin: 0;
-  align-self: center;
+  margin: 4px auto 0;
+  max-width: 460px;
 }
 .intro-hand-art {
   position: relative;
-  height: 400px;
+  height: 360px;
 }
 .intro-hand-art .iso-hand {
   position: absolute;
@@ -113,45 +120,55 @@ code {
   width: 100%;
   height: 100%;
 }
+.imagine {
+  margin-top: 6px;
+  padding: 10px 18px;
+  border: 1px solid var(--ink-4);
+  border-radius: 999px;
+  background: #fff;
+  font-size: 14.5px;
+  font-weight: 520;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  touch-action: manipulation;
+  transition:
+    background 0.15s,
+    color 0.15s,
+    border-color 0.15s;
+}
+.imagine:hover {
+  border-color: var(--ink-2);
+}
+.imagine[aria-pressed="true"] {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: #fff;
+}
 .intro-hand figcaption {
-  margin-top: 8px;
+  margin: 12px auto 0;
+  max-width: 400px;
   font-size: 13.5px;
   line-height: 1.5;
   color: var(--ink-3);
+  text-wrap: balance;
 }
-.intro-hand figcaption b {
-  color: var(--ink);
-  font-weight: 560;
-}
-.intro-title {
-  margin: 0;
-  font-size: 15px;
-  font-weight: 560;
-}
-.lede {
-  margin: 14px 0 0;
-  font-size: 30px;
-  line-height: 1.22;
-  letter-spacing: -0.02em;
-  font-weight: 500;
-}
-.lede em {
-  font-size: 1.12em;
-  font-weight: 400;
-  letter-spacing: 0;
-}
-.intro-text {
-  margin: 22px 0 0;
+.hero-text {
+  margin: 36px auto 0;
+  max-width: 640px;
   font-size: 17px;
   line-height: 1.65;
   color: var(--ink-2);
+  text-align: left;
 }
-.intro-meta {
-  margin: 18px 0 0;
+.hero-meta {
+  margin: 16px auto 0;
+  max-width: 640px;
   font-size: 14px;
   color: var(--ink-3);
+  text-align: left;
 }
-.intro-meta a,
 .chapter-lede a {
   color: var(--ink);
   text-underline-offset: 3px;
@@ -465,7 +482,6 @@ code {
   display: flex;
   align-items: center;
   gap: 16px;
-  max-width: var(--text);
 }
 .chapter h2 {
   margin: 0;
@@ -534,6 +550,54 @@ code {
 }
 .plate-chain {
   margin-bottom: 10px;
+}
+/* The bench's numbered parts: a number on the front edge, its name in the row below. */
+.part-pin {
+  cursor: pointer;
+  outline: none;
+}
+.part-pin circle {
+  fill: #fff;
+  stroke: var(--ink-2);
+  stroke-width: 1.2;
+  transition:
+    fill 0.15s,
+    stroke 0.15s;
+}
+.part-pin text {
+  font: 600 14px var(--sans);
+  fill: var(--ink);
+  pointer-events: none;
+}
+.part-pin[data-on] circle,
+.part-pin:focus-visible circle {
+  fill: var(--ink);
+  stroke: var(--ink);
+}
+.part-pin[data-on] text,
+.part-pin:focus-visible text {
+  fill: #fff;
+}
+.part-names {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 20px;
+  margin: 6px 0 0;
+  padding: 0;
+  font-size: 13.5px;
+  color: var(--ink-2);
+}
+.part-names li {
+  cursor: default;
+}
+.part-names b {
+  font-weight: 600;
+  color: var(--ink-3);
+  margin-right: 2px;
+}
+.part-names li[data-on] {
+  color: var(--ink);
 }
 .demo {
   padding-top: 4px;
@@ -793,46 +857,200 @@ code {
   font-weight: 560;
   color: var(--ink);
 }
+.sees-screen {
+  transition: opacity 0.2s;
+}
+.sees[data-scrub] .sees-screen:not([data-on]) {
+  opacity: 0.25;
+}
+.sees-playhead {
+  fill: none;
+  stroke: var(--sixth);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+}
+.sees-labels li {
+  transition: color 0.2s;
+}
+.plate-sees:has(.sees[data-scrub]) .sees-labels li:not([data-on]),
+.plate-sees:has(.sees[data-scrub]) .sees-labels li:not([data-on]) b {
+  color: var(--ink-4);
+}
+
+/* A play button and a slider that move through a figure's time. */
+.scrub {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 16px;
+}
+.scrub-play {
+  flex: none;
+  min-width: 112px;
+  padding: 8px 14px;
+  border: 1px solid var(--ink-4);
+  border-radius: 999px;
+  background: #fff;
+  font-size: 14px;
+  font-weight: 520;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.scrub-play:hover {
+  border-color: var(--ink-2);
+}
+.scrub input[type="range"] {
+  flex: 1;
+  min-width: 0;
+  height: 28px;
+  margin: 0;
+  background: none;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  touch-action: pan-y;
+}
+.scrub input[type="range"]::-webkit-slider-runnable-track {
+  height: 2px;
+  background: var(--ink-4);
+  border-radius: 1px;
+}
+.scrub input[type="range"]::-moz-range-track {
+  height: 2px;
+  background: var(--ink-4);
+  border-radius: 1px;
+}
+.scrub input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  margin-top: -8px;
+  border-radius: 50%;
+  background: #fff;
+  border: 1.5px solid var(--ink);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+.scrub input[type="range"]::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  border: 1.5px solid var(--ink);
+}
+.scrub input[type="range"]:focus-visible {
+  outline-offset: 4px;
+  border-radius: 999px;
+}
+.scrub-time {
+  flex: none;
+  width: 44px;
+  text-align: right;
+  font-size: 13.5px;
+  color: var(--ink-3);
+}
+.scrub-say {
+  margin: 8px 0 0;
+  min-height: 3em;
+  font-size: 15px;
+  line-height: 1.5;
+}
+.rhythm-ghost {
+  fill: none;
+  stroke: var(--ink-4);
+  stroke-width: 1;
+  stroke-linejoin: round;
+  opacity: 0.7;
+}
 .rhythm {
   fill: none;
   stroke: var(--ink);
   stroke-width: 1.3;
   stroke-linejoin: round;
 }
-.cue-line {
-  fill: none;
-  stroke: var(--sixth);
-  stroke-width: 1.4;
-  stroke-dasharray: 4 3;
+/* Two or three choices side by side, for switching a figure between states. */
+.toggle {
+  display: inline-flex;
+  margin-bottom: 8px;
+  padding: 3px;
+  border-radius: 999px;
+  background: var(--chip);
 }
-.rhythm-labels {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  margin-top: 6px;
-  font-size: 13.5px;
-  font-weight: 560;
-  text-align: center;
+.toggle button {
+  padding: 7px 14px;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  font-size: 14px;
+  font-weight: 520;
+  color: var(--ink-3);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.toggle button[aria-checked="true"] {
+  background: #fff;
+  color: var(--ink);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
 }
 
-/* What we found: one row per question, a dial on the left. */
-.findings {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  max-width: 800px;
+/* What we found: the five dials are tabs, and one answer shows at a time under them. */
+.answer-tabs {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+  margin: 0 0 8px;
+}
+.answer-tab {
+  display: grid;
+  justify-items: center;
+  gap: 1px;
+  padding: 10px 6px 12px;
+  border: 1px solid transparent;
+  border-radius: 14px;
+  background: none;
+  cursor: pointer;
+  text-align: center;
+  touch-action: manipulation;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
+}
+.answer-tab:hover {
+  background: #f2f2f2;
+}
+.answer-tab[aria-selected="true"] {
+  background: #fff;
+  border-color: var(--rule);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+.answer-tab .gauge {
+  width: 100%;
+  max-width: 150px;
+}
+.answer-tab-n {
+  font: italic 400 14px/1.2 var(--serif);
+  color: var(--ink-3);
+}
+.answer-tab-name {
+  font-size: 13.5px;
+  font-weight: 560;
+  line-height: 1.3;
+}
+.answer-tab-value {
+  margin-top: 2px;
+  font-size: 13.5px;
+  color: var(--ink-3);
+}
+.answer {
+  max-width: var(--text);
+  padding: 22px 0 0;
   border-top: 1px solid var(--rule);
 }
-.finding {
-  display: grid;
-  grid-template-columns: 190px minmax(0, 1fr);
-  gap: 34px;
-  padding: 30px 0;
-  border-bottom: 1px solid var(--rule);
-  align-items: start;
-}
-.finding .gauge {
-  max-width: 190px;
-  margin-top: 4px;
+.finding-lead {
+  margin: 6px 0 0;
+  font-size: 20px;
+  line-height: 1.35;
+  font-weight: 500;
+  letter-spacing: -0.01em;
 }
 .finding-q {
   margin: 0;
@@ -840,13 +1058,47 @@ code {
   font-weight: 560;
 }
 .finding-a {
-  margin: 6px 0 14px;
-  font-size: 15.5px;
+  margin: 8px 0 18px;
+  font-size: 16px;
   line-height: 1.6;
   color: var(--ink-2);
 }
-.finding-a em {
+.chart-say {
+  margin: 6px 0 0;
+  min-height: 1.5em;
+  font-size: 14.5px;
+  color: var(--ink-2);
+}
+.chart-say b {
   color: var(--ink);
+  font-weight: 600;
+}
+.chart-pop {
+  font-size: 12.5px;
+  font-weight: 600;
+  fill: var(--ink);
+  paint-order: stroke;
+  stroke: var(--page);
+  stroke-width: 4px;
+}
+.chart-hit {
+  stroke: transparent;
+  stroke-width: 9;
+  cursor: pointer;
+}
+.chart-slope[data-on] {
+  stroke: var(--sixth);
+  stroke-width: 2;
+}
+.chart-pick circle {
+  fill: var(--sixth);
+}
+.chart-guide {
+  stroke: var(--sixth);
+  stroke-width: 1.2;
+}
+.chart-dot {
+  cursor: pointer;
 }
 .finding-note {
   margin: 8px 0 0;
@@ -995,15 +1247,66 @@ code {
   font-weight: 560;
 }
 
-/* The model in plain lines. */
+/* The model: one strip from what goes in to what comes out, then a few plain lines. */
 .facts {
-  max-width: 800px;
+  max-width: var(--text);
   margin: 10px 0 0;
 }
-.facts-title {
-  margin: 0 0 10px;
-  font-size: 15px;
+.model-strip {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 28px;
+  margin: 0 0 22px;
+  padding: 0;
+}
+.model-strip li {
+  position: relative;
+  display: grid;
+  gap: 2px;
+  padding: 14px 16px;
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+  background: #fff;
+}
+.model-strip li + li::before {
+  content: "";
+  position: absolute;
+  left: -22px;
+  top: 50%;
+  width: 16px;
+  border-top: 1.4px solid var(--ink-3);
+}
+.model-strip li:nth-child(2) {
+  border-color: var(--ink-2);
+}
+.model-strip span {
+  font: italic 400 14px/1.2 var(--serif);
+  color: var(--ink-3);
+}
+.model-strip b {
+  font-size: 15.5px;
   font-weight: 560;
+  line-height: 1.3;
+}
+.model-strip small {
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--ink-3);
+}
+@media (max-width: 700px) {
+  .model-strip {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 18px;
+  }
+  .model-strip li + li::before {
+    left: 50%;
+    top: -14px;
+    width: 0;
+    height: 10px;
+    border-top: 0;
+    border-left: 1.4px solid var(--ink-3);
+  }
 }
 .facts dl {
   margin: 0;
@@ -1022,50 +1325,6 @@ code {
 .facts dd {
   margin: 0;
   color: var(--ink-2);
-}
-
-/* The head: sensors as pins, the seven drawn in step 1 dark. */
-.pin-shown > .iso-fill,
-.pin-shown > .iso-top,
-.pin-shown > .iso-shade {
-  fill: #2a2a2e !important;
-}
-.pin-motor > .iso-top {
-  fill: #d9d9d6;
-}
-
-/* From the demo to a real limb: a ruled table. */
-.layers {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  font-size: 15px;
-  max-width: 800px;
-  border-top: 1px solid var(--rule);
-}
-.layers li {
-  display: grid;
-  grid-template-columns: 9.5em minmax(0, 1fr) minmax(0, 1fr);
-  gap: 20px;
-  padding: 13px 0;
-  border-bottom: 1px solid var(--rule);
-  color: var(--ink-2);
-}
-.layers-head {
-  font-size: 13px;
-  color: var(--ink-3) !important;
-}
-.layer-name {
-  color: var(--ink);
-  font-weight: 560;
-}
-.layer-name b {
-  font: italic 400 16px/1 var(--serif);
-  color: var(--ink-3);
-  margin-right: 8px;
-}
-.layers li[data-sim] .layer-name {
-  color: var(--sixth-ink);
 }
 
 .colophon {
@@ -1107,14 +1366,6 @@ code {
     margin-left: 0;
     margin-right: 0;
   }
-  .intro {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-areas: "top" "hand" "body";
-    row-gap: 12px;
-  }
-  .intro-hand-art {
-    height: 320px;
-  }
 }
 /* Phone: everything stacks. */
 @media (max-width: 700px) {
@@ -1124,14 +1375,14 @@ code {
   .column {
     padding-top: 30px;
   }
-  .lede {
-    font-size: 24px;
+  .hero-line {
+    font-size: 25px;
+  }
+  .intro-hand-art {
+    height: 300px;
   }
   .chapter {
     padding-top: 54px;
-  }
-  .lede {
-    font-size: 19px;
   }
   .stage {
     grid-template-columns: minmax(0, 1fr);
@@ -1150,13 +1401,20 @@ code {
   .ctl-quiet {
     margin-left: 0;
   }
-  .finding {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 8px;
+  .answer-tabs {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    margin: 0 -18px 8px;
+    padding: 0 18px;
+    scrollbar-width: none;
   }
-  .finding .gauge {
-    max-width: 220px;
-    margin: 0 auto;
+  .answer-tab {
+    flex: 0 0 116px;
+    scroll-snap-align: start;
+  }
+  .finding-lead {
+    font-size: 18px;
   }
   .facts dl > div {
     grid-template-columns: minmax(0, 1fr);
@@ -1172,13 +1430,6 @@ code {
   .sees-labels b {
     display: inline;
     margin-right: 6px;
-  }
-  .layers li {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 2px;
-  }
-  .layers-head {
-    display: none !important;
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -1210,7 +1461,7 @@ code {
   fill: #ffffff;
 }
 .head-svg {
-  max-width: 430px;
+  max-width: 360px;
   margin: 0 auto;
 }
 
@@ -1361,10 +1612,10 @@ code {
   }
 }
 
-/* Trials, runs and sessions. */
+/* Trials, runs and sessions: the runs answer the pointer, so the figure needs one line of text. */
 .session {
   display: grid;
-  gap: 22px;
+  gap: 14px;
 }
 .session-runs {
   display: grid;
@@ -1374,11 +1625,14 @@ code {
 .session-run {
   display: grid;
   gap: 6px;
-  font-size: 13px;
-  color: var(--ink-3);
+  padding: 0;
+  border: 0;
+  background: none;
+  text-align: left;
+  cursor: default;
+  touch-action: manipulation;
 }
 .session-run-name {
-  color: var(--ink);
   font-weight: 560;
   font-size: 14px;
 }
@@ -1391,48 +1645,59 @@ code {
   aspect-ratio: 1;
   border-radius: 2px;
   background: #3a3a3a;
+  transition: opacity 0.12s;
 }
 .session-run[data-use="test"] .session-trials i {
   background: #fff;
   box-shadow: inset 0 0 0 1.2px #3a3a3a;
 }
-.session-split {
+.session-runs:has([data-on]) .session-run:not([data-on]) {
+  opacity: 0.3;
+}
+.session-trials i[data-on] {
+  background: var(--sixth) !important;
+  box-shadow: none !important;
+}
+.session-brackets {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 14px;
-  font-size: 14.5px;
-  line-height: 1.5;
+  font-size: 13.5px;
   color: var(--ink-2);
 }
-.session-split p {
-  margin: 0;
-  padding-top: 8px;
+.session-brackets span {
+  padding-top: 6px;
   border-top: 2px solid #3a3a3a;
 }
-.session-split p + p {
-  border-top: 2px dashed #3a3a3a;
+.session-brackets span[data-use="test"] {
+  border-top-style: dashed;
 }
-.session-split b {
+.session-say {
+  margin: 0;
+  min-height: 3em;
+  font-size: 15px;
+  line-height: 1.5;
   color: var(--ink);
-  font-weight: 560;
 }
 .session-visits {
   list-style: none;
   margin: 0;
   padding: 14px 0 0;
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   gap: 10px;
-  flex-wrap: wrap;
   font-size: 14px;
   border-top: 1px solid var(--rule);
 }
-.session-visits li b {
-  font-weight: 560;
-  margin-right: 4px;
-}
 .session-visits li:not(.session-gap) {
-  color: var(--ink-2);
+  display: grid;
+  color: var(--ink-3);
+  font-size: 13px;
+}
+.session-visits li b {
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 560;
 }
 .session-gap {
   flex: 1;
@@ -1442,52 +1707,86 @@ code {
   color: var(--ink-3);
   border-bottom: 1px dashed var(--ink-4);
   padding-bottom: 4px;
+  margin-bottom: 8px;
 }
 @media (max-width: 700px) {
   .session-runs {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
   }
-  .session-split {
-    grid-template-columns: minmax(0, 1fr);
+  .session-trials {
+    grid-template-columns: repeat(5, 1fr);
+  }
+  .session-brackets {
+    gap: 8px;
   }
   .session-visits {
     display: grid;
+    gap: 6px;
   }
   .session-gap {
     text-align: left;
     border: 0;
-    padding-left: 14px;
+    margin: 0;
+    padding: 0 0 0 14px;
   }
 }
 
-/* Highlights: a soft marker under the words that matter. */
-mark {
-  background: linear-gradient(transparent 58%, #fbe7a2 58%, #fbe7a2 92%, transparent 92%);
-  color: inherit;
-  padding: 0 1px;
-}
-
-/* In short: the findings in four lines, under the opening. */
+/* In short: four questions a reader would ask, each with its answer in a line. */
 .short {
   max-width: var(--text);
-  margin: 0 0 56px;
-  padding: 18px 0 4px;
-  border-top: 1px solid var(--rule);
-  border-bottom: 1px solid var(--rule);
+  margin: 0 0 24px;
 }
 .short h2 {
-  margin: 0 0 10px;
+  margin: 0 0 14px;
   font-size: 13.5px;
   font-weight: 560;
   color: var(--ink-3);
 }
-.short ul {
+.short dl {
   margin: 0;
-  padding: 0 0 14px 18px;
   display: grid;
-  gap: 8px;
-  font-size: 16.5px;
-  line-height: 1.5;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-top: 1px solid var(--rule);
+}
+.short dl > div {
+  padding: 16px 24px 18px 0;
+  border-bottom: 1px solid var(--rule);
+}
+.short dl > div:nth-child(even) {
+  padding: 16px 0 18px 24px;
+  border-left: 1px solid var(--rule);
+}
+.short dt {
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--ink-3);
+}
+.short dt a {
+  color: inherit;
+  text-decoration: none;
+}
+.short dt a:hover {
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.short dd {
+  margin: 6px 0 0;
+  font-size: 18px;
+  line-height: 1.4;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  text-wrap: pretty;
+}
+@media (max-width: 700px) {
+  .short dl {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .short dl > div,
+  .short dl > div:nth-child(even) {
+    padding: 14px 0 16px;
+    border-left: 0;
+  }
 }
 
 /* The research questions. */
@@ -1524,15 +1823,39 @@ mark {
   line-height: 1.55;
   color: var(--ink-2);
 }
-.chapter-after {
+/* A side matter the reader can open: a quiet row with a plus. */
+.aside {
   max-width: var(--text);
-  margin: 20px 0 0;
-  font-size: 15.5px;
+  margin: 18px 0 0;
+}
+.aside summary {
+  display: inline-flex;
+  gap: 8px;
+  font-size: 14.5px;
+  font-weight: 520;
+  color: var(--ink-2);
+  cursor: pointer;
+  list-style: none;
+}
+.aside summary::-webkit-details-marker {
+  display: none;
+}
+.aside summary::before {
+  content: "+";
+  width: 12px;
+  color: var(--ink-3);
+}
+.aside[open] summary::before {
+  content: "\2212";
+}
+.aside p {
+  margin: 8px 0 0 20px;
+  font-size: 15px;
   line-height: 1.6;
   color: var(--ink-2);
 }
 
-/* The data checks. */
+/* The data checks: one line each, opened for the detail. */
 .checks-list {
   list-style: none;
   margin: 0;
@@ -1541,46 +1864,64 @@ mark {
   border-top: 1px solid var(--rule);
 }
 .checks-list > li {
-  display: grid;
-  grid-template-columns: 44px minmax(0, 1fr);
-  padding: 18px 0;
   border-bottom: 1px solid var(--rule);
 }
-.checks-num {
-  font: italic 400 24px/1 var(--serif);
-  color: var(--ink-3);
-  padding: 2px 0 0 4px;
+.checks-list summary {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) auto 18px;
+  align-items: baseline;
+  gap: 12px;
+  padding: 15px 0;
+  cursor: pointer;
+  list-style: none;
 }
-.checks-list h3 {
-  margin: 0;
+.checks-list summary::-webkit-details-marker {
+  display: none;
+}
+.checks-list summary::after {
+  content: "+";
+  font-size: 18px;
+  line-height: 1;
+  color: var(--ink-3);
+  text-align: right;
+}
+.checks-list details[open] summary::after {
+  content: "\2212";
+}
+.checks-list summary:hover .checks-what {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--ink-4);
+}
+.checks-num {
+  font: italic 400 22px/1 var(--serif);
+  color: var(--ink-3);
+  padding-left: 4px;
+}
+.checks-what {
   font-size: 16px;
   font-weight: 560;
 }
-.checks-list p {
-  margin: 4px 0 0;
-  font-size: 15.5px;
+.checks-did {
+  font-size: 14px;
+  color: var(--ink-3);
+  text-align: right;
+}
+.checks-list > li[data-leak] .checks-what {
+  color: var(--sixth-ink);
+}
+.checks-body {
+  padding: 0 30px 16px 48px;
+}
+.checks-body p {
+  margin: 0 0 8px;
+  font-size: 15px;
   line-height: 1.55;
   color: var(--ink-2);
 }
-.checks-list dl {
-  margin: 10px 0 0;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
-  font-size: 14px;
-  line-height: 1.5;
-}
-.checks-list dt {
-  color: var(--ink-3);
-  font-size: 13px;
-  margin-bottom: 2px;
-}
-.checks-list dd {
-  margin: 0;
-  color: var(--ink-2);
-}
-.checks-list > li[data-leak] h3 {
-  color: var(--sixth-ink);
+.checks-body b {
+  color: var(--ink);
+  font-weight: 560;
 }
 .checks-note {
   max-width: var(--text);
@@ -1589,7 +1930,7 @@ mark {
   line-height: 1.6;
   color: var(--ink-3);
 }
-.intro-text a,
+.hero-text a,
 .checks-note a,
 .links a,
 .chapter-lede a,
@@ -1647,7 +1988,6 @@ mark {
   color: var(--ink-3);
 }
 @media (max-width: 700px) {
-  .checks-list dl,
   .modes {
     grid-template-columns: minmax(0, 1fr);
     gap: 8px;
@@ -1655,6 +1995,17 @@ mark {
   .links li {
     grid-template-columns: minmax(0, 1fr);
     gap: 2px;
+  }
+  .checks-list summary {
+    grid-template-columns: 28px minmax(0, 1fr) 18px;
+  }
+  .checks-did {
+    grid-column: 2;
+    grid-row: 2;
+    text-align: left;
+  }
+  .checks-body {
+    padding: 0 0 14px 40px;
   }
 }
 
@@ -1715,9 +2066,12 @@ mark {
   }
 }
 
-/* The BCI loop. */
+/* The BCI loop, its captions switched between this demo and a real system. */
 .loop {
-  margin: 8px 0 56px;
+  margin: 8px 0 48px;
+}
+.loop-toggle {
+  margin-bottom: 18px;
 }
 .loop-row {
   display: grid;
@@ -1745,16 +2099,19 @@ mark {
   width: 100%;
   height: 100%;
 }
-.loop-station p {
+.loop-say {
   margin: 0;
+  min-height: 4.5em;
   font-size: 14.5px;
   line-height: 1.5;
   color: var(--ink-2);
 }
-.loop-station b {
+.loop-say b {
   color: var(--ink);
   font-weight: 560;
-  margin-right: 4px;
+}
+.loop-say[data-drawn] {
+  color: var(--ink-3);
 }
 .loop-arrow {
   display: grid;
@@ -1762,7 +2119,7 @@ mark {
   text-align: center;
   font: italic 400 15px/1.2 var(--serif);
   color: var(--ink-3);
-  padding-bottom: 50px;
+  padding-bottom: 70px;
 }
 .loop-arrow svg {
   width: 100%;
@@ -1775,15 +2132,30 @@ mark {
   stroke-width: 1.4;
   vector-effect: non-scaling-stroke;
 }
-.loop-arrow-back {
-  margin: 18px auto 0;
+.loop-back {
+  margin: 14px auto 0;
   width: 70%;
-  padding: 0;
-  grid-template-rows: auto auto;
+  text-align: center;
 }
-.loop-arrow-back span {
-  order: 2;
-  margin-top: 4px;
+.loop-back .loop-arrow {
+  padding: 0;
+}
+.loop-back .loop-say {
+  min-height: 0;
+  margin-top: 6px;
+}
+.loop-note {
+  max-width: var(--text);
+  margin: 22px auto 0;
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--ink-3);
+  text-align: center;
+}
+.loop-note a {
+  color: var(--ink);
+  text-underline-offset: 3px;
+  text-decoration-color: var(--ink-4);
 }
 .pc-lamp {
   fill: #e8e8e6;
@@ -1822,7 +2194,6 @@ mark {
   }
   .loop-arrow {
     padding: 0;
-    transform: rotate(0);
   }
   .loop-arrow svg {
     width: 40px;
@@ -1830,9 +2201,10 @@ mark {
     margin: 0 auto;
     transform: rotate(90deg);
   }
-  .loop-arrow-back {
+  .loop-say {
+    min-height: 0;
+  }
+  .loop-back {
     width: 100%;
-    padding: 0 24px;
-    text-wrap: balance;
   }
 }

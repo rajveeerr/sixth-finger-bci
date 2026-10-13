@@ -22,7 +22,8 @@ export function useWidth<T extends HTMLElement>(fallback = 600) {
 }
 
 /** A linear map from a domain to pixels. */
-export const scale = (d0: number, d1: number, r0: number, r1: number) => (v: number) => r0 + ((v - d0) / (d1 - d0)) * (r1 - r0);
+export const scale = (d0: number, d1: number, r0: number, r1: number) => (v: number) =>
+  r0 + ((v - d0) / (d1 - d0)) * (r1 - r0);
 
 /** Vertical offsets that keep dots of radius r from overlapping along x (a small beeswarm). */
 export function swarm(values: number[], x: (v: number) => number, r: number, maxRows = 3): number[] {
@@ -66,11 +67,13 @@ export function DotStrip({
   label: string;
 }) {
   const [ref, w] = useWidth<HTMLDivElement>();
+  const [hover, setHover] = useState<{ row: number; i: number } | null>(null);
   const labelled = rows.some((r) => r.label) && w >= 520;
-  const left = labelled ? 190 : 4;
-  const right = w - 10;
-  const rowH = rows.length > 1 ? 62 : 70;
-  const top = 26;
+  const left = labelled ? 190 : 18;
+  const right = w - 18;
+  // On a narrow screen the row's name goes above its dots, clear of the mean's value.
+  const rowH = labelled ? (rows.length > 1 ? 62 : 70) : 84;
+  const top = labelled ? 26 : 40;
   const h = top + rowH * rows.length + 26;
   const x = scale(domain[0], domain[1], left, right);
   return (
@@ -90,13 +93,27 @@ export function DotStrip({
           return (
             <g key={row.label ?? i}>
               {row.label && (
-                <text x={labelled ? 0 : left} y={labelled ? y0 + 4 : y0 - 24} className="chart-row">
+                <text x={labelled ? 0 : left} y={labelled ? y0 + 4 : y0 - 38} className="chart-row">
                   {row.label}
                 </text>
               )}
               {row.values.map((v, j) => (
-                <circle key={j} cx={x(v)} cy={y0 + dy[j]} r={4.3} className="chart-dot" style={{ fill: row.colour }} />
+                <circle
+                  key={j}
+                  cx={x(v)}
+                  cy={y0 + dy[j]}
+                  r={hover?.row === i && hover.i === j ? 6 : 4.3}
+                  className="chart-dot"
+                  style={{ fill: row.colour }}
+                  onPointerEnter={() => setHover({ row: i, i: j })}
+                  onPointerLeave={() => setHover(null)}
+                />
               ))}
+              {hover?.row === i && (
+                <text x={x(row.values[hover.i])} y={y0 + dy[hover.i] + 22} textAnchor="middle" className="chart-pop">
+                  one patient: {format(row.values[hover.i])}
+                </text>
+              )}
               <line x1={x(row.mean)} x2={x(row.mean)} y1={y0 - 17} y2={y0 + 17} className="chart-mean" />
               <text x={x(row.mean)} y={y0 - 22} textAnchor="middle" className="chart-value">
                 {format(row.mean)}
@@ -126,6 +143,7 @@ export function Slope({
   guess,
   band,
   label,
+  names,
 }: {
   a: number[];
   b: number[];
@@ -133,8 +151,11 @@ export function Slope({
   guess: number;
   band?: { from: number; to: number; text: string };
   label: string;
+  /** Who each line is, named in the readout when the reader points at it. */
+  names?: string[];
 }) {
   const [ref, w] = useWidth<HTMLDivElement>();
+  const [hover, setHover] = useState<number | null>(null);
   const h = 220;
   const top = 12;
   const bottom = h - 10;
@@ -161,14 +182,28 @@ export function Slope({
         </text>
         {band && (
           <g>
-            <line x1={xa - 14} x2={xa - 4} y1={y((band.from + band.to) / 2)} y2={y((band.from + band.to) / 2)} className="chart-mean" />
+            <line
+              x1={xa - 14}
+              x2={xa - 4}
+              y1={y((band.from + band.to) / 2)}
+              y2={y((band.from + band.to) / 2)}
+              className="chart-mean"
+            />
             <text x={xa - 18} y={y((band.from + band.to) / 2) + 4} textAnchor="end" className="chart-italic">
               {band.text}
             </text>
           </g>
         )}
         {a.map((v, i) => (
-          <line key={i} x1={xa} y1={y(v)} x2={xb} y2={y(b[i])} className="chart-slope" />
+          <line
+            key={i}
+            x1={xa}
+            y1={y(v)}
+            x2={xb}
+            y2={y(b[i])}
+            className="chart-slope"
+            data-on={hover === i ? "" : undefined}
+          />
         ))}
         <line x1={xa} y1={y(ma)} x2={xb} y2={y(mb)} className="chart-slope-mean" />
         <circle cx={xa} cy={y(ma)} r={4} className="chart-end" />
@@ -179,11 +214,41 @@ export function Slope({
         <text x={xb - 10} y={y(mb) + 20} textAnchor="end" className="chart-value">
           {pct(mb)}
         </text>
+        {hover !== null && (
+          <g className="chart-pick">
+            <circle cx={xa} cy={y(a[hover])} r={4} />
+            <circle cx={xb} cy={y(b[hover])} r={4} />
+            <text x={xa - 12} y={y(a[hover]) + 4} textAnchor="end" className="chart-pop">
+              {pct(a[hover])}
+            </text>
+            <text x={xb + 12} y={y(b[hover]) + 4} className="chart-pop">
+              {pct(b[hover])}
+            </text>
+          </g>
+        )}
+        {a.map((v, i) => (
+          <line
+            key={i}
+            x1={xa}
+            y1={y(v)}
+            x2={xb}
+            y2={y(b[i])}
+            className="chart-hit"
+            onPointerEnter={() => setHover(i)}
+            onPointerLeave={() => setHover(null)}
+          />
+        ))}
       </svg>
+
       <div className="chart-columns" style={{ marginLeft: xa - 80, width: xb - xa + 160 }}>
         <span>{labels[0]}</span>
         <span>{labels[1]}</span>
       </div>
+      <p className="chart-say" aria-live="polite">
+        {hover === null
+          ? "Point at a line to see one patient."
+          : `${names?.[hover] ?? "One patient"}: ${pct(a[hover])} the published way, ${pct(b[hover])} tested fairly.`}
+      </p>
     </div>
   );
 }
@@ -200,12 +265,15 @@ export function Curves({
   guess,
   label,
   reach,
+  at,
 }: {
   series: Series[];
   guess: number;
   label: string;
   /** Mark how long the second series takes to reach the first series' first value. */
   reach?: { minutes: number; text: string };
+  /** The x the reader picked: a guide line, and each series' point there ringed. */
+  at?: number;
 }) {
   const [ref, w] = useWidth<HTMLDivElement>();
   const h = 240;
@@ -241,17 +309,26 @@ export function Curves({
         </text>
         {reach && series[0] && (
           <g className="chart-reach">
-            <line x1={x(series[0].points[0].x)} x2={x(reach.minutes)} y1={y(series[0].points[0].y)} y2={y(series[0].points[0].y)} />
+            <line
+              x1={x(series[0].points[0].x)}
+              x2={x(reach.minutes)}
+              y1={y(series[0].points[0].y)}
+              y2={y(series[0].points[0].y)}
+            />
             <line x1={x(reach.minutes)} x2={x(reach.minutes)} y1={y(series[0].points[0].y)} y2={bottom} />
             <text x={x(reach.minutes) + 6} y={bottom - 8} className="chart-italic">
               {reach.text}
             </text>
           </g>
         )}
+        {at !== undefined && <line x1={x(at)} x2={x(at)} y1={top} y2={bottom} className="chart-guide" />}
         {series.map((s) => {
           const band =
             s.points.map((p, i) => `${i ? "L" : "M"}${x(p.x)} ${y(p.hi)}`).join("") +
-            [...s.points].reverse().map((p) => `L${x(p.x)} ${y(p.lo)}`).join("") +
+            [...s.points]
+              .reverse()
+              .map((p) => `L${x(p.x)} ${y(p.lo)}`)
+              .join("") +
             "Z";
           const line = s.points.map((p, i) => `${i ? "L" : "M"}${x(p.x)} ${y(p.y)}`).join("");
           const first = s.points[0];
@@ -260,7 +337,7 @@ export function Curves({
               <path d={band} className="chart-band" />
               <path d={line} className="chart-line" />
               {s.points.map((p) => (
-                <circle key={p.x} cx={x(p.x)} cy={y(p.y)} r={3} className="chart-point" />
+                <circle key={p.x} cx={x(p.x)} cy={y(p.y)} r={p.x === at ? 5.5 : 3} className="chart-point" />
               ))}
               <text x={x(first.x) - 6} y={y(first.y) + 4} textAnchor="end" className="chart-value">
                 {pct(first.y)}

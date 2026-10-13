@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import { Bars, Curves, DotStrip, Slope } from "../charts";
 import { data } from "../data";
 import { FINDINGS, type Finding } from "../findings";
@@ -5,6 +6,69 @@ import { Gauge } from "./Gauge";
 
 const pct = (v: number) => `${Math.round(v * 100)}%`;
 const task = (key: string) => data.tasks.find((t) => t.key === key)!;
+const minutes = (m: number) => (m < 1 ? `${Math.round(m * 60)} s` : `${m.toFixed(1)} min`);
+
+/** The setup curves with a slider along the practice, reading both curves where it stands. */
+function SetupEvidence() {
+  const T = data.calibration.transfer;
+  const S = data.calibration.scratch;
+  const [i, setI] = useState(0);
+  const toSeries = (pts: typeof T) => pts.map((p) => ({ x: p.minutes, y: p.mean, lo: p.ci[0], hi: p.ci[1] }));
+  return (
+    <>
+      <Curves
+        series={[
+          { label: "Starting from other patients", points: toSeries(T) },
+          { label: "From scratch", points: toSeries(S), muted: true },
+        ]}
+        guess={1 / 3}
+        at={T[i].minutes}
+        label="Accuracy against minutes of practice, starting from other patients and from scratch"
+      />
+      <div className="scrub">
+        <input
+          type="range"
+          min={0}
+          max={T.length - 1}
+          step={1}
+          value={i}
+          aria-label="Practice trials of each movement"
+          onChange={(e) => setI(Number(e.target.value))}
+        />
+      </div>
+      <p className="chart-say" aria-live="polite">
+        After {T[i].k} practice trial{T[i].k > 1 ? "s" : ""} of each movement ({minutes(T[i].minutes)}): from other
+        patients <b>{pct(T[i].mean)}</b>, from scratch <b>{pct(S[i].mean)}</b>.
+      </p>
+    </>
+  );
+}
+
+/** The weeks-later scores, with or without the short re-setup on the new day. */
+function LaterEvidence() {
+  const L = data.later;
+  const [setup, setSetup] = useState(false);
+  return (
+    <>
+      <div className="toggle" role="radiogroup" aria-label="On the new day">
+        {[false, true].map((on) => (
+          <button key={String(on)} type="button" role="radio" aria-checked={setup === on} onClick={() => setSetup(on)}>
+            {on ? "After 5 practice trials of each" : "As it was"}
+          </button>
+        ))}
+      </div>
+      <Bars
+        rows={[
+          { label: "On the day it was built", value: L.same_session },
+          { label: "Two weeks later", value: setup ? L.post.re_setup.mean : L.post.as_is.mean, strong: true },
+          { label: "A month later", value: setup ? L.follow.re_setup.mean : L.follow.as_is.mean, strong: true },
+        ]}
+        guess={1 / 3}
+        label="Accuracy of the first session's model on the same day, two weeks later and a month later"
+      />
+    </>
+  );
+}
 
 /** The evidence under each answer: every patient where there is one value each. */
 function Evidence({ f }: { f: Finding }) {
@@ -32,6 +96,7 @@ function Evidence({ f }: { f: Finding }) {
         b={L.leakfree}
         guess={0.5}
         band={{ from: L.published[0], to: L.published[1], text: "published" }}
+        names={L.subjects.map((s) => `Patient ${Number(s.replace("sub-", ""))}`)}
         labels={[
           <>
             <b>The published way</b> test trials used in building it
@@ -44,36 +109,8 @@ function Evidence({ f }: { f: Finding }) {
       />
     );
   }
-  if (f.key === "setup") {
-    const toSeries = (pts: typeof data.calibration.transfer) => pts.map((p) => ({ x: p.minutes, y: p.mean, lo: p.ci[0], hi: p.ci[1] }));
-    return (
-      <Curves
-        series={[
-          { label: "Starting from other patients", points: toSeries(data.calibration.transfer) },
-          { label: "From scratch", points: toSeries(data.calibration.scratch), muted: true },
-        ]}
-        guess={1 / 3}
-        reach={{ minutes: data.calibration.scratch.find((p) => p.mean >= data.calibration.transfer[0].mean - 0.005)?.minutes ?? 4.7, text: "from scratch reaches it here" }}
-        label="Accuracy against minutes of practice, starting from other patients and from scratch"
-      />
-    );
-  }
-  if (f.key === "later") {
-    const L = data.later;
-    return (
-      <Bars
-        rows={[
-          { label: "On the day it was built", value: L.same_session },
-          { label: "Two weeks later, as it was", value: L.post.as_is.mean, strong: true },
-          { label: "Two weeks later, after 5 practice trials of each movement", value: L.post.re_setup.mean },
-          { label: "A month after therapy, as it was", value: L.follow.as_is.mean, strong: true },
-          { label: "A month after therapy, after 5 practice trials of each", value: L.follow.re_setup.mean },
-        ]}
-        guess={1 / 3}
-        label="Accuracy of the first session's model on the same day, two weeks later, and after a re-setup"
-      />
-    );
-  }
+  if (f.key === "setup") return <SetupEvidence />;
+  if (f.key === "later") return <LaterEvidence />;
   const s = data.switch;
   return (
     <dl className="figures-row">
@@ -93,26 +130,70 @@ function Evidence({ f }: { f: Finding }) {
   );
 }
 
-/** The findings as rows: a dial, the question, the answer, and the evidence under it. */
+/** Which answer a #answer-N link asks for, if any. */
+const fromHash = () => {
+  const m = /^#answer-(\d)$/.exec(window.location.hash);
+  const i = m ? FINDINGS.findIndex((f) => f.answers === Number(m[1])) : -1;
+  return i >= 0 ? i : null;
+};
+
+/** The five answers, one at a time: the dials are the tabs, each showing its score. */
 export function ResultsGauges() {
+  const [open, setOpen] = useState(() => fromHash() ?? 0);
+  const tabs = useRef<(HTMLButtonElement | null)[]>([]);
+  useEffect(() => {
+    const onHash = () => {
+      const i = fromHash();
+      if (i !== null) setOpen(i);
+    };
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
+  }, []);
+  const f = FINDINGS[open];
+  const go = (i: number) => {
+    const n = (i + FINDINGS.length) % FINDINGS.length;
+    setOpen(n);
+    tabs.current[n]?.focus();
+  };
   return (
-    <ol className="findings">
-      {FINDINGS.map((f) => (
-        <li key={f.key} className="finding" id={`answer-${f.answers}`}>
-          <Gauge value={f.value} other={f.other?.value} guess={f.guess} label={`${f.question} ${pct(f.value)}`} />
-          <div className="finding-text">
-            <p className="finding-kicker">
-              <a href={`#question-${f.answers}`}>Question {f.answers}</a>
-            </p>
-            <h3 className="finding-q">{f.question}</h3>
-            <p className="finding-a">
-              <em>{f.lead}</em> {f.answer}
-            </p>
-            <Evidence f={f} />
-            <p className="finding-note">{f.note}</p>
-          </div>
-        </li>
-      ))}
-    </ol>
+    <div className="answers">
+      <div className="answer-tabs" role="tablist" aria-label="The five answers">
+        {FINDINGS.map((g, i) => (
+          <button
+            key={g.key}
+            ref={(el) => {
+              tabs.current[i] = el;
+            }}
+            id={`answer-${g.answers}`}
+            type="button"
+            role="tab"
+            aria-selected={open === i}
+            aria-controls="answer-panel"
+            tabIndex={open === i ? 0 : -1}
+            className="answer-tab"
+            onClick={() => setOpen(i)}
+            onKeyDown={(e) => {
+              if (e.key === "ArrowRight") go(i + 1);
+              if (e.key === "ArrowLeft") go(i - 1);
+            }}
+          >
+            <Gauge value={g.value} other={g.other?.value} guess={g.guess} />
+            <span className="answer-tab-n">Question {g.answers}</span>
+            <span className="answer-tab-name">{g.short}</span>
+            <span className="answer-tab-value">{pct(g.value)}</span>
+          </button>
+        ))}
+      </div>
+      <section id="answer-panel" className="answer" role="tabpanel" aria-labelledby={`answer-${f.answers}`}>
+        <p className="finding-kicker">
+          <a href={`#question-${f.answers}`}>Question {f.answers}</a>
+        </p>
+        <h3 className="finding-q">{f.question}</h3>
+        <p className="finding-lead">{f.lead}</p>
+        <p className="finding-a">{f.answer}</p>
+        <Evidence key={f.key} f={f} />
+        <p className="finding-note">{f.note}</p>
+      </section>
+    </div>
   );
 }

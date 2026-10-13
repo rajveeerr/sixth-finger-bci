@@ -46,7 +46,8 @@ function needle(v: number, length: number, width: number) {
   return K.pathOf([tip, l, tail, r].map((p) => K.iso(p, P)), true);
 }
 
-export function Gauge({ value, other, guess, label }: { value: number; other?: number; guess?: number; label: string }) {
+/** A dial; without a label it is decoration, for when the words beside it say the same. */
+export function Gauge({ value, other, guess, label }: { value: number; other?: number; guess?: number; label?: string }) {
   const art = useMemo(() => {
     const parts: string[] = [];
     const base: K.Plan = { x: 0, y: 0, w: 120, d: 120, r: 10 };
@@ -68,7 +69,7 @@ export function Gauge({ value, other, guess, label }: { value: number; other?: n
   }, [guess]);
   const hub = useMemo(() => K.solidSvg(K.cylinder(C, C, 4.5, FACE_Z + 1.5, 2, P, 24), { tone: "hi" }), []);
   return (
-    <svg className="iso-svg gauge" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={label}>
+    <svg className="iso-svg gauge" viewBox={`0 0 ${W} ${H}`} role={label ? "img" : undefined} aria-label={label} aria-hidden={label ? undefined : true}>
       <g dangerouslySetInnerHTML={{ __html: art }} />
       {other !== undefined && <path className="gauge-ghost" d={needle(other, R_FACE - 4, 1.4)} />}
       <path className="gauge-needle" d={needle(value, R_FACE - 2, 2.2)} />

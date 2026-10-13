@@ -13,7 +13,6 @@ import { DataChecks } from "./explain/figures/DataChecks";
 import { HeadMap } from "./explain/figures/HeadMap";
 import { ModelFacts } from "./explain/figures/ModelFacts";
 import { PatientSees } from "./explain/figures/PatientSees";
-import { RealLimb } from "./explain/figures/RealLimb";
 import { ResultsGauges } from "./explain/figures/Results";
 import { Session } from "./explain/figures/Session";
 import { SignalChain } from "./explain/figures/SignalChain";
@@ -33,74 +32,71 @@ export default function App() {
   return (
     <div className="page" id="top">
       <main className="column">
-        <header className="intro bleed">
-          <div className="intro-top">
-            <h1 className="intro-title">Sixth-Finger BCI</h1>
-            <p className="lede">
-              Imagine moving <em>a sixth finger</em>, and a model that reads the brain&apos;s signals moves it.
-            </p>
-          </div>
+        <header className="hero">
+          <h1 className="hero-name">Sixth-Finger BCI</h1>
+          <p className="hero-line">
+            Imagine moving <em>a sixth finger</em>, and a model that reads the brain&apos;s signals moves it.
+          </p>
           <IntroHand />
-          <div className="intro-body">
-            <p className="intro-text">
-              After a stroke, many people can no longer use one hand well. One idea is a{" "}
-              <mark>robotic sixth finger</mark>, worn on the hand, that helps it hold things, controlled{" "}
-              <mark>just by imagining the movement</mark>, which an EEG cap picks up: a brain-computer interface, or{" "}
-              <a href="#bci">BCI</a>. We took recordings of 24 stroke patients doing exactly that, asked how well and
-              how quickly a computer can learn to read them, and built the <a href="#demo">demo</a> on this page, where
-              a model reads one patient&apos;s signals as they play.
-            </p>
-            <p className="intro-meta">
-              A B.Tech minor project by Rajveer Singh, Vivek Yadav and Ansh Dahiya, guided by Dr. Suman Lata.{" "}
-              <a href="#demo">Go to the live demo</a>
-            </p>
-          </div>
+          <p className="hero-text">
+            After a stroke, many people can no longer use one hand well. A robotic sixth finger, worn at the wrist, can
+            help it hold things, if it moves when the wearer wants. Many cannot press a button, so the wish is read from
+            the brain through an EEG cap: a <a href="#bci">brain-computer interface</a>, or BCI. We took recordings of
+            24 stroke patients imagining that movement, tested how well a computer can learn to read them, and built a{" "}
+            <a href="#demo">live demo</a> that reads one patient&apos;s signals as they play.
+          </p>
+          <p className="hero-meta">
+            A B.Tech minor project by Rajveer Singh, Vivek Yadav and Ansh Dahiya, guided by Dr. Suman Lata.
+          </p>
         </header>
 
         <section className="short" aria-labelledby="short-title">
           <h2 id="short-title">In short</h2>
-          <ul>
-            <li>
-              Telling <mark>imagining the sixth finger from resting works</mark>: right about 3 times in 4 (
-              {pct(task("T3_sf_vs_rest").mean)}).
-            </li>
-            <li>
-              Telling <mark>which movement</mark> was imagined, the hand or the sixth finger, is{" "}
-              <mark>barely better than guessing</mark> ({pct(task("T1_ah_vs_sf").mean)}), so for now the finger works
-              best as an on/off switch.
-            </li>
-            <li>
-              The <mark>published 85% came from a testing mistake</mark>; tested fairly, the same method gets{" "}
-              {pct(data.leak.mean_leakfree)}.
-            </li>
-            <li>
-              Starting from other patients, a new patient needs <mark>30 seconds of practice instead of 5 minutes</mark>
-              .
-            </li>
-          </ul>
+          <dl>
+            <div>
+              <dt>
+                <a href="#answer-3">Can a computer tell when a patient imagines the sixth finger?</a>
+              </dt>
+              <dd>Yes: {pct(task("T3_sf_vs_rest").mean)} of the time, told apart from resting.</dd>
+            </div>
+            <div>
+              <dt>
+                <a href="#answer-3">Can it tell the sixth finger from the hand?</a>
+              </dt>
+              <dd>
+                Barely: {pct(task("T1_ah_vs_sf").mean)}, where guessing gets 50%. So for now the finger works as an
+                on/off switch.
+              </dd>
+            </div>
+            <div>
+              <dt>
+                <a href="#answer-1">Was the published 85% right?</a>
+              </dt>
+              <dd>No. Tested fairly, the same method gets {pct(data.leak.mean_leakfree)}.</dd>
+            </div>
+            <div>
+              <dt>
+                <a href="#answer-2">How long must a new patient practise?</a>
+              </dt>
+              <dd>About 30 seconds if the model starts from other patients, instead of 5 minutes.</dd>
+            </div>
+          </dl>
         </section>
-
-        <SignalChain />
 
         <Chapter
           id="idea"
           n={1}
           title="The idea"
           lede={
-            <>
-              <p>
-                A stroke damages the part of the brain that moves one side of the body. Months later, many patients
-                still cannot grip well with their <em>affected hand</em>.
-              </p>
-              <p>
-                The <a href="#top">robotic finger at the top of this page</a> is worn beside the little finger. It bends
-                toward the palm and presses an object against it, so the weak hand can still hold things. To help, it
-                has to move when the wearer wants it to, and the wearer may not be able to press a button. So the wish
-                is <mark>read from the brain</mark>: imagining the movement is enough.
-              </p>
-            </>
+            <p>
+              A stroke damages the part of the brain that moves one side of the body, and months later many patients
+              still cannot grip well with their <em>affected hand</em>. The robotic finger presses an object against the
+              palm so the weak hand can still hold it. Here is the whole system, from the cap to the finger.
+            </p>
           }
-        />
+        >
+          <SignalChain />
+        </Chapter>
 
         <Chapter
           id="recordings"
@@ -109,8 +105,8 @@ export default function App() {
           lede={
             <>
               <p>
-                We did not record anyone ourselves. The brain signals come from a study of{" "}
-                <mark>24 stroke patients</mark> in Tianjin, China, shared openly with its paper in 2026 (
+                We did not record anyone ourselves. The brain signals come from a study of 24 stroke patients in
+                Tianjin, China, shared openly with its paper in 2026 (
                 <DatasetRef>Wang et al., Scientific Data</DatasetRef>; the recordings are{" "}
                 <a href={LINKS.data.url}>free to download</a>). Each patient wore an EEG cap and, trial after trial,
                 rested and then, at a <CueTerm />, imagined moving either their affected hand or a sixth finger.
@@ -135,8 +131,8 @@ export default function App() {
           lede={
             <p>
               The EEG is the tiny voltage the brain makes at the scalp, measured in millionths of a volt. Over the part
-              that moves the hands, it carries a steady rhythm. When a person imagines moving,{" "}
-              <mark>that rhythm gets smaller</mark>, and a model can learn to spot the change.
+              that moves the hands, it carries a steady rhythm. When a person imagines moving, that rhythm gets smaller,
+              and a model can learn to spot the change.
             </p>
           }
         >
@@ -148,36 +144,26 @@ export default function App() {
           n={4}
           title="What we set out to find"
           lede={
-            <>
-              <p>
-                Our main question:{" "}
-                <mark>
-                  can a model that has already learned from other patients be set up for a new patient quickly
-                </mark>
-                , even for a movement the body never had? Every new user has to give the model some practice trials
-                first, and a stroke patient tires quickly, so fewer is better.
-              </p>
-              <p>
-                Around it, five questions. Each is answered in <a href="#found">chapter 8</a>.
-              </p>
-            </>
+            <p>
+              Our main question: can a model that has already learned from other patients be set up for a new patient
+              quickly, even for a movement the body never had? Every new user first gives the model some practice
+              trials, and a stroke patient tires quickly, so fewer is better. Around it, five questions, each answered
+              in <a href="#found">chapter 8</a>.
+            </p>
           }
         >
           <ol className="questions">
             <li id="question-1">
               <h3>Is the published 85% real?</h3>
               <p>
-                The paper that shared these recordings, <DatasetRef>Wang et al. (2026)</DatasetRef>, reports that a
-                standard method tells imagining the hand from imagining the sixth finger{" "}
-                <mark>about 85% of the time</mark>. Before building on that, we checked how it was tested.{" "}
-                <a href="#answer-1">Answer</a>
+                The paper that shared these recordings, <DatasetRef>Wang et al. (2026)</DatasetRef>, reports a standard
+                method telling the hand from the sixth finger 85% of the time. <a href="#answer-1">Answer</a>
               </p>
             </li>
             <li id="question-2">
               <h3>How long must a new patient practise before it works?</h3>
               <p>
-                Does starting from a model built on other patients cut the practice a new patient needs, compared with
-                starting from scratch? <a href="#answer-2">Answer</a>
+                Starting from other patients&apos; model, or from scratch. <a href="#answer-2">Answer</a>
               </p>
             </li>
             <li id="question-3">
@@ -190,22 +176,24 @@ export default function App() {
             <li id="question-4">
               <h3>Would it work live, as a simple on/off switch?</h3>
               <p>
-                In real use nobody tells the model when the <CueTerm /> came; it has to notice by itself.{" "}
-                <a href="#answer-4">Answer</a>
+                In real use nobody tells the model when the <CueTerm /> came. <a href="#answer-4">Answer</a>
               </p>
             </li>
             <li id="question-5">
               <h3>Does a model still work on another day?</h3>
               <p>
-                A patient comes back days or weeks later, after therapy. <a href="#answer-5">Answer</a>
+                Two weeks or a month later, after therapy. <a href="#answer-5">Answer</a>
               </p>
             </li>
           </ol>
-          <p className="chapter-after">
-            We wrote these questions down, with how we would test each and what would count as a yes,{" "}
-            <mark>before running the tests on all the patients</mark>, so the results could not bend the questions. We
-            tested only on trials the model had never seen, and checked the data first.
-          </p>
+          <details className="aside">
+            <summary>How we kept the answers honest</summary>
+            <p>
+              We wrote these questions down, with how we would test each and what would count as a yes, before running
+              the tests on all the patients, so the results could not bend the questions. Every test is on trials the
+              model never saw while learning, and we checked the data first (chapter 5).
+            </p>
+          </details>
         </Chapter>
 
         <Chapter
@@ -215,7 +203,7 @@ export default function App() {
           lede={
             <p>
               Before any test, we went through the recordings and the published analysis, looking for anything that
-              could make a result look better than it is. <mark>We found four problems.</mark>
+              could make a result look better than it is. We found four problems.
             </p>
           }
         >
@@ -229,9 +217,9 @@ export default function App() {
           lede={
             <p>
               The demo runs <EegnetRef />, a small neural network built for EEG. It is one model that chooses between
-              three things at once: <mark>resting, imagining the hand, or imagining the sixth finger</mark>. For some
-              questions we also trained simpler two-way versions, such as sixth finger or rest, and compared EEGNet with
-              older methods such as <CspTerm />.
+              three things at once: resting, imagining the hand, or imagining the sixth finger. For some questions we
+              also trained simpler two-way versions, such as sixth finger or rest, and compared EEGNet with older
+              methods such as <CspTerm />.
             </p>
           }
         >
@@ -275,16 +263,16 @@ export default function App() {
               <div>
                 <dt>Three choices or on/off switch</dt>
                 <dd>
-                  Three choices shows the model as trained: rest, hand or sixth finger. The on/off switch bends the
-                  finger for any imagined movement, the use our results support.
+                  Three choices shows the model as trained. The on/off switch bends the finger for any imagined
+                  movement, the use our results support.
                 </dd>
               </div>
               <div>
                 <dt>Per trial or continuous</dt>
                 <dd>
-                  Per trial reads the two 4 s pieces of each trial, timed from the cue, as the study did. Continuous
-                  reads the newest 4 s every half second without being told when the cue came, as a live system would.
-                  It makes more mistakes; try it with the on/off switch.
+                  Per trial reads each trial&apos;s two 4 s pieces, timed from the cue. Continuous reads the newest 4 s
+                  every half second without being told when the cue came, as a live system would, and makes more
+                  mistakes.
                 </dd>
               </div>
             </dl>
@@ -310,44 +298,33 @@ export default function App() {
           n={9}
           title="What a BCI is, and how it could be used"
           lede={
-            <>
-              <p>
-                A <mark>brain-computer interface</mark> (BCI) turns brain signals into commands for a machine, without
-                the body moving. It works as a loop: the person imagines, the machine moves, the person sees it move,
-                and over time both get better at it.
-              </p>
-              <p>
-                The signals can be picked up by sensors on the scalp, as here, which is safe and cheap but blurry, or by
-                sensors placed inside the skull, which are much sharper but need surgery.
-              </p>
-            </>
+            <p>
+              A brain-computer interface (BCI) turns brain signals into commands for a machine, without the body moving.
+              It works as a loop: the person imagines, the machine moves, the person sees it move, and over time both
+              get better at it. Sensors on the scalp, as here, are safe and cheap but blurry; sensors inside the skull
+              are much sharper but need surgery.
+            </p>
           }
         >
           <BciLoop />
           <ol className="uses">
             <li>
               <h3>Help a weak hand hold things</h3>
-              <p>
-                What this project aims at: a robotic sixth finger that grips when the wearer imagines it, for someone
-                whose own fingers no longer close well after a stroke.
-              </p>
+              <p>What this project aims at: a robotic sixth finger that grips when the wearer imagines it.</p>
             </li>
             <li>
               <h3>Help the brain recover</h3>
               <p>
-                Practising with a BCI that answers imagined movement is being studied as a stroke therapy; the patients
-                in this study who had <TherapyTerm>BCI training</TherapyTerm> did exactly that.
+                BCI therapy: the patient imagines a movement over and over, and each time the BCI picks it up, a robot
+                or a screen answers with that movement. Closing the loop is being studied as a way to help the brain
+                re-learn to move; 14 patients in this study had <TherapyTerm>two weeks of it</TherapyTerm>.
               </p>
             </li>
             <li>
               <h3>Other uses</h3>
-              <p>
-                Typing for people who cannot move or speak, steering a wheelchair, and moving a prosthetic hand all use
-                the same loop.
-              </p>
+              <p>Typing for people who cannot move or speak, steering a wheelchair, moving a prosthetic hand.</p>
             </li>
           </ol>
-          <RealLimb />
         </Chapter>
 
         <Chapter id="more" n={10} title="Read more">

@@ -42,9 +42,9 @@ export function TherapyTerm({ children = "two weeks of therapy" }: { children?: 
     <Ref
       card={
         <>
-          <b>The therapy</b> The two weeks between the first and second sessions. 14 patients had BCI training, 8
-          sessions of about 45 minutes over two weeks; the other 10 had the usual rehabilitation therapy. The study was
-          looking at whether the brain&apos;s signals change after it.
+          <b>The therapy</b> Two weeks between the first and second sessions, 8 sessions of about 45 minutes. 14
+          patients had BCI therapy: wearing the robotic sixth finger, they imagined moving it, and it moved whenever the
+          BCI picked that up. The other 10 had the usual rehabilitation therapy for the same time.
         </>
       }
     >
