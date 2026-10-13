@@ -47,7 +47,7 @@ export interface ExplainData {
     published: [number, number];
   };
   calibration: { scratch: CurvePoint[]; transfer: CurvePoint[] };
-  switch: { detection: number; detection_ci: [number, number]; false_per_minute: number; latency_s: number };
+  switch: { detection: number; detection_ci: [number, number]; false_per_minute: number; latency_s: number; n: number };
   later: {
     same_session: number;
     post: { as_is: Scored; re_setup: Scored };

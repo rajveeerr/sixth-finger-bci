@@ -16,6 +16,7 @@ import { PatientSees } from "./explain/figures/PatientSees";
 import { ResultsGauges } from "./explain/figures/Results";
 import { Session } from "./explain/figures/Session";
 import { SignalChain } from "./explain/figures/SignalChain";
+import { PRACTICE_S, SCRATCH_MIN } from "./explain/findings";
 import { LINKS } from "./explain/links";
 import { CspTerm, CueTerm, DatasetRef, EegnetRef, TherapyTerm } from "./explain/refs";
 import { useDemo } from "./store";
@@ -57,7 +58,10 @@ export default function App() {
               <dt>
                 <a href="#answer-3">Can a computer tell when a patient imagines the sixth finger?</a>
               </dt>
-              <dd>Yes: {pct(task("T3_sf_vs_rest").mean)} of the time, told apart from resting.</dd>
+              <dd>
+                Mostly: {pct(task("T3_sf_vs_rest").mean)} of the time, told apart from resting, though part of that may
+                be the picture on the screen.
+              </dd>
             </div>
             <div>
               <dt>
@@ -78,7 +82,9 @@ export default function App() {
               <dt>
                 <a href="#answer-2">How long must a new patient practise?</a>
               </dt>
-              <dd>About 30 seconds if the model starts from other patients, instead of 5 minutes.</dd>
+              <dd>
+                About {PRACTICE_S} seconds if the model starts from other patients, instead of {SCRATCH_MIN} minutes.
+              </dd>
             </div>
           </dl>
         </section>
@@ -112,9 +118,9 @@ export default function App() {
                 rested and then, at a <CueTerm />, imagined moving either their affected hand or a sixth finger.
               </p>
               <p>
-                A <b>trial</b> is one 14-second round. Twenty trials in a row make a <b>run</b>, and one visit of four
-                runs is a <b>session</b>: 80 trials, half of each movement. Most patients came for three sessions,
-                before and after <TherapyTerm>two weeks of therapy</TherapyTerm> and a month later.
+                A <b>trial</b> is one round of about 15 seconds. Twenty trials in a row make a <b>run</b>, and one visit
+                of four runs is a <b>session</b>: 80 trials, half of each movement. Most patients came for three
+                sessions, before and after <TherapyTerm>two weeks of therapy</TherapyTerm> and a month later.
               </p>
             </>
           }

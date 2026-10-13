@@ -209,7 +209,7 @@ export function PatientSees() {
   return (
     <Plate
       title="One trial, as the patient sees it"
-      hint="14 seconds, drawn to scale along the strip. The brackets are the two 4 s pieces the model reads."
+      hint="14 seconds as the article describes it, drawn to scale (in the recordings a trial runs about 15 s, the cue coming about 8.6 s in). The brackets are the two 4 s pieces the model reads."
       className="plate-sees"
     >
       <svg

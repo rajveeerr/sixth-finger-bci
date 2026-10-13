@@ -657,7 +657,8 @@
    0.7192
   ],
   "false_per_minute": 1.24,
-  "latency_s": 3.67
+  "latency_s": 3.67,
+  "n": 22
  },
  "later": {
   "same_session": 0.6122,

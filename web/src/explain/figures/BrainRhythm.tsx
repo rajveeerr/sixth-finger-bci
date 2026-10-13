@@ -31,7 +31,9 @@ function wave(scale: number) {
 
 /** How the brain signal changes when the patient imagines moving. */
 export function BrainRhythm() {
+  // The measured fall is in power; a wave's height goes with the square root of its power.
   const fall = -data.erd.sixth_finger.mean / 100;
+  const sf = data.erd.sixth_finger.values;
   const svg = useMemo(() => {
     const out: string[] = [];
     out.push(K.solidSvg(K.slabOf(BENCH, 0, TOP, P, 8, 1), { tone: "mid", halo: true }));
@@ -57,7 +59,7 @@ export function BrainRhythm() {
   const show = (on: boolean) => {
     setImagining(on);
     cancelAnimationFrame(raf.current);
-    const to = on ? 1 - fall : 1;
+    const to = on ? Math.sqrt(1 - fall) : 1;
     const from = scaleNow.current;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       scaleNow.current = to;
@@ -83,7 +85,7 @@ export function BrainRhythm() {
         hint="A drawing of the effect, 8 to 13 waves a second. Switch between resting and imagining."
         readout={
           imagining
-            ? `Imagining: ${Math.round(fall * 100)}% smaller (grey: the size at rest), the average over 22 patients. This drop is what the model learns to spot.`
+            ? `Imagining: ${Math.round(fall * 100)}% less power (grey: the size at rest), the average over ${sf.length} patients. This drop is what the model learns to spot.`
             : "Resting: the rhythm at its usual size."
         }
       >
@@ -113,8 +115,8 @@ export function BrainRhythm() {
       </Plate>
       <Plate
         title="Measured in every patient"
-        hint="Each dot is one patient: how much smaller their rhythm was while imagining than in the second before the cue. Left of the dashed line means smaller."
-        readout={`Smaller in 22 of 22 patients for the sixth finger, by ${Math.round(-data.erd.sixth_finger.mean)}% on average.`}
+        hint="Each dot is one patient: how much the rhythm's power fell while imagining, against the second before the cue. Left of the dashed line means it fell."
+        readout={`It fell in ${sf.filter((v) => v < 0).length} of ${sf.length} patients for the sixth finger, by ${Math.round(-data.erd.sixth_finger.mean)}% on average.`}
       >
         <DotStrip
           rows={[
@@ -135,7 +137,7 @@ export function BrainRhythm() {
           ticks={[-0.8, -0.6, -0.4, -0.2, 0, 0.2]}
           format={fmt}
           marker={{ at: 0, text: "no change" }}
-          label="How much smaller the rhythm got in each patient while imagining the hand and the sixth finger"
+          label="How much the rhythm's power fell in each patient while imagining the hand and the sixth finger"
         />
       </Plate>
     </>

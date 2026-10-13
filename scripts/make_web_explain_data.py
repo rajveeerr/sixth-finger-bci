@@ -121,7 +121,7 @@ def build() -> dict:
         "mean_leakfree": r(wide.cv_leakfree.mean()),
         "mean_diff_points": r(h1.mean_diff, 1),
         "n_positive": int((wide.paper_replica > wide.cv_leakfree).sum()),
-        # The authors' reported pre-session means (LDA and SVM, both groups), 05-DATASET-DOSSIER.md.
+        # The paper's CSP+LDA means on the pre session: BCI group, then traditional group.
         "published": [0.8509, 0.8602],
     }
 
@@ -205,6 +205,7 @@ def build() -> dict:
             ],
             "false_per_minute": r(sw.loc["false_per_minute", "mean"], 2),
             "latency_s": r(sw.loc["latency_s", "mean"], 2),
+            "n": int(sw.loc["imagery_detection_rate", "n"]),
         },
         "later": {
             "same_session": r(within.iloc[-1]["mean"]),

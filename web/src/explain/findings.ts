@@ -26,6 +26,13 @@ export interface Finding {
 const task = (key: string) => data.tasks.find((t) => t.key === key)!;
 const pct = (v: number) => `${Math.round(v * 100)}%`;
 const L = data.later;
+const T0 = data.calibration.transfer[0];
+// When starting from scratch first does as well as one trial of each movement from other patients.
+const scratchReach = data.calibration.scratch.find((p) => p.mean >= T0.mean - 0.005)?.minutes ?? NaN;
+/** Seconds of practice, to the nearest ten. */
+export const PRACTICE_S = Math.round((T0.minutes * 60) / 10) * 10;
+/** Minutes from scratch, to the nearest minute. */
+export const SCRATCH_MIN = Math.round(scratchReach);
 
 export const FINDINGS: Finding[] = [
   {
@@ -48,8 +55,8 @@ export const FINDINGS: Finding[] = [
     value: data.calibration.transfer[0].mean,
     other: { value: data.calibration.scratch[0].mean, label: "from scratch" },
     guess: 1 / 3,
-    lead: "About 30 seconds, if the model starts from other patients.",
-    answer: `One practice trial of each movement (about 30 s) gives ${pct(data.calibration.transfer[0].mean)} on the three choices. From scratch, the model gets ${pct(data.calibration.scratch[0].mean)} and needs about 5 minutes to catch up.`,
+    lead: `About ${PRACTICE_S} seconds, if the model starts from other patients.`,
+    answer: `One practice trial of each movement (about ${PRACTICE_S} s) gives ${pct(T0.mean)} on the three choices. From scratch, the model gets ${pct(data.calibration.scratch[0].mean)} and needs about ${SCRATCH_MIN} minutes to catch up.`,
     note: "Three choices (rest, hand, sixth finger), so guessing gets 33%. The shaded bands show the range the average could be in (95%).",
   },
   {
@@ -60,8 +67,8 @@ export const FINDINGS: Finding[] = [
     value: task("T1_ah_vs_sf").mean,
     other: { value: task("T3_sf_vs_rest").mean, label: "telling it from resting" },
     guess: 0.5,
-    lead: "Not yet: the model sees that a movement is imagined, but barely which one.",
-    answer: `Against resting, ${pct(task("T3_sf_vs_rest").mean)}. Against imagining the hand, ${pct(task("T1_ah_vs_sf").mean)}, a little over guessing: in the EEG the two look alike, and a detector of any imagined movement did as well. So the demo also offers an on/off switch.`,
+    lead: "Not yet: the model tells imagining from resting, but barely which movement.",
+    answer: `Against resting, ${pct(task("T3_sf_vs_rest").mean)}; part of that may be the picture on the screen rather than the imagining, since sensors over the visual areas also tell them apart. Against imagining the hand, ${pct(task("T1_ah_vs_sf").mean)}, a little over guessing: in the EEG the two look alike, and a detector of any imagined movement did as well. So the demo also offers an on/off switch.`,
     note: "One dot per patient, for each two-way choice: trained on the patient's first two runs, tested on the last two. The black line is the average.",
   },
   {
@@ -70,9 +77,9 @@ export const FINDINGS: Finding[] = [
     question: "Would it work live, as a simple on/off switch?",
     short: "Live, as a switch",
     value: data.switch.detection,
-    lead: "Yes, about 2 times in 3.",
-    answer: `Played as if live, without being told when the cue came, the finger switches on about ${Math.round(data.switch.latency_s)} s after the patient starts imagining, with about ${Math.round(data.switch.false_per_minute)} false switch a minute while resting.`,
-    note: "A reading every 0.5 s, smoothed as in the demo's continuous mode. Average of 22 patients.",
+    lead: "Partly: it switches on about 2 times in 3, but too often by mistake for a device yet.",
+    answer: `Played as if live, without being told when the cue came, the finger switches on about ${Math.round(data.switch.latency_s)} s after the patient starts imagining, and switches on by mistake about ${Math.round(data.switch.false_per_minute)} time a minute while they rest.`,
+    note: `A reading every 0.5 s through a gate: on after two readings in a row with imagining above 60% (smoothed), off below 45%. Average of ${data.switch.n} patients.`,
   },
   {
     key: "later",
@@ -84,6 +91,6 @@ export const FINDINGS: Finding[] = [
     guess: 1 / 3,
     lead: "Not on its own, but a few practice trials bring it back.",
     answer: `Brain signals drift between days: the cap sits a little differently, the person feels different, and therapy may change the brain. Five practice trials of each movement on the new day let the model re-align, from ${pct(L.post.as_is.mean)} back to ${pct(L.post.re_setup.mean)} two weeks later.`,
-    note: `Three choices, so guessing gets 33%. ${L.post.as_is.n} patients came back after therapy and ${L.follow.as_is.n} a month later.`,
+    note: `Three choices, so guessing gets 33%. ${L.post.as_is.n} patients two weeks later and ${L.follow.as_is.n} a month later, those with usable recordings of both days.`,
   },
 ];

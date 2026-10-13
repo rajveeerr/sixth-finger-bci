@@ -7,7 +7,7 @@ export function ModelFacts() {
   const rows = [
     {
       term: "One per patient",
-      text: "Every brain is different, so each patient gets their own model. For the results we built one for each of the 22 patients.",
+      text: `Every brain is different, so each patient gets their own model. For the results we built one for each of the ${data.leak.subjects.length} patients.`,
     },
     {
       term: `Why patient ${patient}`,
