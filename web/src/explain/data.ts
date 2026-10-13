@@ -53,10 +53,18 @@ export interface ExplainData {
     post: { as_is: Scored; re_setup: Scored };
     follow: { as_is: Scored; re_setup: Scored };
   };
+  elsewhere: {
+    motor: { dataset: string; leaky: number; fair: number; points: number; n: number }[];
+    depression: { dataset: string; pipeline: string; leaky: number; fair: number; points: number; n: number }[];
+  };
+  runtime: { csp_lda_fit_s: number; pretrain_s_median: number; pretrain_n: number; pretrain_on_gpu: boolean };
   demo: {
     subject: string;
     held_out_bal_acc: number;
+    chosen_by_bal_acc: number;
+    group_median_bal_acc: number;
     trials: number;
+    trials_total: number;
     training_trials: number;
     model_bytes: number;
     parameters: number;

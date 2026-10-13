@@ -178,6 +178,44 @@ def build() -> dict:
         & (curves.population == "all")
     ].sort_values("k")
 
+    # The same leak elsewhere: two public motor-imagery datasets (RQ1b) and depression
+    # detection from resting EEG (RQ5), each scored the leaky way and fairly.
+    rq1b = pd.read_csv(summary / "rq1b_table.csv").set_index(["dataset", "protocol"])
+    rq1b_h = pd.read_csv(summary / "rq1b_stats.csv")
+    rq1b_h = rq1b_h[rq1b_h.test_id == "H1b"].set_index("dataset")
+    rq5 = pd.read_csv(summary / "rq5_table.csv").set_index(["dataset", "pipeline", "protocol"])
+    rq5_h = pd.read_csv(summary / "rq5_stats.csv").set_index(["dataset", "pipeline"])
+    elsewhere = {
+        "motor": [
+            {
+                "dataset": ds,
+                "leaky": r(rq1b.loc[(ds, "paper_replica"), "mean"]),
+                "fair": r(rq1b.loc[(ds, "cv_leakfree"), "mean"]),
+                "points": r(rq1b_h.loc[ds, "mean_diff"], 1),
+                "n": int(rq1b.loc[(ds, "cv_leakfree"), "n"]),
+            }
+            for ds in ("BNCI2014_001", "Cho2017")
+        ],
+        "depression": [
+            {
+                "dataset": ds,
+                "pipeline": pl,
+                "leaky": r(rq5.loc[(ds, pl, "segment_cv"), "ba"]),
+                "fair": r(rq5.loc[(ds, pl, "subject_cv"), "ba"]),
+                "points": r(rq5_h.loc[(ds, pl), "inflation_points"], 1),
+                "n": int(rq5.loc[(ds, pl, "subject_cv"), "n_subjects"]),
+            }
+            for ds in ("mumtaz", "modma")
+            for pl in ("bp_lr", "ts_lr")
+        ],
+    }
+
+    # How long fitting takes: one CSP+LDA per patient on the Mac, and the leave-one-out
+    # EEGNets that learn from all other patients, on a cloud GPU.
+    runtime = pd.read_csv(summary / "rq1_runtime.csv")
+    csp_fit = runtime[(runtime.method == "csp_lda") & (runtime.protocol == "chrono")].iloc[0]
+    pretrain = pd.read_csv(summary / "dl_pretrain_table.csv")
+
     data = {
         "sources": [
             "results/summary/dl_baselines_subject_values.csv",
@@ -189,6 +227,12 @@ def build() -> dict:
             "results/summary/demo_model.json",
             "results/summary/eda_erd_values.csv",
             "results/summary/rq4_longitudinal_table.csv",
+            "results/summary/rq1b_table.csv",
+            "results/summary/rq1b_stats.csv",
+            "results/summary/rq5_table.csv",
+            "results/summary/rq5_stats.csv",
+            "results/summary/rq1_runtime.csv",
+            "results/summary/dl_pretrain_table.csv",
             "web/public/demo/model.onnx",
             "mne colin27_1005 template",
         ],
@@ -218,10 +262,25 @@ def build() -> dict:
                 "re_setup": lon_row("follow", "recentred", 5),
             },
         },
+        "elsewhere": elsewhere,
+        "runtime": {
+            "csp_lda_fit_s": r(csp_fit.mean_fit_seconds, 2),
+            "pretrain_s_median": r(pretrain.seconds.median(), 0),
+            "pretrain_n": len(pretrain),
+            "pretrain_on_gpu": bool((pretrain.device == "cuda").all()),
+        },
         "demo": {
             "subject": demo["subject"],
             "held_out_bal_acc": r(demo["held_out_bal_acc"]),
+            # The score the demo patient was chosen by (protocol §10), and the group's median.
+            "chosen_by_bal_acc": r(
+                next(c for c in demo["choice"]["candidates"] if c["subject"] == demo["subject"])[
+                    "chrono_bal_acc"
+                ]
+            ),
+            "group_median_bal_acc": r(demo["choice"]["cohort_median_chrono"]),
             "trials": demo["trials_whole"],
+            "trials_total": demo["trials_total"],
             "training_trials": demo["n_training_trials"],
             "model_bytes": demo["parity"]["bytes"],
             "parameters": model_parameters(),

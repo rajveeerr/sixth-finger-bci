@@ -9,6 +9,12 @@
   "results/summary/demo_model.json",
   "results/summary/eda_erd_values.csv",
   "results/summary/rq4_longitudinal_table.csv",
+  "results/summary/rq1b_table.csv",
+  "results/summary/rq1b_stats.csv",
+  "results/summary/rq5_table.csv",
+  "results/summary/rq5_stats.csv",
+  "results/summary/rq1_runtime.csv",
+  "results/summary/dl_pretrain_table.csv",
   "web/public/demo/model.onnx",
   "mne colin27_1005 template"
  ],
@@ -699,10 +705,71 @@
    }
   }
  },
+ "elsewhere": {
+  "motor": [
+   {
+    "dataset": "BNCI2014_001",
+    "leaky": 0.8603,
+    "fair": 0.774,
+    "points": 8.6,
+    "n": 9
+   },
+   {
+    "dataset": "Cho2017",
+    "leaky": 0.7703,
+    "fair": 0.6518,
+    "points": 11.9,
+    "n": 52
+   }
+  ],
+  "depression": [
+   {
+    "dataset": "mumtaz",
+    "pipeline": "bp_lr",
+    "leaky": 0.9646,
+    "fair": 0.8184,
+    "points": 14.6,
+    "n": 56
+   },
+   {
+    "dataset": "mumtaz",
+    "pipeline": "ts_lr",
+    "leaky": 0.9796,
+    "fair": 0.7978,
+    "points": 18.2,
+    "n": 56
+   },
+   {
+    "dataset": "modma",
+    "pipeline": "bp_lr",
+    "leaky": 0.8414,
+    "fair": 0.5231,
+    "points": 31.8,
+    "n": 52
+   },
+   {
+    "dataset": "modma",
+    "pipeline": "ts_lr",
+    "leaky": 0.9103,
+    "fair": 0.4828,
+    "points": 42.8,
+    "n": 52
+   }
+  ]
+ },
+ "runtime": {
+  "csp_lda_fit_s": 0.36,
+  "pretrain_s_median": 107.0,
+  "pretrain_n": 24,
+  "pretrain_on_gpu": true
+ },
  "demo": {
   "subject": "sub-08",
   "held_out_bal_acc": 0.7407,
+  "chosen_by_bal_acc": 0.6529,
+  "group_median_bal_acc": 0.6733,
   "trials": 36,
+  "trials_total": 40,
   "training_trials": 39,
   "model_bytes": 21812,
   "parameters": 3195
