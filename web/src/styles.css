@@ -2521,3 +2521,67 @@ code {
     margin-top: 6px;
   }
 }
+
+/* The paper's test against a fair one: twenty trials, the test ones orange, a bracket for
+   what the method's first step learned from. */
+.leak {
+  margin: 4px 0 22px;
+  display: grid;
+  gap: 14px;
+}
+.leak-row {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+.leak-label {
+  display: grid;
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--ink-3);
+}
+.leak-label b {
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.leak-strip {
+  display: grid;
+  gap: 4px;
+}
+.leak-squares,
+.leak-bracket {
+  display: grid;
+  grid-template-columns: repeat(20, minmax(0, 1fr));
+  gap: 3px;
+}
+.leak-squares i {
+  aspect-ratio: 1;
+  border-radius: 2px;
+  background: #3a3a3a;
+}
+.leak-squares i[data-test] {
+  background: var(--sixth);
+}
+.leak-bracket i {
+  height: 7px;
+  border: 2px solid var(--ink-2);
+  border-top: 0;
+  border-radius: 0 0 3px 3px;
+}
+.leak-bracket-label {
+  font-size: 13px;
+  color: var(--ink-2);
+}
+.leak figcaption {
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--ink-3);
+}
+@media (max-width: 700px) {
+  .leak-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 6px;
+  }
+}

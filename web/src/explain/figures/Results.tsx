@@ -3,6 +3,7 @@ import { Bars, Curves, DotStrip, Slope } from "../charts";
 import { data } from "../data";
 import { FINDINGS, type Finding } from "../findings";
 import { Gauge } from "./Gauge";
+import { LeakDiagram } from "./LeakDiagram";
 import { SetupFlow } from "./SetupFlow";
 
 const pct = (v: number) => `${Math.round(v * 100)}%`;
@@ -93,22 +94,25 @@ function Evidence({ f }: { f: Finding }) {
   if (f.key === "leak") {
     const L = data.leak;
     return (
-      <Slope
-        a={L.replica}
-        b={L.leakfree}
-        guess={0.5}
-        band={{ from: L.published[0], to: L.published[1], text: "published" }}
-        names={L.subjects.map((s) => `Patient ${Number(s.replace("sub-", ""))}`)}
-        labels={[
-          <>
-            <b>The published way</b> test trials also used to build the method
-          </>,
-          <>
-            <b>Tested fairly</b> test trials kept apart
-          </>,
-        ]}
-        label="Accuracy of each patient tested the old way and tested fairly"
-      />
+      <>
+        <LeakDiagram />
+        <Slope
+          a={L.replica}
+          b={L.leakfree}
+          guess={0.5}
+          band={{ from: L.published[0], to: L.published[1], text: "published" }}
+          names={L.subjects.map((s) => `Patient ${Number(s.replace("sub-", ""))}`)}
+          labels={[
+            <>
+              <b>The published way</b> test trials also used to build the method
+            </>,
+            <>
+              <b>Tested fairly</b> test trials kept apart
+            </>,
+          ]}
+          label="Accuracy of each patient tested the old way and tested fairly"
+        />
+      </>
     );
   }
   if (f.key === "setup") return <SetupEvidence />;
