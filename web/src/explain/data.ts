@@ -56,6 +56,7 @@ export interface ExplainData {
   elsewhere: {
     motor: { dataset: string; leaky: number; fair: number; points: number; n: number }[];
     depression: { dataset: string; pipeline: string; leaky: number; fair: number; points: number; n: number }[];
+    depression_shuffled: { leaky: number; fair: number; shuffles: number };
   };
   runtime: { csp_lda_fit_s: number; pretrain_s_median: number; pretrain_n: number; pretrain_on_gpu: boolean };
   demo: {

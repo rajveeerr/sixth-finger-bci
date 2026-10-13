@@ -13,6 +13,7 @@
   "results/summary/rq1b_stats.csv",
   "results/summary/rq5_table.csv",
   "results/summary/rq5_stats.csv",
+  "results/summary/rq5_null.csv",
   "results/summary/rq1_runtime.csv",
   "results/summary/dl_pretrain_table.csv",
   "web/public/demo/model.onnx",
@@ -755,7 +756,12 @@
     "points": 42.8,
     "n": 52
    }
-  ]
+  ],
+  "depression_shuffled": {
+   "leaky": 0.9093,
+   "fair": 0.4868,
+   "shuffles": 20
+  }
  },
  "runtime": {
   "csp_lda_fit_s": 0.36,

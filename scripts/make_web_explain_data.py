@@ -185,6 +185,8 @@ def build() -> dict:
     rq1b_h = rq1b_h[rq1b_h.test_id == "H1b"].set_index("dataset")
     rq5 = pd.read_csv(summary / "rq5_table.csv").set_index(["dataset", "pipeline", "protocol"])
     rq5_h = pd.read_csv(summary / "rq5_stats.csv").set_index(["dataset", "pipeline"])
+    # Mumtaz with the diagnoses shuffled among people: each protocol's mean over the shuffles.
+    rq5_null = pd.read_csv(summary / "rq5_null.csv").groupby("protocol").ba.agg(["mean", "count"])
     elsewhere = {
         "motor": [
             {
@@ -208,6 +210,11 @@ def build() -> dict:
             for ds in ("mumtaz", "modma")
             for pl in ("bp_lr", "ts_lr")
         ],
+        "depression_shuffled": {
+            "leaky": r(rq5_null.loc["segment_cv", "mean"]),
+            "fair": r(rq5_null.loc["subject_cv", "mean"]),
+            "shuffles": int(rq5_null.loc["segment_cv", "count"]),
+        },
     }
 
     # How long fitting takes: one CSP+LDA per patient on the Mac, and the leave-one-out
@@ -231,6 +238,7 @@ def build() -> dict:
             "results/summary/rq1b_stats.csv",
             "results/summary/rq5_table.csv",
             "results/summary/rq5_stats.csv",
+            "results/summary/rq5_null.csv",
             "results/summary/rq1_runtime.csv",
             "results/summary/dl_pretrain_table.csv",
             "web/public/demo/model.onnx",

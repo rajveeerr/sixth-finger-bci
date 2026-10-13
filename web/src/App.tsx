@@ -18,6 +18,14 @@ import { LINKS } from "./explain/links";
 import { CspTerm, CueTerm, DatasetRef, EegnetRef, EegTerm, ModelTerm, TherapyTerm } from "./explain/refs";
 import { useDemoStream } from "./stream/useDemoStream";
 
+// How far the leak raised the score, across every dataset and method we checked.
+const LEAK_POINTS = [
+  data.leak.mean_diff_points,
+  ...data.elsewhere.motor.map((m) => m.points),
+  ...data.elsewhere.depression.map((d) => d.points),
+];
+const LEAK_RANGE = [Math.round(Math.min(...LEAK_POINTS)), Math.round(Math.max(...LEAK_POINTS))];
+
 export default function App() {
   const stream = useDemoStream();
   const patient = data.demo.subject.replace("sub-0", "").replace("sub-", "");
@@ -233,17 +241,18 @@ export default function App() {
             <li>
               <h3>A fair test of a published result</h3>
               <p>
-                We found the step that raised the paper&apos;s 85% and measured it: {pct(data.leak.mean_leakfree)}{" "}
-                tested fairly, lower for every one of the {data.leak.subjects.length} patients (
-                <a href="#answer-1">question 1</a>).
+                We found a step in the published analysis that inflates its 85%, and measured it:{" "}
+                {pct(data.leak.mean_leakfree)} tested fairly, lower for every one of the {data.leak.subjects.length}{" "}
+                patients (<a href="#answer-1">question 1</a>).
               </p>
             </li>
             <li>
               <h3>The same mistake, measured in other data</h3>
               <p>
                 We repeated the check on two public datasets of imagined hand movements from healthy volunteers, and on
-                EEG used to detect depression, where the same kind of leak is a known risk. It inflated the score every
-                time (the figure below).
+                EEG used to detect depression, where a related leak (the same person on both sides of the test) is a
+                known risk. It raised the score in every dataset we checked, by {LEAK_RANGE[0]} to {LEAK_RANGE[1]}{" "}
+                points (the figure below).
               </p>
             </li>
             <li>

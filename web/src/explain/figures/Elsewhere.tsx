@@ -25,7 +25,7 @@ interface Row {
 }
 
 const MOTOR_WHY =
-  "The method's first step learned from every trial, test trials included, before the test. Fair: it learned from the learning trials only.";
+  "Leaky: the method's first step learned from every trial and its label, test trials included, before the test. Fair: it learned from the learning trials only.";
 const DEPRESSION_WHY =
   "Each person's recording is cut into 4 s pieces. Leaky: pieces of the same person go into both learning and testing, so the model can recognise the person instead of depression. Fair: all of a person's pieces stay on one side.";
 
@@ -76,7 +76,7 @@ export function Elsewhere() {
   return (
     <Plate
       title="The same mistake in other data"
-      hint="Each row is one dataset: grey is the score tested the leaky way, black tested fairly. The further apart, the more the leak flattered the result."
+      hint={`Each row is one dataset: grey is the score tested the leaky way, black tested fairly. The further apart, the more the leak flattered the result. As a check, with the diagnoses shuffled among the Mumtaz volunteers so that they mean nothing, the leaky test still scored ${pct(E.depression_shuffled.leaky)} and the fair one ${pct(E.depression_shuffled.fair)} (${E.depression_shuffled.shuffles} shuffles): the leaky test recognises the person, not the illness.`}
       readout={
         picked ? (
           <>
