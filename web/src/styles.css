@@ -594,16 +594,93 @@ code {
   font-size: 13.5px;
   color: var(--ink-2);
 }
-.part-names li {
-  cursor: default;
+.part-names button {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  transition: color 0.15s;
 }
 .part-names b {
   font-weight: 600;
   color: var(--ink-3);
   margin-right: 2px;
 }
-.part-names li[data-on] {
+.part-names button[data-on] {
   color: var(--ink);
+}
+.part-names button[data-on] b {
+  color: var(--ink);
+}
+.part-names button:focus-visible {
+  outline: 1px solid var(--ink-2);
+  outline-offset: 3px;
+  border-radius: 3px;
+}
+/* Taking the bench apart: the picked part rises off the bench, its wires bend to stay on it, a
+   faint shadow stays where it stood, and the rest fades toward the page. The fade is a filter on
+   each run rather than its opacity, so nothing behind a part shows through it. */
+.chain .piece {
+  transition: transform 0.2s cubic-bezier(0.22, 0.75, 0.2, 1);
+}
+.chain[data-dim] .piece:not([data-lift]) {
+  filter: url(#chain-dim);
+}
+.chain-dim {
+  flood-color: var(--page);
+  flood-opacity: 0;
+  transition: flood-opacity 0.2s ease-out;
+}
+.chain[data-on] .chain-dim {
+  flood-opacity: 0.5;
+}
+.piece[data-lift="up"] {
+  transform: translate(0, var(--lift));
+}
+.piece[data-lift="from"] {
+  transform: var(--bend-from);
+}
+.piece[data-lift="to"] {
+  transform: var(--bend-to);
+}
+.piece-tray,
+.piece-wire {
+  pointer-events: none;
+}
+.piece-part,
+.part-hits,
+.part-shadow {
+  cursor: pointer;
+}
+.part-hits path {
+  fill: transparent;
+  stroke: none;
+}
+.part-shadow {
+  opacity: 0;
+  transition: opacity 0.2s ease-out;
+}
+.part-shadow[data-lift="up"] {
+  opacity: 1;
+}
+.part-shadow path {
+  fill: #2a2a2e;
+  fill-opacity: 0.06;
+  stroke: none;
+}
+.part-shadow .part-shadow-rim {
+  fill-opacity: 0.035;
+}
+@media (prefers-reduced-motion: reduce) {
+  .chain .piece {
+    transform: none !important;
+    transition: none;
+  }
+  .part-shadow {
+    visibility: hidden;
+  }
 }
 .demo {
   padding-top: 4px;
