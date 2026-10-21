@@ -1,8 +1,9 @@
 import type { ReactNode } from "react";
 import { data, pct } from "../data";
 import { ScoreTerm } from "../refs";
+import { ModelDrawing } from "./ModelDrawing";
 
-/** The model as one strip from input to output, then who it was built for; every number from the export. */
+/** The model drawn from input to output, then who it was built for; every number from the export. */
 export function ModelFacts() {
   const d = data.demo;
   const rt = data.runtime;
@@ -57,34 +58,18 @@ export function ModelFacts() {
     },
   ];
   return (
-    <section className="facts" aria-label="The model in a few lines">
-      <ol className="model-strip">
-        <li>
-          <span>In</span>
-          <b>4 seconds of all 40 sensors</b>
-          <small>1,000 voltage samples from each</small>
-        </li>
-        <li>
-          <span>The model</span>
-          <b>EEGNet</b>
-          <small>
-            {d.parameters.toLocaleString("en")} numbers it learned, {Math.round(d.model_bytes / 1000)} KB
-          </small>
-        </li>
-        <li>
-          <span>Out</span>
-          <b>Rest, hand or sixth finger</b>
-          <small>how likely each is; the likeliest is the command</small>
-        </li>
-      </ol>
-      <dl>
-        {rows.map((r) => (
-          <div key={r.term}>
-            <dt>{r.term}</dt>
-            <dd>{r.text}</dd>
-          </div>
-        ))}
-      </dl>
-    </section>
+    <>
+      <ModelDrawing />
+      <section className="facts" aria-label="The model in a few lines">
+        <dl>
+          {rows.map((r) => (
+            <div key={r.term}>
+              <dt>{r.term}</dt>
+              <dd>{r.text}</dd>
+            </div>
+          ))}
+        </dl>
+      </section>
+    </>
   );
 }
