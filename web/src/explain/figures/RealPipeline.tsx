@@ -3,7 +3,7 @@ import { buildPipeline } from "../iso/pipeline";
 
 // What a real system would be, part by part, with what passes along each link and which
 // parts this project has built: the model, the server and this page. The rest is hatched.
-// Keep this in step with _workspace/research/from-demo-to-real-limb.md.
+// Keep this in step with the report section on moving from the demo to a real limb.
 
 interface Station {
   name: string;
