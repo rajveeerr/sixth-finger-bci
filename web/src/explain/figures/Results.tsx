@@ -4,6 +4,7 @@ import { data } from "../data";
 import { FINDINGS, type Finding } from "../findings";
 import { Gauge } from "./Gauge";
 import { LeakDiagram } from "./LeakDiagram";
+import { LearnTest } from "./LearnTest";
 import { SetupFlow } from "./SetupFlow";
 
 const pct = (v: number) => `${Math.round(v * 100)}%`;
@@ -215,6 +216,7 @@ export function ResultsGauges() {
         <p className="finding-note">{f.note}</p>
         <div className="how">
           <h4>How we found this</h4>
+          {f.split && <LearnTest split={f.split} />}
           <p>{f.how}</p>
           <ul>
             {f.see.map((s) => (

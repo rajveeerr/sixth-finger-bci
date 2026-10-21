@@ -3087,3 +3087,113 @@ code {
     gap: 6px;
   }
 }
+
+/* Answers 2 to 5: what the model learned from and what it was tested on, run by run, in the
+   leak diagram's marks (squares are trials, orange the tested ones, the bracket the learned). */
+.split {
+  margin: 10px 0 14px;
+  display: grid;
+  gap: 16px;
+}
+.split-row {
+  display: grid;
+  gap: 5px;
+}
+.split-title {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 8px;
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--ink-3);
+}
+.split-title b {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.split-head,
+.split-runs,
+.split-marks {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  column-gap: 12px;
+}
+.split-head {
+  font-size: 12px;
+  color: var(--ink-3);
+}
+.split-run {
+  display: grid;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  gap: 2px;
+  border-radius: 2px;
+}
+.split-run i {
+  aspect-ratio: 1;
+  border-radius: 1.5px;
+  background: #3a3a3a;
+}
+.split-run[data-use="pick"] i {
+  background: #d6d6d4;
+}
+.split-run[data-use="pick"] i[data-on] {
+  background: #3a3a3a;
+}
+.split-run[data-use="test"] i {
+  background: var(--sixth);
+}
+/* Played as one unbroken signal: no gaps between trials, a faint tick for the readings. */
+.split-run[data-use="replay"] {
+  background-color: var(--sixth);
+  background-image: repeating-linear-gradient(90deg, transparent 0 3px, rgb(255 255 255 / 0.28) 3px 4px);
+}
+.split-run[data-use="replay"] i {
+  background: none;
+}
+/* Many patients' recordings: the four runs drawn as the front of a stack. */
+.split-row[data-many] .split-runs {
+  margin-top: 6px;
+}
+.split-row[data-many] .split-run {
+  box-shadow:
+    3px -3px 0 #dcdcda,
+    6px -6px 0 #e6e6e4;
+}
+.split-marks {
+  row-gap: 4px;
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--ink-2);
+}
+.split-bracket {
+  grid-row: 1;
+  height: 7px;
+  border: 2px solid var(--ink-2);
+  border-top: 0;
+  border-radius: 0 0 3px 3px;
+}
+.split-bracket[data-sometimes] {
+  border-style: dashed;
+}
+.split-learns,
+.split-tested {
+  grid-row: 2;
+}
+.split figcaption {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ink-3);
+}
+@media (max-width: 700px) {
+  .split-head,
+  .split-runs,
+  .split-marks {
+    column-gap: 8px;
+  }
+  .split-run {
+    gap: 1.5px;
+  }
+}
