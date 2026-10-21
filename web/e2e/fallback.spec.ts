@@ -25,7 +25,7 @@ test("the one-switch view flexes the sixth finger for any imagery", async ({ pag
   await page.getByRole("radio", { name: "On/off switch" }).click();
   await expect(page.getByTestId("prediction")).toHaveAttribute("data-view", "switch");
   await expect(page.getByTestId("hand")).toHaveAttribute("data-command", "SIXTH_FINGER_FLEX", { timeout: 20_000 });
-  await expect(page.getByTestId("prediction")).toContainText("windows right, rest and imagery");
+  await expect(page.getByTestId("prediction")).toContainText("read right, resting and imagining");
 });
 
 test("keys 1-3 pose the hand under a manual-test banner, Esc returns", async ({ page }) => {
