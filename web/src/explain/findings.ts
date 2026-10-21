@@ -60,7 +60,7 @@ export const FINDINGS: Finding[] = [
     points: [
       "The catch: the method's first step, CSP, learns from labelled trials how to combine the 40 sensors. In the paper's analysis code it learned from every trial of a session, including the ones it was later tested on. It is like marking an exam whose questions the student saw in advance.",
       `Tested fairly, with that step learning only from the trials used for learning, the same method gets ${pct(data.leak.mean_leakfree)}, where guessing gets 50%. Every one of the ${data.leak.subjects.length} patients scored lower.`,
-      "Nothing else changed between the two tests: the same patients, trials, method and rounds.",
+      "Nothing else differs between the two tests: the same patients, the same trials, the same method, and the same test trials each time.",
     ],
     note: `Each grey line is one patient, scored the published way (left) and fairly (right); the black line is the average. All ${data.leak.n_positive} of ${data.leak.subjects.length} scored lower when tested fairly. Our rebuild of the published way gives ${pct(data.leak.mean_replica)}, close to the paper's 85 to 86%.`,
     how: "We rebuilt the paper's method from its published code and scored it twice on the same patients and trials. Once as the paper did: the method's first step learned from all the trials, and only then were some set aside for testing. Once fairly: that step learned only from the trials used for learning. Nothing else changed.",

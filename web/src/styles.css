@@ -2570,6 +2570,32 @@ code {
   border-top: 0;
   border-radius: 0 0 3px 3px;
 }
+.leak-key {
+  margin: 0;
+  display: grid;
+  gap: 4px;
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: var(--ink-2);
+}
+.leak-key span {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+}
+.leak-key i {
+  flex: none;
+  width: 11px;
+  height: 11px;
+  border-radius: 2px;
+  transform: translateY(1px);
+}
+.leak-key-learn {
+  background: #3a3a3a;
+}
+.leak-key-test {
+  background: var(--sixth);
+}
 .leak-bracket-label {
   font-size: 13px;
   color: var(--ink-2);

@@ -41,7 +41,9 @@ function Row({ title, note, learnsFromTest }: { title: string; note: string; lea
           ))}
         </div>
         <span className="leak-bracket-label">
-          {learnsFromTest ? "CSP learns from all 20, test trials included" : "CSP learns from the 18 others only"}
+          {learnsFromTest
+            ? "The first step studies all 20 trials, the 2 test trials included"
+            : "The first step studies only the 18 learning trials"}
         </span>
       </div>
     </div>
@@ -52,6 +54,15 @@ function Row({ title, note, learnsFromTest }: { title: string; note: string; lea
 export function LeakDiagram() {
   return (
     <figure className="leak" aria-label="The paper's test against a fair test, on one round of twenty trials">
+      <p className="leak-key">
+        <span>
+          <i className="leak-key-learn" /> Learning trials: the method studies these, with the movement each one was
+        </span>
+        <span>
+          <i className="leak-key-test" /> Test trials: kept aside; the method must say which movement each one was, and
+          its score is how often it is right
+        </span>
+      </p>
       <Row
         title="The paper's way"
         note={`${pct(L.published[0])} to ${pct(L.published[1])} reported; ${pct(L.mean_replica)} in our rebuild`}
@@ -59,8 +70,9 @@ export function LeakDiagram() {
       />
       <Row title="Fair" note={`${pct(L.mean_leakfree)}, where guessing gets 50%`} learnsFromTest={false} />
       <figcaption>
-        Squares are trials; orange ones are the trials one round is scored on. CSP is the method&apos;s first step: it
-        learns from labelled trials how to combine the 40 sensors. Only the bracket differs between the two rows.
+        Each square is one trial: one round of resting, then imagining a movement. The test repeats ten times, with
+        different test trials each time, so every trial is tested once. The first step (CSP) works out how to combine
+        the 40 sensors. Only the bracket differs between the two rows.
       </figcaption>
     </figure>
   );
