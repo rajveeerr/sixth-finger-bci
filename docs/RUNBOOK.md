@@ -119,7 +119,7 @@ numbers.
 | Browser-only preview (no server) | `npm --prefix web run build && npm --prefix web run preview` | P11 | `http://localhost:4173`; badge shows "in-browser" |
 | Live demo | https://sixth-finger-bci.vercel.app (static page and a model function, built with `VITE_SERVER_URL=none`, `VITE_DECODE_URL=/api/decode`) | P12 | badge "Model running on the server" within a few seconds; "in this browser" if the function cannot be reached |
 | Model function | `curl -s https://sixth-finger-bci.vercel.app/api/decode` | P12 | `{"ok": true, ...}` with the bundle model's sha256; `web/api/decode.py`, checked by `tests/test_web_decode_api.py` |
-| Redeploy | from a clean `git archive HEAD web` folder: `bunx vercel@latest link --yes --project sixth-finger-bci`, then `bunx vercel@latest deploy --prod --yes` | P12 | the project's Production variables stay `VITE_SERVER_URL=none`, `VITE_DECODE_URL=/api/decode` |
+| Redeploy | automatic: every push to GitHub `main` (the clean release, `bash _workspace/tools/publish.sh`) deploys production through Vercel's Git connection, with the project's Root Directory set to `web`; by hand, `bunx vercel@latest redeploy <deployment-url> --environment production` | P12 | the project's Production variables stay `VITE_SERVER_URL=https://sixth-finger-bci-server.onrender.com`, `VITE_DECODE_URL=/api/decode` |
 | Check the live demo | `DEPLOYED_URL=https://sixth-finger-bci.vercel.app npx --prefix web playwright test e2e/deployed.spec.ts` | P12 | 2 passed |
 | Backup video | not in git (videos are never committed); where it is in §9 | P12 | a 2-minute screen recording of the demo |
 | Offline check | `npx --prefix web playwright test e2e/offline.spec.ts` | P12 | the built site decodes with every other host unreachable |
