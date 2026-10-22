@@ -90,6 +90,26 @@ Summaries and figures:
 | `uv run python scripts/summarise_rq4.py` | P09 | `results/summary/rq4_mirror*`, `docs/figures/rq4_mirror_effect` |
 | `uv run python scripts/pseudo_online.py --summarise` | P09 | `results/summary/rq4_pseudo_online*`, `docs/figures/rq4_pseudo_online` |
 
+Exploratory follow-ups, added after the results (deviation log, 2026-10-23). Each script
+reads its settings from `configs/experiments/<name>.yaml`, fixed before any score on runs
+03-04, runs one part at a time (the order is in its docstring) and writes
+`results/summary/<name>_*`; window-level predictions and logs go to
+`results/runs/<name>/`. None of them chooses anything on runs 03-04.
+
+| Analysis | Command | Where it runs | Time (approx.) |
+|----------|---------|---------------|----------------|
+| More data per decision for AH vs SF | `uv run python scripts/ex1_transfer_ah_sf.py --part A`, then `--part C`, `--part B`, `--part B_central`, `--part summary` | Mac (CPU) | 2 min classical; B and B_central 15 min together |
+| Raw recordings: slow waves and all 59 channels | `uv run python scripts/ex2_slow_waves.py --part fetch` (reads 1.7 GB from the remote archive, keeps 1.0 GB of cut windows in `data/derived/raw_windows/`), then `--part align`, `--part score`, `--part summary`, `--part posthoc` | Mac | 10 min after the download |
+| Pre-training with healthy grasp imagery | `uv run python scripts/ex3_grasp_pretraining.py --part fetch` (4.2 GB from OSF), then the parts listed in the script, from `--part convert` to `--part summary` | Mac (MPS for pre-training) | 13 h, most of it the GP pre-training |
+| The sixth finger as its own command | `uv run python scripts/ex4_sf_command.py --part inner_classical`, then `--part inner_eegnet`, `--part select`, `--part test_classical`, `--part test_eegnet`, `--part summary` | Mac (CPU) | 3 min classical; 80 min EEGNet |
+
+When these were moved into the repository, the cheap parts were re-run and the expensive
+EEGNet parts were brought over from the first run (`--part carry --research <folder of that
+run>`), each row keeping the commit that made it (`git_sha`) and the commit that holds it
+(`source_commit`); the EEGNet parts with `--subjects` re-run some or all patients beside the
+stored values. `--part repro --research <folder of that run>` compares every output with the
+first run cell by cell and writes `results/summary/<name>_repro.csv`.
+
 How to verify a result: every row of every scores file carries `git_sha`,
 `config_hash` and `data_manifest_sha`. Runs made on the development machine
 record the commit of the private development history; runs made on Kaggle
