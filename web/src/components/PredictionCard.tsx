@@ -1,6 +1,6 @@
-import { decidedKind, isRight } from "../decision";
-import { IsoHand } from "../hands/IsoHand";
+import { data, pct } from "../explain/data";
 import { SureTerm } from "../explain/refs";
+import { IsoHand } from "../hands/IsoHand";
 import { shownCommand, useDemo } from "../store";
 import type { Prediction } from "../stream/types";
 
@@ -10,60 +10,40 @@ const SOURCE_TEXT: Record<Prediction["source"], string> = {
   replay: "Worked out earlier by the same model and saved",
 };
 
-/** What each reading is called on screen, in plain words. */
-const SAY: Record<string, string> = {
-  rest: "Rest",
-  affected_hand: "Hand",
-  sixth_finger: "Sixth finger",
-  imagery: "Imagining",
-};
+const MOVEMENT: Record<string, string> = { affected_hand: "the hand", sixth_finger: "the sixth finger" };
 
-/** Step 3: the model's reading of the last 4 s, whether it was right, and the hand moving. */
+/** Step 3: move or rest from the last 4 s, whether it was right, the guess at which movement, and the hand. */
 export function PredictionCard() {
-  const { lastPrediction: p, classes, view, mode, correct, total, switchCorrect, switchTotal, manualMode } = useDemo();
+  const { lastPrediction: p, lastReading: r, classes, mode, right, total, manualMode } = useDemo();
   const command = useDemo(shownCommand);
-  const decided = p ? decidedKind(p, view, classes) : null;
-  const right = p ? isRight(p, view, classes) : null;
-  // The same probabilities the reading came from: the raw ones name the command, the
-  // smoothed ones (when there are any) decide the switch.
-  const smoothed = p ? (p.smoothed ?? p.probs) : [];
-  const sure = !p
-    ? 0
-    : view === "three"
-      ? Math.max(...p.probs)
-      : Math.max(smoothed[0] ?? 0, (smoothed[1] ?? 0) + (smoothed[2] ?? 0));
-  const surePct = Math.min(99, Math.round(sure * 100));
+  const kind = r ? (r.move ? "move" : "rest") : "";
+  const surePct = r ? Math.min(99, Math.round(r.sure * 100)) : 0;
   const asked = !p
     ? ""
     : p.truth === classes[0]?.name
       ? "resting"
-      : `asked to imagine ${p.truth === "sixth_finger" ? "the sixth finger" : "the hand"}`;
+      : `asked to imagine ${MOVEMENT[p.truth ?? ""] ?? "a movement"}`;
   const tally =
     mode === "continuous"
       ? "A reading every half second, not counted in the score"
-      : view === "three"
-        ? total
-          ? `${correct} of ${total} imagined movements read right so far (rest is not counted here)`
-          : "No imagined movement read yet"
-        : switchTotal
-          ? `${switchCorrect} of ${switchTotal} pieces of 4 s read right, resting and imagining`
-          : "No reading yet";
+      : total
+        ? `${right} of ${total} read right so far, rest as Rest and hand or finger as Move`
+        : "No reading yet";
   return (
     <section
       className="step step-read"
       aria-label="What the model reads"
       data-testid="prediction"
-      data-label={decided ?? ""}
-      data-view={view}
+      data-label={kind}
     >
       <h3 className="step-title">
         <span className="step-num">3</span> The model reads
       </h3>
-      <p className="read-now" data-kind={decided ?? "none"} aria-live="polite">
-        {p ? (SAY[decided ?? ""] ?? decided) : "Waiting for 4 s of signal"}
-        {right !== null && (
-          <span className="mark" data-right={String(right)}>
-            {right ? "✓ right" : "✗ wrong"}
+      <p className="read-now" data-kind={kind || "none"} aria-live="polite">
+        {r ? (r.move ? "Move" : "Rest") : "Waiting for 4 s of signal"}
+        {r && r.right !== null && (
+          <span className="mark" data-right={String(r.right)}>
+            {r.right ? "✓ right" : "✗ wrong"}
           </span>
         )}
       </p>
@@ -76,15 +56,23 @@ export function PredictionCard() {
           "The first reading comes 5 s into the trial."
         )}
       </p>
+      <p className="step-note read-guess" data-testid="guess" data-guess={r?.move ? r.guess : ""}>
+        {r?.move ? (
+          <>
+            Which movement? A guess: <b>{MOVEMENT[r.guess] ?? r.guess}</b>. Right{" "}
+            {pct(data.demo.hand_finger.acc)} of the time for this patient; guessing gets 50%.
+          </>
+        ) : (
+          "Which movement? Guessed only on Move."
+        )}
+      </p>
       <div className="hand-stage" data-testid="hand" data-command={command}>
         <IsoHand command={command} />
       </div>
       <p className="step-note hand-note">
         {manualMode
           ? "Test pose, not a reading. Press Esc to go back."
-          : view === "three"
-            ? "The robotic finger bends when the model reads sixth finger."
-            : "The robotic finger bends for any imagined movement."}
+          : "The robotic finger bends on Move, whichever movement was imagined."}
       </p>
       <p className="step-note tally">
         {tally}

@@ -1,19 +1,14 @@
 import { create } from "zustand";
+import { countReading, MoveSwitch, readWindow, type Reading } from "./decision";
 import { eegBuffer } from "./stream/eegBuffer";
 import type { ClassInfo, Mode, Prediction, ServerMessage, SourceState } from "./stream/types";
 
 export type Command = "IDLE" | "HAND_GRASP" | "SIXTH_FINGER_FLEX";
-// "three": the decoder's three commands as trained. "switch": the one-switch use the
-// results support (P09): any imagery against rest flexes the sixth finger.
-export type View = "three" | "switch";
 export type PhaseName = "rest" | "prepare" | "imagery";
 export const RECENT = 16;
 
-/** Rest against either imagery, from the smoothed probabilities when the gate ran. */
-export function anyImagery(p: Prediction): boolean {
-  const v = p.smoothed ?? p.probs;
-  return v[1] + v[2] > v[0];
-}
+// Continuous mode's switch keeps its state between readings; a new stream or a jump starts it afresh.
+const moveSwitch = new MoveSwitch();
 
 interface DemoState {
   source: SourceState;
@@ -32,17 +27,17 @@ interface DemoState {
   phaseTruth: string | null;
   paused: boolean;
   speed: number;
-  view: View;
+  /** The pose set by the manual test keys; readings move the finger through lastReading. */
   command: Command;
   lastPrediction: Prediction | null;
-  correct: number;
+  /** Move or rest, and the guess at which movement, for the last prediction. */
+  lastReading: Reading | null;
+  /** Fixed windows read right as move or rest, rest windows included. */
+  right: number;
   total: number;
-  switchCorrect: number;
-  switchTotal: number;
   manualMode: boolean;
   error: string | null;
   setSource: (source: DemoState["source"]) => void;
-  setView: (view: View) => void;
   setError: (error: string | null) => void;
   applyMessage: (m: ServerMessage) => void;
   applyPrediction: (p: Prediction) => void;
@@ -67,20 +62,14 @@ export const useDemo = create<DemoState>((set) => ({
   phaseTruth: null,
   paused: false,
   speed: 1,
-  view: "three",
   command: "IDLE",
   lastPrediction: null,
-  correct: 0,
+  lastReading: null,
+  right: 0,
   total: 0,
-  switchCorrect: 0,
-  switchTotal: 0,
   manualMode: false,
   error: null,
   setSource: (source) => set({ source }),
-  setView: (view) => {
-    eegBuffer.setView(view);
-    set({ view });
-  },
   setError: (error) => set({ error }),
   applyMessage: (m) => {
     switch (m.type) {
@@ -88,6 +77,7 @@ export const useDemo = create<DemoState>((set) => ({
         if (eegBuffer.channels.join() !== m.display_channels.join() || !eegBuffer.capacity) {
           eegBuffer.reset(m.display_channels, m.display_sfreq);
         }
+        moveSwitch.reset();
         set({
           synthetic: m.synthetic,
           classes: m.classes,
@@ -97,14 +87,12 @@ export const useDemo = create<DemoState>((set) => ({
           window: m.window,
         });
         break;
-      case "trial_start":
-        set({
-          trial: m.trial,
-          trialUid: m.uid,
-          trialDuration: m.duration_s,
-          cueOnset: m.cue_onset_s,
-        });
+      case "trial_start": {
+        const { trial, nTrials } = useDemo.getState();
+        if (m.trial !== trial && m.trial !== (trial + 1) % Math.max(nTrials, 1)) moveSwitch.reset();
+        set({ trial: m.trial, trialUid: m.uid, trialDuration: m.duration_s, cueOnset: m.cue_onset_s });
         break;
+      }
       case "phase":
         eegBuffer.setPhase(m.phase, m.truth);
         set({ phase: m.phase, phaseTruth: m.truth });
@@ -123,49 +111,35 @@ export const useDemo = create<DemoState>((set) => ({
         break;
     }
   },
-  applyPrediction: (p) =>
-    set((s) => {
-      // Running accuracy of the three commands counts imagery decisions only: rest
-      // windows and the experimental sliding windows would inflate it. The one switch
-      // is scored on every trial window, rest included (did it stay quiet at rest?).
-      const scored = p.window === "imagery" && p.correct !== null;
-      const switchScored = p.window !== "sliding" && p.truth !== null;
-      const switchRight = switchScored && anyImagery(p) === (p.truth !== s.classes[0]?.name);
-      if (p.window !== "sliding" && p.trial === s.trial) {
-        eegBuffer.mark({
-          len: Math.round((s.window.end_s - s.window.start_s) * eegBuffer.sfreq),
-          three: { kind: p.label, right: p.correct },
-          switch: { kind: anyImagery(p) ? "imagery" : (s.classes[0]?.name ?? "rest"), right: switchScored ? switchRight : null },
-        });
-      }
-      return {
-        lastPrediction: p,
-        recent: p.window === "sliding" ? s.recent : [...s.recent, p].slice(-RECENT),
-        command: s.manualMode ? s.command : (p.command as Command),
-        correct: s.correct + (scored && p.correct ? 1 : 0),
-        total: s.total + (scored ? 1 : 0),
-        switchCorrect: s.switchCorrect + (switchRight ? 1 : 0),
-        switchTotal: s.switchTotal + (switchScored ? 1 : 0),
-      };
-    }),
-  setManualCommand: (command) => set({ command, manualMode: true }),
-  endManual: () =>
-    set((s) => ({ manualMode: false, command: (s.lastPrediction?.command as Command) ?? "IDLE" })),
-  reset: () =>
+  applyPrediction: (p) => {
+    // The half-second readings of continuous mode go through the switch's gate; the fixed
+    // windows are read one at a time and counted, rest windows too (did it stay at rest?).
+    const s = useDemo.getState();
+    const reading = p.window === "sliding" ? moveSwitch.read(p, s.classes) : readWindow(p, s.classes);
+    if (p.window !== "sliding" && p.trial === s.trial) {
+      eegBuffer.mark({
+        len: Math.round((s.window.end_s - s.window.start_s) * eegBuffer.sfreq),
+        kind: reading.move ? "move" : "rest",
+        right: reading.right,
+      });
+    }
     set({
-      lastPrediction: null,
-      recent: [],
-      command: "IDLE",
-      correct: 0,
-      total: 0,
-      switchCorrect: 0,
-      switchTotal: 0,
-      manualMode: false,
-    }),
+      lastPrediction: p,
+      lastReading: reading,
+      recent: p.window === "sliding" ? s.recent : [...s.recent, p].slice(-RECENT),
+      ...countReading({ right: s.right, total: s.total }, p, reading),
+    });
+  },
+  setManualCommand: (command) => set({ command, manualMode: true }),
+  endManual: () => set({ manualMode: false, command: "IDLE" }),
+  reset: () => {
+    moveSwitch.reset();
+    set({ lastPrediction: null, lastReading: null, recent: [], command: "IDLE", right: 0, total: 0, manualMode: false });
+  },
 }));
 
-/** The command the hand shows: manual test, else the decoder in the chosen view. */
-export function shownCommand(s: Pick<DemoState, "manualMode" | "command" | "view" | "lastPrediction">): Command {
-  if (s.manualMode || s.view === "three" || !s.lastPrediction) return s.command;
-  return anyImagery(s.lastPrediction) ? "SIXTH_FINGER_FLEX" : "IDLE";
+/** The pose the hand shows: the manual test's, else the sixth finger bent on Move, whichever movement. */
+export function shownCommand(s: Pick<DemoState, "manualMode" | "command" | "lastReading">): Command {
+  if (s.manualMode) return s.command;
+  return s.lastReading?.move ? "SIXTH_FINGER_FLEX" : "IDLE";
 }

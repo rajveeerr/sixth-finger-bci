@@ -42,7 +42,7 @@ const STEPS: Step[] = [
   {
     kicker: "Step 4",
     title: "Decides",
-    text: `It weighs all ${combine.outputs * combine.steps} numbers of those summaries into one score for each of the ${decide.classes} choices and turns the scores into how likely each is, adding up to 100%. The likeliest is the command. ${decide.learned.toLocaleString("en")} of the numbers it learned, almost half of them.`,
+    text: `It weighs all ${combine.outputs * combine.steps} numbers of those summaries into one score for each of the ${decide.classes} choices and turns the scores into how likely each is, adding up to 100%. The demo adds the hand's and the sixth finger's: together above rest is Move. ${decide.learned.toLocaleString("en")} of the numbers it learned, almost half of them.`,
   },
 ];
 

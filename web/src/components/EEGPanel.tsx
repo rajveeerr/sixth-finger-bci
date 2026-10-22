@@ -18,13 +18,8 @@ const MUTED = "#707070";
 const SECOND = "#efefef";
 const PAPER = "#fafafa";
 const TINT: Record<string, string> = { affected_hand: "#f1f1f1", sixth_finger: "#fff3ed" };
-const KIND_COLOUR: Record<string, string> = {
-  rest: "#707070",
-  affected_hand: "#3a3a3a",
-  sixth_finger: "#d9480f",
-  imagery: "#d9480f",
-};
-const SAY: Record<string, string> = { rest: "Rest", affected_hand: "Hand", sixth_finger: "Sixth finger", imagery: "Imagining" };
+const KIND_COLOUR: Record<string, string> = { rest: "#707070", move: "#d9480f" };
+const SAY: Record<string, string> = { rest: "Rest", move: "Move" };
 
 function imageryAt(ring: EegRing, idx: number): string | null {
   return ring.phase[idx] === PHASE_CODES.imagery ? (ring.truth[idx] ?? "imagery") : null;
@@ -120,15 +115,14 @@ export function paint(ctx: CanvasRenderingContext2D, ring: EegRing, w: number, h
     const x1 = xOf(m.end - first);
     const x0 = Math.max(xOf(m.end - m.len - first), labelW);
     if (x1 < labelW + 20) return;
-    const read = ring.view === "switch" ? m.switch : m.three;
-    const colour = KIND_COLOUR[read.kind] ?? INK;
+    const colour = KIND_COLOUR[m.kind] ?? INK;
     const age = ring.marks.length - 1 - j;
     ctx.globalAlpha = age === 0 ? 1 : 0.45;
     ctx.strokeStyle = colour;
     ctx.lineWidth = 1.5;
     roundRect(ctx, x0, top - 6, x1 - x0, plotH + 4, 6);
     ctx.stroke();
-    const text = `${age === 0 && justRead ? "Model read: " : ""}${SAY[read.kind] ?? read.kind} ${read.right === null ? "" : read.right ? "✓" : "✗"}`;
+    const text = `${age === 0 && justRead ? "Model read: " : ""}${SAY[m.kind] ?? m.kind} ${m.right === null ? "" : m.right ? "✓" : "✗"}`;
     const tw = ctx.measureText(text).width + 16;
     const tx = Math.min(x0, w - tw - 2);
     ctx.fillStyle = colour;

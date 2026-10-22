@@ -18,7 +18,7 @@ describe("the read marks", () => {
     const ring = new EegRing();
     ring.reset(["C3"], 10, 2); // 20 samples on screen
     ring.push([new Array(12).fill(0)]);
-    ring.mark({ len: 8, three: { kind: "rest", right: true }, switch: { kind: "rest", right: true } });
+    ring.mark({ len: 8, kind: "rest", right: true });
     expect(ring.marks).toHaveLength(1);
     expect(ring.marks[0].end).toBe(12);
     ring.push([new Array(20).fill(0)]); // the window's end is now 20 samples back

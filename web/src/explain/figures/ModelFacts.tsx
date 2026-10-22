@@ -52,7 +52,8 @@ export function ModelFacts() {
           for this patient) and is tested on the last two, which it never saw. Of their {d.trials_total} trials,{" "}
           {d.trials_total - d.trials} are cut short where a run ends, so the demo plays the {d.trials} whole ones. On
           those it is <ScoreTerm>right {pct(d.held_out_bal_acc)} of the time</ScoreTerm> across the three choices, where
-          guessing gets 33%: one patient on {d.trials} trials, not a promise for a new patient.
+          guessing gets 33%, and {pct(d.move_rest.acc)} at move or rest, the switch that moves the demo&apos;s finger:
+          one patient on {d.trials} trials, not a promise for a new patient.
         </>
       ),
     },

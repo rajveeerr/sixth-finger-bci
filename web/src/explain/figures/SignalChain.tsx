@@ -25,6 +25,13 @@ import {
 import { axisVector } from "../iso/kit";
 
 const LAMP_OF: Record<Command, string> = { IDLE: "rest", HAND_GRASP: "affected_hand", SIXTH_FINGER_FLEX: "sixth_finger" };
+
+/** The lamp lit: the model's likeliest of its three choices, or the manual test's pose. */
+function litLamp(s: ReturnType<typeof useDemo.getState>): string {
+  const p = s.lastPrediction;
+  if (s.manualMode || !p) return LAMP_OF[s.command];
+  return s.classes[p.probs.indexOf(Math.max(...p.probs))]?.name ?? "rest";
+}
 const OPEN = [0.08, 0.06, 0.04];
 const FLEXED = [0.95, 0.85, 0.65];
 const GAIN = 0.18; // paper units per µV: ±20 µV fills a row
@@ -88,7 +95,7 @@ const STEP: Record<string, (i: number) => number> = {
 
 /**
  * The signal chain as a bench instrument. It is live: the paper carries the demo's EEG, the
- * lit lamp is the demo's command, and the finger moves with the demo's hand.
+ * lit lamp is the model's likeliest choice, and the finger moves with the demo's hand.
  */
 export function SignalChain() {
   const art = useMemo(() => buildChain(), []);
@@ -160,7 +167,7 @@ export function SignalChain() {
     };
   }, []);
 
-  const lit = LAMP_OF[command];
+  const lit = useDemo(litLamp);
   const [part, setPart] = useState<number | null>(null);
   const on = part === null ? undefined : PARTS[part].id;
   // The part let go of stays bright while the rest fades back, and the dimming filter stays

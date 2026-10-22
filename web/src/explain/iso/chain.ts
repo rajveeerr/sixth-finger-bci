@@ -82,7 +82,7 @@ export const PARTS = (
     { id: "amp", name: "Amplifier", text: "Makes the tiny signal strong enough to record, and writes it onto the paper.", x: AMP.x + AMP.w / 2 },
     { id: "frame", name: "4 s frame", text: "Holds the newest 4 seconds of signal: what the model reads each time.", x: PEN_X + 2 * PX_PER_S },
     { id: "model", name: "Model", text: "Reads those 4 seconds and lights one lamp: rest, hand or sixth finger.", x: DECODER.x + DECODER.w / 2 },
-    { id: "finger", name: "Robotic finger", text: "Bends when the sixth-finger lamp lights.", x: POST.x },
+    { id: "finger", name: "Robotic finger", text: "Bends on Move: when the hand's and the sixth finger's chances together beat rest's.", x: POST.x },
   ] as const
 ).map(({ x, ...part }) => ({ ...part, at: [x, BENCH.d - 13, TOP] as K.Point3 }));
 

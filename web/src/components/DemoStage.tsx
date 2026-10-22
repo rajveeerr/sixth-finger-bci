@@ -1,3 +1,4 @@
+import { data, pct } from "../explain/data";
 import type { DemoStreamControls } from "../stream/useDemoStream";
 import { useDemo } from "../store";
 import { Controls } from "./Controls";
@@ -11,6 +12,7 @@ export function DemoStage({ stream }: { stream: DemoStreamControls }) {
   const source = useDemo((s) => s.source);
   const synthetic = useDemo((s) => s.synthetic);
   const error = useDemo((s) => s.error);
+  const d = data.demo;
   return (
     <div className="demo bleed">
       <div className="demo-status">
@@ -36,11 +38,13 @@ export function DemoStage({ stream }: { stream: DemoStreamControls }) {
       <Controls stream={stream} />
       <dl className="modes">
         <div>
-          <dt>Three choices or on/off switch</dt>
+          <dt>Move or rest</dt>
           <dd>
-            Three choices: the model picks rest, hand or sixth finger, and the finger bends only for sixth finger.
-            On/off switch: the finger bends whenever the model thinks either movement is imagined. Our results support
-            the switch, since the model can barely tell the two movements apart.
+            The finger follows one switch: the model&apos;s chance of rest against its chances of the hand and the sixth
+            finger added together. It bends on Move whichever movement was imagined, because the model tells moving
+            from resting far better than which movement (<a href="/#answer-3">question 3</a>). On this patient&apos;s{" "}
+            {d.trials} trials it never saw, move or rest is right {pct(d.move_rest.acc)} of the time, and the guess at
+            which movement {pct(d.hand_finger.acc)}.
           </dd>
         </div>
         <div>
@@ -48,7 +52,9 @@ export function DemoStage({ stream }: { stream: DemoStreamControls }) {
           <dd>
             Per trial: the model reads two fixed 4 s stretches of each trial, one in the rest and one in the imagining,
             placed from the moment the instruction appeared. Continuous: it reads the newest 4 s every half second
-            without knowing when the instruction came, as a real device would, and makes more mistakes.
+            without knowing when the instruction came, as a real device would. The switch turns on when the steadied
+            chance of a movement is above 60% twice in a row and off below 45%, as in{" "}
+            <a href="/#answer-4">question 4</a>, and it makes more mistakes.
           </dd>
         </div>
       </dl>

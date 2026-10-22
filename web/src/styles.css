@@ -343,11 +343,7 @@ code {
 .read-now[data-kind="rest"] {
   color: var(--ink-3);
 }
-.read-now[data-kind="affected_hand"] {
-  color: var(--hand);
-}
-.read-now[data-kind="sixth_finger"],
-.read-now[data-kind="imagery"] {
+.read-now[data-kind="move"] {
   color: var(--sixth);
 }
 .read-now[data-kind="none"] {
@@ -382,9 +378,14 @@ code {
 .hand-note {
   margin-top: 0;
 }
-.read-about b {
+.read-about b,
+.read-guess b {
   font-weight: 560;
   color: var(--ink-2);
+}
+/* The guess at which movement sits under the reading, quieter, and keeps its two lines. */
+.read-guess {
+  min-height: 2.9em;
 }
 .step-read .tally {
   margin-top: 2px;
@@ -2214,6 +2215,7 @@ code {
 .plate-side a,
 .questions a,
 .finding-kicker a,
+.modes a,
 .uses a {
   color: var(--ink);
   text-underline-offset: 3px;

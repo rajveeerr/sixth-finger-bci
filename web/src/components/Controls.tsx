@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useDemo, type View } from "../store";
+import { useDemo } from "../store";
 import type { DemoStreamControls } from "../stream/useDemoStream";
 import { demoInView, keyForDemo } from "./demoKeys";
 
@@ -9,7 +9,7 @@ const Key = ({ children }: { children: string }) => <kbd className="key">{childr
 
 /** Playback, as quiet text buttons with their keys: Space pauses, the arrows change trial. */
 export function Controls({ stream }: { stream: DemoStreamControls }) {
-  const { paused, speed, trial, nTrials, source, mode, view, setView } = useDemo();
+  const { paused, speed, trial, nTrials, source, mode } = useDemo();
   const local = source === "loading-browser" || source === "browser" || source === "replay";
 
   useEffect(() => {
@@ -45,13 +45,6 @@ export function Controls({ stream }: { stream: DemoStreamControls }) {
           <button key={s} role="radio" aria-checked={speed === s} className={speed === s ? "opt on" : "opt"}
             onClick={() => stream.control({ type: "speed", value: s })}>
             {s}×
-          </button>
-        ))}
-      </span>
-      <span className="ctl-group" role="radiogroup" aria-label="How the reading is used">
-        {(["three", "switch"] as View[]).map((v) => (
-          <button key={v} role="radio" aria-checked={view === v} className={view === v ? "opt on" : "opt"} onClick={() => setView(v)}>
-            {v === "three" ? "Three choices" : "On/off switch"}
           </button>
         ))}
       </span>

@@ -7,8 +7,8 @@ export const PHASE_CODES = { rest: 1, prepare: 2, imagery: 3 } as const;
 export interface ReadMark {
   end: number; // sample count (since reset) of the window's last sample
   len: number; // window length in display samples
-  three: { kind: string; right: boolean | null };
-  switch: { kind: string; right: boolean | null };
+  kind: "move" | "rest";
+  right: boolean | null;
 }
 
 export class EegRing {
@@ -24,7 +24,6 @@ export class EegRing {
   trialT = 0; // seconds into the current trial at the newest sample (the trial strip's playhead)
   total = 0; // samples pushed since the last reset
   marks: ReadMark[] = []; // the windows the model has read that are still on screen
-  view: "three" | "switch" = "three"; // which reading the brackets show
   private currentPhase = 0;
   private currentTruth: string | null = null;
 
@@ -46,11 +45,6 @@ export class EegRing {
   mark(m: Omit<ReadMark, "end">) {
     this.marks.push({ ...m, end: this.total });
     this.marks = this.marks.filter((k) => k.end > this.total - this.capacity);
-    this.version += 1;
-  }
-
-  setView(view: "three" | "switch") {
-    this.view = view;
     this.version += 1;
   }
 
