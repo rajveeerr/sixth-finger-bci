@@ -1,0 +1,62 @@
+{
+  "csp_lda vs committed csp_lda (max abs diff over 22 patients: raw, rounded to 6 digits as stored)": [
+    4.871794871963431e-07,
+    0.0
+  ],
+  "ts_lr vs committed ts_lr (max abs diff over 22 patients: raw, rounded to 6 digits as stored)": [
+    4.871794870853208e-07,
+    0.0
+  ],
+  "ts_lr vs committed ts_lr (rq4 all_40) (max abs diff over 22 patients: raw, rounded to 6 digits as stored)": [
+    4.871794870853208e-07,
+    0.0
+  ],
+  "ts_lr_c14 vs committed ts_lr_c14 (max abs diff over 22 patients: raw, rounded to 6 digits as stored)": [
+    4.871794871963431e-07,
+    0.0
+  ],
+  "T1_ts_lr vs committed T1_ts_lr (max abs diff over 22 patients: raw, rounded to 6 digits as stored)": [
+    4.7368421052240706e-07,
+    0.0
+  ],
+  "T2_ts_lr vs committed T2_ts_lr (max abs diff over 22 patients: raw, rounded to 6 digits as stored)": [
+    4.7368421063342936e-07,
+    0.0
+  ],
+  "T1_ea_ft vs ex1_transfer_ah_sf values_B finetuned, per seed (max abs diff over 22 patients: raw, rounded to 6 digits as stored)": [
+    4.210526315384655e-07,
+    0.0
+  ],
+  "raw-window cache files (data/derived/raw_windows)": 88,
+  "raw-window cache cue codes": [
+    "2",
+    "3"
+  ],
+  "arm S run (cache holds REST, code 1)": false,
+  "T_ea_ft mean seed SD (points)": 0.10012656887287223,
+  "T_ea_ft_c14 mean seed SD (points)": 0.03453051849220235,
+  "T1_ea_ft mean seed SD (points)": 0.40439073878646,
+  "T2_ea_ft mean seed SD (points)": 0.4350586884915791,
+  "eegnet fits with windows the registry answers NaN (inner + test)": 3,
+  "those fits (arm, fold, subject, seed)": [
+    "T1_ea_ft final sub-11 seed 0",
+    "T1_ea_ft final sub-11 seed 1",
+    "T1_ea_ft final sub-11 seed 2"
+  ],
+  "W crops dropped over each patient's pre windows (patients with any, in total)": [
+    19,
+    81
+  ],
+  "test windows per task and label": {
+    "T1_ah_vs_sf label 1": 424,
+    "T1_ah_vs_sf label 2": 433,
+    "T2_rest_ah_sf label 0": 833,
+    "T2_rest_ah_sf label 1": 424,
+    "T2_rest_ah_sf label 2": 433,
+    "T3_sf_vs_rest label 0": 833,
+    "T3_sf_vs_rest label 2": 433
+  },
+  "AH windows of runs 03-04 passed through each T3 command": 424,
+  "headline arm (by inner validation)": "ts_lr_c14",
+  "git sha at summary": "d13d99f"
+}

@@ -1,0 +1,17 @@
+analysis,file,before,rows,rows_before,columns,missing_columns,cells_differing,max_abs_diff,identical,note,git_sha
+ex4_sf_command,ex4_sf_command_selection.csv,selection.csv,11,11,7,,0,0,True,,d13d99f
+ex4_sf_command,ex4_sf_command_selection_per_patient.csv,selection_per_patient.csv,22,22,12,,0,0,True,,d13d99f
+ex4_sf_command,ex4_sf_command_thresholds.csv,thresholds.csv,418,418,8,,0,0,True,,d13d99f
+ex4_sf_command,ex4_sf_command_table.csv,table.csv,87,87,16,,0,0,True,,d13d99f
+ex4_sf_command,ex4_sf_command_paired.csv,paired.csv,22,22,25,,0,0,True,,d13d99f
+ex4_sf_command,ex4_sf_command_coverage.csv,coverage.csv,121,121,10,,0,0,True,,d13d99f
+ex4_sf_command,ex4_sf_command_per_patient.csv,per_patient.csv,22,22,47,,0,0,True,,d13d99f
+ex4_sf_command,ex4_sf_command_gate_per_seed.csv,gate_per_seed.csv,418,418,13,,0,0,True,,d13d99f
+ex4_sf_command,ex4_sf_command_checks.json,checks.json,37,37,1,,0,0,True,,d13d99f
+ex4_sf_command,pred_inner_classical.csv,pred_inner_classical.csv,8818,8818,15,,0,0,True,not compared: fit_seconds,d13d99f
+ex4_sf_command,pred_inner_eegnet.csv,pred_inner_eegnet.csv,15141,15141,15,,0,0,True,not compared: fit_seconds,d13d99f
+ex4_sf_command,pred_test_classical.csv,pred_test_classical.csv,10997,10997,15,,0,0,True,not compared: fit_seconds,d13d99f
+ex4_sf_command,pred_test_eegnet.csv,pred_test_eegnet.csv,17781,17781,15,,0,0,True,not compared: fit_seconds,d13d99f
+ex4_sf_command,rerun of pred_inner_eegnet.csv,pred_inner_eegnet.csv,1398,1398,15,,0,0,True,re-run here for sub-01 sub-11; fit times not compared,d13d99f
+ex4_sf_command,rerun of pred_test_eegnet.csv,pred_test_eegnet.csv,1653,1653,15,,0,0,True,re-run here for sub-01 sub-11; fit times not compared,d13d99f
+ex4_sf_command,settings,settings,155,155,1,,11,,False,same keys; text renamed at /status; /arm_T/method; /arm_T/head; /arm_W/what; /arm_W/crop_source; /arm_S; /headline/written_by; /part2/hand_vs_finger_when_sure; /part2/checks; /machine/eegnet_parts; /headline_choice/files,d13d99f

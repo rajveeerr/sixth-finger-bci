@@ -1,0 +1,12 @@
+arm,task,inner_mean,inner_ci_lo,inner_ci_hi,n,headline_candidate
+csp_lda,T3_sf_vs_rest,0.778746,0.713529,0.84173,22,True
+ts_lr,T3_sf_vs_rest,0.785875,0.733127,0.83627,22,True
+ts_lr_c14,T3_sf_vs_rest,0.803446,0.7435,0.858561,22,True
+T_ea_ft,T3_sf_vs_rest,0.796097,0.738979,0.849826,22,True
+T_ea_ft_c14,T3_sf_vs_rest,0.547082,0.529414,0.567019,22,True
+W_ts_lr_c14,T3_sf_vs_rest,0.788521,0.725647,0.847752,22,True
+W_csp_lda,T3_sf_vs_rest,0.780978,0.714814,0.845425,22,True
+T1_ts_lr,T1_ah_vs_sf,0.55869,0.523516,0.592424,22,False
+T1_ea_ft,T1_ah_vs_sf,0.621369,0.587327,0.654422,22,False
+T2_ts_lr,T2_rest_ah_sf,0.572761,0.528449,0.617962,22,False
+T2_ea_ft,T2_rest_ah_sf,0.591318,0.540415,0.640842,22,False
