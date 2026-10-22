@@ -229,7 +229,8 @@ def carry(src: Path, dest: Path, columns: list[str], extra: dict | None = None) 
 
     The copy must have exactly `columns`, the ones the part writes itself.
     """
-    df = pd.read_csv(src)
+    # A commit can be all digits, which pandas would otherwise read as a number.
+    df = pd.read_csv(src, dtype={"git_sha": str})
     if list(df.columns) != columns:
         raise SystemExit(f"{src.name}: columns {list(df.columns)}, expected {columns}")
     for k, v in (extra or {}).items():

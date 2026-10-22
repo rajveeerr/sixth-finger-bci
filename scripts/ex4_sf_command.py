@@ -62,6 +62,8 @@ FOLDS = {
 PART1 = CONFIG["headline"]["candidates"]
 EEGNET = [a for a, s in CONFIG["arms"].items() if s["method"] == "eegnet_ea_ft"]
 CLASSICAL = [a for a, s in CONFIG["arms"].items() if s["method"] != "eegnet_ea_ft"]
+# A commit can be all digits, which pandas would otherwise read back as a number.
+PROVENANCE = {"git_sha": str, "source_commit": str}
 PRED_COLUMNS = ["subject", "task", "arm", "seed", "fold", "n_train", "fit_seconds",
                 "n_registry_nan", "n_dropped_crops", "kind", "trial_uid", "run", "label",
                 "p_rest", "p_ah", "p_sf"]  # fmt: skip
@@ -176,7 +178,7 @@ def run_part(fold_set: str, kind: str, per_patient, subjects: list[str] | None) 
     if final.exists():
         log.info("%s exists; nothing to do", final.name)
         return
-    rows = pd.read_csv(partial).to_dict("records") if partial.exists() else []
+    rows = pd.read_csv(partial, dtype=PROVENANCE).to_dict("records") if partial.exists() else []
     done = {r["subject"] for r in rows}
     for subject in pre_subjects():
         if subject in done:
@@ -289,7 +291,7 @@ def predictions(fold_set: str) -> pd.DataFrame:
         path = pred_path(fold_set, kind)
         if not path.exists():
             raise SystemExit(f"{path.name} missing: run --part {fold_set}_{kind} first")
-        frames.append(pd.read_csv(path))
+        frames.append(pd.read_csv(path, dtype=PROVENANCE))
     return pd.concat(frames, ignore_index=True)
 
 

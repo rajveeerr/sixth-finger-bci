@@ -1178,7 +1178,7 @@ def part_benchmark() -> None:
                   for r in rows if r["person"] == person})  # fmt: skip
         del X1, X2
         pd.DataFrame(rows).to_csv(partial, index=False)
-    pd.DataFrame(rows).to_csv(out("benchmark.csv"), index=False, float_format="%.6g")
+    save(rows, out("benchmark.csv"))
     partial.unlink()
 
 
