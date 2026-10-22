@@ -80,6 +80,49 @@ def model_parameters() -> int:
     return int(sum(np.prod(t.dims) for t in model.graph.initializer))
 
 
+def balanced(truth: list, guess: list) -> float:
+    """Each class's share read right, averaged over the classes (as balanced accuracy)."""
+    classes = sorted(set(truth))
+    hits = [np.mean([g == c for t, g in zip(truth, guess, strict=True) if t == c]) for c in classes]
+    return float(np.mean(hits))
+
+
+def demo_readings() -> dict:
+    """The demo's two readings, scored on its stored held-out predictions (predictions.json,
+    made by the same model as model.onnx): move or rest, rest's chance against the hand's
+    and the sixth finger's added, on every rest and imagery window; and the hand-or-finger
+    guess, the likelier of those two, on the imagery windows."""
+    demo = get_paths().root / "web" / "public" / "demo"
+    manifest = json.loads((demo / "manifest.json").read_text())
+    stored = json.loads((demo / "predictions.json").read_text())
+    if stored["model_sha256"] != manifest["model"]["sha256"]:
+        raise ValueError("predictions.json was made by another model than the manifest's")
+    names = [c["name"] for c in manifest["classes"]]
+    rest, hand, finger = (names.index(n) for n in ("rest", "affected_hand", "sixth_finger"))
+    cue = {t["index"]: names[t["label"]] for t in manifest["trials"]}
+    move_truth, move_read, which_truth, which_read = [], [], [], []
+    for item in stored["items"]:
+        p = item["probs"]
+        imagery = item["window"] == "imagery"
+        move_truth.append(imagery)
+        move_read.append(p[hand] + p[finger] > p[rest])
+        if imagery:
+            which_truth.append(cue[item["trial"]])
+            which_read.append(names[hand] if p[hand] >= p[finger] else names[finger])
+    return {
+        "move_rest": {
+            "acc": r(balanced(move_truth, move_read)),
+            "right": int(sum(t == g for t, g in zip(move_truth, move_read, strict=True))),
+            "n": len(move_truth),
+        },
+        "hand_finger": {
+            "acc": r(balanced(which_truth, which_read)),
+            "right": int(sum(t == g for t, g in zip(which_truth, which_read, strict=True))),
+            "n": len(which_truth),
+        },
+    }
+
+
 def build() -> dict:
     """The page's numbers, from the results summaries."""
     summary = get_paths().root / "results" / "summary"
@@ -242,6 +285,7 @@ def build() -> dict:
             "results/summary/rq1_runtime.csv",
             "results/summary/dl_pretrain_table.csv",
             "web/public/demo/model.onnx",
+            "web/public/demo/predictions.json",
             "mne colin27_1005 template",
         ],
         "electrodes": electrodes(),
@@ -292,6 +336,7 @@ def build() -> dict:
             "training_trials": demo["n_training_trials"],
             "model_bytes": demo["parity"]["bytes"],
             "parameters": model_parameters(),
+            **demo_readings(),
         },
     }
     return data

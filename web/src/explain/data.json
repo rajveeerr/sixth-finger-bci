@@ -17,6 +17,7 @@
   "results/summary/rq1_runtime.csv",
   "results/summary/dl_pretrain_table.csv",
   "web/public/demo/model.onnx",
+  "web/public/demo/predictions.json",
   "mne colin27_1005 template"
  ],
  "electrodes": [
@@ -778,6 +779,16 @@
   "trials_total": 40,
   "training_trials": 39,
   "model_bytes": 21812,
-  "parameters": 3195
+  "parameters": 3195,
+  "move_rest": {
+   "acc": 0.875,
+   "right": 63,
+   "n": 72
+  },
+  "hand_finger": {
+   "acc": 0.6944,
+   "right": 25,
+   "n": 36
+  }
  }
 }

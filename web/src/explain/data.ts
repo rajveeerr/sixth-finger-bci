@@ -32,6 +32,13 @@ export interface Scored {
   n: number;
 }
 
+/** A demo reading scored on the demo patient's stored held-out predictions. */
+export interface Counted {
+  acc: number;
+  right: number;
+  n: number;
+}
+
 export interface ExplainData {
   electrodes: Electrode[];
   erd: Record<"affected_hand" | "sixth_finger", { values: number[]; mean: number }>;
@@ -69,6 +76,10 @@ export interface ExplainData {
     training_trials: number;
     model_bytes: number;
     parameters: number;
+    /** Rest against the two movements added, on every rest and imagery window. */
+    move_rest: Counted;
+    /** The likelier of hand and sixth finger, on the imagery windows. */
+    hand_finger: Counted;
   };
 }
 
