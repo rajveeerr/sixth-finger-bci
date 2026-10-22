@@ -1,0 +1,11 @@
+{
+  "A baseline vs committed P06 ts_lr chrono pre (max abs diff)": 0.0,
+  "A central baseline vs committed rq4_visual_cue central_14 (max abs diff)": 0.0,
+  "C baseline vs committed P06 ts_lr chrono post (max abs diff)": 0.0,
+  "B zero-shot, committed-style argmax, vs committed dl_zeroshot T1 (max abs diff)": 0.0,
+  "B zero-shot, log-space probabilities, vs committed (max abs diff)": 0.0,
+  "B zero-shot patients with registry NaN windows": 1.0,
+  "B fine-tuned fits with registry NaN windows": 3.0,
+  "B mean seed SD (points)": 0.4043918744568462,
+  "B central mean seed SD (points)": 0.33396846883397946
+}
