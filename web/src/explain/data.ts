@@ -32,6 +32,16 @@ export interface Scored {
   n: number;
 }
 
+/** A score over the patients, and how many reached 80% and 90%. */
+export interface PerPatient {
+  mean: number;
+  ci: [number, number];
+  values: number[];
+  n: number;
+  n_ge_80: number;
+  n_ge_90: number;
+}
+
 /** A demo reading scored on the demo patient's stored held-out predictions. */
 export interface Counted {
   acc: number;
@@ -81,8 +91,31 @@ export interface ExplainData {
     /** The likelier of hand and sixth finger, on the imagery windows. */
     hand_finger: Counted;
   };
+  /** The sixth finger as its own command (question 3); runs 1 and 2 learned, 3 and 4 tested. */
+  sixth: {
+    /** Sixth finger or rest, the simple method on the 14 sensors over the movement strip. */
+    rest: PerPatient & { all_sensors: number };
+    /** Hand or sixth finger, the best method: EEGNet learned from other patients, then adjusted. */
+    which: PerPatient;
+    /** The switch acting only when sure, how sure set for each patient on runs 1 and 2 alone. */
+    sure: { acc: number; ci: [number, number]; share: number; n: number; n_ge_90: number; no_decision: number };
+    /** Accuracy on each patient's surest decisions, by the share of decisions taken. */
+    coverage: { share: number; acc: number; ci: [number, number] }[];
+    /** How often the switch turns on, on every decision and only when sure. */
+    fires: Record<"rest" | "hand" | "finger", { all: number; sure: number }>;
+    /** Hand or sixth finger with the best method, acting only when sure. */
+    which_sure: { acc: number; share: number; n: number; no_decision: number };
+    /** Healthy people, two or three grasps of one hand, learned one day and tested a week later. */
+    healthy: { people: number; pairs: [number, number]; three: [number, number] };
+  };
 }
 
 export const data = raw as unknown as ExplainData;
 
 export const pct = (v: number) => `${Math.round(v * 100)}%`;
+
+/** A range of shares in words, one number when both ends round to it. */
+export function pctRange([lo, hi]: [number, number]): string {
+  const [a, b] = [Math.round(lo * 100), Math.round(hi * 100)];
+  return a === b ? `${a}%` : `${a} to ${b}%`;
+}

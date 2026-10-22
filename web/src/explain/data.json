@@ -16,6 +16,10 @@
   "results/summary/rq5_null.csv",
   "results/summary/rq1_runtime.csv",
   "results/summary/dl_pretrain_table.csv",
+  "results/summary/ex4_sf_command_table.csv",
+  "results/summary/ex4_sf_command_per_patient.csv",
+  "results/summary/ex4_sf_command_coverage.csv",
+  "results/summary/ex3_grasp_pretraining_benchmark_summary.csv",
   "web/public/demo/model.onnx",
   "web/public/demo/predictions.json",
   "mne colin27_1005 template"
@@ -789,6 +793,201 @@
    "acc": 0.6944,
    "right": 25,
    "n": 36
+  }
+ },
+ "sixth": {
+  "rest": {
+   "mean": 0.8405,
+   "ci": [
+    0.7908,
+    0.8854
+   ],
+   "values": [
+    0.6875,
+    0.9375,
+    0.825,
+    0.8868,
+    0.9115,
+    0.7226,
+    0.8118,
+    0.7533,
+    0.9115,
+    0.9375,
+    0.9595,
+    0.8,
+    0.8357,
+    0.875,
+    0.65,
+    1.0,
+    0.9737,
+    0.8452,
+    0.5231,
+    0.8805,
+    0.9,
+    0.8622
+   ],
+   "n": 22,
+   "n_ge_80": 17,
+   "n_ge_90": 8,
+   "all_sensors": 0.8225
+  },
+  "which": {
+   "mean": 0.6559,
+   "ci": [
+    0.6143,
+    0.6959
+   ],
+   "values": [
+    0.575,
+    0.775,
+    0.75,
+    0.7,
+    0.8474,
+    0.6395,
+    0.7333,
+    0.7003,
+    0.4395,
+    0.6333,
+    0.525,
+    0.6509,
+    0.775,
+    0.7333,
+    0.6917,
+    0.7368,
+    0.6234,
+    0.5185,
+    0.575,
+    0.5368,
+    0.625,
+    0.6461
+   ],
+   "n": 22,
+   "n_ge_80": 1,
+   "n_ge_90": 0
+  },
+  "sure": {
+   "acc": 0.8937,
+   "ci": [
+    0.8502,
+    0.9333
+   ],
+   "share": 0.7653,
+   "n": 21,
+   "n_ge_90": 12,
+   "no_decision": 1
+  },
+  "coverage": [
+   {
+    "share": 0.1,
+    "acc": 0.9488,
+    "ci": [
+     0.8975,
+     0.9872
+    ]
+   },
+   {
+    "share": 0.2,
+    "acc": 0.9502,
+    "ci": [
+     0.8962,
+     0.9932
+    ]
+   },
+   {
+    "share": 0.3,
+    "acc": 0.9397,
+    "ci": [
+     0.8786,
+     0.9866
+    ]
+   },
+   {
+    "share": 0.4,
+    "acc": 0.9196,
+    "ci": [
+     0.8601,
+     0.9707
+    ]
+   },
+   {
+    "share": 0.5,
+    "acc": 0.9256,
+    "ci": [
+     0.8729,
+     0.9724
+    ]
+   },
+   {
+    "share": 0.6,
+    "acc": 0.9202,
+    "ci": [
+     0.8664,
+     0.9671
+    ]
+   },
+   {
+    "share": 0.7,
+    "acc": 0.9028,
+    "ci": [
+     0.8481,
+     0.9486
+    ]
+   },
+   {
+    "share": 0.8,
+    "acc": 0.8875,
+    "ci": [
+     0.8354,
+     0.9324
+    ]
+   },
+   {
+    "share": 0.9,
+    "acc": 0.8571,
+    "ci": [
+     0.8047,
+     0.9035
+    ]
+   },
+   {
+    "share": 1.0,
+    "acc": 0.8405,
+    "ci": [
+     0.7908,
+     0.8854
+    ]
+   }
+  ],
+  "fires": {
+   "rest": {
+    "all": 0.0454,
+    "sure": 0.0191
+   },
+   "hand": {
+    "all": 0.6268,
+    "sure": 0.4708
+   },
+   "finger": {
+    "all": 0.7263,
+    "sure": 0.5179
+   }
+  },
+  "which_sure": {
+   "acc": 0.8207,
+   "share": 0.2591,
+   "n": 19,
+   "no_decision": 3
+  },
+  "healthy": {
+   "people": 15,
+   "pairs": [
+    0.4867,
+    0.5387
+   ],
+   "three": [
+    0.3476,
+    0.3547
+   ]
   }
  }
 }

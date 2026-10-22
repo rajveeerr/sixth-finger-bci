@@ -123,6 +123,89 @@ def demo_readings() -> dict:
     }
 
 
+def sixth_command(summary: Path) -> dict:
+    """Question 3, the sixth finger as its own command (EX4): the headline switch (sixth finger
+    or rest, `ts_lr` on the 14 central channels), the same switch acting only when sure (arm
+    R), how often each kind of window turns it on, and hand or sixth finger with the best
+    method (`eegnet_ea_ft`), on every window and acting only when sure."""
+    table = pd.read_csv(summary / "ex4_sf_command_table.csv").set_index(["section", "row"])
+    per_patient = pd.read_csv(summary / "ex4_sf_command_per_patient.csv").sort_values("subject")
+    coverage = pd.read_csv(summary / "ex4_sf_command_coverage.csv")
+
+    def patients(row: pd.Series, column: str) -> dict:
+        return {
+            "mean": r(row["mean"]),
+            "ci": [r(row.ci_lo), r(row.ci_hi)],
+            "values": [r(v) for v in per_patient[column]],
+            "n": int(row.n),
+            "n_ge_80": int(row.n_ge_80),
+            "n_ge_90": int(row.n_ge_90),
+        }
+
+    switch = table.loc[("part1", "ts_lr_c14")]
+    if str(switch.headline) != "True":
+        raise ValueError("ts_lr_c14 is no longer EX4's headline arm")
+    sure = table.loc[("arm_R", "R (ts_lr_c14), accuracy when acting")]
+    which = table.loc[("part2_T1", "T1_ea_ft, all windows")]
+    which_sure = table.loc[("part2_T1", "T1_ea_ft, accuracy when acting")]
+    curve = coverage[(coverage.task == "T3_sf_vs_rest") & (coverage.arm == "ts_lr_c14")]
+    curve = curve[pd.to_numeric(curve.share, errors="coerce").notna()]
+    fires = {
+        name: {
+            "all": r(table.loc[("part2_fires", f"ts_lr_c14 fire_{kind}"), "mean"]),
+            "sure": r(table.loc[("part2_fires", f"ts_lr_c14 fire_{kind}_gated"), "mean"]),
+        }
+        for name, kind in (("rest", "rest"), ("hand", "ah"), ("finger", "sf"))
+    }
+    return {
+        "rest": {
+            **patients(switch, "test_ts_lr_c14"),
+            "all_sensors": r(table.loc[("part1", "ts_lr"), "mean"]),
+        },
+        "which": patients(which, "test_T1_ea_ft"),
+        "sure": {
+            "acc": r(sure["mean"]),
+            "ci": [r(sure.ci_lo), r(sure.ci_hi)],
+            "share": r(sure.share_mean),
+            "n": int(sure.n),
+            "n_ge_90": int(sure.n_ge_90),
+            "no_decision": int(sure.n_patients_no_action),
+        },
+        "coverage": [
+            {
+                "share": r(float(c.share), 2),
+                "acc": r(c.acc_when_acting),
+                "ci": [r(c.ci_lo), r(c.ci_hi)],
+            }
+            for c in curve.sort_values("share", key=lambda s: s.astype(float)).itertuples()
+        ],
+        "fires": fires,
+        "which_sure": {
+            "acc": r(which_sure["mean"]),
+            "share": r(which_sure.share_mean),
+            "n": int(which_sure.n),
+            "no_decision": int(which_sure.n_patients_no_action),
+        },
+    }
+
+
+def healthy_benchmark(summary: Path) -> dict:
+    """EX3's benchmark: healthy people's grasps of one hand, learned on day 1 and tested on day
+    2, with `ts_lr` and `csp_lda` on all day-1 trials; the lowest and highest mean over the
+    pairs of grasps, and over the two methods for all three."""
+    bench = pd.read_csv(summary / "ex3_grasp_pretraining_benchmark_summary.csv")
+    bench = bench[bench.train_set == "all"]
+    pairs = bench[bench.task != "all_three"]["mean"]
+    three = bench[bench.task == "all_three"]["mean"]
+    if (bench.n != bench.n.iloc[0]).any():
+        raise ValueError("the benchmark rows cover different numbers of people")
+    return {
+        "people": int(bench.n.iloc[0]),
+        "pairs": [r(pairs.min()), r(pairs.max())],
+        "three": [r(three.min()), r(three.max())],
+    }
+
+
 def build() -> dict:
     """The page's numbers, from the results summaries."""
     summary = get_paths().root / "results" / "summary"
@@ -284,6 +367,10 @@ def build() -> dict:
             "results/summary/rq5_null.csv",
             "results/summary/rq1_runtime.csv",
             "results/summary/dl_pretrain_table.csv",
+            "results/summary/ex4_sf_command_table.csv",
+            "results/summary/ex4_sf_command_per_patient.csv",
+            "results/summary/ex4_sf_command_coverage.csv",
+            "results/summary/ex3_grasp_pretraining_benchmark_summary.csv",
             "web/public/demo/model.onnx",
             "web/public/demo/predictions.json",
             "mne colin27_1005 template",
@@ -338,6 +425,7 @@ def build() -> dict:
             "parameters": model_parameters(),
             **demo_readings(),
         },
+        "sixth": {**sixth_command(summary), "healthy": healthy_benchmark(summary)},
     }
     return data
 
