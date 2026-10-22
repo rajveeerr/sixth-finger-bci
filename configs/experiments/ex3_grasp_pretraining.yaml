@@ -1,0 +1,167 @@
+# Exploratory, added after the results (protocol §12, 2026-10-23): EEGNet pre-trained on the
+# other patients plus 15 healthy people imagining three grasps of one hand (BCI Competition
+# 2020 Track 4), then fine-tuned, for AH vs SF; and a day-1 to day-2 grasp benchmark in the
+# healthy people. Every setting was fixed before any score on runs 03-04 (run 2026-10-21 to 23)
+# and is copied here unchanged; the earlier analyses' files are named by their promoted names.
+# Read by scripts/ex3_grasp_pretraining.py.
+question: 'Does pre-training on the other patients plus healthy same-hand grasp imagery, then fine-tuning
+  on each patient, beat arm B (eegnet_ea_ft, 65.6 %) on AH vs SF (T1_ah_vs_sf)? Side benchmark: how
+  well are two grasps of one hand told apart in healthy people, cross-day? Decided before looking
+  at any result.'
+status: exploratory; every setting fixed here before any score on runs 03-04
+task: T1_ah_vs_sf
+classes: [1, 2]
+session: pre
+train_runs: [1, 2]
+test_runs: [3, 4]
+window_s: [1.0, 5.0]
+patients: the 22 with a usable pre session (configs/data.yaml exclusions)
+grasp_data:
+  source: BCI Competition 2020 Track 4 (Jeong et al. 2022, 10.3389/fnhum.2022.898300), OSF pq7vb,
+    file guids from moabb.datasets.bcicomp2020_upper_limb (MOABB 1.7.2)
+  files: day 1 ('training') and day 2 ('validation') of S01-S15; day 3 not downloaded (its labels
+    come from an answer sheet in which several people share one label order)
+  raw_layout: epo.x (2501 samples, 60 channels, 150 trials), microvolts, 250 Hz, FCz online reference;
+    epo.y one-hot (cylindrical, spherical, lumbrical); epo.clab names
+  trial: 0-3 s rest, 3-6 s cue, 6-10 s motor imagery
+  conversion_order:
+  - per trial and channel, the mean over the full 10 s trial removed (offsets)
+  - microvolts to volts
+  - common average reference over the 39 recorded channels that match the authors' 43 (our 40 minus
+    FCz, PO5, PO6, plus Fp1 and Fp2; Fpz is this set's ground)
+  - FCz, PO5, PO6 added as bad channels on the standard_1005 montage and interpolated with MNE spherical
+    splines (interpolate_bads, reset_bads) from those 39
+  - band-pass 5-35 Hz, mne.filter.filter_data defaults (FIR, firwin, Hamming, zero phase), on the
+    full 10 s trial
+  - our 40 channels in configs/data.yaml order, cut to samples [1500, 2500) = the 4 s imagery period
+    starting at imagery onset, float32 volts
+  order_source: 'the authors'' Code.zip (step1: 1-35 Hz and notch, then common average with the online
+    reference restored; step2: 5-35 Hz, then spherical interpolation of bad channels, then ICA). Our
+    cached windows are their output; ICA and the manual steps cannot be repeated, the 1-35 Hz pass
+    is subsumed by 5-35 Hz (as the repo''s raw R40_535 arm did), and CAR and interpolation commute
+    because the spline reproduces a constant'
+  edge_note: the imagery period ends where the trial ends, so its last ~0.8 s lies within the filter's
+    half-length of the trial edge (MNE pads by reflection); measured in ex3_grasp_pretraining_checks.json
+  cache: data/derived/bcicomp2020_track4/<person>_<day>.npy (150, 40, 1000) float32 volts, labels
+    in labels.csv
+pretrain_recipe:
+  source: 'configs/models/eegnet_ea_ft.yaml and sixthfinger.models.deep (pretrain_loso, make_classifier,
+    pretrain_sources): EEGNet (braindecode defaults), inputs in microvolts, AdamW lr 1e-3 weight decay
+    1e-3, batch 32, shuffled, last batch kept, cosine schedule over 150 epochs, early stopping on
+    validation loss with patience 20 and the best epoch restored, seed 0'
+  patients: every window (REST, AH, SF; every session) of every source patient, as load_windows returns
+    them, aligned per patient over all its windows (prepare_inputs)
+  validation: the three patients pretrain_loso draws for the target (recorded in models/pretrained/manifest.json);
+    checked equal to the manifest for every target
+  device: mps for every pre-training if a timing check shows it faster than cpu, else cpu (ex3_grasp_pretraining_checks.json
+    device_timing)
+  loader: two data-loading worker processes, made afresh each epoch, so reading and aligning windows
+    overlaps the device; batch order and the random stream are unchanged (the equivalence check below
+    runs with them)
+  memory: windows read from the epoch cache by memory map and aligned on the fly with each subject's
+    own reference (the reference matrices prepare_inputs computes)
+  equivalence: 'this code path without grasp windows is checked against the repo''s pretrain_loso
+    (two epochs, cpu, seed 0, target sub-01 with one training patient): inputs, losses and weights
+    must be identical (ex3_grasp_pretraining_checks.json)'
+  order: 'one process at a time, never two parts at once (two or three at once made each epoch 2-4
+    times slower): grasp benchmark, G (pre-training, selection, fine-tuning), GP for the 22 targets
+    (sub-01 first, timed, then the projection), GP fine-tuning, P, the central control if its rule
+    holds. A pre-training cut off before its model and manifest entry are written leaves nothing and
+    restarts from scratch'
+arm_GP:
+  what: pre-trained on the other patients plus the 15 grasp people, then fine-tuned
+  sources: the target's manifest train_subjects (same partner exclusions) plus all 15 grasp people,
+    both days, all three grasps (4500 windows); the grasp people are only ever in training, the validation
+    set is the manifest's three patients
+  network: 'one EEGNet body; two output layers of the EEGNet final_layer shape: the patient head (REST,
+    AH, SF) and a grasp head (cylindrical, spherical, lumbrical). Each example''s cross-entropy uses
+    its own dataset''s head; one mean over the batch'
+  init: body and patient head drawn exactly as the single-head EEGNet under seed 0; the grasp head
+    drawn from its own generator (seed 0), so the global random stream (shuffling, dropout) starts
+    where it does without it
+  validation_loss: patient head on the three validation patients (as the original)
+  grasp_alignment: Euclidean alignment per grasp person per day, over that day's 150 windows, same
+    reference_matrix (rel_floor 1e-6)
+  lateral_side: 'participants.tsv Hemiplegia_side: for a target whose affected side is L, the grasp
+    windows are mirrored left-right (configs/data.yaml mirror_pairs, midline unchanged) for that target''s
+    pre-training; patients are not mirrored, as in B. Mirroring is applied after alignment (alignment
+    commutes with a channel permutation)'
+  saved: body and patient head as a plain 3-output EEGNet state dict, with a manifest entry in the
+    format pretrained_path() checks, under data/derived/grasp_pretraining/gp
+  finetune: unchanged eegnet_ea_ft (finetune_lr 1e-4, 20 epochs, batch 32, AdamW, cosine), patient
+    head, models_dir pointed at the GP models; Euclidean alignment from the labelled runs 01-02 AH
+    and SF windows; seeds 0, 1, 2; cpu, 2 torch threads; scored on runs 03-04 with the log-space renormalised
+    AH and SF columns as arm B was (ex1_transfer_ah_sf task_proba). The same path run on the committed
+    B models must give B's committed values (ex3_grasp_pretraining_checks.json finetune_path_reproduces_B)
+  descriptive_extra: the GP model without fine-tuning, aligned on the same windows (B's pretrained_same_alignment
+    row)
+arm_G:
+  what: pre-trained on the 15 grasp people only, then fine-tuned with a new head
+  pretrain: 'same recipe and code path as GP with no patient windows, grasp head only; validation:
+    three grasp people drawn as pretrain_loso draws (default_rng(0).choice of the sorted 15, size
+    3), the other 12 train; two pre-trainings, unmirrored (for targets with affected side R) and mirrored
+    (side L)'
+  finetune: the pre-trained body with a new 2-output layer (AH, SF; final_layer shape, drawn under
+    the fine-tuning seed); every layer trained, as eegnet_ea_ft; AdamW, batch 32, cosine, alignment
+    from the labelled windows; cpu, 2 threads; seeds 0, 1, 2
+  grid:
+    finetune_lr: [0.0001, 0.0003, 0.001]
+    finetune_epochs: [20, 50]
+  selection: 'as P08: pseudo-targets sub-01 and sub-03, session pre, fine-tuned on all AH and SF windows
+    of run 01, scored on run 02 (no run 03 or 04 read), seeds 0-2; the highest mean balanced accuracy
+    over both patients and seeds wins; ties go to the smaller learning rate, then the fewer epochs'
+  final: the chosen values, fine-tuned on runs 01-02, scored on runs 03-04
+arm_P:
+  what: 'reproduction check: the original patient-only pre-training re-run with this code, device
+    and seed (GP''s code path with no grasp windows; the unused grasp head never affects the patient
+    head), then the same fine-tuning as GP'
+  targets_rule: all 22 if the projection after timing the first GP pre-training puts the whole analysis
+    within about 8 hours of wall time; otherwise sub-01, sub-02, sub-03 (fixed now, before any score;
+    run after GP even past the budget, as three is the minimum for the check), more in order only
+    if time is left at the end
+  use: with all 22, GP vs P is the primary comparison; otherwise GP vs B is primary and P is reported
+    per target against B's committed per-patient values
+  equivalence_check: 'two epochs of this code path against the repo''s pretrain_loso on cpu for one
+    target, same seed: weights compared'
+arm_GP_central:
+  run_if: GP's mean paired difference over its primary control is above 0
+  what: GP fine-tuning and scoring with only the 14 central channels, the 26 others set to zero (as
+    ex1_transfer_ah_sf B_central), same GP models and seeds
+  compare_with: B central-only (results/summary/ex1_transfer_ah_sf_values_B_central.csv, 60.9 %) and
+    ts_lr central (results/summary/rq4_visual_cue_decode.csv, 56.4 %)
+benchmark:
+  what: 'within each grasp person: learn on day 1, test on day 2'
+  methods: ts_lr and csp_lda from the registry with configs/models/*.yaml unchanged
+  tasks:
+  - cylindrical_vs_spherical
+  - cylindrical_vs_lumbrical
+  - spherical_vs_lumbrical
+  - all_three
+  train_sets:
+    all: all day-1 trials of the task's classes (50 per class)
+    first40: the first 40 day-1 trials of each class, in recording order
+  test: all day-2 trials of the task's classes
+  input: the converted 40-channel cache, no alignment
+  metric: balanced accuracy per person; mean, SD, min, max over the 15
+baselines:
+  B: results/summary/ex1_transfer_ah_sf_values_B.csv, row finetuned, mean over seeds 0-2 (65.6 %)
+  B_central: results/summary/ex1_transfer_ah_sf_values_B_central.csv, row finetuned
+  ts_lr: results/summary/rq1_subject_values.csv, T1_ah_vs_sf, ts_lr, chrono, bandpower, pre (59.5
+    %)
+  ts_lr_central: results/summary/rq4_visual_cue_decode.csv, T1_ah_vs_sf, central_14
+  eegnet_scratch: results/summary/dl_baselines_subject_values.csv, T1_ah_vs_sf, chrono (61.6 %)
+  check: each baseline's mean recomputed from the committed per-patient file must equal the value
+    in results/summary/ex1_transfer_ah_sf_paired.csv exactly
+primary: GP vs P when P covers all 22 targets, otherwise GP vs B; everything else is descriptive
+stats:
+  unit: patient (22)
+  paired: two-sided Wilcoxon (scipy, zero_method wilcox), uncorrected, descriptive
+  ci: 95 % percentile bootstrap of the mean paired difference, 10000 resamples, seed 12345 (evaluation/stats.py)
+  also: better / worse / tied counts, mean seed SD
+  sensitivity: the same without the development patients sub-01 and sub-03
+compute:
+  budget: about 8 hours of wall time in total
+  pretrain_device: see pretrain_recipe.device
+  finetune_device: cpu, 2 torch threads (as B)
+  if_over_budget: GP keeps all 22 targets; P falls to its three fixed targets
+  disk: stop if free space would fall below 2.5 GB (GiB as df reports it)
