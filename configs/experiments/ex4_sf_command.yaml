@@ -1,0 +1,219 @@
+# Exploratory, added after the results (protocol §12, 2026-10-23): the sixth finger as its own
+# command (SF vs REST), acting only when sure, how often it fires on hand imagery, and hand vs
+# finger when sure. Every setting was fixed before any score on runs 03-04 (run 2026-10-22 to
+# 23); headline_choice was added by --part select from runs 01-02 alone, before any test score.
+# Copied here unchanged; the other analyses' files are named by their promoted names.
+# Read by scripts/ex4_sf_command.py.
+question: 'Can the robotic sixth finger work as its own command, and how reliable is it, tested fairly?
+  Part 1: sixth finger vs rest (T3_sf_vs_rest) as an on/off command. Part 2: is that command separate
+  from the affected hand? Decided before looking at any result.'
+status: exploratory; every setting fixed here before any score on runs 03-04; the headline arm is
+  chosen from runs 01-02 alone by --part select, which writes it into this file (headline_choice)
+  and refuses to run once any score on runs 03-04 exists
+session: pre
+patients: the 22 with a usable pre session (configs/data.yaml exclusions)
+train_runs: [1, 2]
+test_runs: [3, 4]
+window_s: [1.0, 5.0]
+tasks:
+  T3_sf_vs_rest: [0, 2]
+  T1_ah_vs_sf: [1, 2]
+  T2_rest_ah_sf: [0, 1, 2]
+training_windows: 'every cached window of the task''s classes in the training runs, as the committed
+  within-session chrono runs take them: for T3 every REST window (of AH and SF trials alike) and every
+  SF window. No AH imagery window is ever used to fit a T3 command'
+test_windows: every cached window of the task's classes in runs 03-04; Part 2 also passes the AH windows
+  of runs 03-04 through each T3 command
+metric: 'balanced accuracy (registry score(): argmax of the task''s probability columns)'
+arms:
+  csp_lda:
+    task: T3_sf_vs_rest
+    method: csp_lda
+    channels: all_40
+    crops: false
+    role: baseline
+  ts_lr:
+    task: T3_sf_vs_rest
+    method: ts_lr
+    channels: all_40
+    crops: false
+    role: baseline
+  ts_lr_c14:
+    task: T3_sf_vs_rest
+    method: ts_lr
+    channels: central_14
+    crops: false
+    role: baseline
+  T_ea_ft:
+    task: T3_sf_vs_rest
+    method: eegnet_ea_ft
+    channels: all_40
+    crops: false
+    role: arm T
+  T_ea_ft_c14:
+    task: T3_sf_vs_rest
+    method: eegnet_ea_ft
+    channels: central_14_zeroed
+    crops: false
+    role: arm T
+  W_ts_lr_c14:
+    task: T3_sf_vs_rest
+    method: ts_lr
+    channels: central_14
+    crops: true
+    role: arm W
+  W_csp_lda:
+    task: T3_sf_vs_rest
+    method: csp_lda
+    channels: all_40
+    crops: true
+    role: arm W
+  T1_ts_lr:
+    task: T1_ah_vs_sf
+    method: ts_lr
+    channels: all_40
+    crops: false
+    role: part 2
+  T1_ea_ft:
+    task: T1_ah_vs_sf
+    method: eegnet_ea_ft
+    channels: all_40
+    crops: false
+    role: part 2
+  T2_ts_lr:
+    task: T2_rest_ah_sf
+    method: ts_lr
+    channels: all_40
+    crops: false
+    role: part 2, descriptive
+  T2_ea_ft:
+    task: T2_rest_ah_sf
+    method: eegnet_ea_ft
+    channels: all_40
+    crops: false
+    role: part 2, descriptive
+baselines:
+  csp_lda: registry csp_lda (configs/models/csp_lda.yaml); must reproduce results/summary/rq1_subject_values.csv
+    (T3_sf_vs_rest, chrono, pre) exactly
+  ts_lr: registry ts_lr (configs/models/ts_lr.yaml), all 40 channels; must reproduce rq1_subject_values.csv
+    and rq4_visual_cue_decode.csv (all_40) exactly
+  ts_lr_c14: ts_lr on the 14 central channels (C1-C6, Cz, CP1-CP6, CPz); must reproduce rq4_visual_cue_decode.csv
+    (central_14) exactly
+arm_T:
+  method: 'eegnet_ea_ft (registry, configs/models/eegnet_ea_ft.yaml): finetune_lr 1e-4, finetune_epochs
+    20, batch 32, AdamW, cosine schedule; the code path of arm B in ex1_transfer_ah_sf'
+  models: 'models/pretrained/eegnet_loso_<target>_ea_raw.pt through pretrained_path() (manifest checked:
+    target and linked partner never seen)'
+  head: three outputs (REST, AH, SF) kept; fine-tuned on ids 0 and 2; columns 0 and 2 read and renormalised,
+    computed from the logits of those columns as ex1_transfer_ah_sf task_proba does (equal to the
+    registry's answer wherever that is defined, checked to 1e-4 on every call)
+  training: every REST and SF window of runs 01-02
+  alignment: 'Euclidean alignment reference from the same windows (protocol 4.2: at k > 0 the unlabelled
+    set equals the labelled set)'
+  channels:
+    all_40: the 40 published channels
+    central_14_zeroed: the 26 other channels set to zero before the unchanged method, as the earlier
+      central control did; checked on every fit that the alignment leaves them at zero
+  seeds: [0, 1, 2]
+  device: cpu
+  torch_threads: 2
+  per_patient_value: mean over the three seeds, never the best
+arm_W:
+  what: 'the whole imagery period: the baseline model unchanged (fit on the cached [1, 5) s windows
+    of the training runs), tested by the mean of its predict_proba over 4 s crops starting 0.0, 0.5,
+    1.0, 1.5 and 2.0 s after each window''s event (the crop starts of ex1_transfer_ah_sf arm A), so
+    the crops span [0, 6) s'
+  models:
+    W_ts_lr_c14: ts_lr, 14 central channels
+    W_csp_lda: csp_lda, all 40
+  rest_windows: REST windows are cropped the same way from their own event, the start of the 7 s fixation,
+    so their crops stay inside the fixation
+  crop_source: recut() from data/processed through ex1_transfer_ah_sf crops_for (the 1.0 s crop checked
+    equal to the cache); a crop that crosses a boundary or a run edge is dropped by the cache's own
+    rule and the window's other crops are averaged
+  labels: no test label used
+  crop_starts_s: [0.0, 0.5, 1.0, 1.5, 2.0]
+  crop_length_s: 4.0
+arm_S: 'run only if the raw-window cache of ex2_slow_waves (data/derived/raw_windows) holds REST windows.
+  Checked before any score: its 88 files hold cue codes 2 and 3 only (AH and SF), no REST, so arm
+  S is not run (recount in ex4_sf_command_checks.json)'
+inner_validation:
+  folds:
+    r1_to_r2: [[1], [2]]
+    r2_to_r1: [[2], [1]]
+  what: learn run 01, validate run 02, and the reverse; runs 03-04 never touched. Each arm is fitted
+    exactly as on runs 01-02 (same method, channels, crops, seeds), on one run
+  per_patient: 'mean of the two folds'' balanced accuracies (eegnet arms: also over the three seeds)'
+  arm_score: mean over the 22 patients
+headline:
+  candidates: [csp_lda, ts_lr, ts_lr_c14, T_ea_ft, T_ea_ft_c14, W_ts_lr_c14, W_csp_lda]
+  rule: the Part 1 arm (baselines included) with the highest inner-validation arm score; a tie goes
+    to the arm listed first
+  written_by: --part select, into this file under headline_choice, before any score on runs 03-04
+arm_R:
+  model: the headline arm
+  confidence: the largest of the task's (renormalised) class probabilities; for eegnet arms per seed
+  acts_on: every window whose confidence is at or above the patient's threshold; the decision is the
+    argmax
+  accuracy_when_acting: share of acted windows decided right, each window weighted by 1 / (number
+    of windows of its class in the set being scored), so that acting on every window gives the balanced
+    accuracy; plain accuracy reported next to it
+  threshold_rule: 'per patient (and per seed), from the pooled inner-validation predictions (run 02
+    by the run-01 model, run 01 by the run-02 model): the candidate thresholds are the distinct confidences;
+    among those acting on at least min_share of the inner windows, the lowest at which accuracy when
+    acting reaches target; if none does, the one with the highest accuracy when acting (a tie goes
+    to the lower one)'
+  target: 0.9
+  min_share: 0.1
+  test: 'the threshold applied unchanged to the final model''s confidences (fit on runs 01-02) on
+    runs 03-04; reported per patient: accuracy when acting and share acted. A patient with no acted
+    window has no accuracy and is counted'
+  eegnet: per seed (its own inner predictions and threshold), then the mean over the seeds that act
+    on at least one window
+  coverage_curve: 'descriptive: on runs 03-04 each patient''s windows ranked by confidence, the top
+    10, 20, ..., 100 % acted on (rounded up), accuracy when acting at each share, mean over patients'
+part2:
+  fires_on_hand: 'each Part 1 arm''s final command (fit on runs 01-02 with REST and SF windows only)
+    applied to the AH windows of runs 03-04 (W arms: the crop mean over the AH trial''s own crops;
+    central arms: the same channels or zeroing); fires = argmax is SF. Reported per patient: share
+    of AH windows that fire, and for context the share of REST windows (false alarms) and SF windows
+    (hits) of runs 03-04 that fire; also behind arm R''s gate (fires = acts and says SF). Headline:
+    the headline arm'
+  hand_vs_finger_when_sure: 'T1_ah_vs_sf under the arm R rule for ts_lr (all 40) and eegnet_ea_ft
+    (arm B of ex1_transfer_ah_sf: same models, alignment from the AH and SF windows of the training
+    runs, fine-tuning, seeds)'
+  three_way_when_sure: T2_rest_ah_sf under the arm R rule, descriptive, for ts_lr and eegnet_ea_ft
+    (all three columns)
+  checks: T1 ts_lr must reproduce rq1_subject_values.csv (T1, chrono, pre); T1 eegnet_ea_ft must reproduce
+    results/summary/ex1_transfer_ah_sf_values_B.csv (finetuned, per seed); T2 ts_lr must reproduce
+    rq1_subject_values.csv (T2, chrono, pre)
+stats:
+  unit: patient (22)
+  paired: two-sided Wilcoxon (scipy, zero_method wilcox), uncorrected, descriptive
+  ci: 95 % percentile bootstrap of the mean (paired difference, or a single arm's mean), 10000 resamples,
+    seed 12345 (evaluation/stats.py)
+  comparisons: every non-baseline Part 1 arm against each of the three baselines, in balanced-accuracy
+    points; better / worse counts; patients at 80 % and at 90 % or more
+  sensitivity: the same without the development patients sub-01 and sub-03
+machine:
+  process: one process at a time under nice -n 10; OMP, MKL, OpenBLAS, vecLib and torch threads 2;
+    one patient in memory at a time
+  eegnet_parts: only after ex3_grasp_pretraining has finished (its README.md exists and no grasp_pretraining.py
+    process runs), checked every 10 minutes
+  max_swap_gb: 8.0
+  min_free_disk_gb: 2.5
+  guard: checked before each patient; past either limit the part saves what it has and stops
+headline_choice:
+  arm: ts_lr_c14
+  inner_mean: 0.8034457193055562
+  inner_means:
+    csp_lda: 0.7787459058946182
+    ts_lr: 0.7858752850313678
+    ts_lr_c14: 0.8034457193055562
+    T_ea_ft: 0.7960967830114501
+    T_ea_ft_c14: 0.547081626377292
+    W_ts_lr_c14: 0.7885207341599827
+    W_csp_lda: 0.7809782321475786
+  chosen_at: '2026-10-23T01:50:06'
+  files: ex4_sf_command_selection.csv, ex4_sf_command_selection_per_patient.csv, ex4_sf_command_thresholds.csv
+    (runs 01-02 only)
