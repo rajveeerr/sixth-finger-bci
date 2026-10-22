@@ -148,6 +148,38 @@ export function SureTerm({ children }: { children: ReactNode }) {
   );
 }
 
+export function StripTerm({ children = "the 14 sensors over the movement strip" }: { children?: ReactNode }) {
+  return (
+    <Ref
+      card={
+        <>
+          <b>The movement strip</b> The band of brain across the top of the head that moves the body. The 14 sensors
+          over it are C1 to C6, Cz, CP1 to CP6 and CPz: the cap&apos;s middle row and the row just behind it. Those at
+          the back of the head, over the parts that handle sight, are left out.
+        </>
+      }
+    >
+      {children}
+    </Ref>
+  );
+}
+
+export function WhenSureTerm({ children = "acting only when sure" }: { children?: ReactNode }) {
+  return (
+    <Ref
+      card={
+        <>
+          <b>Acting only when sure</b> The switch acts only when its own estimate is past a bar, and otherwise waits for
+          the next reading. Each patient&apos;s bar was set on runs 1 and 2 alone, as the lowest at which it was right
+          90% of the time there, then kept unchanged for runs 3 and 4.
+        </>
+      }
+    >
+      {children}
+    </Ref>
+  );
+}
+
 export function PaperRef({ children = "the dataset's paper" }: { children?: ReactNode }) {
   return <DatasetRef>{children}</DatasetRef>;
 }

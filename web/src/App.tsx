@@ -2,7 +2,7 @@ import { Chapter } from "./components/Chapter";
 import { DemoStage } from "./components/DemoStage";
 import { IntroHand } from "./components/IntroHand";
 import { ManualTestBanner } from "./components/ManualTestBanner";
-import { data, pct } from "./explain/data";
+import { data, pct, pctRange } from "./explain/data";
 import { BciLoop } from "./explain/figures/BciLoop";
 import { BrainRhythm } from "./explain/figures/BrainRhythm";
 import { DataChecks } from "./explain/figures/DataChecks";
@@ -25,6 +25,9 @@ const LEAK_POINTS = [
   ...data.elsewhere.depression.map((d) => d.points),
 ];
 const LEAK_RANGE = [Math.round(Math.min(...LEAK_POINTS)), Math.round(Math.max(...LEAK_POINTS))];
+const S = data.sixth;
+// Hand or sixth finger, tested fairly: from the published method to the best we found.
+const TENTHS = [...new Set([data.leak.mean_leakfree, S.which.mean].map((v) => Math.round(v * 10)))].join(" to ");
 
 export default function App() {
   const stream = useDemoStream();
@@ -192,7 +195,9 @@ export default function App() {
               three things at once: resting, imagining the hand, or imagining the sixth finger. For some questions we
               also trained simpler two-way versions, such as sixth finger or rest, and compared EEGNet with older
               methods such as <CspTerm />: tested fairly, EEGNet scored a little higher at telling the movements apart,
-              and about the same at telling imagining from rest.
+              but lower at telling imagining from rest, where a simpler method does best (
+              <a href="#answer-3">question 3</a>). In the demo, its two movements are added together into one switch:
+              move or rest.
             </p>
           }
         >
@@ -233,9 +238,10 @@ export default function App() {
           title="What this project adds"
           lede={
             <p>
-              The accuracy did not go up: tested fairly, the hand and the sixth finger are told apart about 6 times in
-              10, not 8 or 9. What we added is a fair measure of what these recordings can do, the reason the published
-              number was higher, and how quickly a new patient could start.
+              Telling the hand from the sixth finger did not get much better: tested fairly, it is right {TENTHS} times
+              in 10, not 8 or 9. What we added is a fair measure of what these recordings can do, the reason
+              the published number was higher, how quickly a new patient could start, and what the sixth finger can be
+              used as today.
             </p>
           }
         >
@@ -275,8 +281,18 @@ export default function App() {
             <li>
               <h3>What the sixth finger can be used as today</h3>
               <p>
-                Not yet a command of its own, but an on/off switch, tested as if live, and what happens weeks later (
-                <a href="#answer-3">questions 3 to 5</a>).
+                A switch that says &quot;move now&quot;, right {pct(S.rest.mean)} of the time and {pct(S.sure.acc)} when
+                it acts only when sure, but not yet a command apart from the hand; also tested as if live, and weeks
+                later (<a href="#answer-3">questions 3 to 5</a>).
+              </p>
+            </li>
+            <li>
+              <h3>A benchmark in healthy people</h3>
+              <p>
+                In {S.healthy.people} healthy people, two grasps of one hand, learned on one day and tested a week later,
+                are told apart {pctRange(S.healthy.pairs)} of the time, about
+                what guessing gets: two movements of one hand are hard to tell apart in anyone (
+                <a href="#answer-3">question 3</a>).
               </p>
             </li>
             <li>

@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type PointerEvent, type ReactNode } from "react";
+import { nearestShare, type CoveragePoint } from "./sure";
 
 // Small charts in the page's hand: hairline axes, ink dots, direct labels, nothing filled
 // that does not carry a number. They lay themselves out in real pixels, so the type is the
@@ -73,7 +74,9 @@ export function DotStrip({
   const right = w - 18;
   // On a narrow screen the row's name goes above its dots, clear of the mean's value.
   const rowH = labelled ? (rows.length > 1 ? 62 : 70) : 84;
-  const top = labelled ? 26 : 40;
+  const top = labelled ? 26 : 52;
+  // Narrow, the marker's word sits higher, clear of the first row's name.
+  const markerY = labelled ? top - 10 : top - 24;
   const h = top + rowH * rows.length + 26;
   const x = scale(domain[0], domain[1], left, right);
   return (
@@ -81,8 +84,8 @@ export function DotStrip({
       <svg width={w} height={h} role="img" aria-label={label}>
         {marker && (
           <g className="chart-marker">
-            <line x1={x(marker.at)} x2={x(marker.at)} y1={top - 6} y2={h - 24} />
-            <text x={x(marker.at) + 6} y={top - 10} className="chart-italic">
+            <line x1={x(marker.at)} x2={x(marker.at)} y1={markerY + 4} y2={h - 24} />
+            <text x={x(marker.at) + 6} y={markerY} className="chart-italic">
               {marker.text}
             </text>
           </g>
@@ -355,6 +358,113 @@ export function Curves({
   );
 }
 
+/** Where the coverage chart's first and last points sit from its edges, so a slider can line up under them. */
+export const COVERAGE_INSET = { left: 60, right: 22 };
+
+/**
+ * Accuracy on the surest decisions against the share of decisions taken, its 95% interval
+ * as a faint band, the reader's pick ringed, and one rule's own result as a diamond.
+ */
+export function Coverage({
+  points,
+  at,
+  onPick,
+  mark,
+  label,
+}: {
+  points: CoveragePoint[];
+  /** The index the reader picked. */
+  at: number;
+  onPick: (i: number) => void;
+  mark?: { share: number; acc: number; text: string };
+  label: string;
+}) {
+  const [ref, w] = useWidth<HTMLDivElement>();
+  const h = 250;
+  const left = COVERAGE_INSET.left - 10;
+  const right = w - COVERAGE_INSET.right + 10;
+  const top = 16;
+  const bottom = h - 46;
+  const lowest = Math.min(...points.map((p) => p.ci[0]), mark?.acc ?? 1);
+  const floor = Math.min(0.7, Math.floor(lowest * 10) / 10);
+  const yTicks = Array.from({ length: Math.round((1 - floor) * 10) + 1 }, (_, k) => floor + k / 10);
+  const x = scale(points[0].share, points[points.length - 1].share, left + 10, right - 10);
+  const y = scale(floor, 1, bottom, top);
+  const xTicks = w >= 520 ? points.map((p) => p.share) : points.filter((_, k) => k % 3 === 0).map((p) => p.share);
+  const band =
+    points.map((p, i) => `${i ? "L" : "M"}${x(p.share)} ${y(p.ci[1])}`).join("") +
+    [...points]
+      .reverse()
+      .map((p) => `L${x(p.share)} ${y(p.ci[0])}`)
+      .join("") +
+    "Z";
+  const line = points.map((p, i) => `${i ? "L" : "M"}${x(p.share)} ${y(p.acc)}`).join("");
+  const picked = points[at];
+  const pickAt = (e: PointerEvent<SVGRectElement>) => {
+    const box = e.currentTarget.getBoundingClientRect();
+    const share = scale(left + 10, right - 10, points[0].share, points[points.length - 1].share)(e.clientX - box.left + left);
+    onPick(nearestShare(points, share));
+  };
+  const markSize = 5;
+  return (
+    <div ref={ref} className="chart">
+      <svg width={w} height={h} role="img" aria-label={label}>
+        {yTicks.map((t) => (
+          <g key={t}>
+            <line x1={left} x2={right} y1={y(t)} y2={y(t)} className="chart-grid" />
+            <text x={left - 10} y={y(t) + 4} textAnchor="end" className="chart-tick">
+              {pct(t)}
+            </text>
+          </g>
+        ))}
+        <line x1={left} x2={right} y1={bottom} y2={bottom} className="chart-axis" />
+        {xTicks.map((t) => (
+          <text key={t} x={x(t)} y={bottom + 17} textAnchor="middle" className="chart-tick">
+            {pct(t)}
+          </text>
+        ))}
+        <text x={(left + right) / 2} y={bottom + 37} textAnchor="middle" className="chart-tick">
+          share of decisions it takes, surest first
+        </text>
+        <line x1={x(picked.share)} x2={x(picked.share)} y1={top} y2={bottom} className="chart-guide" />
+        <g className="chart-series">
+          <path d={band} className="chart-band" />
+          <path d={line} className="chart-line" />
+          {points.map((p, i) => (
+            <circle key={p.share} cx={x(p.share)} cy={y(p.acc)} r={i === at ? 5.5 : 3} className="chart-point" />
+          ))}
+        </g>
+        <text x={x(picked.share)} y={y(picked.acc) - 12} textAnchor="middle" className="chart-pop">
+          {pct(picked.acc)}
+        </text>
+        {mark && (
+          <g className="chart-rule">
+            <rect
+              x={x(mark.share) - markSize}
+              y={y(mark.acc) - markSize}
+              width={markSize * 2}
+              height={markSize * 2}
+              transform={`rotate(45 ${x(mark.share)} ${y(mark.acc)})`}
+            />
+            <text x={x(mark.share) - 12} y={y(mark.acc) + 22} textAnchor="end" className="chart-italic">
+              {mark.text}
+            </text>
+          </g>
+        )}
+        <rect
+          x={left}
+          y={top}
+          width={Math.max(0, right - left)}
+          height={bottom - top}
+          className="chart-catch"
+          onPointerDown={pickAt}
+          onPointerMove={(e) => (e.pointerType === "mouse" || e.buttons) && pickAt(e)}
+        />
+      </svg>
+    </div>
+  );
+}
+
 export interface BarRow {
   label: string;
   value: number;
@@ -362,17 +472,27 @@ export interface BarRow {
 }
 
 /** A few labelled bars on one scale, with where guessing lands. */
-export function Bars({ rows, guess, label }: { rows: BarRow[]; guess?: number; label: string }) {
+export function Bars({
+  rows,
+  guess,
+  label,
+  format = pct,
+}: {
+  rows: BarRow[];
+  guess?: number;
+  label: string;
+  format?: (v: number) => string;
+}) {
   return (
     <div className="hbars" role="img" aria-label={label}>
       {rows.map((r) => (
         <div key={r.label} className="hbar" data-strong={r.strong ? "" : undefined}>
           <span className="hbar-label">{r.label}</span>
           <span className="hbar-track">
-            <span className="hbar-fill" style={{ width: pct(r.value) }} />
+            <span className="hbar-fill" style={{ width: `${r.value * 100}%` }} />
             {guess !== undefined && <span className="hbar-guess" style={{ left: pct(guess) }} />}
           </span>
-          <span className="hbar-value">{pct(r.value)}</span>
+          <span className="hbar-value">{format(r.value)}</span>
         </div>
       ))}
       {guess !== undefined && (

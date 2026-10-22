@@ -1,7 +1,7 @@
 // What the study found, in plain words, with the numbers from data.json: one answer for
 // each of the five questions in "What we set out to find", in the same order.
 
-import { data } from "./data";
+import { data, pctRange } from "./data";
 import type { Split } from "./figures/LearnTest";
 
 export interface Finding {
@@ -33,9 +33,11 @@ export interface Finding {
   see: { href: string; text: string }[];
 }
 
-const task = (key: string) => data.tasks.find((t) => t.key === key)!;
 const pct = (v: number) => `${Math.round(v * 100)}%`;
+/** A share, with one decimal when it is small enough for rounding to hide it. */
+export const pctFine = (v: number) => (v < 0.095 ? `${(v * 100).toFixed(1)}%` : pct(v));
 const L = data.later;
+const S = data.sixth;
 const T0 = data.calibration.transfer[0];
 // When starting from scratch first does as well as one trial of each movement from other patients.
 const scratchReach = data.calibration.scratch.find((p) => p.mean >= T0.mean - 0.005)?.minutes ?? NaN;
@@ -122,28 +124,45 @@ export const FINDINGS: Finding[] = [
     key: "sixth",
     answers: 3,
     question: "Is the sixth finger a command of its own?",
-    short: "Sixth finger or hand",
+    short: "Sixth finger or rest",
     scale: "guessing gets 50%",
-    value: task("T1_ah_vs_sf").mean,
-    other: { value: task("T3_sf_vs_rest").mean, label: "telling it from resting" },
+    value: S.rest.mean,
+    other: { value: S.which.mean, label: "hand or sixth finger, at best" },
     guess: 0.5,
-    lead: "Not yet. The model tells imagining from resting, but barely which movement.",
-    answer: `Imagining the sixth finger is told apart from resting ${pct(task("T3_sf_vs_rest").mean)} of the time. Some of that may not be the imagining: during rest the screen shows a cross and during imagining a picture, and sensors at the back of the head, over the parts that handle sight, can also tell the two apart. Told apart from imagining the hand, ${pct(task("T1_ah_vs_sf").mean)}, a little over guessing: the rhythm drops by about the same amount for both. A model trained only on imagining the hand picked out sixth-finger imagining about as well as one trained on the sixth finger itself. So the demo also offers an on/off switch.`,
-    note: "One dot per patient, for each two-way choice: trained on the patient's first two runs, tested on the last two. The black line is the average.",
-    how: "For each patient, a model learned each two-way choice from the first two runs and was tested on the last two. A model trained to find imagined hand movements was then asked to find imagined sixth-finger movements, and compared with a model trained on those.",
+    lead: 'Yes, as a switch that says "move now". Not yet as a command apart from the hand.',
+    answer: `For most patients, imagining the sixth finger switches it on and resting leaves it off, read from the 14 sensors over the strip of brain that moves the body alone (all 40 give ${pct(S.rest.all_sensors)}). But imagining the hand switches it on too, so it picks up imagining a movement, not the finger itself. That is why the demo's finger moves for either.`,
+    points: [
+      `As a switch: right ${pct(S.rest.mean)} of the time, where guessing gets 50%. ${S.rest.n_ge_80} of ${S.rest.n} patients are at 80% or more, and ${S.rest.n_ge_90} at 90% or more.`,
+      `Acting only when sure, with how sure it must be set for each patient on runs 1 and 2 alone: right on ${pct(S.sure.acc)} of the decisions it takes, and it takes ${pct(S.sure.share)} of them. ${S.sure.n_ge_90} of ${S.sure.n} patients are at 90% or more. While the patient rests, it moves the finger by mistake ${pctFine(S.fires.rest.sure)} of the time.`,
+      `It also switches on for ${pct(S.fires.hand.all)} of imagined hand movements, nearly as often as for the sixth finger (${pct(S.fires.finger.all)}). So it reads "imagining a movement", not "the finger".`,
+      `Hand or sixth finger is much harder. The best model, a network that first learned from the other patients, is right ${pct(S.which.mean)} of the time. When it is sure it is right ${pct(S.which_sure.acc)} of the time, but it is sure on only ${pct(S.which_sure.share)} of trials.`,
+      `Two movements of one hand are hard to tell apart even in healthy people: in ${S.healthy.people} of them, two grasps learned on one day were told apart a week later ${pctRange(S.healthy.pairs)} of the time, and three about ${pctRange(S.healthy.three)}, no better than guessing (50% and 33%).`,
+    ],
+    note: `${S.rest.n} patients. Every model learned from the patient's first two runs and was tested on the last two, which it never saw.`,
+    how: `For each patient, a simple model learned sixth finger or rest from runs 1 and 2, reading only the 14 sensors over the movement strip, and was tested on runs 3 and 4. How sure it must be before acting was also set on runs 1 and 2, learning on one and checking on the other. It never learned from an imagined hand movement, so the hand trials of runs 3 and 4 show how often one would switch it on. For hand or sixth finger, a network first learned from every recording of the other patients, then was adjusted to runs 1 and 2. Every method and setting was fixed before runs 3 and 4 were scored. The ${S.healthy.people} healthy people come from another public recording of imagined grasps, made on two days a week apart.`,
     split: {
       label: "What each model learned from and what it was tested on",
       rows: [
         {
+          title: "Other patients",
+          note: "only for hand or sixth finger",
+          many: true,
+          runs: ["learn", "learn", "learn", "learn"],
+          learns: "the network first learns from all their sessions",
+          sometimes: true,
+        },
+        {
           title: "Each patient",
-          note: "session 1, each two-way choice",
+          note: "session 1",
           runs: ["learn", "learn", "test", "test"],
-          learns: "learns from runs 1 and 2",
-          tested: "tested on runs 3 and 4",
+          learns: "learns from runs 1 and 2, and how sure to be before acting",
+          tested: "tested on runs 3 and 4, hand trials too",
         },
       ],
+      note: "The switch learned from rest and sixth-finger trials only, so the hand trials of runs 3 and 4 were new to it.",
     },
     see: [
+      { href: "#demo", text: "The demo's finger, moved by this switch" },
       { href: "#model", text: "The model, in chapter 6" },
       { href: "#brain", text: "What changes in the brain, in chapter 3" },
     ],
@@ -157,6 +176,10 @@ export const FINDINGS: Finding[] = [
     value: data.switch.detection,
     lead: "Partly. It catches about 2 in 3 imagined movements, but switches on by mistake too often for a device yet.",
     answer: `Played as if live, without being told when the instruction came, the finger switches on about ${Math.round(data.switch.latency_s)} s after the patient starts imagining: the model needs a few seconds of imagining inside the 4 s it reads. While the patient rests, it switches on by mistake about ${Math.round(data.switch.false_per_minute)} time a minute.`,
+    points: [
+      `A harder test than question 3's ${pct(S.rest.mean)}. There, the model read 4 s placed from the moment the instruction appeared, so it knew where to look; here it reads every half second and must find the start of imagining itself.`,
+      "And another model: here it is the demo's, EEGNet learned from the patient alone on all 40 sensors. Question 3's switch is a simpler model on the 14 sensors over the movement strip.",
+    ],
     note: `Every half second the model reads the newest 4 s and gives the chance that a movement is being imagined (hand and sixth finger added together). A running average steadies that chance; the finger turns on when it is above 60% twice in a row, and off when it falls below 45%. Average of ${data.switch.n} patients.`,
     how: "We played each of a patient's last two runs to the model as one unbroken signal, a reading every half second, without telling it when the instructions came, and counted when the finger would have switched on: while the patient imagined (caught) or while they rested (a mistake).",
     split: {
@@ -171,7 +194,7 @@ export const FINDINGS: Finding[] = [
         },
       ],
     },
-    see: [{ href: "#demo", text: "Try it in the demo: continuous mode with the on/off switch" }],
+    see: [{ href: "#demo", text: "Try it in the demo, in continuous mode" }],
   },
   {
     key: "later",

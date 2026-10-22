@@ -1209,9 +1209,35 @@ code {
 .chart-dot {
   cursor: pointer;
 }
+.chart-rule rect {
+  fill: #fff;
+  stroke: var(--ink);
+  stroke-width: 1.5;
+}
+/* The pointer picks the nearest point anywhere over the plot; a finger can still scroll. */
+.chart-catch {
+  fill: transparent;
+  cursor: crosshair;
+  touch-action: pan-y;
+}
 .finding-note {
   margin: 8px 0 0;
   font-size: 13.5px;
+  color: var(--ink-3);
+}
+/* An answer with several figures: a small name over each, and a line under it. */
+.evidence-title {
+  margin: 26px 0 6px;
+  font-size: 15px;
+  font-weight: 600;
+}
+.evidence-title:first-child {
+  margin-top: 4px;
+}
+.evidence-say {
+  margin: 6px 0 0;
+  font-size: 13.5px;
+  line-height: 1.5;
   color: var(--ink-3);
 }
 .figures-row {

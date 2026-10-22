@@ -1,14 +1,15 @@
 import { useEffect, useRef, useState } from "react";
-import { Bars, Curves, DotStrip, Slope } from "../charts";
+import { Bars, Coverage, COVERAGE_INSET, Curves, DotStrip, Slope } from "../charts";
 import { data } from "../data";
-import { FINDINGS, type Finding } from "../findings";
+import { FINDINGS, pctFine, type Finding } from "../findings";
+import { StripTerm, WhenSureTerm } from "../refs";
+import { coverageAt, plain, sayCoverage, type Said } from "../sure";
 import { Gauge } from "./Gauge";
 import { LeakDiagram } from "./LeakDiagram";
 import { LearnTest } from "./LearnTest";
 import { SetupFlow } from "./SetupFlow";
 
 const pct = (v: number) => `${Math.round(v * 100)}%`;
-const task = (key: string) => data.tasks.find((t) => t.key === key)!;
 const minutes = (m: number) => (m < 1 ? `${Math.round(m * 60)} s` : `${m.toFixed(1)} min`);
 
 /** The setup curves with a slider along the practice, reading both curves where it stands. */
@@ -74,24 +75,96 @@ function LaterEvidence() {
   );
 }
 
-/** The evidence under each answer: every patient where there is one value each. */
-function Evidence({ f }: { f: Finding }) {
-  if (f.key === "sixth") {
-    const rest = task("T3_sf_vs_rest");
-    const which = task("T1_ah_vs_sf");
-    return (
+const Say = ({ said }: { said: Said }) => (
+  <>{said.map((s, i) => (typeof s === "string" ? s : <b key={i}>{s.b}</b>))}</>
+);
+
+/** Answer 3: each patient on both choices, the switch acting only when sure, and what turns it on. */
+function SixthEvidence() {
+  const S = data.sixth;
+  const C = S.coverage;
+  const [i, setI] = useState(C.length - 1);
+  const [sure, setSure] = useState(false);
+  const at = coverageAt(C, i);
+  const fires = sure ? "sure" : "all";
+  return (
+    <>
+      <h4 className="evidence-title">Each patient</h4>
       <DotStrip
         rows={[
-          { label: "Sixth finger or resting?", values: rest.values, mean: rest.mean },
-          { label: "Hand or sixth finger?", values: which.values, mean: which.mean },
+          { label: "Sixth finger or resting?", values: S.rest.values, mean: S.rest.mean },
+          { label: "Hand or sixth finger?", values: S.which.values, mean: S.which.mean },
         ]}
         domain={[0.3, 1]}
         ticks={[0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]}
         marker={{ at: 0.5, text: "guessing" }}
         label="Accuracy of each patient's model on two two-way choices"
       />
-    );
-  }
+      <p className="evidence-say">
+        One dot per patient; point at or tap one to see its score. Sixth finger or resting: a simple model reading{" "}
+        <StripTerm />. Hand or sixth finger: the best model, a network that first learned from the other patients.
+      </p>
+
+      <h4 className="evidence-title">
+        <WhenSureTerm>Acting only when sure</WhenSureTerm>
+      </h4>
+      <Coverage
+        points={C}
+        at={i}
+        onPick={setI}
+        mark={{ share: S.sure.share, acc: S.sure.acc, text: "a bar set for each patient" }}
+        label="Accuracy of the sixth-finger switch on its surest decisions, against the share of decisions it takes"
+      />
+      {/* The thumb (18 px wide) is centred over each point of the chart above. */}
+      <div className="scrub" style={{ padding: `0 ${COVERAGE_INSET.right - 9}px 0 ${COVERAGE_INSET.left - 9}px` }}>
+        <input
+          type="range"
+          min={0}
+          max={C.length - 1}
+          step={1}
+          value={i}
+          aria-label="Share of decisions the switch takes"
+          aria-valuetext={plain(sayCoverage(at))}
+          onChange={(e) => setI(Number(e.target.value))}
+        />
+      </div>
+      <p className="chart-say" aria-live="polite">
+        <Say said={sayCoverage(at)} />
+      </p>
+      <p className="evidence-say">
+        Slide toward fewer decisions to make it stricter. The diamond is how sure each patient&apos;s switch had to be,
+        set on runs 1 and 2 alone: right on {pct(S.sure.acc)} of the decisions it took, taking {pct(S.sure.share)} of
+        them ({S.sure.n} patients; {S.sure.no_decision === 1 ? "one" : S.sure.no_decision} got no decision at all).
+      </p>
+
+      <h4 className="evidence-title">What switches the finger on</h4>
+      <div className="toggle" role="radiogroup" aria-label="Which decisions">
+        {[false, true].map((on) => (
+          <button key={String(on)} type="button" role="radio" aria-checked={sure === on} onClick={() => setSure(on)}>
+            {on ? "Only when sure" : "Every decision"}
+          </button>
+        ))}
+      </div>
+      <Bars
+        rows={[
+          { label: "Resting", value: S.fires.rest[fires] },
+          { label: "Imagining the hand", value: S.fires.hand[fires], strong: true },
+          { label: "Imagining the sixth finger", value: S.fires.finger[fires], strong: true },
+        ]}
+        format={pctFine}
+        label={`How often the switch turns on: resting ${pctFine(S.fires.rest[fires])}, imagining the hand ${pct(S.fires.hand[fires])}, imagining the sixth finger ${pct(S.fires.finger[fires])}`}
+      />
+      <p className="evidence-say">
+        How often each kind of trial in runs 3 and 4 switches it on. It never learned from an imagined hand movement,
+        yet those switch it on almost as often as the sixth finger.
+      </p>
+    </>
+  );
+}
+
+/** The evidence under each answer: every patient where there is one value each. */
+function Evidence({ f }: { f: Finding }) {
+  if (f.key === "sixth") return <SixthEvidence />;
   if (f.key === "leak") {
     const L = data.leak;
     return (
