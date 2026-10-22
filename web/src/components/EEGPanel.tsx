@@ -111,6 +111,7 @@ export function paint(ctx: CanvasRenderingContext2D, ring: EegRing, w: number, h
   const justRead = newest && ring.total - newest.end < ring.sfreq * 1.2;
   ctx.font = FONT;
   ctx.textAlign = "left";
+  const stamps: [number, number][] = [];
   ring.marks.forEach((m, j) => {
     const x1 = xOf(m.end - first);
     const x0 = Math.max(xOf(m.end - m.len - first), labelW);
@@ -125,6 +126,7 @@ export function paint(ctx: CanvasRenderingContext2D, ring: EegRing, w: number, h
     const text = `${age === 0 && justRead ? "Model read: " : ""}${SAY[m.kind] ?? m.kind} ${m.right === null ? "" : m.right ? "✓" : "✗"}`;
     const tw = ctx.measureText(text).width + 16;
     const tx = Math.min(x0, w - tw - 2);
+    stamps.push([tx, tx + tw]);
     ctx.fillStyle = colour;
     roundRect(ctx, tx, top - 32, tw, 22, 5);
     ctx.fill();
@@ -139,10 +141,15 @@ export function paint(ctx: CanvasRenderingContext2D, ring: EegRing, w: number, h
     roundRect(ctx, fx0, top - 6, right - fx0, plotH + 4, 6);
     ctx.stroke();
     ctx.setLineDash([]);
-    ctx.fillStyle = MUTED;
-    ctx.textAlign = "right";
-    ctx.fillText("The model reads the newest 4 s", right, top - 21);
-    ctx.textAlign = "left";
+    // On a narrow panel a passing stamp can sit where this label goes; the stamp wins.
+    const label = "The model reads the newest 4 s";
+    const lx = right - ctx.measureText(label).width;
+    if (!stamps.some(([a, b]) => a < right && b > lx - 6)) {
+      ctx.fillStyle = MUTED;
+      ctx.textAlign = "right";
+      ctx.fillText(label, right, top - 21);
+      ctx.textAlign = "left";
+    }
   }
 
   // Where the signal comes in, and 1 second of time.

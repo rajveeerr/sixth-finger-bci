@@ -112,7 +112,7 @@ function SixthEvidence() {
         points={C}
         at={i}
         onPick={setI}
-        mark={{ share: S.sure.share, acc: S.sure.acc, text: "a bar set for each patient" }}
+        mark={{ share: S.sure.share, acc: S.sure.acc, text: "each patient's own threshold" }}
         label="Accuracy of the sixth-finger switch on its surest decisions, against the share of decisions it takes"
       />
       {/* The thumb (18 px wide) is centred over each point of the chart above. */}
