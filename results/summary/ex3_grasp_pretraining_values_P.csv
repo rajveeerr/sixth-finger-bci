@@ -1,0 +1,13 @@
+arm,subject,session,n_train,n_test,row,seed,bal_acc,n_registry_nan,git_sha,source_commit
+P,sub-01,pre,39,40,finetuned,0,0.575,0,2c0fd20,39457f4
+P,sub-01,pre,39,40,finetuned,1,0.575,0,2c0fd20,39457f4
+P,sub-01,pre,39,40,finetuned,2,0.575,0,2c0fd20,39457f4
+P,sub-01,pre,39,40,pretrained_same_alignment,-1,0.55,0,2c0fd20,39457f4
+P,sub-02,pre,40,40,finetuned,0,0.825,0,2c0fd20,39457f4
+P,sub-02,pre,40,40,finetuned,1,0.825,0,2c0fd20,39457f4
+P,sub-02,pre,40,40,finetuned,2,0.825,0,2c0fd20,39457f4
+P,sub-02,pre,40,40,pretrained_same_alignment,-1,0.8,0,2c0fd20,39457f4
+P,sub-03,pre,38,40,finetuned,0,0.725,0,2c0fd20,39457f4
+P,sub-03,pre,38,40,finetuned,1,0.725,0,2c0fd20,39457f4
+P,sub-03,pre,38,40,finetuned,2,0.725,0,2c0fd20,39457f4
+P,sub-03,pre,38,40,pretrained_same_alignment,-1,0.725,0,2c0fd20,39457f4

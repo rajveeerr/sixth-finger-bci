@@ -1,0 +1,18 @@
+analysis,file,before,rows,rows_before,columns,missing_columns,cells_differing,max_abs_diff,identical,note,git_sha
+ex3_grasp_pretraining,ex3_grasp_pretraining_values_GP.csv,values_GP.csv,88,88,9,,0,0,True,,d13d99f
+ex3_grasp_pretraining,ex3_grasp_pretraining_values_G.csv,values_G.csv,66,66,9,,0,0,True,,d13d99f
+ex3_grasp_pretraining,ex3_grasp_pretraining_values_P.csv,values_P.csv,12,12,9,,0,0,True,,d13d99f
+ex3_grasp_pretraining,ex3_grasp_pretraining_g_selection.csv,g_selection.csv,6,6,7,,0,0,True,,d13d99f
+ex3_grasp_pretraining,ex3_grasp_pretraining_benchmark.csv,benchmark.csv,240,240,8,,0,0,True,,d13d99f
+ex3_grasp_pretraining,ex3_grasp_pretraining_benchmark_summary.csv,benchmark_summary.csv,16,16,12,,0,0,True,,d13d99f
+ex3_grasp_pretraining,ex3_grasp_pretraining_paired.csv,paired.csv,11,11,21,,0,0,True,,d13d99f
+ex3_grasp_pretraining,ex3_grasp_pretraining_per_patient.csv,per_patient.csv,22,22,22,,0,0,True,,d13d99f
+ex3_grasp_pretraining,ex3_grasp_pretraining_pretraining.csv,pretraining.csv,51,51,11,,0,0,True,,d13d99f
+ex3_grasp_pretraining,ex3_grasp_pretraining_checks.json,checks.json,154,154,1,,0,0,True,,d13d99f
+ex3_grasp_pretraining,rerun of values_GP.csv,ex3_grasp_pretraining_values_GP.csv,88,88,9,,0,0,True,re-run here for sub-01 sub-02 sub-03 sub-04 sub-05 sub-06 sub-07 sub-08 sub-09 sub-10 sub-11 sub-12 sub-13 sub-14 sub-15 sub-16 sub-17 sub-18 sub-19 sub-20 sub-23 sub-24,d13d99f
+ex3_grasp_pretraining,rerun of values_G.csv,ex3_grasp_pretraining_values_G.csv,66,66,9,,0,0,True,re-run here for sub-01 sub-02 sub-03 sub-04 sub-05 sub-06 sub-07 sub-08 sub-09 sub-10 sub-11 sub-12 sub-13 sub-14 sub-15 sub-16 sub-17 sub-18 sub-19 sub-20 sub-23 sub-24,d13d99f
+ex3_grasp_pretraining,rerun of values_P.csv,ex3_grasp_pretraining_values_P.csv,12,12,9,,0,0,True,re-run here for sub-01 sub-02 sub-03,d13d99f
+ex3_grasp_pretraining,checks.json,checks.json,,,,,,,,"carried, not re-run: started, device_timing, projection (commit 39457f4)",d13d99f
+ex3_grasp_pretraining,S01_day1.npy,cached conversion,150,150,40,,0,0,True,converted again here,d13d99f
+ex3_grasp_pretraining,S15_day2.npy,cached conversion,150,150,40,,0,0,True,converted again here,d13d99f
+ex3_grasp_pretraining,settings,settings,89,89,1,,9,,False,same keys; text renamed at /grasp_data/edge_note; /pretrain_recipe/device; /pretrain_recipe/equivalence; /arm_GP/finetune; /arm_GP_central/what; /arm_GP_central/compare_with; /baselines/B; /baselines/B_central; /baselines/check,d13d99f

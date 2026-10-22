@@ -1,0 +1,226 @@
+{
+  "equivalence_with_pretrain_loso": {
+    "setup": "target sub-01, train sub-02, validation as the manifest, 2 epochs, cpu, seed 0",
+    "input_max_abs_diff": 0.0,
+    "weights_max_abs_diff": 0.0,
+    "loss_max_abs_diff": 0.0,
+    "repo_history": [
+      [
+        1.0743631578260853,
+        1.0732008704168354
+      ],
+      [
+        1.0191863333025286,
+        1.0769823582586413
+      ]
+    ],
+    "this_history": [
+      [
+        1.0743631578260853,
+        1.0732008704168354
+      ],
+      [
+        1.0191863333025286,
+        1.0769823582586413
+      ]
+    ]
+  },
+  "started": "2026-10-21 23:44:50.073230505",
+  "device_timing": {
+    "n_train": 1081,
+    "n_valid": 430,
+    "cpu": {
+      "seconds_one_epoch": 14.6,
+      "finite": true
+    },
+    "mps": {
+      "seconds_one_epoch": 8.5,
+      "finite": true
+    },
+    "chosen": "mps"
+  },
+  "finetune_path_reproduces_B": {
+    "max_abs_diff": 1.1102230246251565e-16,
+    "per_fit": {
+      "sub-01 seed 0": 0.0,
+      "sub-01 seed 1": 0.0,
+      "sub-01 seed 2": 0.0,
+      "sub-02 seed 0": 1.1102230246251565e-16,
+      "sub-02 seed 1": 1.1102230246251565e-16,
+      "sub-02 seed 2": 1.1102230246251565e-16
+    }
+  },
+  "grasp_conversion": {
+    "files": 30,
+    "shapes_all_150_40_1000_float32": true,
+    "trials_per_class_per_day_per_person": [
+      50
+    ],
+    "trials_per_class_by_day": {
+      "day1": {
+        "spherical": 750,
+        "lumbrical": 750,
+        "cylindrical": 750
+      },
+      "day2": {
+        "cylindrical": 750,
+        "lumbrical": 750,
+        "spherical": 750
+      }
+    },
+    "car_channels": [
+      "AF3",
+      "AF4",
+      "Fz",
+      "F1",
+      "F2",
+      "F3",
+      "F4",
+      "F5",
+      "F6",
+      "FC1",
+      "FC2",
+      "FC3",
+      "FC4",
+      "FC5",
+      "FC6",
+      "Cz",
+      "C1",
+      "C2",
+      "C3",
+      "C4",
+      "C5",
+      "C6",
+      "CP1",
+      "CP2",
+      "CP3",
+      "CP4",
+      "CP5",
+      "CP6",
+      "Pz",
+      "P3",
+      "P4",
+      "P5",
+      "P6",
+      "POz",
+      "PO3",
+      "PO4",
+      "CPz",
+      "Fp1",
+      "Fp2"
+    ],
+    "interpolated": [
+      "FCz",
+      "PO5",
+      "PO6"
+    ],
+    "window_samples": [
+      1500,
+      2500
+    ],
+    "window_t_ms_in_file": [
+      [
+        0.0,
+        3996.0
+      ]
+    ],
+    "window_check": "the file's own time axis puts t = 0 ms (imagery onset) at sample 1500 and 3996 ms at sample 2499; the trial-averaged response peaks just after the cue (t = -3000 ms) and just after imagery onset (t = 0)",
+    "cue_peak_ms_from_onset_median": 124.0,
+    "imagery_peak_ms_from_onset_median": 230.0,
+    "imagery_peak_over_baseline_median": 2.4209310961556154,
+    "fcz_spline_vs_exact_r_median_of_medians": 0.9665610630320511,
+    "fcz_spline_vs_exact_r_min": 0.7382173103860781,
+    "car_interp_commute_rel_max": 2.5000671223928173e-13,
+    "rms_last_0.8s_over_first_3.2s_median": 1.0115231084484346,
+    "rms_last_0.8s_over_first_3.2s_range": [
+      0.834958401146287,
+      1.4191823705902633
+    ]
+  },
+  "projection": {
+    "first_target": "sub-01",
+    "first_seconds": 2991.2,
+    "first_epochs": 34,
+    "elapsed_h": 2.59,
+    "gp_22_h": 18.28,
+    "p_per_target_h": 0.53,
+    "g_h": 0.49,
+    "rest_h": 1.0,
+    "total_with_p22_h": 33.95,
+    "total_with_p3_h": 23.94,
+    "p_targets": [
+      "sub-01",
+      "sub-02",
+      "sub-03"
+    ],
+    "primary": "GP vs B"
+  },
+  "summary": {
+    "baseline patients": 22,
+    "B mean (values_B.csv) equals paired.csv": true,
+    "ts_lr mean (rq1_subject_values.csv) equals paired.csv": true,
+    "eegnet_scratch mean (dl_baselines_subject_values.csv) equals paired.csv": true,
+    "B central mean (values_B_central.csv) equals paired.csv": true,
+    "ts_lr central mean (rq4_visual_cue_decode.csv) equals paired.csv": true,
+    "B no fine-tuning mean (values_B.csv) equals paired.csv": true,
+    "baseline means": {
+      "B": 0.6559437424242425,
+      "ts_lr": 0.5946324999999999,
+      "eegnet_scratch": 0.6156586818181817,
+      "B_central": 0.6086110151515152,
+      "ts_lr_central": 0.5639071363636363
+    },
+    "GP mean seed SD (points)": 0.458078285596084,
+    "GP fine-tuned fits with registry NaN windows": 3,
+    "G mean seed SD (points)": 6.41850344366451,
+    "P minus B per target and seed (points)": {
+      "sub-01 seed 0": 0.0,
+      "sub-01 seed 1": 0.0,
+      "sub-01 seed 2": 0.0,
+      "sub-02 seed 0": 5.0,
+      "sub-02 seed 1": 5.0,
+      "sub-02 seed 2": 5.0,
+      "sub-03 seed 0": -2.5,
+      "sub-03 seed 1": -2.5,
+      "sub-03 seed 2": -2.5
+    },
+    "P minus B per target, seed mean (points)": {
+      "sub-01": 0.0,
+      "sub-02": 5.0,
+      "sub-03": -2.5
+    },
+    "P minus B per target, no fine-tuning (points)": {
+      "sub-01": 2.5,
+      "sub-02": 5.0,
+      "sub-03": -2.5
+    },
+    "GP minus B per patient (points)": {
+      "sd": 8.158485871093584,
+      "min": -15.000000000000002,
+      "max": 10.83333333333334,
+      "patients_moved_10_or_more": 6
+    },
+    "central control": "not run: GP_vs_B mean difference -1.19 points, not above 0",
+    "best validation loss, same three validation patients": {
+      "mean_B": 0.8098473854580321,
+      "mean_GP": 0.8099758953482386,
+      "GP_higher_than_B": 13,
+      "GP_lower_than_B": 9,
+      "P_minus_B": {
+        "sub-01": 0.00462217031124823,
+        "sub-02": -0.019270276595018565,
+        "sub-03": 0.011028418283976382
+      }
+    },
+    "pre-training hours on the device": {
+      "G": 0.3413055555555556,
+      "GP": 10.878833333333334,
+      "P": 1.1035277777777777
+    },
+    "disk GB": {
+      "data/external/bcicomp2020_track4": 4.230745698,
+      "data/derived/bcicomp2020_track4": 0.720130338,
+      "data/derived/grasp_pretraining": 0.001107449
+    }
+  }
+}
