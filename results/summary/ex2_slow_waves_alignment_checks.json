@@ -1,0 +1,58 @@
+{
+  "n_cached_windows": 1708,
+  "n_lag0": 1691,
+  "n_searched": 17,
+  "n_searched_in_place": 4,
+  "n_searched_shifted": 13,
+  "n_unmatched": 0,
+  "one_to_one": true,
+  "each_published_run_from_one_raw_run": true,
+  "runs_renumbered": [
+    {
+      "subject": "sub-20",
+      "run": 1,
+      "raw_run": "02"
+    },
+    {
+      "subject": "sub-20",
+      "run": 2,
+      "raw_run": "03"
+    },
+    {
+      "subject": "sub-20",
+      "run": 3,
+      "raw_run": "01"
+    }
+  ],
+  "order_kept_all_runs": true,
+  "published_cue_sequence_in_raw_order_all_runs": true,
+  "runs_with_identical_cue_sequence": 70,
+  "n_runs": 88,
+  "lag0_best_lag_zero": 1691,
+  "lag0_mapped_r_gt_09": 1691,
+  "lag0_mapped_r_min": 0.9558257178622751,
+  "lag0_mapped_r_median": 0.9886057679373885,
+  "lag0_direct_r_median": 0.9587315283691571,
+  "lag0_direct_r_gt_09": 1326,
+  "lag0_second_best_r_max": 0.22294054111543923,
+  "cached_with_cut_before_window": 13,
+  "shifted_all_have_cut_before_window": true,
+  "in_place_none_has_cut_before_window": true,
+  "searched_mapped_r_min": 0.9617074283066454,
+  "shifted_samples": [
+    952,
+    255,
+    443,
+    495,
+    908,
+    192,
+    652,
+    428,
+    380,
+    166,
+    247,
+    247,
+    547
+  ],
+  "passed": true
+}

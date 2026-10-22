@@ -1,0 +1,11 @@
+analysis,file,before,rows,rows_before,columns,missing_columns,cells_differing,max_abs_diff,identical,note,git_sha
+ex2_slow_waves,ex2_slow_waves_alignment_trials.csv,alignment_trials.csv,1708,1708,20,,0,0,True,,3459053
+ex2_slow_waves,ex2_slow_waves_alignment_runs.csv,alignment_runs.csv,88,88,12,,0,0,True,,3459053
+ex2_slow_waves,ex2_slow_waves_alignment_checks.json,alignment_checks.json,46,46,1,,0,0,True,,3459053
+ex2_slow_waves,ex2_slow_waves_per_patient.csv,per_patient.csv,572,572,11,,0,0,True,,3459053
+ex2_slow_waves,ex2_slow_waves_paired.csv,paired.csv,28,28,18,,0,0,True,,3459053
+ex2_slow_waves,ex2_slow_waves_table.csv,table.csv,26,26,6,,0,0,True,,3459053
+ex2_slow_waves,ex2_slow_waves_checks.json,checks.json,6,6,1,,0,0,True,,3459053
+ex2_slow_waves,ex2_slow_waves_posthoc.csv,posthoc.csv,6,6,17,,0,0,True,,3459053
+ex2_slow_waves,ex2_slow_waves_posthoc_per_patient.csv,posthoc_per_patient.csv,44,44,4,,0,0,True,,3459053
+ex2_slow_waves,settings,settings,74,74,1,,0,,True,same keys; ,3459053

@@ -1,0 +1,11 @@
+{
+  "n_patients": 22,
+  "B0_mean_primary": 0.5946324999999999,
+  "max_abs_diff_to_committed": {
+    "B0": 0.0,
+    "B0_central": 0.0,
+    "B0_posterior": 0.0
+  },
+  "reproduced": true,
+  "git_sha": "3459053"
+}

@@ -1,0 +1,7 @@
+window,arm,baseline,arm_mean,baseline_mean,n_better,n_worse,n,n_nonzero,median_diff,mean_diff,ci_lo,ci_hi,W,p,r_rb,alternative
+primary,S52_no_near_eyes,B0,0.647836,0.594632,12,8,22,20,0.0447366,0.0532031,0.00544913,0.104638,59.5,0.0892482,0.433333,two-sided
+primary,S52_no_near_eyes,S59,0.647836,0.642325,8,10,22,18,0,0.00551074,-0.00901446,0.0206273,72,0.556111,0.157895,two-sided
+primary,"spearman(S_eog, S59 - B0)",,0.0192362,,,,,,,,,,,,,
+secondary,S52_no_near_eyes,B0,0.650195,0.573297,14,8,22,22,0.0506578,0.0768974,0.00634176,0.148645,75,0.0984106,0.407115,two-sided
+secondary,S52_no_near_eyes,S59,0.650195,0.653099,9,10,22,19,0,-0.00290401,-0.0188999,0.0114833,94.5,0.983945,0.00526316,two-sided
+secondary,"spearman(S_eog, S59 - B0)",,0.324386,,,,,,,,,,,,,
