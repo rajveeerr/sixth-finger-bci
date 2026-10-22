@@ -31,6 +31,14 @@ MIRROR_PAIRS: tuple[tuple[str, str], ...] = (
 
 MIDLINE: tuple[str, ...] = ("Fz", "FCz", "Cz", "CPz", "Pz", "POz")
 
+# The movement strip and the back of the head, as the visual-cue check split them (P09
+# Study 5); the order is the order a decoder sees them in.
+CENTRAL_14: tuple[str, ...] = (
+    "C1", "C2", "C3", "C4", "C5", "C6", "Cz",
+    "CP1", "CP2", "CP3", "CP4", "CP5", "CP6", "CPz",
+)  # fmt: skip
+PARIETO_OCCIPITAL_5: tuple[str, ...] = ("POz", "PO3", "PO4", "PO5", "PO6")
+
 LEFT_HEMIPLEGIC: frozenset[str] = frozenset(
     {"sub-03", "sub-04", "sub-05", "sub-09", "sub-11", "sub-12", "sub-17", "sub-18", "sub-24"}
 )

@@ -1,0 +1,79 @@
+# Exploratory, added after the results (protocol §12, 2026-10-23): can more data per decision
+# improve AH vs SF? Arm A (cropped training), arm B (EEGNet pre-trained on the other patients,
+# then fine-tuned), arm C (pooled sessions) and a central-channel control. Every setting was
+# fixed before any score on runs 03-04 (run 2026-10-14) and is copied here unchanged; most are
+# sentences because they record what was decided. Read by scripts/ex1_transfer_ah_sf.py.
+question: Can giving each decision more data improve AH vs SF (T1_ah_vs_sf) beyond the per-patient
+  chrono baselines? Decided before looking at any result.
+status: exploratory; every setting fixed here before any score on runs 03-04
+task: T1_ah_vs_sf
+classes: [1, 2]
+train_runs: [1, 2]
+test_runs: [3, 4]
+test_window_s: [1.0, 5.0]
+arm_A:
+  session: pre
+  method: ts_lr (configs/models/ts_lr.yaml, unchanged)
+  crop_starts_s: [0.0, 0.5, 1.0, 1.5, 2.0]
+  crop_length_s: 4.0
+  crop_source: recut() from data/processed (the cache holds only [1, 5) s); the 1.0 s crop is the
+    cached window, checked equal to a recut
+  missing_crops: a crop that crosses a boundary or a run edge is dropped by the cache's own rule;
+    the trial's other crops are still used
+  train: every available crop of every AH and SF trial of runs 01-02, each crop a window with its
+    trial's label
+  test_standard: the cached [1, 5) window of each AH and SF trial of runs 03-04
+  test_crop_mean: mean of predict_proba over the available crops of each test trial (the [1, 5) crop
+    is always there); no test label used
+  baseline: ts_lr trained on the cached [1, 5) windows of runs 01-02 (P06 chrono)
+  descriptive_extra: baseline model with the crop-mean test (test-time averaging alone)
+  eegnet_scratch: 'skipped: a 150-epoch CPU fit on 40 windows took 134-149 s on this machine under
+    load, so 5x the windows for 22 patients would take about 3 h'
+arm_B:
+  session: pre
+  method: 'eegnet_ea_ft (registry, configs/models/eegnet_ea_ft.yaml): finetune_lr 1e-4, finetune_epochs
+    20, chosen in P08 on run 01 -> run 02; batch 32, AdamW, cosine schedule'
+  models: 'models/pretrained/eegnet_loso_<target>_ea_raw.pt through pretrained_path() (manifest checked:
+    target and linked partner never seen)'
+  head: three outputs (REST, AH, SF) kept; trained on ids 1 and 2; columns 1 and 2 read and renormalised
+    (as eegnet_ea_ft does for every task)
+  k: all AH and SF trials of runs 01-02 (the chrono training windows)
+  alignment: 'Euclidean alignment reference from the labelled windows (protocol 4.2: at k > 0 the
+    unlabelled set equals the labelled set)'
+  seeds: [0, 1, 2]
+  device: cpu
+  torch_threads: 2
+  baseline: eegnet_scratch chrono, committed P07 values (3 seeds, results/summary/dl_baselines_subject_values.csv),
+    same train and test windows
+  secondary_baseline: ts_lr chrono (committed P06 values, reproduced in arm A)
+  descriptive_extra:
+  - the pre-trained model without fine-tuning, aligned on the same windows
+  - the committed zero-shot (REST-window alignment) reproduced as a loading check
+  calib_curves_reuse: results/summary/calib_curves.csv holds T2 and T3 only, no T1 row, so arm B is
+    run here
+arm_C:
+  patients: every patient with pre and post
+  method: rct_tslr (registry, target_weight 1 as chosen in P08)
+  source: the patient's own pre session, all four runs, AH and SF windows, re-centred by its own Riemannian
+    mean
+  target: post runs 01-02 AH and SF windows, re-centred by these windows used unlabelled (as rct_tslr
+    at k > 0)
+  test: post runs 03-04, AH and SF
+  baseline: ts_lr on post runs 01-02 (P06 chrono, post)
+  descriptive_extra: ts_lr on pre (all runs) plus post runs 01-02 without re-centring
+visual_cue_control:
+  channels: [C1, C2, C3, C4, C5, C6, Cz, CP1, CP2, CP3, CP4, CP5, CP6, CPz]
+  best_arm_rule: largest mean paired gain over the arm's own primary baseline among A_standard, A_crop_mean,
+    B, C
+  ts_lr_arms: A and C are re-run on the 14 central channels regardless (cheap), with their baselines
+    on the same channels
+  arm_B: 'only if B is the best arm: the 26 other channels set to zero before the unchanged eegnet_ea_ft
+    (its alignment then whitens the central block alone and leaves the zeros at zero), same seeds;
+    compared with ts_lr on the central channels, because a central eegnet_scratch costs about 2 min
+    per CPU fit here'
+stats:
+  unit: patient
+  paired: two-sided Wilcoxon (scipy, zero_method wilcox), uncorrected, descriptive
+  ci: 95 % percentile bootstrap of the mean paired difference, 10000 resamples, seed 12345 (evaluation/stats.py)
+  sensitivity: the same without the development patients sub-01 and sub-03
+budget: under about 90 CPU minutes in total; one patient in memory at a time
