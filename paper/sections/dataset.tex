@@ -2,23 +2,23 @@
 \label{sec:dataset}
 We used the public dataset of Wang et al.~\cite{wang2026dataset,wang2026figshare}:
 EEG of \nSubjects{} stroke patients from one hospital, recorded before two
-weeks of therapy, right after it and a month later. In each trial the patient
-rested while looking at a cross, saw a short preparation cue, and then
-imagined either grasping with the affected hand or flexing a robotic sixth
-finger worn on the affected wrist (Fig.~\ref{fig:trial}). A session has four
-runs of 20 trials, ten of each movement in random order. We used the authors'
-preprocessed files (5--35\,Hz band-pass, common average reference, manual
-artefact rejection and independent component analysis), sampled at
+weeks of therapy, right after it and a month later. For \nPostGroupB{}
+patients the therapy was BCI training with the robotic sixth finger, for
+\nPostGroupT{} conventional therapy of equal dose; \nPreGroupT{} of the
+\nPre{} patients analysed before therapy were in the conventional group. In
+each trial the patient rested while looking at a fixation cross, saw a grey
+circle as a preparation cue, and then, cued by a picture, imagined either
+grasping with the affected hand or flexing a robotic sixth finger worn on the
+affected wrist. A session has four runs of 20 trials, ten of each movement
+in random order. The article describes a 14\,s trial (7\,s of rest, 1\,s of
+preparation, 6\,s of imagery); in runs 1--2 of the pre-therapy sessions a
+run's recorded length divided by its trials has a median of
+\rqTwoTrialSecondsRecorded\,s, with \rqTwoRestSecondsRecorded\,s from the rest
+marker to the cue. The decoders read two 4\,s windows per trial, from 1 to
+5\,s after the rest marker and after the imagery cue. We used the
+authors' preprocessed files (5--35\,Hz band-pass, common average reference,
+manual artefact rejection and independent component analysis), sampled at
 \nSamplingRate\,Hz, with the 40 channels they analysed~\cite{wang2026dataset}.
-
-\begin{figure}[t]
-  \centering
-  \includegraphics[width=0.9\columnwidth]{figures/web/trial.pdf}
-  \caption{One trial as the patient sees it. The decoders read two 4\,s
-  windows per trial: one from the rest period and one from the imagery
-  period, each starting 1\,s after its cue.}
-  \label{fig:trial}
-\end{figure}
 
 Before any analysis we audited every file. All \nRuns{} runs had the expected
 format and none had a flat channel. Comparing all \auditPairsScreened{} pairs
@@ -33,7 +33,7 @@ without any imagery. This leaves \nRunsKept{} runs in \nSessionsKept{}
 sessions, and \nPre{} patients with a pre-therapy session, the sample of
 every confirmatory test on the stroke data.
 
-From every rest and imagery marker we cut a window from 1 to 5\,s after the
-marker, giving \nWindows{} windows. We dropped \nWindowsDropped{}
+The kept runs hold \nEvents{} rest and imagery markers. Of their windows we
+dropped the \nWindowsDropped{}
 (\nWindowsDroppedPct\,\%) whose span crossed a segment removed by the
-authors' cleaning or the end of a run.
+authors' cleaning or the end of a run, which leaves \nWindows{} windows.

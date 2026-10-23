@@ -2,111 +2,154 @@
 \label{sec:methods}
 
 \subsection{Tasks and calibration scenarios}
+\label{sec:scenarios}
 We studied three tasks: rest against hand against sixth finger (three
 classes; chance is one third), sixth finger against rest (detecting the new
 command) and hand against sixth finger (the published task). Calibration was
-simulated on the recorded sessions (Fig.~\ref{fig:session}). For each target
-patient we drew $k$ trials of each imagery class, with their rest windows,
-from runs 1--2, and tested on runs 3--4 of the same session, which no step
-ever saw. The budgets were $k \in \{0, 1, 2, 3, 5, 10, \text{all}\}$, with ten
-random draws per budget (five for the networks) shared by every method. A
-trial lasts 14\,s, so one trial of each movement costs \rqTwoMinutesKOne\,min
-of recording and the whole pool \rqTwoMinutesKAll\,min.
+simulated on the recorded sessions. For each target patient we drew $k$
+trials of each imagery class, with their rest windows, from runs 1--2, and
+tested on runs 3--4 of the same session, which no step ever saw. The budgets
+were $k \in \{0, 1, 2, 3, 5, 10, \text{all}\}$, with ten random draws per
+budget (five for the networks) shared by every method. Minutes are given at
+the article's nominal 14\,s per trial: one trial of each movement costs
+\rqTwoMinutesKOne\,min and the whole pool \rqTwoMinutesKAll\,min. At the
+recorded trial length they are \rqTwoMinutesRecordedKOne{} and
+\rqTwoMinutesRecordedKAll\,min.
 
 In the \emph{new-user} scenario the patient records $k$ hand and $k$
-sixth-finger trials. In the \emph{new-command} scenario the patient already
-has every hand trial of runs 1--2 and adds $k$ sixth-finger trials to an
-existing hand decoder.
-
-\begin{figure*}[t]
-  \centering
-  \includegraphics[width=0.92\textwidth]{figures/web/session.pdf}
-  \caption{How decoders are calibrated and tested. A session has four runs
-  of 20 trials. Decoders learn from runs 1 and 2 (calibration draws $k$
-  trials of each movement from them) and are tested on runs 3 and 4. The
-  three sessions were recorded before therapy, after it and a month later.}
-  \label{fig:session}
-\end{figure*}
+sixth-finger trials. In the \emph{new-command} scenario the patient's hand
+trials of runs 1--2 are already recorded and $k$ sixth-finger trials are
+added. Its three-class decoders learn from every hand trial and the $k$
+sixth-finger trials, with their rest windows. Its sixth-finger-against-rest
+decoders, as pre-registered, learn only from the sixth-finger and rest
+windows of the $k$ new trials and use no hand trial; for that task the two
+scenarios differ only in their random draws, and neither adds a command to a
+hand decoder.
 
 \subsection{Decoders}
 The confirmatory pair, fixed before any result, compares one classifier with
 and without other patients. \emph{From scratch} (TS+LR) estimates a covariance
 matrix per window, projects it to the tangent space (TS) of the Riemannian
 manifold and fits a logistic regression (LR) to the patient's
-windows~\cite{barachant2012}.
+windows~\cite{barachant2012}. With one trial of each movement it has four
+training windows, two of them rest. In the new-command scenario its classes
+are unbalanced by design (up to 20 hand trials against $k$ sixth-finger
+trials), and its logistic regression, as pre-registered, has no class
+weights.
+
 \emph{Transfer} (RCT-TS+LR) first re-centres each patient's covariance
 matrices on that patient's own Riemannian mean, so that all patients share
 one reference point~\cite{zanini2018}. It then fits the same classifier to the
 other patients' windows together with the target's. The target's mean comes
-from its drawn windows; at $k = 0$ it comes from the rest periods of runs
-1--2, \rqTwoRestMinutes\,min of unlabelled recording. The weight of the
-target's windows was chosen once, by the pre-registered rule, on two
-development patients without touching any runs 3--4.
+from its drawn windows; at $k = 0$ it comes from the rest windows of runs
+1--2 (\rqTwoRestMinutes\,min of unlabelled recording, nominal). The weight of
+the target's windows was chosen once by the pre-registered rule, on two
+development patients without touching any runs 3--4, from \{1, 5, 20\}. All
+three candidates scored near chance (\rqTwoHparamRctTslrMeanMin--\rqTwoHparamRctTslrMeanMax\,\%
+on three classes), and the highest-scoring one was the smallest,
+\rqTwoHparamRctTslrWeight. Each of the target's at most 80 windows therefore
+counts as much as one window of the other patients, who contribute thousands
+(all their sessions; the dataset has \nWindows{} windows).
 
 The secondary pair compares EEGNet~\cite{lawhern2018} trained on the patient
 alone with an EEGNet pre-trained on the other patients after Euclidean
-alignment~\cite{he2020} and then fine-tuned on the patient. For the new
+alignment~\cite{he2020} and then fine-tuned on the patient. The same rule
+chose its fine-tuning values from a learning rate of $10^{-4}$ or
+$3\times10^{-4}$ and 20 or 50 epochs; the highest-scoring pair was again the
+least adaptive, a rate of \rqTwoHparamEegnetLr{} and \rqTwoHparamEegnetEpochs{}
+epochs. For the new
 command, a control called the \emph{own-hand decoder} is TS+LR trained on the
 patient's hand and rest trials only, with any non-rest output counted as the
 sixth finger. CSP with linear discriminant analysis
 (CSP+LDA)~\cite{ramoser2000}, minimum distance to the Riemannian mean
-(MDM)~\cite{barachant2012}, TS+LR on pooled patients without re-centring,
-and re-centred MDM ran as descriptive references. Source data were every window of every other patient, never the
-target's linked partner (Section~\ref{sec:dataset}).
+(MDM)~\cite{barachant2012}, TS+LR on pooled patients without re-centring, and
+re-centred MDM ran as descriptive references. Source data were every window
+of every other patient, never the target's linked partner
+(Section~\ref{sec:dataset}). The selection of the transfer values used the
+same sources, so other patients' runs 3--4 took part in choosing values that
+were later tested on those runs, a weak breach of nesting; the candidates
+scored within a point of each other.
 
-\subsection{The fair test}
-The published classification script fits the CSP filters on all trials of
-a session and only then runs 10-fold
-cross-validation of the classifier~\cite{wang2026dataset}. We rebuilt this
-protocol and compared it with the same 10$\times$10 folds in which every step
-is fitted inside the training folds. Hypothesis H1 tests the inflation for
-CSP+LDA on hand against sixth finger. H1b repeats the test with the same code
-on two public healthy-subject datasets, BNCI2014\_001~\cite{tangermann2012}
-and Cho2017~\cite{cho2017}, loaded with MOABB~\cite{jayaram2018moabb}. All
-other results use the run-wise split of Fig.~\ref{fig:session}. Before every
-fit the code checked that no test trial, and no window of the target or its
-linked partner, entered the training or source data, and stopped otherwise.
+\subsection{Leakage-free evaluation}
+The dataset's classification script fits the CSP filters on all trials of a
+session and only then runs 10-fold cross-validation of the
+classifier~\cite{wang2026dataset}. We rebuilt this protocol and compared it
+with the same 10$\times$10 folds in which every step is fitted inside the
+training folds (leakage-free cross-validation), and with two run-wise splits,
+leave one run out and runs 1--2 against 3--4 (chronological). Hypothesis H1
+tests the inflation for CSP+LDA on hand against sixth finger. H1b repeats the
+test with the same code on two public healthy-subject datasets,
+BNCI2014\_001~\cite{tangermann2012} and Cho2017~\cite{cho2017}, loaded with
+MOABB~\cite{jayaram2018moabb}. All other results use the chronological split.
+Before every fit the code checked that no test trial, and no window of the
+target or its linked partner, entered the training or source data, and
+stopped otherwise.
 
 \subsection{Metrics and statistics}
-The metric is balanced accuracy, with the patient as the unit. Each patient's
-calibration curve is summarised by its area under the learning curve (ALC):
-the area under chance-normalised accuracy over $\ln(1+k)$, divided by the span
-of that axis, so that chance gives 0 and a perfect decoder 1. We also report
-$k^*$, the smallest budget at which a patient reaches 60\,\%. Paired
-comparisons use the Wilcoxon signed-rank test, one-sided where a hypothesis
-states a direction, with the rank-biserial correlation $r$ and 95\,\% bootstrap confidence intervals (CIs) over patients
-(10\,000 resamples). Holm's method corrects within each pre-registered family.
+The metric is balanced accuracy, with the patient as the unit; differences in
+accuracy are in percentage points. Each patient's calibration curve is
+summarised by a normalised area under the learning curve (ALC), after the
+active learning challenge~\cite{guyon2011}:
+\begin{equation}
+\mathrm{ALC} = \frac{1}{x_{\max} - x_{\min}} \int_{x_{\min}}^{x_{\max}}
+\frac{\mathrm{BA}(x) - c}{1 - c}\, dx,
+\end{equation}
+with $x = \ln(1 + k)$, chance level $c$ and the trapezoid rule over the
+budgets of the test, so that chance gives 0 and a perfect decoder 1. We also report $k^*$, the
+smallest budget at which a patient reaches 60 or 70\,\%. Paired comparisons
+use the Wilcoxon signed-rank test, with the rank-biserial correlation $r$ and
+95\,\% bootstrap confidence intervals (CIs) over patients (10\,000
+resamples). As pre-registered, H1, H1b, H2b and H3c are one-sided and H2a and
+H3 two-sided; $W$ is the sum of positive ranks for a one-sided test and the
+smaller rank sum for a two-sided one. Holm's method corrects within each
+pre-registered family.
 
-The pre-registration (repository tag \texttt{prereg-v1}) fixed six hypotheses
-before the main study. Besides H1 and H1b, H2a compares the ALC over
-$k \in \{1, 2, 3, 5, 10\}$ of transfer and from scratch for a new user on
-three classes. H2b states that transfer's advantage is smaller with the whole
-pool than at $k = 5$. H3 makes the ALC comparison for a new command on two
-co-primary outcomes: sixth finger against rest, and three classes. H3c states
+The pre-registration fixed six hypotheses before the main study. Besides H1
+and H1b, H2a compares the ALC over $k \in \{1, 2, 3, 5, 10\}$ of transfer and
+from scratch for a new user on three classes. H2b states that transfer's
+advantage is smaller with the whole pool than at $k = 5$. H3 makes the ALC
+comparison, over $k \in \{1, 2, 3, 5\}$, for a new command on two co-primary
+outcomes: (a) sixth finger against rest and (b) three classes. H3c states
 that transfer detects the sixth finger better than the own-hand decoder at
 $k = 2$ and $k = 5$. Each test ends in a pre-registered category:
-\emph{supported} if its rule holds, \emph{contrary} if the effect is
-significant in the other direction, \emph{partial} for a two-part test that
-passes one part, and otherwise \emph{inconclusive}, which is never read as
-evidence of no effect. The stroke tests were repeated without the two
-development patients and on the post-therapy session, and the calibration
-tests also with a chronological draw.
+\emph{supported} if its rule holds; \emph{contrary}, possible only for a
+two-sided test, if the effect is significant in the other direction;
+\emph{partial} for a two-part test that passes one part; and otherwise
+\emph{inconclusive}, which is never read as evidence of no effect. A
+one-sided test whose effect lies in the other direction is therefore
+inconclusive. The stroke tests were repeated without the two development
+patients and on the post-therapy session (also with sub-21 and sub-22
+averaged into one value), and the calibration tests with a chronological
+draw.
 
-\subsection{Deviations and exploratory analyses}
-Deviations are logged with their dates in the repository. Three matter here.
-The deep-learning baselines were re-run after we found that the networks
-skipped the last incomplete batch of each epoch. The planned electrode-count
-study was not run. Several analyses were added after the confirmatory
-results: a comparison of channel groups, a continuous replay of the decoders,
-and five follow-ups, among them the sixth-finger switch of
-Section~\ref{sec:switch}. Each was fixed in a settings file before its test
-scores were computed. These, and the stability analysis, are exploratory:
-their tests are uncorrected and none changes a confirmatory category.
+\subsection{Pre-registration, deviations and prior knowledge}
+\label{sec:prereg}
+The pre-registration was frozen in the project's git repository under the
+tag \texttt{prereg-v1}, on a commit dated 3 October 2026 (the tag itself was
+made on 8 October), before any decoder was trained on a patient other than
+the two development patients, apart from one transfer smoke test. These are git's own dates: the plan was not
+deposited with an independent registry. The frozen plan and its deviation
+log are available from the authors on request; the supplement lists the
+log's \nDeviations{} dated entries.
+Most entries clarify a rule before any calibration result, such as how
+$k = \text{all}$ draws. Before the confirmatory results the networks were
+re-run, after we found that they had skipped the last incomplete batch of
+each epoch. After them, the planned electrode-count study was dropped, a
+sanity check whose premise proved wrong was recorded as failed, and the
+analyses marked post hoc were added; the follow-ups among them were fixed in
+settings files before they were run.
 
-\subsection{Implementation}
+Before the plan was frozen we had analysed every patient and session with
+labels (spectra, desynchronisation maps), and decoding on the development
+patients had shown the direction of H1. Before the calibration study, the
+whole-pool values of the from-scratch methods, which enter H2b, and the
+pre-trained EEGNet's accuracy without calibration were known from the
+benchmark. Exploratory tests are uncorrected, except that mirroring was
+Holm-adjusted across budgets as planned; none changes a confirmatory
+category.
+
 The analysis uses MNE~\cite{gramfort2013}, pyRiemann~\cite{pyriemann},
 scikit-learn~\cite{pedregosa2011}, braindecode~\cite{braindecode} and
-PyTorch~\cite{paszke2019}. Every result row records the code commit that
-produced it. A demonstrator replays held-out recordings through a trained
-model and a command gate that moves a virtual hand with a sixth finger; the
-continuous replays below use the same gate.
+PyTorch~\cite{paszke2019}; every result row records the code commit that
+produced it. The continuous replays use the command gate of a demonstrator
+that moves a virtual hand with a sixth finger.
