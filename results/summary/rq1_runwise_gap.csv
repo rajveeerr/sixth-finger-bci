@@ -1,0 +1,10 @@
+task,method,feature,session,population,comparison,n,mean,sd,median,ci_lo,ci_hi,min_diff,max_diff,n_positive,n_negative
+T1_ah_vs_sf,csp_lda,bandpower,pre,all,paper_replica - cv_leakfree,22,22.6258,12.5646,20.375,17.6555,27.7898,5.375,46.1667,22,0
+T1_ah_vs_sf,csp_lda,bandpower,pre,all,paper_replica - loro,22,19.5592,10.177,19.0952,15.5951,23.7069,4.55556,42.4048,22,0
+T1_ah_vs_sf,csp_lda,bandpower,pre,all,paper_replica - chrono,22,22.2722,14.2169,18.36,16.6304,28.0103,-2.0636,48.2083,21,1
+T1_ah_vs_sf,csp_lda,bandpower,post,all,paper_replica - cv_leakfree,24,19.8816,10.1949,19.0208,15.847,23.9876,3.5,39.5,24,0
+T1_ah_vs_sf,csp_lda,bandpower,post,all,paper_replica - loro,24,15.4273,9.96623,14.8472,11.5587,19.5096,0.666667,33.0734,24,0
+T1_ah_vs_sf,csp_lda,bandpower,post,all,paper_replica - chrono,24,17.7641,9.94627,16.524,13.8824,21.7002,-4,37.625,23,1
+T1_ah_vs_sf,csp_lda,bandpower,follow,all,paper_replica - cv_leakfree,18,21.6181,10.7812,20.6458,16.7986,26.3612,3.75,38.4583,18,0
+T1_ah_vs_sf,csp_lda,bandpower,follow,all,paper_replica - loro,18,16.0149,7.92747,14.933,12.4826,19.5182,0.65873,33.375,18,0
+T1_ah_vs_sf,csp_lda,bandpower,follow,all,paper_replica - chrono,18,18.657,9.32522,18.724,14.3488,22.6239,-4.25,34.8333,17,1
