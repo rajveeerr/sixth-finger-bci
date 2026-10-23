@@ -2346,7 +2346,7 @@ code {
   line-height: 1.45;
   color: var(--ink-2);
 }
-.leak-key span {
+.leak-key > span {
   display: flex;
   gap: 8px;
   align-items: baseline;

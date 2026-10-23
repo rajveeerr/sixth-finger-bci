@@ -54,13 +54,23 @@ function Row({ title, note, learnsFromTest }: { title: string; note: string; lea
 export function LeakDiagram() {
   return (
     <figure className="leak" aria-label="The paper's test against a fair test, on one round of twenty trials">
+      {/* The figure exporter keeps only the names in the key, for print. */}
       <p className="leak-key">
         <span>
-          <i className="leak-key-learn" /> Learning trials: the method studies these, with the movement each one was
+          <i className="leak-key-learn" />
+          <span>
+            Learning trials
+            <span className="leak-key-more">: the method studies these, with the movement each one was</span>
+          </span>
         </span>
         <span>
-          <i className="leak-key-test" /> Test trials: kept aside; the method must say which movement each one was, and
-          its score is how often it is right
+          <i className="leak-key-test" />
+          <span>
+            Test trials
+            <span className="leak-key-more">
+              : kept aside; the method must say which movement each one was, and its score is how often it is right
+            </span>
+          </span>
         </span>
       </p>
       <Row
