@@ -166,8 +166,9 @@ How to verify the demo is honest and working:
 
 | Step | Command | Available | Expected result |
 |------|---------|-----------|-----------------|
-| Paper PDF | `make paper` | now (skeleton) | `paper/build/main.pdf`; red TBD markers until results exist |
-| Paper numbers | `uv run python scripts/make_paper_numbers.py` | P13 | regenerates `paper/generated/numbers.tex` |
+| Paper numbers | `uv run python scripts/make_paper_numbers.py` | now | rewrites `paper/generated/numbers.tex` (one macro per number, about 4300) and `paper/generated/numbers-index.md` (each macro's value, meaning and source file) in a second; prints the macros the paper or report use that it does not make, which the PDFs show as red TBDs |
+| Check they are current | `uv run python scripts/make_paper_numbers.py --out /tmp/numbers.tex --index /tmp/numbers-index.md && diff /tmp/numbers.tex paper/generated/numbers.tex` | now | no output; `tests/test_paper_numbers.py` fails in `make check` when the committed files are stale |
+| Paper PDF | `make paper` | now (skeleton) | `paper/build/main.pdf`; red TBD markers where the text has no number yet |
 | Report PDF | `make report` | now (skeleton) | `report/build/main.pdf` |
 | Report as Word | `make -C report docx` (needs `brew install pandoc`) | now | `report/build/report.docx` |
 
