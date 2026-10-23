@@ -1,4 +1,37 @@
 \chapter*{Abstract}
 \addcontentsline{toc}{chapter}{Abstract}
-% 250-350 words, written last (P14) from report-material/00-front-matter.md.
-\TBD{P14}
+% Written last, from the findings of Chapters 3 and 4. Every number is a macro.
+After a stroke, one hand often stays weak. A robotic sixth finger worn on that hand can
+help it grip, but it must move when the wearer wants it to. This project asked whether
+brain signals recorded by an EEG cap can give that command when the patient imagines
+moving the finger, and how much practice a new patient must provide before a model can
+read them. We used a public recording of \nSubjects{} stroke patients who imagined moving
+either the affected hand or the sixth finger.
+
+An integrity audit first found recordings that appear twice in the release, and these
+were excluded. We then found that the published accuracy for telling hand from sixth
+finger, about \pct{\rqOnePublishedGroupBCspLda}, came from a flawed test: the method's
+first step had already seen the test trials. Rebuilt that way, the method scored
+\pct{\rqOneCspLdaPaperReplicaMean}; tested fairly, \pct{\rqOneCspLdaCvLeakfreeMean}, where
+guessing scores 50\,\%. The same mistake inflated two public datasets of healthy people
+as well.
+
+In a calibration study planned and frozen in advance, a model that had first learned
+from the other patients reached \pct{\rqTwoRestAhSfRctTslrKOneMean} on three choices
+(rest, hand, sixth finger) after one practice trial of each movement, about
+\rqTwoMinutesKOne{} minutes, against \pct{\rqTwoRestAhSfTsLrKOneMean} for a model starting
+from nothing, which needed about \rqTwoMinutesKTen{} minutes to catch up. Learning from
+others therefore gives a usable start almost at once, but it then levels off, and with
+the whole practice set the model starting from nothing ends ahead. In exploratory
+follow-ups, the sixth finger worked as a ``move now'' switch against rest
+(\pct{\exFourTsLrCentralMean}), but the same switch also responded to
+\pct{\exFourTsLrCentralFiresAhMean} of imagined hand movements, so it cannot yet be told
+apart from the hand.
+
+Finally, we built a demonstrator and website in which the trained model reads a real
+patient's held-out recording in the browser and moves a drawn hand with a robotic sixth
+finger. It is open at \url{\siteURL}.
+
+\vspace{0.5em}
+\noindent\textbf{Keywords:} brain--computer interface, EEG, motor imagery, stroke,
+supernumerary finger, calibration, transfer learning, data leakage.
