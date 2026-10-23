@@ -188,6 +188,7 @@ How to verify the demo is honest and working:
 | Check they are current | `uv run python scripts/make_paper_numbers.py --out /tmp/numbers.tex --index /tmp/numbers-index.md && diff /tmp/numbers.tex paper/generated/numbers.tex` | now | no output; `tests/test_paper_numbers.py` fails in `make check` when the committed files are stale |
 | Web figures | `make web-figures` (or `npm --prefix web run figures`; add `-- leak setup` for some, `-- --no-build` to reuse the last build) | now | under a minute (needs `uv` the first time); writes `docs/figures/web/` (PDF, 3x PNG, SVG where pure) and copies the paper's to `paper/figures/web/`; commit web changes first, look at the PNGs, then commit both folders together |
 | Paper PDF | `make paper` | now (skeleton) | `paper/build/main.pdf`; red TBD markers where the text has no number yet |
+| Documents on the site | `make site-docs` | now | builds the paper, then copies it and the slides (and their PDF, once one is exported) to `web/public/docs/` under stable names and lists them with their sizes in `web/src/explain/documents.json`, which the page's links read; commit both. The report joins when `"report"` is added to `PUBLISHED` in `scripts/copy_site_docs.py`, once its cover is complete; every file stays under 5 MB |
 | Report PDF | `make report` | now (skeleton) | `report/build/main.pdf` |
 | Report as Word | `make -C report docx` (needs `brew install pandoc`) | now | `report/build/report.docx` |
 

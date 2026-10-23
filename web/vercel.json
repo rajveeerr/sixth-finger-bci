@@ -3,13 +3,22 @@
   "outputDirectory": "dist",
   "rewrites": [
     {
-      "source": "/((?!demo/|assets/|api/).*)",
+      "source": "/((?!demo/|docs/|assets/|api/).*)",
       "destination": "/index.html"
     }
   ],
   "headers": [
     {
       "source": "/demo/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600"
+        }
+      ]
+    },
+    {
+      "source": "/docs/(.*)",
       "headers": [
         {
           "key": "Cache-Control",
