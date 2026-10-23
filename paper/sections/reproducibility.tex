@@ -1,15 +1,14 @@
-% Reproducibility checklist: the paper's supplement, outside its six pages, built by
+% Reproducibility checklist: the paper's supplement, outside its pages, built by
 % paper/supplement.tex (which defines \file). Results are macros from generated/numbers.tex;
 % settings, versions and commands are those of the files named in the last column and of
-% docs/RUNBOOK.md. \codeDOI prints TBD(P15) until the archived release exists; it is the only
-% placeholder.
+% docs/RUNBOOK.md. The repository is private, so nothing here links to it.
 \section*{Reproducibility checklist}
 
-The code, the settings, the result summaries and both documents are in one public
-repository, \url{https://github.com/rajveeerr/sixth-finger-bci}. Paths below are relative to
-it, and commands run from its top folder; \file{docs/RUNBOOK.md} says what each one should
-print. Classical methods give identical numbers on a re-run;
-networks trained on a GPU can differ slightly.
+The code, the settings, the result summaries, the frozen pre-registration and the deviation
+log are kept in one private repository, available from the authors on request; the EEG data
+are public. Paths below are relative to that repository, and commands run from its top
+folder; \file{docs/RUNBOOK.md} says what each one should print. Classical methods give
+identical numbers on a re-run; networks trained on a GPU can differ slightly.
 
 \begin{center}
 \footnotesize
@@ -32,8 +31,8 @@ marker and cue, at \nSamplingRate\,Hz; windows that cross a removed segment or a
 dropped (\nWindowsDropped), \nWindows{} kept; cached with a manifest that every later step
 checks & \file{configs/data.yaml}, \file{results/audit/epoch_counts.csv},
 \file{results/audit/epoch_drops.csv} \\
-Splits & Fair test: 10 folds $\times$ 10 repeats within a session, every step fitted inside
-the training folds. All else: learn on runs 1--2, test on runs 3--4, which no step sees.
+Splits & Leakage-free cross-validation: 10 folds $\times$ 10 repeats within a session,
+every step fitted inside the training folds. All else: learn on runs 1--2, test on runs 3--4, which no step sees.
 Calibration draws $k \in \{0, 1, 2, 3, 5, 10, \text{all}\}$ trials per class from runs 1--2,
 ten random draws (five for networks) shared by every method, plus one chronological draw.
 Sources: every other patient, never the target's linked partner. A check before every fit
@@ -41,9 +40,12 @@ stops the run if a test trial enters training or the target or its partner enter
 source data & \file{configs/protocol.yaml}, \file{src/sixthfinger/evaluation/},
 \file{tests/test_leakage.py} \\
 Hyperparameters & Fixed before the results, one file per method. The three open transfer
-values (the target's weight; EEGNet's fine-tuning rate and epochs) were chosen once by a
-pre-registered rule on development patients sub-01 and sub-03, learning on run 1 and scoring
-on run 2, never on runs 3--4 & \file{configs/models/*.yaml},
+values were chosen once by a pre-registered rule on development patients sub-01 and sub-03,
+learning on run 1 and scoring on run 2, never on their runs 3--4; the sources were, as in the
+main study, every other patient, test runs included. Chosen: a target weight of
+\rqTwoHparamRctTslrWeight{} of \{1, 5, 20\} (development means
+\rqTwoHparamRctTslrMeanMin--\rqTwoHparamRctTslrMeanMax\,\%, three classes); EEGNet fine-tuning
+at \rqTwoHparamEegnetLr{} for \rqTwoHparamEegnetEpochs{} epochs & \file{configs/models/*.yaml},
 \file{scripts/select_transfer_hparams.py} \\
 Seeds & Folds and calibration draws from seed 0 (draw $i$ uses seed $i$); bootstrap
 10\,000 resamples with seed 12345; EEGNet from scratch with seeds 0, 1 and 2, their mean
@@ -57,7 +59,7 @@ Hardware & An \demoInferenceMachine{} laptop with 8\,GB of memory: classical met
 follow-ups, the demonstrator's timing. Kaggle notebooks: a \dlPretrainDevice{} GPU for every
 EEGNet of the main study, CPUs for some classical calibration shards &
 \file{results/summary/dl_summary.json}, \file{results/summary/demo_inference_timing.json} \\
-Run times & One CSP+LDA fit in the fair test: \runtimeCspLdaCvLeakfreeFitSeconds\,s
+Run times & One CSP+LDA fit in leakage-free cross-validation: \runtimeCspLdaCvLeakfreeFitSeconds\,s
 (\runtimeCspLdaCvLeakfreeFits{} fits). EEGNet pre-training: \dlPretrainMinutes{} GPU minutes
 for \dlPretrainModels{} models (\dlPretrainJobMinutes\,min wall clock). Healthy-grasp
 pre-training (exploratory): \exThreeArmGpPretrainHours\,h on the laptop's GPU. One
@@ -65,15 +67,68 @@ demonstrator decision: \demoInferenceMedianMs\,ms. Other run times were not reco
 results; the runbook gives estimates & \file{results/summary/rq1_runtime.csv},
 \file{dl_summary.json}, \file{ex3_grasp_pretraining_checks.json},
 \file{demo_inference_timing.json}, \file{docs/RUNBOOK.md} \S4 \\
-Pre-registration & Hypotheses, protocol and analysis fixed under tag \file{prereg-v1}
-(2026-10-08) before any confirmatory result; results frozen under \file{results-v1}
-(2026-10-12); every later change is a dated deviation, and analyses added after the results
-are exploratory & git tags \file{prereg-v1}, \file{results-v1} \\
+Pre-registration & Hypotheses, protocol and analysis frozen in git on a commit of
+2026-10-03, tagged \file{prereg-v1} on 2026-10-08, before any confirmatory result; results
+frozen under \file{results-v1} (2026-10-12); every later change is one of \nDeviations{}
+dated entries of the deviation log, and analyses added after the results are exploratory.
+The dates are git's own: the plan was not registered with an independent registry &
+\file{docs/preregistration/} (a verbatim copy of both documents, with their provenance), git
+tags \file{prereg-v1}, \file{results-v1} \\
 Provenance & Every result row stores the commit that made it and hashes of its settings and
 of the window manifest; every number in the paper is generated from the result summaries &
 \file{scripts/make_paper_numbers.py}, \file{paper/generated/numbers-index.md} \\
-Code & MIT licence. Archived release and its DOI: \codeDOI & \file{LICENSE},
+Code & MIT licence; available from the authors on request & \file{LICENSE},
 \file{CITATION.cff} \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\subsection*{Deviation log}
+
+Every change after the pre-registration's tag is an entry of the deviation log, with its date,
+its reason and when it was made relative to the results. The \nDeviations{} entries are listed
+below, one line each in our own words; the full text of each is in
+\file{docs/preregistration/deviations.md}, available from the authors on request.
+
+\begin{center}
+\footnotesize
+\begin{tabularx}{\textwidth}{@{}p{1.6cm}>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}p{4.6cm}@{}}
+\toprule
+Date & Entry & When \\
+\midrule
+2026-10-09 & RQ1b to run on BNCI2014\_001 alone, for lack of disk space (superseded the same day) & before any public data or RQ1b result \\
+2026-10-09 & Input of the rebuilt authors' recipe: windows whose wider span crosses a cut are dropped & before any RQ1 result \\
+2026-10-09 & FBCSP's feature selection gets a fixed random seed (a clarification) & before any RQ1 result \\
+2026-10-09 & Cho2017 run as pre-registered; the row above is superseded & before any Cho2017 data \\
+2026-10-10 & Rebuilt recipe: a fold where unregularised CSP has no solution is recorded as missing & during RQ1; H1 unaffected \\
+2026-10-11 & $k = \text{all}$ takes every trial of the pool & before any calibration result \\
+2026-10-11 & The fine-tuned EEGNet keeps its three-output network for every task & before any calibration result \\
+2026-10-11 & Choosing the transfer values: what ``no runs 3--4 are touched'' means, and the tie order & before any calibration result \\
+2026-10-11 & The target's reference for re-centring and alignment is the draw's unlabelled set & before any calibration result \\
+2026-10-11 & Re-centred methods computed with our own re-centring (same operations as pyRiemann) & before any calibration result \\
+2026-10-11 & Scope of the post-therapy replication and of the chronological draw & before any calibration result \\
+2026-10-11 & Secondary EEGNet pair: the tests of H2a, H2b and H3 on the pre-therapy session & before any calibration result \\
+2026-10-11 & $k^*$, trials saved and their units & before any calibration result \\
+2026-10-11 & Descriptive summaries outside the pairs & before any calibration result \\
+2026-10-11 & The no-signal check with permuted labels & before any calibration result \\
+2026-10-11 & When the compute contingency for EEGNet triggers & before any calibration result \\
+2026-10-11 & A sanity check of the calibration study against the benchmark & before any calibration result \\
+2026-10-11 & Disclosure of the results already known before the calibration study & before any calibration result \\
+2026-10-11 & ``Exact $p$'' means the numeric $p$-value & after RQ1 results; no category changes \\
+2026-10-11 & The log is also copied into the pre-registration (bookkeeping) & after the tag \\
+2026-10-12 & Draws below all pick only trials that kept both windows & before any calibration result \\
+2026-10-12 & EEGNet baselines and pre-training re-run: the last incomplete batch had been skipped & before any calibration result \\
+2026-10-12 & The configuration hash ignores settings left at their default & before any calibration result \\
+2026-10-12 & Compute contingency not triggered & before the full EEGNet runs \\
+2026-10-12 & The sanity check of 2026-10-11 failed as defined; its premise was wrong & after the calibration results; no confirmatory value changes \\
+2026-10-12 & Exploratory study reduced: no electrode-count study; mirroring with classical methods only & after the calibration results, before any exploratory result \\
+2026-10-12 & Two descriptive analyses added, labelled post hoc: the channel-group check and replay details & after the calibration results \\
+2026-10-12 & The demonstrator's patient: breaking a tie in the rule & before the demonstrator's bundle \\
+2026-10-23 & Exploratory: more data per decision for hand against sixth finger & after every confirmatory result \\
+2026-10-23 & Exploratory: the raw recordings for hand against sixth finger & after every confirmatory result \\
+2026-10-23 & Exploratory: pre-training with healthy grasp imagery & after every confirmatory result \\
+2026-10-23 & Exploratory: the sixth finger as its own command (the switch) & after every confirmatory result \\
+2026-10-23 & Exploratory: the switch played as if live & after every confirmatory result \\
 \bottomrule
 \end{tabularx}
 \end{center}
@@ -90,7 +145,7 @@ Environment & \texttt{make setup}; check with \texttt{uv run sixthfinger doctor}
 Data, audit, windows & \texttt{make data}; \texttt{make verify-data}; \texttt{make audit};
 \texttt{make epochs} \\
 Tests & \texttt{make check} \\
-Fair test (H1) & \texttt{uv run sixthfinger run configs/experiments/rq1\_benchmark.yaml}, the
+Leakage (H1) & \texttt{uv run sixthfinger run configs/experiments/rq1\_benchmark.yaml}, the
 same with \texttt{rq1\_context.yaml}; \texttt{uv run python scripts/summarise\_rq1.py} \\
 Healthy datasets (H1b) & \texttt{uv run -{}-extra moabb python scripts/rq1b\_public.py
 -{}-datasets BNCI2014\_001}, the same with \texttt{Cho2017}; then
@@ -107,7 +162,8 @@ Calibration (H2, H3) & \texttt{uv run sixthfinger run configs/experiments/<name>
 \texttt{rq2\_calib\_s1}, \texttt{rq3\_calib\_s2}, \texttt{rq2\_rq3\_post} and
 \texttt{rq2\_nosignal} (the EEGNet methods through \texttt{push.sh <name> gpu -{}-models run
 ...}); \texttt{uv run python scripts/summarise\_calibration.py};
-\texttt{uv run python scripts/make\_rq3\_patient\_figure.py} \\
+\texttt{uv run python scripts/summarise\_calibration.py -{}-minutes-only} (the
+recorded minutes) \\
 Exploratory analyses & \texttt{rq4\_mirror.yaml} through \texttt{push.sh}, then
 \texttt{scripts/summarise\_rq4.py}; \texttt{scripts/rq4\_longitudinal.py};
 \texttt{scripts/pseudo\_online.py}, then \texttt{-{}-summarise};
@@ -116,9 +172,11 @@ follow-ups \texttt{scripts/ex1\_transfer\_ah\_sf.py} to \texttt{ex5\_live\_switc
 \texttt{-{}-part} at a time in the order each script's docstring lists \\
 Demonstrator & \texttt{make demo-bundle}; \texttt{uv run python
 scripts/time\_demo\_inference.py}; \texttt{uv run python scripts/count\_eegnet\_weights.py} \\
-Numbers and PDFs & \texttt{make web-figures}; \texttt{uv run python
-scripts/make\_paper\_numbers.py}; \texttt{make paper}; this supplement with
-\texttt{tectonic -X compile paper/supplement.tex -{}-outdir paper/build} \\
+Numbers and PDFs & \texttt{uv run -{}-with
+brotli==1.2.1 python scripts/make\_paper\_figures.py} and the same for
+\texttt{scripts/make\_rq3\_patient\_figure.py}; \texttt{uv run python
+scripts/make\_paper\_numbers.py}; \texttt{make paper}; this supplement with \texttt{make
+paper-supplement} \\
 Checking a re-run & \texttt{uv run python scripts/compare\_summaries.py <commit>}: exit
 code 0 when no summary changed \\
 \bottomrule
