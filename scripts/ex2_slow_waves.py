@@ -2,6 +2,7 @@
 
 uv run python scripts/ex2_slow_waves.py --part fetch    # raw pre runs, cut and deleted (1.7 GB)
 uv run python scripts/ex2_slow_waves.py --part align    # every published window to a raw cue
+uv run python scripts/ex2_slow_waves.py --part shifts   # the shifted windows in seconds (stored)
 uv run python scripts/ex2_slow_waves.py --part score
 uv run python scripts/ex2_slow_waves.py --part summary
 uv run python scripts/ex2_slow_waves.py --part posthoc  # added after the scores were seen
@@ -563,6 +564,17 @@ def part_align() -> None:
     log.info("alignment: %s", json.dumps(checks, default=str))
     if not checks["passed"]:
         raise SystemExit("alignment check failed: stop and report")
+    part_shifts()
+
+
+def part_shifts() -> None:
+    """The published windows found after their cue, from the stored alignment, in seconds."""
+    df = pd.read_csv(out("alignment_trials.csv"))
+    shifted = df[(df.match == "searched") & (df["shift"].abs() > 2)]
+    cols = ["subject", "run", "trial_in_run", "label", "raw_run", "raw_cue"]
+    table = shifted[cols].assign(shift_samples=shifted["shift"].astype(int),
+                                 shift_s=shifted["shift"] / SFREQ)  # fmt: skip
+    table.to_csv(out("alignment_shifts.csv"), index=False, float_format="%.6g")
 
 
 def ts_lr_proba(Xtr, ytr, mdtr, Xte) -> np.ndarray:
@@ -810,7 +822,7 @@ def part_repro(research: Path) -> None:
 
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parts = ["fetch", "align", "score", "summary", "posthoc", "repro"]
+    parts = ["fetch", "align", "shifts", "score", "summary", "posthoc", "repro"]
     ap.add_argument("--part", required=True, choices=parts)
     ap.add_argument("--subjects", nargs="*", default=None, help="fetch: only these patients")
     ap.add_argument("--research", type=Path, help="repro: folder of the exploratory run")
@@ -823,6 +835,7 @@ def main() -> None:
     {
         "fetch": lambda: part_fetch(args.subjects or pre_subjects()),
         "align": part_align,
+        "shifts": part_shifts,
         "score": part_score,
         "summary": part_summary,
         "posthoc": part_posthoc,

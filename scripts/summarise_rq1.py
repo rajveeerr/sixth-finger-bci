@@ -4,7 +4,9 @@ uv run python scripts/summarise_rq1.py
 
 Reads results/runs/rq1_benchmark (and rq1_context when present); writes
 results/summary/rq1_{subject_values,table,stats,replica_check,runtime}.csv and
-docs/figures/rq1_{leakage_paired,methods}.{pdf,png}.
+docs/figures/rq1_{leakage_paired,methods}.{pdf,png}. Each row of rq1_stats.csv also gives the
+smallest and largest per-patient difference and how many patients it was positive or negative
+for.
 """
 
 from __future__ import annotations
@@ -116,14 +118,24 @@ def _wide(vals: pd.DataFrame) -> pd.DataFrame:
     return vals.pivot_table(index="subject", columns="protocol", values="bal_acc")
 
 
+def spread(wide: pd.DataFrame, a: str, b: str) -> dict:
+    """The per-patient differences behind a test: smallest, largest (points), and how many
+    patients each way."""
+    both = wide.reindex(columns=[a, b]).dropna()
+    d = 100 * (both[a] - both[b])
+    return dict(min_diff=d.min(), max_diff=d.max(), n_positive=int((d > 0).sum()),
+                n_negative=int((d < 0).sum()))  # fmt: skip
+
+
 def stats_table(sv: pd.DataFrame, data_cfg, dev: list[str]) -> pd.DataFrame:
     t1 = sv[sv.task == H1_TASK]
-    rows = []
+    rows, spreads = [], []
     h1 = t1[(t1.method == H1_METHOD) & (t1.feature == H1_FEATURE)]
     pre_category = None
     for session in SESSIONS:
         for population, vals in populations(h1[h1.session == session], session, data_cfg, dev):
             res = paired(_wide(vals), "paper_replica", "cv_leakfree", "greater")
+            spreads.append(spread(_wide(vals), "paper_replica", "cv_leakfree"))
             category = one_sided_category(res["p"])
             if session == "pre" and population == "all":
                 test_id, role, pre_category = "H1", "confirmatory", category
@@ -156,6 +168,7 @@ def stats_table(sv: pd.DataFrame, data_cfg, dev: list[str]) -> pd.DataFrame:
         for (method, feature), vals in t1[t1.session == session].groupby(["method", "feature"]):
             wide = _wide(vals)
             for a, b, alternative in DESCRIPTIVE:
+                spreads.append(spread(wide, a, b))
                 family.append(
                     dict(
                         test_id="descriptive",
@@ -173,7 +186,8 @@ def stats_table(sv: pd.DataFrame, data_cfg, dev: list[str]) -> pd.DataFrame:
         for i, r in enumerate(family):
             r["p_holm"] = adj[i]
         rows += family
-    return pd.DataFrame(rows)
+    out = pd.DataFrame(rows)
+    return pd.concat([out, pd.DataFrame(spreads, index=out.index)], axis=1)
 
 
 def replica_check(sv: pd.DataFrame, data_cfg) -> pd.DataFrame:

@@ -12,12 +12,17 @@ rows; rct_tslr and EEGNet refits differ from them by up to 0.0175 and 0.0735 acr
 hook then replays runs 03-04 as continuous signals (protocol §6b, `evaluation/pseudo_online`)
 and writes one file per subject and method under results/runs/rq4_pseudo_online/replay/.
 A resumed run skips fitted units, and their replay files stay. sub-01 and sub-03 are flagged
-in every table (gate provenance, protocol §6b).
+in every table (gate provenance, protocol §6b). The summary also writes, from the stored replays
+and the runs' lengths and cuts, rq4_pseudo_online_details.csv (per method: patients reaching
+half of their periods, false activations early in a rest period, and the rates again with each
+period stopped at the next one and at its first cut) and rq4_pseudo_online_replay.json (windows
+kept, periods that overlap or hold a cut, the spacing of the trials, a gate that never fires).
 """
 
 from __future__ import annotations
 
 import argparse
+import json
 import logging
 
 import numpy as np
@@ -25,7 +30,7 @@ import pandas as pd
 
 from sixthfinger.config import load_data_config, load_protocol_config
 from sixthfinger.data.epochs import run_signal
-from sixthfinger.data.loading import list_processed_runs
+from sixthfinger.data.loading import list_processed_runs, read_eeglab_mat
 from sixthfinger.evaluation import pseudo_online as po
 from sixthfinger.evaluation.runner import load_experiment, run_experiment
 from sixthfinger.evaluation.stats import bootstrap_ci
@@ -36,6 +41,8 @@ EXPERIMENT = "rq4_pseudo_online"
 FLAGGED = ("sub-01", "sub-03")
 SFREQ = 250.0  # the processed runs' rate; run_signal refuses any other
 METHOD_ORDER = ["csp_lda", "ts_lr", "rct_tslr", "eegnet_scratch"]
+EARLY_S = 2.0  # a false activation this soon after a rest period starts may answer the cue before
+RATES = ["sf_detection_rate", "ah_detection_rate", "ah_as_sf_rate", "false_per_minute"]
 
 
 def replay_dir():
@@ -122,7 +129,116 @@ def one_switch(rows: pd.DataFrame, gate_cls) -> pd.DataFrame:
     return pd.DataFrame(out)
 
 
-def summarise() -> None:
+def run_cuts(paths, subjects: list[str]) -> dict:
+    """Each replayed run's length and its boundary cuts (samples), read from the run file."""
+    listed = list_processed_runs(paths.processed)
+    files = {(r.subject, r.session, int(r.run)): r.path for r in listed}
+    out = {}
+    for subject in subjects:
+        periods = pd.read_parquet(replay_dir() / f"{subject}_ts_lr_periods.parquet")
+        for run in sorted(periods.run.unique()):
+            rec = read_eeglab_mat(files[(subject, "pre", int(run))])
+            cuts = rec.event_samples[np.array(rec.event_codes) == "boundary"]
+            out[(subject, int(run))] = (rec.data_uv.shape[1], cuts)
+    return out
+
+
+def stopped_early(per: pd.DataFrame, cuts: np.ndarray) -> pd.DataFrame:
+    """Each period stopped at the next period's start and at its first cut (the code audit's
+    check; protocol §6b scores the full 7 s and 6 s)."""
+    per = per.sort_values("start").reset_index(drop=True)
+    nxt = np.r_[per.start.to_numpy()[1:], np.iinfo(np.int64).max]
+    stop = np.minimum(per.stop.to_numpy(), nxt)
+    for i, start in enumerate(per.start.to_numpy()):
+        inside = cuts[(cuts > start) & (cuts < stop[i])]
+        if inside.size:
+            stop[i] = inside.min()
+    return per.assign(stop=stop)
+
+
+def details(rows: pd.DataFrame, switch: pd.DataFrame, paths, n_window: int):
+    """Per method and for the replay as a whole, from the stored timelines and periods."""
+    subjects = sorted(rows.subject.unique())
+    runs = run_cuts(paths, subjects)
+    per_method = []
+    for method in METHOD_ORDER:
+        mine = rows[rows.method == method].set_index("subject")
+        false = early = 0
+        again = []
+        for subject in subjects:
+            stem = replay_dir() / f"{subject}_{method}"
+            tl = pd.read_parquet(f"{stem}_timeline.parquet")
+            per = pd.read_parquet(f"{stem}_periods.parquet")
+            replays = []
+            for run, g in tl.groupby("run"):
+                ends = np.rint(g.t.to_numpy() * SFREQ).astype(int)
+                acts = po.activations(g.active.to_numpy(), ends)
+                onsets = acts["sample"].to_numpy()
+                rest = per[(per.run == run) & (per.kind == "rest")]
+                for start, stop in zip(rest.start, rest.stop, strict=True):
+                    inside = onsets[(onsets >= start) & (onsets < stop)]
+                    false += len(inside)
+                    early += int((inside - start < EARLY_S * SFREQ).sum())
+                kept = stopped_early(per[per.run == run][["kind", "start", "stop"]],
+                                     runs[(subject, int(run))][1])  # fmt: skip
+                replays.append(po.RunReplay(kept, acts, SFREQ))
+            again.append(dict(subject=subject, **po.subject_metrics(replays)))
+        again = pd.DataFrame(again).set_index("subject")
+        switched = switch[switch.method == method]
+        if false != int(mine.false_activations.sum()):
+            raise SystemExit(f"{method}: the timelines no longer give the stored false activations")
+        change = {f"{c}_stopped_early_change": float((again[c] - mine[c]).mean()) for c in RATES}
+        moved = (again[RATES[:3]] - mine[RATES[:3]]).abs().max(axis=1) > 0
+        per_method.append(dict(
+            method=method, n=len(mine), n_sf_half=int((mine.sf_detection_rate >= 0.5).sum()),
+            n_sf_none=int((mine.sf_detection_rate == 0).sum()),
+            sf_detection_max=mine.sf_detection_rate.max(),
+            ah_as_sf_over_sf_detection=mine.ah_as_sf_rate.mean() / mine.sf_detection_rate.mean(),
+            false_activations=false, false_first_seconds=early, false_first_share=early / false,
+            n_switch_half=int((switched.imagery_detection_rate >= 0.5).sum()),
+            **change, n_detection_moved_stopped_early=int(moved.sum()),
+        ))  # fmt: skip
+
+    stride = round(po.STRIDE_S * SFREQ)
+    kept, n_periods, overlapping, with_cut, spacing = [], 0, 0, 0, []
+    for subject in subjects:
+        per = pd.read_parquet(replay_dir() / f"{subject}_ts_lr_periods.parquet")
+        for run, p in per.groupby("run"):
+            n_times, cuts = runs[(subject, int(run))]
+            every = po.window_ends(n_times, n_window, stride, np.array([]))
+            kept.append(len(po.window_ends(n_times, n_window, stride, cuts)) / len(every))
+            p = p.sort_values("start")
+            start, stop = p.start.to_numpy(), p.stop.to_numpy()
+            n_periods += len(p)
+            overlapping += int((stop[:-1] > start[1:]).sum())
+            with_cut += sum(
+                bool(((cuts > a) & (cuts < b)).any()) for a, b in zip(start, stop, strict=True)
+            )
+            spacing += list(np.diff(p[p.kind == "rest"].start.to_numpy()) / SFREQ)
+    silent = rows[rows.method == METHOD_ORDER[0]]
+    silent_p = silent.n_rest_periods / (silent.n_rest_periods + silent.n_sf_periods)
+    replay = {
+        "windows kept per run (share)": {"runs": len(kept), "median": float(np.median(kept)),
+                                         "min": float(min(kept)), "max": float(max(kept))},
+        "periods": {"total": n_periods, "overlapping the next": overlapping,
+                    "holding a boundary cut": with_cut},
+        "rest onset to the next rest onset (s)": {
+            "intervals": len(spacing), "min": float(np.min(spacing)),
+            "p5": float(np.percentile(spacing, 5)), "median": float(np.median(spacing)),
+            "p95": float(np.percentile(spacing, 95)), "max": float(np.max(spacing))},
+        "a gate that never fires": {
+            "P correct, mean over patients": float(silent_p.mean()),
+            "ITR bits per minute, mean over patients":
+                float(np.mean([po.itr_bits_per_minute(x) for x in silent_p]))},
+        "early false activation": {"seconds": EARLY_S, "rest period seconds": po.REST_S,
+                                   "share of the rest period": EARLY_S / po.REST_S},
+        "patients reaching half of their SF periods with any method":
+            int(rows[rows.sf_detection_rate >= 0.5].subject.nunique()),
+    }  # fmt: skip
+    return pd.DataFrame(per_method), replay
+
+
+def summarise(figures: bool = True) -> None:
     paths = get_paths()
     rows = pd.concat([pd.read_parquet(f) for f in sorted(replay_dir().glob("*_metrics.parquet"))])
     rows = rows.sort_values(["method", "subject"]).reset_index(drop=True)
@@ -156,7 +272,11 @@ def summarise() -> None:
     repro = reproduction(paths)
     repro.to_csv(summary / "rq4_pseudo_online_repro.csv", index=False, float_format="%.3g")
     print(repro.to_string(index=False))
-    figure(rows, demo_subject(paths), paths.root / "docs" / "figures")
+    per_method, replay = details(rows, switch, paths, load_data_config().n_times)
+    per_method.to_csv(summary / "rq4_pseudo_online_details.csv", index=False, float_format="%.6g")
+    (summary / "rq4_pseudo_online_replay.json").write_text(json.dumps(replay, indent=2) + "\n")
+    if figures:
+        figure(rows, demo_subject(paths), paths.root / "docs" / "figures")
 
 
 def figure(rows: pd.DataFrame, subject: str, figures) -> None:
@@ -214,10 +334,11 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--subjects", nargs="*")
     ap.add_argument("--summarise", action="store_true")
+    ap.add_argument("--no-figures", action="store_true", help="with --summarise: tables only")
     args = ap.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s", datefmt="%H:%M:%S")
     if args.summarise:
-        summarise()
+        summarise(figures=not args.no_figures)
         return
     cfg = get_paths().configs / "experiments" / f"{EXPERIMENT}.yaml"
     run_experiment(cfg, subjects=args.subjects, on_fitted=make_hook(po.load_gate_class()))

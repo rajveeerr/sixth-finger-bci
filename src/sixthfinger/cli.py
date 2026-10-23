@@ -188,6 +188,24 @@ def epochs_build(
     paths, cfg = get_paths(), load_data_config()
     ids = None if subjects == "all" else subjects.split(",")
     md = epochs.build_all(cfg, paths.processed, paths.epochs, ids, git_sha=current_git_sha())
+    _write_epoch_counts(md, pd.read_parquet(paths.epochs / "dropped.parquet"), paths.audit)
+    typer.echo(f"{len(md)} windows in {paths.epochs}")
+
+
+@epochs_app.command("counts")
+def epochs_counts() -> None:
+    """Count the cached windows, the dropped ones and the trials again from the cache's tables."""
+    import pandas as pd
+
+    paths = get_paths()
+    md = pd.read_parquet(paths.epochs / "metadata.parquet")
+    _write_epoch_counts(md, pd.read_parquet(paths.epochs / "dropped.parquet"), paths.audit)
+    typer.echo(f"counts of {len(md)} windows in {paths.audit}")
+
+
+def _write_epoch_counts(md, dropped, audit: Path) -> None:
+    from sixthfinger.data import epochs
+
     counts = md.pivot_table(
         index=["subject", "session"],
         columns="label_name",
@@ -195,13 +213,12 @@ def epochs_build(
         aggfunc="count",
         fill_value=0,
     )
-    paths.audit.mkdir(parents=True, exist_ok=True)
-    counts.to_csv(paths.audit / "epoch_counts.csv")
-    dropped = pd.read_parquet(paths.epochs / "dropped.parquet")
+    audit.mkdir(parents=True, exist_ok=True)
+    counts.to_csv(audit / "epoch_counts.csv")
     dropped.groupby(["subject", "session", "reason"]).size().rename("windows").to_csv(
-        paths.audit / "epoch_drops.csv"
+        audit / "epoch_drops.csv"
     )
-    typer.echo(f"{len(md)} windows in {paths.epochs}")
+    epochs.trial_counts(md).to_csv(audit / "epoch_trials.csv")
 
 
 @app.command()

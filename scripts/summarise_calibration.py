@@ -15,7 +15,10 @@ Pre-registration 3.4-3.5 and 5.1-5.3, protocol 6-7, deviation log 2026-10-11/12:
   with the chronological draw, and on post (n = 24, and n = 23 with sub-21/sub-22 averaged);
 - secondary pair eegnet_ea_ft vs eegnet_scratch: H2a, H2b, H3 on pre, n = 22;
 - descriptive: H2a per k (Holm across 5), k*, trials saved, minutes, Friedman/Nemenyi,
-  SF recall, the S2 SF-vs-AH share.
+  SF recall, the S2 SF-vs-AH share; per method the mean ALC, who reaches 60 %/70 % and the
+  change from k = 0 to k = 1 (calib_method_summary.csv), the pair's difference with the whole
+  pool (calib_pair_whole_pool.csv) and each patient's ALC in every ALC test
+  (calib_alc_subject_values.csv).
 """
 
 from __future__ import annotations
@@ -34,7 +37,14 @@ from scipy.stats import studentized_range
 
 from sixthfinger.config import load_data_config, load_protocol_config
 from sixthfinger.evaluation.runner import part_files
-from sixthfinger.evaluation.stats import alc, friedman, k_star, paired_alc, subject_curve
+from sixthfinger.evaluation.stats import (
+    alc,
+    bootstrap_ci,
+    friedman,
+    k_star,
+    paired_alc,
+    subject_curve,
+)
 from sixthfinger.evaluation.summary import describe, holm_family, paired
 from sixthfinger.paths import get_paths
 from sixthfinger.viz.plots import save, use_style
@@ -310,6 +320,66 @@ def trials_saved(eff: pd.DataFrame, pair, scenario, task, session, thr: int) -> 
                 mean_trials_saved=float(saved.mean()) if len(saved) else np.nan)  # fmt: skip
 
 
+def method_summary(values: pd.DataFrame, eff: pd.DataFrame) -> pd.DataFrame:
+    """Per scenario, task, session and method: the mean ALC, the patients reaching each
+    threshold and their median k*, and, for the methods defined without labelled trials, the
+    change from k = 0 to k = 1 (patients lower at k = 1 and the change of the mean, points)."""
+    rows = []
+    keys = ["scenario", "task", "session", "method"]
+    for key, e in eff.groupby(keys):
+        row = dict(zip(keys, key, strict=True), n=int(e.alc.notna().sum()),
+                   mean_alc=e.alc.mean(), median_alc=e.alc.median())  # fmt: skip
+        for thr in (60, 70):
+            reached = e[~e[f"censored_{thr}"].astype("boolean").fillna(True)]
+            known = thr / 100 in THRESHOLDS[key[1]]
+            row[f"n_reach_{thr}"] = len(reached) if known else np.nan
+            row[f"median_k_star_{thr}"] = reached[f"k_star_{thr}"].median() if known else np.nan
+        v = values[(values[keys] == pd.Series(key, index=keys)).all(axis=1)]
+        wide = v.pivot(index="subject", columns="k", values="bal_acc")  # noqa: PD010
+        both = wide.reindex(columns=[0, 1]).dropna()
+        if len(both):
+            d = 100 * (both[1] - both[0])
+            row.update(n_k0_k1=len(both), mean_k0=both[0].mean(), mean_k1=both[1].mean(),
+                       k1_minus_k0_points=d.mean(), n_k1_below_k0=int((d < 0).sum()))  # fmt: skip
+        rows.append(row)
+    return pd.DataFrame(rows)
+
+
+def pair_whole_pool(values: pd.DataFrame) -> pd.DataFrame:
+    """The confirmatory pair with every trial of the pool (descriptive, no test): rct_tslr
+    minus ts_lr in points, per scenario, task and session."""
+    rows = []
+    k_all = max(values.k)
+    for (scenario, task, session), g in values[values.k == k_all].groupby(
+        ["scenario", "task", "session"]
+    ):
+        wide = g.pivot(index="subject", columns="method", values="bal_acc")  # noqa: PD010
+        if not set(PAIR) <= set(wide.columns):
+            continue
+        d = 100 * (wide[PAIR[0]] - wide[PAIR[1]]).dropna()
+        mean, lo, hi = bootstrap_ci(d.to_numpy())
+        rows.append(dict(scenario=scenario, task=task, session=session, k=k_all,
+                         pair=f"{PAIR[0]} - {PAIR[1]}", n=len(d), mean_diff_points=mean,
+                         ci_lo_points=lo, ci_hi_points=hi, n_first_higher=int((d > 0).sum()),
+                         n_second_higher=int((d < 0).sum())))  # fmt: skip
+    return pd.DataFrame(rows)
+
+
+def alc_subject_values(values: pd.DataFrame) -> pd.DataFrame:
+    """Each patient's ALC of both methods in the ALC tests on pre (random draws)."""
+    frames = []
+    for role, pair in (("confirmatory", PAIR), ("secondary", SECONDARY)):
+        for hyp, scenario, task in (("H2a", S1, T2), ("H3a", S2, T3), ("H3b", S2, T2)):
+            if scenario not in set(values.scenario):
+                continue
+            sub = pair_alcs(values, pair, scenario, task, "pre", "bal_acc")
+            frames.append(sub.assign(hypothesis=hyp, role=role, pair=f"{pair[0]} - {pair[1]}",
+                                     diff=sub.a - sub.b))  # fmt: skip
+    out = pd.concat(frames, ignore_index=True)
+    cols = ["hypothesis", "role", "pair", "subject", "a", "b", "diff", "k_used"]
+    return out[cols].rename(columns={"a": "alc_first", "b": "alc_second"})
+
+
 def friedman_table(values: pd.DataFrame, ks: list[int]) -> pd.DataFrame:
     rows = []
     pre = values[values.session == "pre"]
@@ -396,7 +466,8 @@ def nosignal(runs: Path) -> pd.DataFrame:
     )
     g["chance"] = g.task.map(CHANCE)
     g["tolerance"] = g.task.map(NOSIGNAL_TOLERANCE)
-    return g.assign(passes=(g.mean_bal_acc - g.chance).abs() <= g.tolerance)
+    g = g.assign(passes=(g.mean_bal_acc - g.chance).abs() <= g.tolerance)
+    return g.assign(distance_from_chance=(g.mean_bal_acc - g.chance).abs())
 
 
 def demo_method(cur: pd.DataFrame) -> pd.DataFrame:
@@ -533,7 +604,8 @@ def figure_heatmap(values: pd.DataFrame, figures: Path) -> None:
 
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.parse_args()
+    ap.add_argument("--no-figures", action="store_true")
+    args = ap.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
     logging.getLogger("fontTools").setLevel(logging.WARNING)
     use_style()
@@ -561,6 +633,15 @@ def main() -> None:
         if {pair[0], pair[1]} <= set(eff[(eff.scenario == sc) & (eff.session == ses)].method)
     ]  # fmt: skip
     pd.DataFrame(saved).to_csv(summary / "calib_trials_saved.csv", index=False, float_format="%.6g")
+    method_summary(values, eff).to_csv(
+        summary / "calib_method_summary.csv", index=False, float_format="%.6g"
+    )
+    pair_whole_pool(values).to_csv(
+        summary / "calib_pair_whole_pool.csv", index=False, float_format="%.6g"
+    )
+    alc_subject_values(values).to_csv(
+        summary / "calib_alc_subject_values.csv", index=False, float_format="%.6g"
+    )
     fr = friedman_table(values, list(proto.stats.friedman_k))
     fr.to_csv(summary / "calib_friedman.csv", index=False, float_format="%.6g")
     if S2 in set(scores.scenario):
@@ -573,6 +654,9 @@ def main() -> None:
     ):
         if len(table):
             table.to_csv(summary / f"{name}.csv", index=False, float_format="%.6g")
+    if args.no_figures:
+        log.info("calibration summaries in %s", summary)
+        return
     figure_curves(cur, figures)
     if S2 in set(cur.scenario):
         figure_sf_recall(cur, figures)

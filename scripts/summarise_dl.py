@@ -10,6 +10,9 @@ uv run python scripts/summarise_dl.py
 3. Zero-shot (P07 step 4.5): each pre-trained model on its own target's runs 03-04, aligned
    with the declared k = 0 set (the REST windows of runs 01-02, protocol 4.2), session pre;
    paired with the `chrono` results, which test on exactly the same windows.
+4. The group numbers the text quotes (dl_summary.json): the seed-to-seed spread, the
+   pre-training's time, device and median best epoch, the zero-shot alignment's rest windows;
+   and each class's recall (dl_class_recall.csv) from the fold confusion matrices.
 """
 
 from __future__ import annotations
@@ -41,7 +44,9 @@ from sixthfinger.viz.plots import ACCENT, save, use_style
 
 log = logging.getLogger("dl")
 TASKS = {"T1_ah_vs_sf": (1, 2), "T2_rest_ah_sf": (0, 1, 2), "T3_sf_vs_rest": (0, 2)}
+CLASS_NAMES = {0: "rest", 1: "affected_hand", 2: "sixth_finger"}
 COMPARE = ["csp_lda", "ts_lr"]
+CLASSICAL = ["csp_lda", "csp_svm", "fbcsp_lda", "mdm", "ts_lr"]
 
 
 def classical_values(runs: Path) -> pd.DataFrame:
@@ -99,7 +104,65 @@ def baselines(runs: Path, summary: Path, classical: pd.DataFrame) -> pd.DataFram
     return sv
 
 
-def pretraining(models: Path, summary: Path, audit: Path, figures: Path) -> None:
+def class_recall(runs: Path) -> pd.DataFrame:
+    """Each class's recall, `pre`, `loro` and `chrono`: per fold from its confusion matrix (rows
+    are the true classes in the task's order), averaged over folds and seeds per patient, then
+    over patients; EEGNet trained on one patient and the five classical methods."""
+    deep = pd.read_parquet(runs / "dl_baselines" / "scores.parquet")
+    classical = pd.concat(
+        [pd.read_parquet(runs / n / "scores.parquet") for n in ("rq1_benchmark", "rq1_context")],
+        ignore_index=True,
+    )
+    classical = classical[classical.method.isin(CLASSICAL) & (classical.feature == "bandpower")]
+    s = pd.concat([deep, classical], ignore_index=True)
+    s = s[(s.session == "pre") & s.protocol.isin(["loro", "chrono"]) & s.confusion.notna()]
+    rows = []
+    for r in s.itertuples():
+        cm = np.array(json.loads(r.confusion), dtype=float)
+        with np.errstate(invalid="ignore", divide="ignore"):
+            recall = cm.diagonal() / cm.sum(axis=1)
+        for label, value in zip(TASKS[r.task], recall, strict=True):
+            rows.append(dict(task=r.task, method=r.method, protocol=r.protocol, subject=r.subject,
+                             cls=CLASS_NAMES[label], recall=value))  # fmt: skip
+    per = pd.DataFrame(rows).groupby(["task", "method", "protocol", "cls", "subject"]).recall.mean()
+    out = per.groupby(["task", "method", "protocol", "cls"]).agg(["size", "mean"])
+    out = out.rename(columns={"size": "n", "mean": "mean_recall"}).reset_index()
+    return out.rename(columns={"cls": "class"})
+
+
+def group_numbers(sv: pd.DataFrame, summary: Path, kaggle_job: Path) -> dict:
+    """The numbers the text quotes about the baselines that no other table states."""
+    pretrain = pd.read_csv(summary / "dl_pretrain_table.csv")
+    zero = pd.read_csv(summary / "dl_zeroshot_subject_values.csv")
+    reference = zero.drop_duplicates("subject").n_reference
+    job = json.loads(kaggle_job.read_text()) if kaggle_job.exists() else {}
+    job_minutes = job["seconds"] / 60 if "seconds" in job else None
+    return {
+        "seed SD per patient, task and protocol (points)": {
+            "rows": int(sv.seed_sd.notna().sum()),
+            "mean": float(100 * sv.seed_sd.mean()),
+            "median": float(100 * sv.seed_sd.median()),
+            "max": float(100 * sv.seed_sd.max()),
+        },
+        "pre-training": {
+            "models": len(pretrain),
+            "training minutes, sum over the models": float(pretrain.seconds.sum() / 60),
+            "training seconds per model, median": float(pretrain.seconds.median()),
+            "best epoch, median": float(pretrain.best_epoch.median()),
+            "devices": sorted(set(pretrain.device)),
+            "device name (Kaggle job)": job.get("device_name"),
+            "job minutes (Kaggle job, wall clock)": job_minutes,
+        },
+        "zero-shot alignment, rest windows per patient": {
+            "patients": len(reference),
+            "median": float(reference.median()),
+            "min": int(reference.min()),
+            "max": int(reference.max()),
+        },
+    }
+
+
+def pretraining(models: Path, summary: Path, audit: Path, figures: Path | None) -> None:
     manifest_path = models / "manifest.json"
     if not manifest_path.exists():
         log.warning("no pre-training manifest yet")
@@ -123,6 +186,8 @@ def pretraining(models: Path, summary: Path, audit: Path, figures: Path) -> None
         for e in m.values()
     ]  # fmt: skip
     pd.DataFrame(rows).to_csv(summary / "dl_pretrain_table.csv", index=False, float_format="%.6g")
+    if figures is None:
+        return
     fig, axes = plt.subplots(1, 3, figsize=(7.2, 2.4), sharey=True)
     for ax, e in zip(axes, list(m.values())[:3], strict=False):
         h = pd.DataFrame(e["history"])
@@ -239,6 +304,9 @@ def figure(
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--models", type=Path, default=Path("models/pretrained"))
+    ap.add_argument("--kaggle-job", type=Path, default=Path("results/kaggle/pretrain/job.json"),
+                    help="the pre-training job's record, for the GPU's name")  # fmt: skip
+    ap.add_argument("--no-figures", action="store_true")
     args = ap.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
     logging.getLogger("fontTools").setLevel(logging.WARNING)
@@ -251,11 +319,16 @@ def main() -> None:
     )
     classical = classical_values(paths.results / "runs")
     sv = baselines(paths.results / "runs", summary, classical)
-    pretraining(args.models, summary, audit, figures)
+    pretraining(args.models, summary, audit, None if args.no_figures else figures)
     zs = zero_shot(args.models, summary)
     if zs is not None:
         zero_shot_paired(zs, sv, classical, summary)
-    figure(sv, zs, classical, figures)
+    recall = class_recall(paths.results / "runs")
+    recall.to_csv(summary / "dl_class_recall.csv", index=False, float_format="%.6g")
+    numbers = group_numbers(sv, summary, args.kaggle_job)
+    (summary / "dl_summary.json").write_text(json.dumps(numbers, indent=2) + "\n")
+    if not args.no_figures:
+        figure(sv, zs, classical, figures)
     log.info("dl summaries in %s", summary)
 
 

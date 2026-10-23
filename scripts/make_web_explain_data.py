@@ -1,13 +1,17 @@
 """The numbers behind the demo page's explanatory figures (web/src/explain/data.json).
 
 uv run python scripts/make_web_explain_data.py
+uv run python scripts/make_web_explain_data.py --facts-only   # results/summary/demo_page.json
 
 Every value is read from a results file named in the output's "sources", so the page
-never carries a number typed by hand. Run again whenever those summaries change.
+never carries a number typed by hand. Run again whenever those summaries change. The two
+numbers the page works out from the demo bundle itself, the model's size and its two readings,
+are also written to results/summary/demo_page.json for the paper and the report.
 """
 
 from __future__ import annotations
 
+import argparse
 import json
 from pathlib import Path
 
@@ -57,6 +61,7 @@ def electrodes() -> list[dict]:
 
 OUT = ("web", "src", "explain", "data.json")
 OUT_HEAD = ("web", "src", "explain", "head.json")
+OUT_FACTS = ("results", "summary", "demo_page.json")
 
 
 def head_model() -> dict:
@@ -120,6 +125,15 @@ def demo_readings() -> dict:
             "right": int(sum(t == g for t, g in zip(which_truth, which_read, strict=True))),
             "n": len(which_truth),
         },
+    }
+
+
+def demo_facts() -> dict:
+    """The page's numbers about the demo model that come from the bundle, not from results/."""
+    return {
+        "sources": ["web/public/demo/model.onnx", "web/public/demo/predictions.json"],
+        "parameters": model_parameters(),
+        **demo_readings(),
     }
 
 
@@ -454,7 +468,14 @@ def build() -> dict:
 
 
 def main() -> None:
+    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    ap.add_argument("--facts-only", action="store_true", help="write demo_page.json alone")
+    args = ap.parse_args()
     root = get_paths().root
+    root.joinpath(*OUT_FACTS).write_text(json.dumps(demo_facts(), indent=1) + "\n")
+    if args.facts_only:
+        print(f"wrote {'/'.join(OUT_FACTS)}")
+        return
     out = root.joinpath(*OUT)
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(build(), indent=1) + "\n")

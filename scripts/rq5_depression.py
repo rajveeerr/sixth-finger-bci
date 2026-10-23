@@ -8,9 +8,10 @@ uv run python scripts/rq5_depression.py run         # both pipelines, both proto
 uv run python scripts/rq5_depression.py summarise   # results/summary/rq5_*.csv and the figure
 
 Privacy: the primary dataset's EDF headers hold names in the patient field. From a header the
-script uses the channel labels, the sampling rate, the year of the start date and a SHA-256
-hash of the patient field, which is how linked recordings are found; the field itself is not
-kept. Header text is never printed, logged, stored or committed.
+script uses the channel labels, the sampling rate, the year of the start date, the number of
+signals and a SHA-256 hash of the patient field, which is how linked recordings are found; the
+field itself is not kept. Header text is never printed, logged, stored or committed. MODMA's
+GAD-7 scores leave the machine only as counts of participants per side of 10 and group.
 """
 
 from __future__ import annotations
@@ -101,6 +102,12 @@ def edf_start_year(path: Path) -> int:
     with path.open("rb") as f:
         yy = int(f.read(256)[174:176].decode("ascii"))
     return 1900 + yy if yy >= 85 else 2000 + yy
+
+
+def edf_signal_count(path: Path) -> int:
+    """Number of signals in the file (EDF bytes 252-256)."""
+    with path.open("rb") as f:
+        return int(f.read(256)[252:256].decode("ascii"))
 
 
 def channel_name(label: str) -> str:
@@ -575,10 +582,34 @@ def recording_years(audit: pd.DataFrame) -> pd.DataFrame:
                             fill_value=0).reset_index().rename_axis(columns=None)  # fmt: skip
 
 
+def signal_counts(audit: pd.DataFrame) -> pd.DataFrame:
+    """Kept Mumtaz files per recording year, group and number of signals in the EDF header."""
+    kept = audit[audit.kept.astype(bool)].astype({"year": int})
+    n = [edf_signal_count(data_dir() / "mumtaz" / f) for f in kept.file]
+    counts = kept.assign(n_signals=n).groupby(["year", "group", "n_signals"]).size()
+    return counts.rename("files").reset_index()
+
+
+def gad7_split(full_audit: pd.DataFrame) -> pd.DataFrame:
+    """Kept MODMA participants by diagnosis on each side of GAD-7 = 10 (E3's labels)."""
+    kept = full_audit[full_audit.kept.astype(bool)].drop_duplicates("subject")
+    side = np.where(kept.gad7 >= 10, "gad7_10_or_more", "gad7_below_10")
+    counts = kept.assign(gad7_side=side).groupby(["gad7_side", "group"]).size()
+    every = pd.MultiIndex.from_product([["gad7_10_or_more", "gad7_below_10"], ["H", "MDD"]],
+                                       names=["gad7_side", "group"])  # fmt: skip
+    return counts.reindex(every, fill_value=0).rename("participants").reset_index()
+
+
+def null_summary(null_ba: pd.DataFrame) -> pd.DataFrame:
+    """Balanced accuracy with the diagnoses shuffled: mean and range over the permutations."""
+    g = null_ba.groupby("protocol").ba
+    return g.agg(permutations="size", mean="mean", min="min", max="max").reset_index()
+
+
 TEST_KEYS = ("n", "n_nonzero", "median_diff", "mean_diff", "W", "p", "r_rb")
 
 
-def summarise(_args) -> None:
+def summarise(args) -> None:
     from sixthfinger.evaluation.stats import paired_test
 
     paths = get_paths()
@@ -622,7 +653,14 @@ def summarise(_args) -> None:
     auc.to_csv(summary / "rq5_auc.csv", index=False, float_format="%.6g")
     years = recording_years(pd.read_csv(paths.audit / "rq5_audit_mumtaz.csv"))
     years.to_csv(summary / "rq5_years_mumtaz.csv", index=False)
-    figure(main, null_ba, paths.root / "docs" / "figures")
+    null_summary(null_ba).to_csv(summary / "rq5_null_summary.csv", index=False,
+                                 float_format="%.6g")  # fmt: skip
+    signals = signal_counts(pd.read_csv(paths.audit / "rq5_audit_mumtaz.csv"))
+    signals.to_csv(summary / "rq5_signals_mumtaz.csv", index=False)
+    full = pd.read_csv(data_dir() / "derived" / "modma_audit_full.csv")
+    gad7_split(full).to_csv(summary / "rq5_gad7_modma.csv", index=False)
+    if not getattr(args, "no_figures", False):
+        figure(main, null_ba, paths.root / "docs" / "figures")
     log.info("rq5 summaries in %s", summary)
 
 
@@ -660,7 +698,10 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     sub = ap.add_subparsers(dest="cmd", required=True)
     for name, fn in (("fetch", fetch), ("audit", audit), ("run", run), ("summarise", summarise)):
-        sub.add_parser(name).set_defaults(fn=fn)
+        parser = sub.add_parser(name)
+        parser.set_defaults(fn=fn)
+        if name == "summarise":
+            parser.add_argument("--no-figures", action="store_true")
     args = ap.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s", datefmt="%H:%M:%S")
     args.fn(args)

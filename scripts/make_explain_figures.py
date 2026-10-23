@@ -1,6 +1,7 @@
 """P09 Study 5 (exploratory): what the decoders look at.
 
 uv run python scripts/make_explain_figures.py
+uv run python scripts/make_explain_figures.py --summary-only   # the group shares, stored values
 
 1. CSP patterns of `csp_lda` per patient, `pre`, fitted on runs 01-02 by P06's rule (every
    window of the task's classes), AH vs SF and SF vs REST, hemisphere-mirrored so the
@@ -12,11 +13,13 @@ uv run python scripts/make_explain_figures.py
 3. The share of each map's weight on the frontal channels (AF3, AF4, F5, F6; eye movements)
    and on the parieto-occipital ones (POz, PO3-PO6; vision), against their share of the 40
    channels (10 % and 12.5 %).
-Writes results/summary/rq4_pattern_shares.csv and docs/figures/rq4_{csp,eegnet}_patterns_group.
+Writes results/summary/rq4_pattern_shares.csv, rq4_pattern_share_summary.csv (the mean share
+of each source against the channels' share) and docs/figures/rq4_{csp,eegnet}_patterns_group.
 """
 
 from __future__ import annotations
 
+import argparse
 import json
 
 import matplotlib
@@ -108,6 +111,16 @@ def eegnet_maps(paths, cfg, channels) -> tuple[np.ndarray, list[dict]]:
     return np.mean(maps, axis=0), rows
 
 
+def share_summary(shares_: pd.DataFrame, channels: list[str]) -> pd.DataFrame:
+    """Each source's mean share over its patients or models, next to the channels' own share."""
+    g = shares_.groupby("source", sort=False)
+    out = g[["frontal_share", "parieto_occipital_share"]].mean().add_suffix("_mean")
+    out.insert(0, "n", g.size())
+    out["frontal_channel_share"] = len(FRONTAL) / len(channels)
+    out["parieto_occipital_channel_share"] = len(PARIETO_OCCIPITAL) / len(channels)
+    return out.reset_index()
+
+
 def topomaps(maps: dict, info, title: str, name: str, figures) -> None:
     """Each map on its own range (lowest to highest channel), no colour beyond the electrodes."""
     fig, axes = plt.subplots(1, len(maps), figsize=(2.4 * len(maps), 2.6), squeeze=False)
@@ -122,15 +135,25 @@ def topomaps(maps: dict, info, title: str, name: str, figures) -> None:
 
 
 def main() -> None:
+    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    ap.add_argument("--summary-only", action="store_true")
+    args = ap.parse_args()
     paths, cfg = get_paths(), load_data_config()
     channels = list(cfg.channels.keep)
+    summary = paths.results / "summary"
+    if args.summary_only:
+        stored = pd.read_csv(summary / "rq4_pattern_shares.csv")
+        share_summary(stored, channels).to_csv(summary / "rq4_pattern_share_summary.csv",
+                                               index=False, float_format="%.6g")  # fmt: skip
+        return
     info = montage_info(channels, cfg.signal.sfreq)
     use_style()
     csp, rows = csp_maps(paths, cfg, channels)
     eeg, eeg_rows = eegnet_maps(paths, cfg, channels)
     out = pd.DataFrame(rows + eeg_rows).assign(git_sha=current_git_sha())
-    out.to_csv(paths.results / "summary" / "rq4_pattern_shares.csv", index=False,
-               float_format="%.6g")  # fmt: skip
+    out.to_csv(summary / "rq4_pattern_shares.csv", index=False, float_format="%.6g")
+    share_summary(out, channels).to_csv(summary / "rq4_pattern_share_summary.csv", index=False,
+                                        float_format="%.6g")  # fmt: skip
     print(out.groupby("source")[["frontal_share", "parieto_occipital_share"]].agg(["mean", "max"]))
     maps = pd.DataFrame(
         {

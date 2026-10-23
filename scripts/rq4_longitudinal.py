@@ -2,6 +2,7 @@
 work after it, and how many new trials bring it back?
 
 uv run python scripts/rq4_longitudinal.py
+uv run python scripts/rq4_longitudinal.py --summary-only   # the references from stored values
 
 Per patient with `pre` and a later session (`post`, then `follow`), on the three-class task,
 tested on runs 03-04 of the later session:
@@ -14,11 +15,14 @@ tested on runs 03-04 of the later session:
   logistic regression with the chosen target weight.
 k in {0, 5, 10} trials per class, drawn among complete trials with P08's seeds (10 draws).
 Exploratory. Writes results/summary/rq4_longitudinal.csv (per patient, mean over draws),
-rq4_longitudinal_table.csv and docs/figures/rq4_longitudinal.
+rq4_longitudinal_table.csv and docs/figures/rq4_longitudinal; and rq4_longitudinal_reference.csv,
+each arm against the same patients' within-session `ts_lr` with the whole pool (P08, S1, three
+classes; `pre` and `post`, the sessions P08 calibrated).
 """
 
 from __future__ import annotations
 
+import argparse
 import logging
 
 import numpy as np
@@ -121,9 +125,37 @@ def subject_rows(subject: str, session: str, X, md: pd.DataFrame, proto, rct: di
     return rows
 
 
+def references(per: pd.DataFrame, calib: pd.DataFrame) -> pd.DataFrame:
+    """Each arm's mean against the within-session reference on the same patients: `ts_lr` with
+    the whole pool of a session P08 calibrated, S1, three classes (points)."""
+    within = calib[(calib.scenario == "S1_new_user") & (calib.task == "T2_rest_ah_sf")
+                   & (calib.method == "ts_lr") & (calib.k == calib.k.max())]  # fmt: skip
+    rows = []
+    for (session, arm, k), g in per.groupby(["session", "arm", "k"]):
+        for ref_session, ref in within.groupby("session"):
+            both = g.set_index("subject").bal_acc.to_frame("arm")
+            both = both.join(ref.set_index("subject").bal_acc.rename("reference")).dropna()
+            rows.append(dict(session=session, arm=arm, k=k, reference_session=ref_session,
+                             n=len(both), arm_mean=both.arm.mean(),
+                             reference_mean=both.reference.mean(),
+                             arm_minus_reference_points=100 * (both.arm - both.reference).mean(),
+                             n_patients_session=len(g)))  # fmt: skip
+    return pd.DataFrame(rows)
+
+
 def main() -> None:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s", datefmt="%H:%M:%S")
+    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    ap.add_argument("--summary-only", action="store_true")
+    args = ap.parse_args()
     paths, cfg, proto = get_paths(), load_data_config(), load_protocol_config()
+    summary = paths.results / "summary"
+    calib = pd.read_csv(summary / "calib_subject_values.csv")
+    if args.summary_only:
+        per = pd.read_csv(summary / "rq4_longitudinal.csv")
+        references(per, calib).to_csv(summary / "rq4_longitudinal_reference.csv", index=False,
+                                      float_format="%.6g")  # fmt: skip
+        return
     rct = method_params("rct_tslr", paths.configs)
     rows = []
     for subject in cfg.subjects.ids:
@@ -138,8 +170,9 @@ def main() -> None:
     raw = pd.DataFrame(rows)
     per = raw.groupby(["subject", "session", "group", "arm", "k"], as_index=False).bal_acc.mean()
     per["git_sha"] = current_git_sha()
-    summary = paths.results / "summary"
     per.to_csv(summary / "rq4_longitudinal.csv", index=False, float_format="%.6g")
+    references(per, calib).to_csv(summary / "rq4_longitudinal_reference.csv", index=False,
+                                  float_format="%.6g")  # fmt: skip
     table = []
     for (session, arm, k), g in per.groupby(["session", "arm", "k"]):
         for population, h in [("all", g), *g.groupby("group")]:

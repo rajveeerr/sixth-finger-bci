@@ -196,3 +196,21 @@ def test_recut_drops_a_window_whose_wider_span_crosses_a_boundary(tmp_path, cfg)
     assert keep.all()
     keep, X = epochs.recut(rows, cfg, root, -1.0, cfg.window.tmax)
     assert keep.tolist() == [True, False, True, True] and X.shape == (3, 40, 1500)
+
+
+def test_trial_counts_name_each_trial_by_the_windows_it_kept():
+    md = pd.DataFrame(
+        {
+            "subject": ["sub-01"] * 5,
+            "session": ["pre"] * 5,
+            "run": [1, 1, 1, 1, 2],
+            "trial_in_run": [1, 1, 2, 3, 1],
+            "label_name": ["rest", "sixth_finger", "rest", "affected_hand", "rest"],
+        }
+    )
+    row = epochs.trial_counts(md).loc[("sub-01", "pre")]
+    assert row.trials == 4
+    assert (row.rest_and_sixth_finger, row.rest_only, row.affected_hand_only) == (1, 2, 1)
+    assert row.rest_and_affected_hand == 0
+    with pytest.raises(ValueError, match="other windows"):
+        epochs.trial_counts(md.assign(label_name="rest"))

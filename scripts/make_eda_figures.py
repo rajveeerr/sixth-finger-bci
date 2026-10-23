@@ -1,6 +1,10 @@
-"""Regenerate every exploratory figure and the ERD table from the epoch cache.
+"""Regenerate every exploratory figure and the ERD tables from the epoch cache.
 
 uv run python scripts/make_eda_figures.py --session pre --out docs/figures
+uv run python scripts/make_eda_figures.py --summary-only   # the group table from the stored values
+
+Writes results/summary/eda_erd_values.csv (per subject) and eda_erd_summary.csv (per session,
+band and channel: the group means, how many subjects show ERD, and SF against AH, exploratory).
 """
 
 from __future__ import annotations
@@ -20,6 +24,7 @@ from scipy.signal import welch
 from sixthfinger.config import load_data_config
 from sixthfinger.data.channels import subject_group
 from sixthfinger.data.epochs import load_windows
+from sixthfinger.evaluation.stats import paired_test
 from sixthfinger.paths import get_paths
 from sixthfinger.viz import topo
 from sixthfinger.viz.plots import CLASS_COLORS, CLASS_SHORT, save, use_style
@@ -51,6 +56,27 @@ def subject_erd(cfg, paths, subject: str, session: str) -> dict:
             out[(name, mirror)] = erd
             out["times"] = times
     return out
+
+
+def erd_summary(values: pd.DataFrame) -> pd.DataFrame:
+    """Group ERD per session, band and channel from the per-subject values, and SF against AH
+    (two-sided Wilcoxon on the subjects with both, exploratory, not corrected)."""
+    rows = []
+    for (session, band, channel), g in values.groupby(["session", "band", "channel"], sort=False):
+        wide = g.pivot(index="subject", columns="class", values="erd_percent")  # noqa: PD010
+        ah, sf = wide[MI[1]].dropna(), wide[MI[2]].dropna()
+        both = wide.dropna()
+        test = paired_test(both[MI[2]].to_numpy(), both[MI[1]].to_numpy())
+        more_negative = int((both[MI[2]] < both[MI[1]]).sum())
+        rows.append(dict(session=session, band=band, channel=channel,
+                         n_affected_hand=len(ah), n_sixth_finger=len(sf),
+                         mean_affected_hand=ah.mean(), mean_sixth_finger=sf.mean(),
+                         n_negative_affected_hand=int((ah < 0).sum()),
+                         n_negative_sixth_finger=int((sf < 0).sum()),
+                         n_paired=test["n"], n_sf_more_negative=more_negative,
+                         sf_minus_ah_mean=test["mean_diff"], sf_minus_ah_ci_lo=test["ci_lo"],
+                         sf_minus_ah_ci_hi=test["ci_hi"], W=test["W"], p=test["p"]))  # fmt: skip
+    return pd.DataFrame(rows)
 
 
 def psd_figure(cfg, paths, session: str, out: Path) -> None:
@@ -266,6 +292,7 @@ def main() -> None:
     )
     parser.add_argument("--session", default="pre", choices=SESSIONS)
     parser.add_argument("--out", type=Path, default=Path("docs/figures"))
+    parser.add_argument("--summary-only", action="store_true")
     args = parser.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(message)s")
     logging.getLogger("fontTools").setLevel(logging.WARNING)
@@ -273,6 +300,11 @@ def main() -> None:
     cfg, paths = load_data_config(), get_paths()
     summary = paths.results / "summary"
     summary.mkdir(parents=True, exist_ok=True)
+    if args.summary_only:
+        values = pd.read_csv(summary / "eda_erd_values.csv")
+        erd = erd_summary(values)
+        erd.to_csv(summary / "eda_erd_summary.csv", index=False, float_format="%.6g")
+        return
 
     all_maps, rows = {}, []
     for session in SESSIONS:
@@ -304,6 +336,9 @@ def main() -> None:
             log.info("%s %s done", subject, session)
         all_maps[session] = maps
     pd.DataFrame(rows).to_csv(summary / "eda_erd_values.csv", index=False)
+    # From the file as written, so the group values are those of the per-subject table.
+    values = pd.read_csv(summary / "eda_erd_values.csv")
+    erd_summary(values).to_csv(summary / "eda_erd_summary.csv", index=False, float_format="%.6g")
 
     psd_figure(cfg, paths, args.session, args.out)
     timecourse_and_tfr(all_maps[args.session], cfg, args.session, args.out)

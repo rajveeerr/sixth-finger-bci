@@ -241,6 +241,35 @@ def build_all(
     return md
 
 
+TRIAL_KINDS = {
+    ("affected_hand", "rest"): "rest_and_affected_hand",
+    ("rest", "sixth_finger"): "rest_and_sixth_finger",
+    ("rest",): "rest_only",
+    ("affected_hand",): "affected_hand_only",
+    ("sixth_finger",): "sixth_finger_only",
+}
+
+
+def trial_counts(md: pd.DataFrame) -> pd.DataFrame:
+    """Trials per subject and session by the windows they kept: a rest and an imagery window,
+    or one of them alone when the other was dropped at a cut."""
+    keys = ["subject", "session", "run", "trial_in_run"]
+    kinds = md.groupby(keys).label_name.agg(lambda names: tuple(sorted(names)))
+    unknown = set(kinds) - set(TRIAL_KINDS)
+    if unknown:
+        raise ValueError(f"trials holding other windows than one rest and one cue: {unknown}")
+    counts = (
+        kinds.map(TRIAL_KINDS)
+        .rename("kind")
+        .reset_index()
+        .pivot_table(index=["subject", "session"], columns="kind", aggfunc="size", fill_value=0)
+        .reindex(columns=list(TRIAL_KINDS.values()), fill_value=0)
+        .rename_axis(columns=None)
+    )
+    counts.insert(0, "trials", counts.sum(axis=1))
+    return counts
+
+
 def manifest_sha(out_dir: Path) -> str:
     return hashlib.sha256((out_dir / "manifest.json").read_bytes()).hexdigest()[:16]
 

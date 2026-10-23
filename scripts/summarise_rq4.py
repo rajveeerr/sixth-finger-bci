@@ -8,10 +8,13 @@ that of P08's `rq2_calib_s1` (unmirrored), the same units; both ran on Kaggle CP
 two-sided Wilcoxon per (method, k), Holm over the k of each method; also by affected side
 (mirroring changes the data of the 9 left-hemiplegic patients only; the others gain or lose
 through their sources). Exploratory. Writes results/summary/rq4_mirror.csv (per patient),
-rq4_mirror_table.csv and docs/figures/rq4_mirror_effect.
+rq4_mirror_table.csv (with the per-patient median, how many patients gained or lost, and the
+smallest and largest difference by side) and docs/figures/rq4_mirror_effect.
 """
 
 from __future__ import annotations
+
+import argparse
 
 import pandas as pd
 
@@ -37,7 +40,21 @@ def subject_means(path, mirrored: bool) -> pd.DataFrame:
             .assign(mirrored=mirrored))  # fmt: skip
 
 
+def per_patient(g: pd.DataFrame) -> dict:
+    """The per-patient differences behind a mean: median, patients each way, and by side the
+    smallest and largest."""
+    out = dict(median_diff=g["diff"].median(), n_better=int((g["diff"] > 0).sum()),
+               n_worse=int((g["diff"] < 0).sum()))  # fmt: skip
+    for side in ("L", "R"):
+        d = g[g.side == side]["diff"]
+        out |= {f"min_diff_{side}": d.min(), f"max_diff_{side}": d.max()}
+    return out
+
+
 def main() -> None:
+    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    ap.add_argument("--no-figures", action="store_true")
+    args = ap.parse_args()
     paths = get_paths()
     runs = paths.runs
     both = pd.concat([subject_means(runs / "rq4_mirror" / "scores.parquet", True),
@@ -48,7 +65,7 @@ def main() -> None:
     w["side"] = w.subject.map(hemiplegia_side)
     summary = paths.results / "summary"
     w.to_csv(summary / "rq4_mirror.csv", index=False, float_format="%.6g")
-    rows = []
+    rows, spreads = [], []
     for method in METHODS:
         tests = {}
         for k in K:
@@ -60,14 +77,17 @@ def main() -> None:
                              mean_mirrored=g.mirrored.mean(), mean_unmirrored=g.unmirrored.mean(),
                              mean_diff=res["mean_diff"], ci_lo=res["ci_lo"], ci_hi=res["ci_hi"],
                              p=res["p"], **by_side))  # fmt: skip
+            spreads.append(per_patient(g))
         adj = holm_family(tests)
         for r in rows:
             if r["method"] == method:
                 r["p_holm"] = adj[str(r["k"])]
     table = pd.DataFrame(rows)
+    table = pd.concat([table, pd.DataFrame(spreads, index=table.index)], axis=1)
     table.to_csv(summary / "rq4_mirror_table.csv", index=False, float_format="%.6g")
     print(table.to_string(index=False))
-    figure(table, paths.figures)
+    if not args.no_figures:
+        figure(table, paths.figures)
 
 
 def figure(table: pd.DataFrame, figures) -> None:
