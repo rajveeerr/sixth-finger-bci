@@ -189,6 +189,26 @@ def sixth_command(summary: Path) -> dict:
     }
 
 
+def central_switch(summary: Path) -> dict:
+    """EX5: question 3's simpler model (`ts_lr` on the 14 central channels), learned as rest or
+    any movement and played as if live like answer 4. The analysis's page rule, fixed before
+    scoring, keeps `eegnet_scratch` as the answer unless this switch catches more and errs less;
+    the page's copy is written for that outcome, so a different one stops the build."""
+    checks = json.loads((summary / "ex5_live_switch_checks.json").read_text())
+    shows = checks["page rule (settings page_rule)"]["page_shows"]
+    if shows != "eegnet_scratch":
+        raise ValueError(f"EX5's page rule now shows {shows}: answer 4 must be rewritten")
+    t = pd.read_csv(summary / "ex5_live_switch_table.csv")
+    t = t[(t.arm == "M14") & (t.population == "all")].set_index("metric")
+    return {
+        # Six digits: rounded here to four and again to a whole percent, a share can round up.
+        "detection": r(t.loc["imagery_detection_rate", "mean"], 6),
+        "false_per_minute": r(t.loc["false_per_minute", "mean"], 2),
+        "latency_s": r(t.loc["latency_s", "mean"], 2),
+        "n": int(t.loc["imagery_detection_rate", "n"]),
+    }
+
+
 def healthy_benchmark(summary: Path) -> dict:
     """EX3's benchmark: healthy people's grasps of one hand, learned on day 1 and tested on day
     2, with `ts_lr` and `csp_lda` on all day-1 trials; the lowest and highest mean over the
@@ -371,6 +391,8 @@ def build() -> dict:
             "results/summary/ex4_sf_command_per_patient.csv",
             "results/summary/ex4_sf_command_coverage.csv",
             "results/summary/ex3_grasp_pretraining_benchmark_summary.csv",
+            "results/summary/ex5_live_switch_table.csv",
+            "results/summary/ex5_live_switch_checks.json",
             "web/public/demo/model.onnx",
             "web/public/demo/predictions.json",
             "mne colin27_1005 template",
@@ -389,6 +411,7 @@ def build() -> dict:
             "false_per_minute": r(sw.loc["false_per_minute", "mean"], 2),
             "latency_s": r(sw.loc["latency_s", "mean"], 2),
             "n": int(sw.loc["imagery_detection_rate", "n"]),
+            "central": central_switch(summary),
         },
         "later": {
             "same_session": r(within.iloc[-1]["mean"]),

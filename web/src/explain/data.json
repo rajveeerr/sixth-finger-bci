@@ -20,6 +20,8 @@
   "results/summary/ex4_sf_command_per_patient.csv",
   "results/summary/ex4_sf_command_coverage.csv",
   "results/summary/ex3_grasp_pretraining_benchmark_summary.csv",
+  "results/summary/ex5_live_switch_table.csv",
+  "results/summary/ex5_live_switch_checks.json",
   "web/public/demo/model.onnx",
   "web/public/demo/predictions.json",
   "mne colin27_1005 template"
@@ -670,7 +672,13 @@
   ],
   "false_per_minute": 1.24,
   "latency_s": 3.67,
-  "n": 22
+  "n": 22,
+  "central": {
+   "detection": 0.604998,
+   "false_per_minute": 0.58,
+   "latency_s": 4.13,
+   "n": 22
+  }
  },
  "later": {
   "same_session": 0.6122,
