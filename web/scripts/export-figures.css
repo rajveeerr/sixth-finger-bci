@@ -1,0 +1,153 @@
+/* The figures as they go into the paper, the report and the slides. Only the exporter puts
+   .doc on the page, so none of this ever reaches the site. The figure is [data-fig]; the
+   elements around it are [data-fig-path]; html[data-figure] names the figure being cut. */
+
+/* White paper instead of the page's near-white, also behind the drawings' knock-outs. */
+html.doc {
+  --page: #fff;
+  background: #fff;
+}
+html.doc body {
+  background: #fff;
+}
+
+/* Only the figure: everything beside it on the way up is gone, and nothing around it adds space. */
+.doc [data-fig-path] {
+  display: block !important;
+  position: static !important;
+  width: max-content !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  min-height: 0 !important;
+  height: auto !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  overflow: visible !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+.doc [data-fig-path] > :not([data-fig-path], [data-fig]) {
+  display: none !important;
+}
+/* Fixed, so the print layout never splits the figure across pages, wherever its own box ends. */
+.doc [data-fig] {
+  position: fixed !important;
+  left: var(--fig-x, 0);
+  top: var(--fig-y, 0);
+  width: var(--fig-w) !important;
+  max-width: none !important;
+  margin: 0 !important;
+}
+
+/* A document says in its caption what the page says beside a figure, and has no controls. */
+.doc [data-fig] .plate-side,
+.doc [data-fig] .plate-caption,
+.doc [data-fig] .scrub,
+.doc [data-fig] .scrub-say,
+.doc [data-fig] .aside,
+.doc [data-fig] .toggle,
+.doc [data-fig] .chart-say,
+.doc [data-fig] .figure-note,
+.doc [data-fig] .chart-guide {
+  display: none !important;
+}
+.doc [data-fig] .session-say,
+.doc [data-fig] .dumbbell-about,
+.doc [data-fig] .leak-key-more,
+.doc [data-fig].leak > figcaption,
+.doc [data-fig].journey > figcaption {
+  display: none !important;
+}
+/* A dotted underline reads as a link on paper. */
+.doc [data-fig] .ref-term {
+  border-bottom: 0;
+}
+
+/* Charts: no point ringed as if picked, and no outlined text, which a PDF can only carry as
+   Type 3 glyphs. */
+.doc [data-fig] .chart-point {
+  r: 3px;
+}
+.doc [data-fig] .chart-pop {
+  stroke: none;
+}
+.doc [data-fig] .dumbbell-ticks i {
+  font-size: 13px;
+}
+
+/* The resting rhythm behind the smaller one, dark enough to survive printing. */
+.doc [data-fig] .rhythm-ghost {
+  stroke: #9a9a9a;
+  opacity: 1;
+}
+
+/* The patient's path for a document: the drawings, what each step is and which parts are
+   built, the arrows between them; the sentences go to the caption and the lanes to their own
+   figure, and the labels grow so they still read at 7 pt across a page. */
+html[data-figure="path"] .jy-text,
+html[data-figure="path"] .jy-note,
+html[data-figure="path"] .jy-lanes,
+html[data-figure="path"] .jy-lane,
+html[data-figure="path"] .jy-track {
+  display: none !important;
+}
+html[data-figure="path"] .jy-visit > h3 {
+  font-size: 17px;
+}
+html[data-figure="path"] .jy-name {
+  font-size: 18px;
+}
+html[data-figure="path"] .jy-parts,
+html[data-figure="path"] .jy-link,
+html[data-figure="path"] .jy .built-key {
+  font-size: 15px;
+}
+
+/* The path's two lanes on their own: the practice drawn to scale and the score it reaches,
+   for the two steps that have practice. */
+html[data-figure="path-lanes"] .jy .built-key,
+html[data-figure="path-lanes"] .jy-step > svg,
+html[data-figure="path-lanes"] .jy-text,
+html[data-figure="path-lanes"] .jy-parts,
+html[data-figure="path-lanes"] .jy-note,
+html[data-figure="path-lanes"] .jy-link,
+html[data-figure="path-lanes"] .jy-step[data-station="cap"],
+html[data-figure="path-lanes"] .jy-step[data-station="therapy"] {
+  display: none !important;
+}
+html[data-figure="path-lanes"] .jy {
+  grid-template-columns: 128px repeat(2, minmax(0, 1fr));
+  column-gap: 24px;
+}
+html[data-figure="path-lanes"] .jy-visit[data-visit="1"] > h3,
+html[data-figure="path-lanes"] .jy-step[data-station="practice"] {
+  grid-column: 2;
+}
+html[data-figure="path-lanes"] .jy-visit[data-visit="2"] > h3,
+html[data-figure="path-lanes"] .jy-step[data-station="calendar"] {
+  grid-column: 3;
+}
+html[data-figure="path-lanes"] .jy-words {
+  padding: 8px 0 4px;
+}
+html[data-figure="path-lanes"] .jy-visit > h3,
+html[data-figure="path-lanes"] .jy-name {
+  font-size: 15.5px;
+}
+html[data-figure="path-lanes"] .jy-lane,
+html[data-figure="path-lanes"] .jy-score,
+html[data-figure="path-lanes"] .jy-none {
+  font-size: 15px;
+}
+html[data-figure="path-lanes"] .jy-bar {
+  font-size: 15px;
+}
+
+/* One trial in a column: each screen's words on their own lines, none broken. */
+html[data-figure="trial"] .sees-labels {
+  grid-template-columns: repeat(3, auto);
+  justify-content: space-between;
+  font-size: 13.5px;
+}
