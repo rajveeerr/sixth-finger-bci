@@ -1,23 +1,39 @@
 \section{Dataset and Integrity Audit}
 \label{sec:dataset}
-We used the dataset of Wang et al.~\cite{wang2026dataset,wang2026figshare}: EEG of 24
-stroke patients (18 male, aged 34--77 years; 15 with right and 9 with left hemiplegia)
-recorded before a two-week training programme, immediately after it, and one month
-later. In each 14\,s trial the patient rested for 7\,s, saw a preparation cue for 1\,s,
-and then imagined for 6\,s either grasping with the affected hand (AH) or flexing a
-robotic sixth finger worn on the affected wrist (SF). Each session comprised four runs
-of 20 trials (10 AH, 10 SF in random order). EEG was recorded at 250\,Hz; the
-authors' preprocessing (5--35\,Hz band-pass, common average reference, manual artifact
-rejection and ICA) yielded 40 analysis channels~\cite{wang2026dataset}. We used these
-preprocessed files.
+We used the public dataset of Wang et al.~\cite{wang2026dataset,wang2026figshare}:
+EEG of \nSubjects{} stroke patients from one hospital, recorded before two
+weeks of therapy, right after it and a month later. In each trial the patient
+rested while looking at a cross, saw a short preparation cue, and then
+imagined either grasping with the affected hand or flexing a robotic sixth
+finger worn on the affected wrist (Fig.~\ref{fig:trial}). A session has four
+runs of 20 trials, ten of each movement in random order. We used the authors'
+preprocessed files (5--35\,Hz band-pass, common average reference, manual
+artefact rejection and independent component analysis), sampled at
+\nSamplingRate\,Hz, with the 40 channels they analysed~\cite{wang2026dataset}.
 
 \begin{figure}[t]
   \centering
-  \includegraphics[width=\columnwidth]{figures/fig-trial-timeline.pdf}
-  \caption{Trial timeline (nominal timing; in the recordings the cue followed the rest onset by about 8.6\,s). Analysis windows span 1--5\,s after the rest onset and after the imagery cue.}
-  \label{fig:timeline}
+  \includegraphics[width=0.9\columnwidth]{figures/web/trial.pdf}
+  \caption{One trial as the patient sees it. The decoders read two 4\,s
+  windows per trial: one from the rest period and one from the imagery
+  period, each starting 1\,s after its cue.}
+  \label{fig:trial}
 \end{figure}
 
-% Integrity audit (numbers from results/audit via numbers.tex in P13):
-% duplicated raw recordings (sub-02 post/follow; sub-21/sub-22 pre), handling.
-\TBD{P02}
+Before any analysis we audited every file. All \nRuns{} runs had the expected
+format and none had a flat channel. Comparing all \auditPairsScreened{} pairs
+of runs found recordings that appear twice. One patient's follow-up session
+is a copy of the post-therapy session (segment correlations
+\auditFollowCopyCorrMin--\auditFollowCopyCorrMax). The pre-therapy sessions of
+two patients, sub-21 and sub-22, share one recording but carry different cue
+orders in all four runs, so at most one set of labels can be right. We
+excluded the copied follow-up and both of these sessions, linked the two
+patients so that neither is ever a source for the other, and dropped one run
+without any imagery. This leaves \nRunsKept{} runs in \nSessionsKept{}
+sessions, and \nPre{} patients with a pre-therapy session, the sample of
+every confirmatory test on the stroke data.
+
+From every rest and imagery marker we cut a window from 1 to 5\,s after the
+marker, giving \nWindows{} windows. We dropped \nWindowsDropped{}
+(\nWindowsDroppedPct\,\%) whose span crossed a segment removed by the
+authors' cleaning or the end of a run.
