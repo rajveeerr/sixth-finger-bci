@@ -171,12 +171,10 @@ export function Journey() {
         </div>
         <ul className="journey-key">
           <li data-built="">
-            <b>Built in this project</b> the model and its move-or-rest switch, on the server or in the browser, and the
-            replay of real recordings
+            <b>Built in this project</b> the model and its switch
           </li>
           <li>
-            <b>Needed in a real system</b> a headset streaming live, the bridge to the server, the finger itself, the
-            clinic&apos;s schedule
+            <b>Needed in a real system</b> a live headset, its bridge, the finger, clinic visits
           </li>
         </ul>
       </div>
