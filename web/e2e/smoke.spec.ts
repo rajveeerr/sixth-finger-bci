@@ -9,11 +9,11 @@ test("the demo page loads with its main panels", async ({ page }) => {
 
 test("one chapter for the patient's path and what is built, each part drawn once", async ({ page }) => {
   await page.goto("/?server=http://127.0.0.1:9");
-  await expect(page.locator(".index li")).toHaveCount(7);
+  await expect(page.locator(".index li")).toHaveCount(8);
   const use = page.locator("#use");
-  await expect(use.locator(".q-num")).toHaveText("6");
+  await expect(use.locator(".q-num")).toHaveText("7");
   await expect(use.locator("h2")).toHaveText("How would a patient use it, and which parts are built?");
-  await expect(page.locator("#added .q-num")).toHaveText("7");
+  await expect(page.locator("#added .q-num")).toHaveText("8");
   await expect(page.locator("#built")).toHaveCount(0);
 
   const path = page.locator("#journey");
@@ -28,5 +28,20 @@ test("one chapter for the patient's path and what is built, each part drawn once
   await expect(path.locator(".jy-link")).toHaveText([
     "brain signal, every 80 ms",
     "a command every half second, from the last 4 s",
+  ]);
+});
+
+test("the page opens with the problem: a hand a stroke left weak, and what the sixth finger does", async ({ page }) => {
+  await page.goto("/?server=http://127.0.0.1:9");
+  const first = page.locator(".index li").first();
+  await expect(first.locator(".index-ask")).toHaveText("What problem does it solve?");
+  await expect(first.locator("a")).toHaveAttribute("href", "#problem");
+  const problem = page.locator("#problem");
+  await expect(problem.locator(".q-num")).toHaveText("1");
+  await expect(problem.locator(".problem h3")).toHaveText([
+    "After a stroke",
+    "A sixth finger",
+    "Moved by imagining",
+    "Our question",
   ]);
 });

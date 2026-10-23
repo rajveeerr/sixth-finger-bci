@@ -22,6 +22,43 @@ export function DatasetRef({ children }: { children: ReactNode }) {
   );
 }
 
+export function FingerRef({ children }: { children: ReactNode }) {
+  return (
+    <Ref
+      href={LINKS.finger.url}
+      card={
+        <>
+          <b>Extra robotic limbs</b> Robotic arms and fingers worn in addition to one&apos;s own, reviewed by
+          Prattichizzo et al., Progress in Biomedical Engineering (2021). The sixth finger in this study is worn on the
+          weak hand&apos;s wrist and bends toward the palm.
+          <span className="ref-link">Opens the review</span>
+        </>
+      }
+    >
+      {children}
+    </Ref>
+  );
+}
+
+export function RehabRef({ children }: { children: ReactNode }) {
+  return (
+    <Ref
+      href={LINKS.rehab.url}
+      card={
+        <>
+          <b>BCI therapy after stroke</b> The patient practises imagining a movement of the weak arm or hand, and each
+          time the BCI picks it up, something answers: a robot (Ang et al., Clinical EEG and Neuroscience), electrical
+          stimulation of the muscles (Biasiucci et al., Nature Communications, 2018) or a picture of the hand moving
+          (Pichiorri et al., Annals of Neurology, 2015). Cervera et al. (2018) review such trials together.
+          <span className="ref-link">Opens the review</span>
+        </>
+      }
+    >
+      {children}
+    </Ref>
+  );
+}
+
 export function CueTerm({ children = "cue" }: { children?: ReactNode }) {
   return (
     <Ref

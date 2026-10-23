@@ -4,6 +4,7 @@ import { ManualTestBanner } from "./components/ManualTestBanner";
 import { Added } from "./explain/chapters/Added";
 import { OwnCommand } from "./explain/chapters/OwnCommand";
 import { PatientUse } from "./explain/chapters/PatientUse";
+import { Problem } from "./explain/chapters/Problem";
 import { Published } from "./explain/chapters/Published";
 import { SeeItWork } from "./explain/chapters/SeeItWork";
 import { TheData } from "./explain/chapters/TheData";
@@ -64,6 +65,7 @@ export default function App() {
           </ol>
         </nav>
 
+        <Problem />
         <WhatIsThis />
         <SeeItWork stream={stream} />
         <TheData />

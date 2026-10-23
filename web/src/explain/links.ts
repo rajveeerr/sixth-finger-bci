@@ -19,6 +19,16 @@ export const LINKS = {
     title: "EEGNet",
     note: "Lawhern et al., \"EEGNet: a compact convolutional neural network for EEG-based brain-computer interfaces\", Journal of Neural Engineering (2018). The model in the demo.",
   },
+  finger: {
+    url: "https://doi.org/10.1088/2516-1091/ac2294",
+    title: "Extra robotic limbs",
+    note: "Prattichizzo et al., \"Human augmentation by wearable supernumerary robotic limbs: review and perspectives\", Progress in Biomedical Engineering (2021).",
+  },
+  rehab: {
+    url: "https://doi.org/10.1002/acn3.544",
+    title: "BCI therapy after stroke",
+    note: "Cervera et al., \"Brain-computer interfaces for post-stroke motor rehabilitation: a meta-analysis\", Annals of Clinical and Translational Neurology (2018).",
+  },
   code: {
     url: REPO,
     title: "Our code and results",

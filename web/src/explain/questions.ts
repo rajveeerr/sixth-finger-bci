@@ -12,6 +12,11 @@ export interface Question {
 }
 
 export const QUESTIONS: Question[] = [
+  {
+    id: "problem",
+    ask: "What problem does it solve?",
+    short: "A stroke often leaves a hand too weak to grip",
+  },
   { id: "what", ask: "What is this?", short: "A robotic sixth finger, moved by reading the brain" },
   { id: "demo", ask: "Can we see it work?", short: "Yes, on recordings the model never learned from" },
   { id: "data", ask: "Did you record the brain signals?", short: "No: a public recording of 24 stroke patients" },

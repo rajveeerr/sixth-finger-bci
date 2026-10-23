@@ -2031,6 +2031,7 @@ code {
 .plate-caption a,
 .plate-side a,
 .more-lede a,
+.problem a,
 .follow a {
   color: var(--ink);
   text-underline-offset: 3px;
@@ -2749,6 +2750,35 @@ code {
 }
 .facts-terms dl > div {
   grid-template-columns: 6em minmax(0, 1fr);
+}
+
+/* The problem in four steps, from the patient to our question: two by two, in reading order. */
+.problem {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 36px;
+}
+.problem li {
+  padding: 14px 0 18px;
+  border-top: 1px solid var(--rule);
+}
+.problem h3 {
+  margin: 0;
+  font-size: var(--fs-body);
+  font-weight: 560;
+}
+.problem p {
+  margin: 2px 0 0;
+  color: var(--ink-2);
+  text-wrap: pretty;
+}
+@media (max-width: 700px) {
+  .problem {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 /* Built or needed: one language for every drawing. Built is drawn solid and shaded; what a

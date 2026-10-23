@@ -9,23 +9,15 @@ export function WhatIsThis() {
       q="what"
       answer={
         <>
-          A brain-computer interface for people whose hand is weak after a stroke: an <EegTerm /> cap reads the brain,
-          and a <ModelTerm>model</ModelTerm> moves a robotic sixth finger when the wearer imagines moving it.
+          A brain-computer interface: an <EegTerm /> cap reads the brain, and a <ModelTerm>model</ModelTerm> moves the
+          robotic sixth finger when the wearer imagines moving it.
         </>
       }
     >
       <SignalChain />
-      <More label="How it works" what="who it is for, what a BCI is, and what the model looks for">
+      <More label="How it works" what="what a BCI is, what else it can do, and what the model looks for">
         <div className="facts">
           <dl>
-            <div>
-              <dt>Who it is for</dt>
-              <dd>
-                Months after a stroke, many patients still cannot grip well with their <em>affected hand</em>. The
-                robotic finger, worn at the wrist, presses an object against the palm so the weak hand can still hold
-                it. Many cannot press a button, so the wish to move is read from the brain.
-              </dd>
-            </div>
             <div>
               <dt>What a BCI is</dt>
               <dd>

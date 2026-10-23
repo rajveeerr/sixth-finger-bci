@@ -65,8 +65,8 @@ export function IntroHand() {
         {held ? "Imagining: the finger bends" : "Press and hold to imagine the movement"}
       </button>
       <figcaption>
-        The robotic sixth finger is worn on a strap at the wrist and bends toward the palm. In a BCI it moves when the
-        wearer imagines moving it.
+        For a hand left weak by a stroke: worn on a strap at the wrist, the robotic sixth finger bends toward the palm
+        to help the hand hold things, and moves when the wearer imagines moving it.
       </figcaption>
     </figure>
   );
