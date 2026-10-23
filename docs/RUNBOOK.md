@@ -91,7 +91,8 @@ Summaries and figures:
 | `uv run python scripts/summarise_rq4.py` | P09 | `results/summary/rq4_mirror*`, `docs/figures/rq4_mirror_effect` |
 | `uv run python scripts/pseudo_online.py --summarise` | P09 | `results/summary/rq4_pseudo_online*`, `docs/figures/rq4_pseudo_online` |
 | `uv run python scripts/summarise_dl.py` | P07 | `results/summary/dl_*` (with `dl_summary.json` and `dl_class_recall.csv`), `results/audit/pretrain*`, `docs/figures/dl_*` |
-| `uv run python scripts/make_rq3_patient_figure.py` | P13 | `docs/figures/rq3_patients.{pdf,png}`, PDF copied to `paper/figures/` |
+| `uv run --with brotli==1.2.1 python scripts/make_rq3_patient_figure.py` | P13 | `docs/figures/rq3_patients.{pdf,png}`, PDF copied to `paper/figures/` |
+| `uv run --with brotli==1.2.1 python scripts/make_paper_figures.py` | P13 | `docs/figures/paper_{leak,calibration,later,switch}.{pdf,png}`, PDFs copied to `paper/figures/`; brotli cuts Inter from the web font once (needs `npm --prefix web ci`) |
 | `uv run python scripts/count_eegnet_weights.py` | P14 | `results/summary/eegnet_weights.json` |
 | `uv run python scripts/time_demo_inference.py` | P14 | `results/summary/demo_inference_timing.{json,csv}`: a new timing, so run it on the machine you quote, with little else running |
 
