@@ -1,0 +1,41 @@
+{
+ "what": "wall-clock time of the server's Decoder.predict on one 4 s window of the stored demo recording: preprocessing, onnxruntime and softmax (ms)",
+ "new_measurement": "measured for P14 on the date below, not a summary of an earlier run; the P10 figure was timed once by hand with no samples kept",
+ "measured_at": "2026-10-23T18:59:52+00:00",
+ "git_sha": "4c903a6",
+ "model": {
+  "file": "web/public/demo/model.onnx",
+  "sha256": "cb7a167ffe265b8e2f293695bc28e64e04654d6c1b176fc896ec861a8f5394d9"
+ },
+ "windows": {
+  "definition": "every 4 s window inside a stored trial ending on the continuous mode's 0.5 s hop, decided once per pass",
+  "trials": 36,
+  "per_pass": 792,
+  "passes": 5,
+  "warmup_untimed": 20
+ },
+ "n": 3960,
+ "latency_ms": {
+  "median": 1.203,
+  "q1": 1.2,
+  "q3": 1.2103,
+  "iqr": 0.0102,
+  "min": 1.1957,
+  "max": 3.6781
+ },
+ "stored_predictions_max_abs_diff": 4.93855476380034e-06,
+ "machine": {
+  "cpu": "Apple M1",
+  "memory_gb": 8,
+  "os": "macOS 15.1.1",
+  "python": "3.12.3",
+  "onnxruntime": "1.30.0",
+  "numpy": "2.5.3",
+  "provider": "CPUExecutionProvider",
+  "intra_op_threads": 1
+ },
+ "load_average_1min": {
+  "before": 2.18,
+  "after": 2.32
+ }
+}

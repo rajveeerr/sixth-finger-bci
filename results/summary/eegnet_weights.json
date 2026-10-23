@@ -1,0 +1,75 @@
+{
+ "what": "EEGNet's trainable weights as the study builds it, and the numbers stored in the demo's ONNX model",
+ "git_sha": "4c903a6",
+ "study_model": {
+  "factory": "sixthfinger.models.deep.build_module",
+  "configs": [
+   "configs/models/eegnet_scratch.yaml",
+   "configs/models/eegnet_ea_ft.yaml"
+  ],
+  "channels": 40,
+  "classes": 3,
+  "samples": 1000,
+  "sfreq": 250.0,
+  "trainable": 3235,
+  "per_layer": {
+   "conv_temporal": 512,
+   "bnorm_temporal": 16,
+   "conv_spatial": 640,
+   "bnorm_1": 32,
+   "conv_separable_depth": 256,
+   "conv_separable_point": 256,
+   "bnorm_2": 32,
+   "final_layer.conv_classifier": 1491
+  },
+  "batch_norm_channels": {
+   "bnorm_temporal": 8,
+   "bnorm_1": 16,
+   "bnorm_2": 16
+  },
+  "batch_norm_trainable": 80,
+  "batch_norm_running_statistics": 80
+ },
+ "two_class_trainable": 2738,
+ "deployed_onnx": {
+  "file": "web/public/demo/model.onnx",
+  "numbers": 3195,
+  "initializers": {
+   "net.conv_separable_depth.weight": 256,
+   "net.final_layer.conv_classifier.weight": 1488,
+   "net.final_layer.conv_classifier.bias": 3,
+   "onnx::Conv_86": 512,
+   "onnx::Conv_87": 8,
+   "onnx::Conv_89": 640,
+   "onnx::Conv_90": 16,
+   "onnx::Conv_92": 256,
+   "onnx::Conv_93": 16
+  },
+  "operators": [
+   "AveragePool",
+   "Concat",
+   "Constant",
+   "Conv",
+   "Elu",
+   "Gather",
+   "Reshape",
+   "Shape",
+   "Softmax",
+   "Squeeze",
+   "Transpose",
+   "Unsqueeze"
+  ],
+  "input": [
+   "batch",
+   40,
+   1000
+  ],
+  "output": [
+   "batch",
+   3
+  ]
+ },
+ "difference": 40,
+ "onnx_equals_demo_parameters": true,
+ "reason": "the export folds each of the three batch normalisations into the convolution before it (the ONNX graph has no BatchNormalization node): their scale and shift, two trainable numbers per channel, and their running mean and variance become one bias per channel of that convolution, so the file holds the trainable weights minus one number per batch-normalised channel"
+}
