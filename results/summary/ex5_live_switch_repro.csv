@@ -1,0 +1,7 @@
+check,n,identical,max_abs_diff,git_sha
+ts_lr n_imagery_periods vs rq4_pseudo_online_switch.csv,22,True,0,34b7a15
+ts_lr imagery_detection_rate vs rq4_pseudo_online_switch.csv,22,True,0,34b7a15
+ts_lr false_per_minute vs rq4_pseudo_online_switch.csv,22,True,0,34b7a15
+ts_lr latency_s vs rq4_pseudo_online_switch.csv,22,True,0,34b7a15
+window ends equal the stored rq4 ts_lr timelines,26781,True,,34b7a15
+ts_lr probabilities vs the stored rq4 ts_lr timelines (not required to be exact),26781,True,0,34b7a15

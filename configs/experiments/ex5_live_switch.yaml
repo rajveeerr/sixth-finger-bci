@@ -104,3 +104,30 @@ page_rule: 'the demo page''s answer 4 shows a new switch only if M14 or M14_sure
   (rq4_pseudo_online_switch_table.csv); if both do, the one with fewer mistakes per minute (then the
   higher detection). Otherwise answer 4 keeps eegnet_scratch and says in one line that the central
   switch did not do better live'
+threshold_choice:
+  thresholds:
+    sub-01: 0.57
+    sub-02: 0.7
+    sub-03: 0.54
+    sub-04: 0.5
+    sub-05: 0.71
+    sub-06: 0.5
+    sub-07: 0.55
+    sub-08: 0.54
+    sub-09: 0.5
+    sub-10: 0.59
+    sub-11: 0.5
+    sub-12: 0.69
+    sub-13: 0.5
+    sub-14: 0.57
+    sub-15: 0.77
+    sub-16: 0.53
+    sub-17: 0.55
+    sub-18: 0.66
+    sub-19: 0.69
+    sub-20: 0.5
+    sub-23: 0.5
+    sub-24: 0.54
+  n_within_limit: 22
+  chosen_at: '2026-10-23T16:04:44'
+  files: ex5_live_switch_thresholds.csv, ex5_live_switch_inner_curve.csv (runs 01-02 only)
