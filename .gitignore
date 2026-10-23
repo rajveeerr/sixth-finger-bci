@@ -82,3 +82,6 @@ kaggle.json
 # Tabular caches and run outputs are regenerated, never committed.
 *.parquet
 results/kaggle/
+
+# Roll and enrolment numbers for the printed report, kept out of the repository
+report/frontmatter/*.local.tex

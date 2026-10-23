@@ -155,7 +155,8 @@ paper-supplement: ## Build the paper's reproducibility supplement (paper/build/s
 	mkdir -p paper/build
 	tectonic -X compile paper/supplement.tex --outdir paper/build
 
-site-docs: paper ## Copy the paper and the slides into web/public/docs for the site
+site-docs: paper ## Copy the paper, the slides and the report's public edition into web/public/docs
+	$(MAKE) -C report public
 	$(UV) run python scripts/copy_site_docs.py
 
 report: ## Build the project report

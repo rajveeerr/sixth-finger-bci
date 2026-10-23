@@ -12,11 +12,18 @@
 \vspace{1cm}
 {\large Submitted by\par}
 \vspace{0.3cm}
-\begin{tabular}{ll}
-Rajveer Singh & Roll No. 45, Enrolment No. 05096302823 \\
-Vivek Yadav & Roll No. 46, Enrolment No. 05196302823 \\
-Ansh Dahiya & Roll No. 49, Enrolment No. \TBD{enrolment no.} \\
+% Roll and enrolment numbers stay out of the repository and off the public site: the printed
+% copy reads them from ids.local.tex (not committed); public.tex and a fresh clone print names only.
+\IfFileExists{frontmatter/ids.local.tex}{\ifdefined\PublicEdition\else\def\WithIds{}\fi}{}
+\ifdefined\WithIds
+\input{frontmatter/ids.local.tex}
+\else
+\begin{tabular}{c}
+Rajveer Singh \\
+Vivek Yadav \\
+Ansh Dahiya \\
 \end{tabular}
+\fi
 \vspace{1cm}
 
 {\large Under the guidance of\par}
@@ -25,5 +32,5 @@ Ansh Dahiya & Roll No. 49, Enrolment No. \TBD{enrolment no.} \\
 {\large Department of Electronics and Communication Engineering\\
 Maharaja Surajmal Institute of Technology, New Delhi\\
 (Affiliated to Guru Gobind Singh Indraprastha University, Delhi)\\[0.4cm]
-\TBD{submission month and year}\par}
+October 2026\par}
 \end{titlepage}

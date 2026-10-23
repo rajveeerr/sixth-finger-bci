@@ -10,5 +10,11 @@
   "file": "sixth-finger-bci-slides.pptx",
   "format": "PowerPoint",
   "bytes": 1907681
+ },
+ {
+  "doc": "report",
+  "file": "sixth-finger-bci-report.pdf",
+  "format": "PDF",
+  "bytes": 2465222
  }
 ]

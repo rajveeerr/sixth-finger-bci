@@ -13,3 +13,8 @@ numbers for the front matter (none printed on the cover, declaration, certificat
 acknowledgement), arabic from Chapter 1, IEEE references. The contents, the lists and
 the references are single-spaced. This follows GGSIPU's
 published thesis format; MSIT's own rules still need confirming with the department.
+
+Roll and enrolment numbers are not in the repository. For the printed copy, put the cover's
+table of names and numbers in `frontmatter/ids.local.tex` (ignored by git); `make report`
+then prints them. `make -C report public` builds the edition for the site, which prints names
+only, and `make site-docs` copies that one.

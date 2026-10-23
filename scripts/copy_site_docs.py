@@ -1,11 +1,11 @@
-"""Copy the paper and the slides into web/public/docs/, where the site serves them.
+"""Copy the paper, the slides and the report into web/public/docs/, where the site serves them.
 
-make site-docs                                # builds the paper first
+make site-docs                      # builds the paper and the report's public edition first
 uv run python scripts/copy_site_docs.py
 
 Each file gets a stable name, so a link to it keeps working, and web/src/explain/documents.json
-lists what was copied with its size, for the page's links. The report stays off until its
-cover carries the enrolment number and the submission date: then add "report" to PUBLISHED.
+lists what was copied with its size, for the page's links. The site gets the report's public
+edition (report/public.tex), whose cover leaves out the roll and enrolment numbers.
 """
 
 from __future__ import annotations
@@ -23,9 +23,9 @@ DOCUMENTS = {
         ("report/slides/sixth-finger-bci.pptx", "sixth-finger-bci-slides.pptx", False),
         ("report/slides/sixth-finger-bci.pdf", "sixth-finger-bci-slides.pdf", True),
     ],
-    "report": [("report/build/main.pdf", "sixth-finger-bci-report.pdf", False)],
+    "report": [("report/build/public.pdf", "sixth-finger-bci-report.pdf", False)],
 }
-PUBLISHED = ["paper", "slides"]
+PUBLISHED = ["paper", "slides", "report"]
 FORMATS = {".pdf": "PDF", ".pptx": "PowerPoint"}
 MAX_BYTES = 5_000_000
 OUT_DIR = ("web", "public", "docs")
