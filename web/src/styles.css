@@ -3469,6 +3469,102 @@ code {
   text-wrap: pretty;
 }
 
+/* The paper, the slides and the code, after the last question. Each row is one link. */
+.read {
+  padding-top: 112px;
+}
+.read h2 {
+  margin: 0 0 16px;
+  font-size: 22px;
+  line-height: 1.25;
+  font-weight: 560;
+  letter-spacing: -0.015em;
+}
+.docs {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-width: var(--text);
+  border-top: 1px solid var(--rule);
+}
+.docs li {
+  position: relative;
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--rule);
+}
+.doc-sheet {
+  width: 30px;
+  height: 38px;
+  fill: #fff;
+  stroke: var(--ink-4);
+  stroke-width: 1.2;
+  stroke-linejoin: round;
+}
+.doc-sheet text {
+  fill: var(--ink-2);
+  stroke: none;
+  font: 650 8px var(--sans);
+  letter-spacing: 0.02em;
+  text-anchor: middle;
+}
+.doc-head {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+}
+.doc-head a {
+  font-size: var(--fs-body);
+  color: var(--ink-2);
+  text-underline-offset: 3px;
+  text-decoration-color: var(--ink-4);
+}
+/* The whole row answers a tap, not only the words. */
+.doc-head a::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+.docs li:hover .doc-head a {
+  text-decoration-color: var(--ink-2);
+}
+.docs li:hover .doc-sheet {
+  stroke: var(--ink-2);
+}
+.doc-head b {
+  font-weight: 600;
+  color: var(--ink);
+}
+.doc-tag {
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--chip);
+  font-size: 12px;
+  font-weight: 560;
+  color: var(--ink-2);
+}
+.doc-text {
+  margin: 4px 0 0;
+  font-size: var(--fs-note);
+  line-height: 1.5;
+  color: var(--ink-3);
+  text-wrap: pretty;
+}
+.hero-read {
+  margin: 10px auto 0;
+  font-size: var(--fs-note);
+}
+.hero-read a {
+  color: var(--ink);
+  text-underline-offset: 3px;
+  text-decoration-color: var(--ink-4);
+}
+
 @media (max-width: 700px) {
   .q {
     padding-top: 84px;
@@ -3547,6 +3643,9 @@ code {
   .bench-lines > div {
     grid-template-columns: minmax(0, 1fr);
     gap: 2px;
+  }
+  .read {
+    padding-top: 84px;
   }
   .q-answer[data-dial] {
     grid-template-columns: minmax(0, 1fr);

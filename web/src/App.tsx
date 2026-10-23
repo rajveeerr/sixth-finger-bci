@@ -10,6 +10,8 @@ import { Published } from "./explain/chapters/Published";
 import { SeeItWork } from "./explain/chapters/SeeItWork";
 import { TheData } from "./explain/chapters/TheData";
 import { WhatIsThis } from "./explain/chapters/WhatIsThis";
+import { READ_TITLE } from "./explain/siteDocs";
+import { Documents } from "./explain/Documents";
 import { QUESTIONS } from "./explain/questions";
 import { useDemoStream } from "./stream/useDemoStream";
 
@@ -48,6 +50,9 @@ export default function App() {
           <p className="hero-meta">
             A B.Tech minor project by Rajveer Singh, Vivek Yadav and Ansh Dahiya, guided by Dr. Suman Lata.
           </p>
+          <p className="hero-read">
+            <a href="#read">{READ_TITLE}</a>
+          </p>
         </header>
 
         <nav className="index" aria-labelledby="index-title">
@@ -75,6 +80,7 @@ export default function App() {
         <PatientUse />
         <Numbers />
         <Added />
+        <Documents />
 
         <footer className="colophon">
           <p>
