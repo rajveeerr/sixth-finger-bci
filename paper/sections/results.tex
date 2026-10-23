@@ -1,2 +1,248 @@
 \section{Results}
-\TBD{P13}
+\label{sec:results}
+
+\subsection{The fair test changes the published picture (H1, H1b)}
+Fitting CSP on all trials before cross-validation raised the accuracy of every
+patient (Fig.~\ref{fig:leak}). CSP+LDA on hand against sixth finger reached
+\rqOneCspLdaPaperReplicaMean\,\% (95\,\% CI
+\rqOneCspLdaPaperReplicaCiLo--\rqOneCspLdaPaperReplicaCiHi) the published way
+and \rqOneCspLdaCvLeakfreeMean\,\%
+(\rqOneCspLdaCvLeakfreeCiLo--\rqOneCspLdaCvLeakfreeCiHi) when tested fairly.
+The inflation was \rqOneHOneDiff{} percentage points (CI
+\rqOneHOneDiffCiLo--\rqOneHOneDiffCiHi; \rqOneHOneDiffMin{} to
+\rqOneHOneDiffMax{} per patient; $W = \rqOneHOneW$, $p = \rqOneHOneP$,
+$r = \rqOneHOneR$, $n = \rqOneHOneN$), so H1 is \rqOneHOneCategory. Our
+rebuild of the authors' own recipe gave \rqOneCspLdaReplicaPaperReplicaMean\,\%
+the published way, where the paper reports 85--86\,\%~\cite{wang2026dataset},
+and \rqOneCspLdaReplicaCvLeakfreeMean\,\% fairly: we reproduce the direction
+of the leak, not the published value itself. TS+LR and MDM, whose steps
+before the classifier use no labels, did not change (\rqOneTsLrLeakDiff{} and
+\rqOneMdmLeakDiff{} points). The same code inflated healthy-subject accuracy by
+\rqOneBnciHOneBDiff{} points on BNCI2014\_001 ($n = \rqOneBnciHOneBN$) and
+\rqOneChoHOneBDiff{} points on Cho2017 ($n = \rqOneChoHOneBN$), so H1b is
+supported: the leak comes from the procedure, not from these recordings.
+
+Under run-wise splits, five classical methods separated hand from sixth
+finger at only \rqOneHeldOutRunsMeanMin--\rqOneHeldOutRunsMeanMax\,\%, and
+sixth finger from rest at
+\rqOneSfRestHeldOutRunsMeanMin--\rqOneSfRestHeldOutRunsMeanMax\,\%. Every
+result below uses this fair protocol.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.82\columnwidth]{figures/web/leak-slope.pdf}
+  \caption{The fair test, patient by patient (CSP+LDA, hand against sixth
+  finger, pre-therapy session, $n = \rqOneN$). Left: spatial filters fitted on
+  all trials before cross-validation, as published. Right: fitted inside each
+  training fold. Grey lines are patients and black the mean; the tick marks
+  the accuracy the dataset paper reports.}
+  \label{fig:leak}
+\end{figure}
+
+\subsection{Calibration for a new patient (H2a, H2b)}
+Learning from other patients gave a new patient a fast start almost at
+once, and then stopped improving (Fig.~\ref{fig:setup}). On three classes,
+transfer reached \rqTwoRestAhSfRctTslrKOneMean\,\% (CI
+\rqTwoRestAhSfRctTslrKOneCiLo--\rqTwoRestAhSfRctTslrKOneCiHi) after one trial
+of each movement, \rqTwoMinutesKOne\,min of recording; with no labelled
+trial, re-centred on \rqTwoRestMinutes\,min of rest alone, it reached
+\rqTwoRestAhSfRctTslrKZeroMean\,\%. From scratch reached
+\rqTwoRestAhSfTsLrKOneMean\,\% (\rqTwoRestAhSfTsLrKOneCiLo--\rqTwoRestAhSfTsLrKOneCiHi)
+and needed ten trials of each movement (\rqTwoMinutesKTen\,min) to reach the
+same \rqTwoRestAhSfTsLrKTenMean\,\%. Transfer then stayed near its first
+value: \rqTwoRestAhSfRctTslrKFiveMean\,\% at $k = 5$ and
+\rqTwoRestAhSfRctTslrKAllMean\,\% with the whole pool. From scratch kept
+rising, to \rqTwoRestAhSfTsLrKFiveMean\,\% at $k = 5$ and
+\rqTwoRestAhSfTsLrKAllMean\,\% with the whole pool (\rqTwoMinutesKAll\,min).
+
+In secondary tests per budget, transfer's lead was
+\rqTwoAdvantageKOneDiff{} points at $k = 1$ (CI
+\rqTwoAdvantageKOneDiffCiLo--\rqTwoAdvantageKOneDiffCiHi, Holm
+$p = \rqTwoAdvantageKOnePHolm$), \rqTwoAdvantageKFiveDiff{} points at $k = 5$
+(\rqTwoAdvantageKFiveDiffCiLo--\rqTwoAdvantageKFiveDiffCiHi,
+$p = \rqTwoAdvantageKFivePHolm$) and \rqTwoAdvantageKTenDiff{} points at
+$k = 10$ ($p = \rqTwoAdvantageKTenPHolm$). With the whole pool, from scratch
+was ahead by \rqTwoRestAhSfTsLrMinusRctTslrKAllDiff{} points
+(\rqTwoRestAhSfTsLrMinusRctTslrKAllDiffCiLo{} to
+\rqTwoRestAhSfTsLrMinusRctTslrKAllDiffCiHi, not tested).
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\columnwidth]{figures/web/setup.pdf}
+  \caption{Calibration for a new patient: rest, hand and sixth finger,
+  pre-therapy session, $n = \rqTwoHTwoAN$. Solid: re-centred transfer from
+  other patients (RCT-TS+LR). Dashed: the same classifier from scratch
+  (TS+LR). Points are $k = 1, 2, 3, 5, 10$ and all trials of each movement,
+  placed at the minutes they take to record. Bands are 95\,\% bootstrap CIs.
+  Transfer starts high and stays flat; from scratch overtakes it with the
+  whole pool.}
+  \label{fig:setup}
+\end{figure}
+
+The confirmatory tests agree (Table~\ref{tab:tests}). The ALC was larger with
+transfer for a new user (mean difference \rqTwoHTwoADiff, CI
+\rqTwoHTwoADiffCiLo--\rqTwoHTwoADiffCiHi, median \rqTwoHTwoAMedianDiff,
+$W = \rqTwoHTwoAW$, $p = \rqTwoHTwoAP$, $r = \rqTwoHTwoAR$), so H2a is
+supported: re-centred transfer reduces calibration. Its advantage at $k = 5$
+exceeded its advantage with the whole pool ($p = \rqTwoHTwoBP$), so H2b is
+supported: the advantage shrinks once the full pool is available. Both held
+without the development patients, with the chronological draw and on the
+post-therapy session.
+
+Per patient, \rqTwoReachRestAhSfSixtyBoth{} of the \rqTwoHTwoAN{} reached
+60\,\% with both methods, and transfer got there a median of
+\rqTwoReachRestAhSfSixtyMedianSaved{} trials per movement sooner. Of the
+others, \rqTwoReachRestAhSfSixtyOnlyScratch{} reached it only from scratch,
+because transfer levelled off below it,
+\rqTwoReachRestAhSfSixtyOnlyTransfer{} only with transfer and
+\rqTwoReachRestAhSfSixtyNeither{} with neither. The deep secondary pair had the same shape: the pre-trained EEGNet
+reached \rqTwoRestAhSfEegnetEaFtKZeroMean\,\% with no labelled trial and
+\rqTwoRestAhSfEegnetEaFtKAllMean\,\% with the whole pool, while EEGNet from
+scratch rose from \rqTwoRestAhSfEegnetScratchKOneMean\,\% to
+\rqTwoRestAhSfEegnetScratchKAllMean\,\%. Detecting the sixth finger against
+rest followed the same pattern: transfer led at $k = 1$
+(\rqTwoSfRestRctTslrKOneMean\,\% against \rqTwoSfRestTsLrKOneMean\,\%) and from
+scratch led with the whole pool (\rqTwoSfRestTsLrKAllMean\,\% against
+\rqTwoSfRestRctTslrKAllMean\,\%).
+
+\begin{table*}[t]
+  \centering
+  \caption{Pre-registered tests, pre-therapy session. Effects are mean paired
+  differences with 95\,\% bootstrap CIs: in percentage points for H1 and H1b,
+  on the ALC scale (0 at chance, 1 perfect) for H2a and H3, and as a fraction
+  of balanced accuracy for H2b and H3c. Tests are one-sided for H1, H1b, H2b
+  and H3c; $p$ is Holm-adjusted inside two-member families (marked
+  $^\dagger$). The last column repeats the test on the post-therapy
+  session.}
+  \label{tab:tests}
+  \footnotesize
+  \begin{tabular}{@{}llcccll@{}}
+    \toprule
+    & Comparison, per patient & $n$ & Mean difference [95\,\% CI] & $p$ & Outcome & Post-therapy \\
+    \midrule
+    H1 & Published minus fair, CSP+LDA, hand vs finger & \rqOneHOneN & \rqOneHOneDiff{} [\rqOneHOneDiffCiLo, \rqOneHOneDiffCiHi] & \rqOneHOneP & \rqOneHOneCategory & \rqOneHOnePostCategory \\
+    H1b & The same, BNCI2014\_001 (healthy) & \rqOneBnciHOneBN & \rqOneBnciHOneBDiff{} [\rqOneBnciHOneBDiffCiLo, \rqOneBnciHOneBDiffCiHi] & \rqOneBnciHOneBPHolm$^\dagger$ & supported & -- \\
+     & The same, Cho2017 (healthy) & \rqOneChoHOneBN & \rqOneChoHOneBDiff{} [\rqOneChoHOneBDiffCiLo, \rqOneChoHOneBDiffCiHi] & \rqOneChoHOneBPHolm$^\dagger$ & supported & -- \\
+    H2a & New user, three classes: transfer minus scratch, ALC & \rqTwoHTwoAN & \rqTwoHTwoADiff{} [\rqTwoHTwoADiffCiLo, \rqTwoHTwoADiffCiHi] & \rqTwoHTwoAP & \rqTwoHTwoACategory & \rqTwoHTwoAPostCategory \\
+    H2b & New user: transfer's lead at $k = 5$ minus with all & \rqTwoHTwoBN & \rqTwoHTwoBDiff{} [\rqTwoHTwoBDiffCiLo, \rqTwoHTwoBDiffCiHi] & \rqTwoHTwoBP & \rqTwoHTwoBCategory & \rqTwoHTwoBPostCategory \\
+    H3 (a) & New command, finger vs rest: transfer minus scratch, ALC & \rqThreeHThreeAN & \rqThreeHThreeADiff{} [\rqThreeHThreeADiffCiLo, \rqThreeHThreeADiffCiHi] & \rqThreeHThreeAPHolm$^\dagger$ & \rqThreeHThreeACategory & \rqThreeHThreeAPostCategory \\
+    H3 (b) & New command, three classes: the same & \rqThreeHThreeBN & \rqThreeHThreeBDiff{} [\rqThreeHThreeBDiffCiLo, \rqThreeHThreeBDiffCiHi] & \rqThreeHThreeBPHolm$^\dagger$ & \rqThreeHThreeBCategory & \rqThreeHThreeBPostCategory \\
+    H3c & Finger vs rest: transfer minus own-hand decoder, $k = 2$ & \rqThreeHThreeCKTwoN & \rqThreeHThreeCKTwoDiff{} [\rqThreeHThreeCKTwoDiffCiLo, \rqThreeHThreeCKTwoDiffCiHi] & \rqThreeHThreeCKTwoPHolm$^\dagger$ & \rqThreeHThreeCKTwoCategory & \rqThreeHThreeCKTwoPostCategory \\
+     & The same, $k = 5$ & \rqThreeHThreeCKFiveN & \rqThreeHThreeCKFiveDiff{} [\rqThreeHThreeCKFiveDiffCiLo, \rqThreeHThreeCKFiveDiffCiHi] & \rqThreeHThreeCKFivePHolm$^\dagger$ & \rqThreeHThreeCKFiveCategory & \rqThreeHThreeCKFivePostCategory \\
+    \bottomrule
+  \end{tabular}
+\end{table*}
+
+\subsection{Adding the sixth-finger command (H3, H3c)}
+Adding the new command to a hand decoder showed no clear benefit of transfer.
+For detecting the sixth finger against rest, transfer reached
+\rqThreeSfRestRctTslrKOneMean\,\% with one sixth-finger trial against
+\rqThreeSfRestTsLrKOneMean\,\% from scratch, and
+\rqThreeSfRestRctTslrKFiveMean\,\% against \rqThreeSfRestTsLrKFiveMean\,\%
+with five. The ALC difference favoured transfer, but its CI included zero
+(median \rqThreeHThreeAMedianDiff, Holm $p = \rqThreeHThreeAPHolm$), and three
+patients lost heavily (ALC differences \rqThreeHThreeAPatientLowestDiff,
+\rqThreeHThreeAPatientSecondLowestDiff{} and
+\rqThreeHThreeAPatientThirdLowestDiff). On three classes the difference was
+small (median \rqThreeHThreeBMedianDiff, $p = \rqThreeHThreeBPHolm$). H3 is
+therefore inconclusive. On the post-therapy session outcome (a) was
+significant (Holm $p = \rqThreeHThreeAPostPHolm$), so H3 was supported there;
+its category differs between sessions, so it did not replicate.
+With few sixth-finger trials among many hand trials, the three-class decoder
+from scratch almost never answered ``sixth finger'' (sixth-finger recall
+\rqThreeRestAhSfTsLrKFiveSfRecall\,\% at $k = 5$), while transfer did for
+\rqThreeRestAhSfRctTslrKFiveSfRecall\,\%.
+
+The own-hand control changed how strong sixth-finger detection should be read.
+A decoder that never saw a sixth-finger trial detected sixth-finger windows at
+\rqThreeSfRestAhProxyMean\,\% (CI
+\rqThreeSfRestAhProxyCiLo--\rqThreeSfRestAhProxyCiHi), above transfer at
+$k = 2$ (\rqThreeSfRestRctTslrKTwoMean\,\%) and $k = 5$
+(\rqThreeSfRestRctTslrKFiveMean\,\%). Neither one-sided test was
+significant ($p = \rqThreeHThreeCKTwoP$ and \rqThreeHThreeCKFiveP), and both
+CIs lay below zero: H3c is inconclusive, and the hand decoder did better. The sixth-finger
+detectors also called most hand-imagery windows ``sixth finger'' (own-hand
+decoder \rqThreeHandAsFingerAhProxy\,\%, transfer
+\rqThreeHandAsFingerRctTslrKAll--\rqThreeHandAsFingerRctTslrKOne\,\% for
+$k \geq 1$). As pre-registered, we therefore do not claim a distinct
+sixth-finger command: its detection may be detection of any imagery.
+
+\subsection{Mirrored lesions and other days (exploratory)}
+Mirroring the channels of the left-hemiplegic patients, so that every lesion
+lay on the same side, did not help transfer: it changed RCT-TS+LR by
+\rqFourMirrorRctTslrDiffMin{} to \rqFourMirrorRctTslrDiffMax{} points across
+budgets (Holm $p \geq \rqFourMirrorPHolmMin$).
+
+A decoder did not carry over to a later session (Fig.~\ref{fig:later}).
+Trained on the first session, TS+LR fell from \rqFourLaterPostWithinPreMean\,\%
+within that session to \rqFourLaterPostUnchangedMean\,\% two weeks later
+($n = \rqFourLaterPostUnchangedN$) and \rqFourLaterFollowUnchangedMean\,\% a
+month after that ($n = \rqFourLaterFollowUnchangedN$). Re-centring it on the
+new day's rest, with no labels, recovered part of the loss
+(\rqFourLaterPostRecentredKZeroMean\,\% and
+\rqFourLaterFollowRecentredKZeroMean\,\%). Five new trials of each movement,
+re-centred together with the old session, gave
+\rqFourLaterPostRecentredKFiveMean\,\% (CI
+\rqFourLaterPostRecentredKFiveCiLo--\rqFourLaterPostRecentredKFiveCiHi) and
+\rqFourLaterFollowRecentredKFiveMean\,\%, against
+\rqFourLaterPostNewOnlyKFiveMean\,\% and \rqFourLaterFollowNewOnlyKFiveMean\,\%
+from the five trials alone (difference at two weeks from a decoder trained
+on the whole new pool: \rqFourLaterPostRecentredKFiveVsWithinPostDiff{}
+points).
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.92\columnwidth]{figures/web/later.pdf}\\[4pt]
+  \includegraphics[width=0.92\columnwidth]{figures/web/later-adjusted.pdf}
+  \caption{The first session's decoder on later days (exploratory; TS+LR,
+  three classes, runs 3--4). Top: unchanged. Bottom: after five new trials of
+  each movement, re-centred with the first session. Grey: the same method
+  within the first session. Dashed line: chance. Two weeks later
+  $n = \rqFourLaterPostUnchangedN$, a month later
+  $n = \rqFourLaterFollowUnchangedN$.}
+  \label{fig:later}
+\end{figure}
+
+\subsection{The sixth finger as a ``move now'' switch (exploratory)}
+\label{sec:switch}
+Detection against rest is the form of the new command that these data
+support (Fig.~\ref{fig:switch}). In an exploratory follow-up, the decoder
+chosen by validation on runs 1--2 before any test score, TS+LR on the 14
+channels over the
+movement area, separated sixth finger from rest at
+\exFourTsLrCentralMean\,\% (CI \exFourTsLrCentralCiLo--\exFourTsLrCentralCiHi),
+with \exFourTsLrCentralNAtLeastEighty{} of \rqFourCueN{} patients at 80\,\% or
+more. Telling hand from sixth finger stayed hard: the strongest decoder we
+tried, the pre-trained and fine-tuned EEGNet, reached
+\exFourAhSfEegnetEaFtMean\,\%. The
+switch also turned on for \exFourTsLrCentralFiresAhMean\,\% of the
+hand-imagery windows, which it never saw in training, against
+\exFourTsLrCentralFiresSfMean\,\% of sixth-finger and
+\exFourTsLrCentralFiresRestMean\,\% of rest windows. Sixth-finger windows
+turned it on \exFourTsLrCentralFiresSfVsAhDiff{} points more often than hand
+windows (CI
+\exFourTsLrCentralFiresSfVsAhDiffCiLo--\exFourTsLrCentralFiresSfVsAhDiffCiHi,
+$p = \exFourTsLrCentralFiresSfVsAhP$), but it is a switch for imagined
+movement more than for the sixth finger.
+
+Trial-wise accuracy overstates continuous use. Replayed as a continuous signal
+through the demonstrator's command gate, the switch turned on in
+\exFiveFingerFingerOnMean\,\% of the sixth-finger imagery periods, with
+\exFiveFingerFalsePerMinMean{} false activations per minute of rest. A
+version trained on rest against any movement caught
+\exFiveMoveDetectMean\,\% of imagery periods (CI
+\exFiveMoveDetectCiLo--\exFiveMoveDetectCiHi) at \exFiveMoveFalsePerMinMean{}
+false activations per minute. These comparisons are uncorrected.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\columnwidth]{figures/web/switch-patients.pdf}\\[4pt]
+  \includegraphics[width=0.92\columnwidth]{figures/web/switch-on.pdf}
+  \caption{The sixth finger as a switch (exploratory, runs 3--4,
+  $n = \rqFourCueN$). Top: one dot per patient. Sixth finger against rest
+  with TS+LR on the central channels; hand against sixth finger with the
+  pre-trained, fine-tuned EEGNet; bars are means. Bottom: share of test windows
+  that turn the switch on. Hand imagery turns it on nearly as often as
+  sixth-finger imagery.}
+  \label{fig:switch}
+\end{figure}
