@@ -18,7 +18,7 @@ HAS_REPORT := $(wildcard report/Makefile)
 HAS_BOOT   := $(wildcard _workspace/tools/bootstrap.sh)
 
 .PHONY: help setup data verify-data audit epochs demo-bundle test test-real lint format check \
-        server web demo e2e figures web-figures paper site-docs report doctor health clean
+        server web demo e2e figures web-figures paper paper-supplement site-docs report doctor health clean
 
 help: ## List targets
 	@grep -hE '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  \033[36m%-12s\033[0m %s\n", $$1, $$2}'
@@ -149,6 +149,11 @@ ifneq ($(HAS_PAPER),)
 else
 	@echo "--- paper/main.tex does not exist yet (phase P13)"
 endif
+
+paper-supplement: ## Build the paper's reproducibility supplement (paper/build/supplement.pdf)
+	@command -v tectonic >/dev/null || { echo "Tectonic not installed: see phase P00"; exit 1; }
+	mkdir -p paper/build
+	tectonic -X compile paper/supplement.tex --outdir paper/build
 
 site-docs: paper ## Copy the paper and the slides into web/public/docs for the site
 	$(UV) run python scripts/copy_site_docs.py

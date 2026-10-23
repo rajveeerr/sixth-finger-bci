@@ -91,6 +91,9 @@ Summaries and figures:
 | `uv run python scripts/summarise_rq4.py` | P09 | `results/summary/rq4_mirror*`, `docs/figures/rq4_mirror_effect` |
 | `uv run python scripts/pseudo_online.py --summarise` | P09 | `results/summary/rq4_pseudo_online*`, `docs/figures/rq4_pseudo_online` |
 | `uv run python scripts/summarise_dl.py` | P07 | `results/summary/dl_*` (with `dl_summary.json` and `dl_class_recall.csv`), `results/audit/pretrain*`, `docs/figures/dl_*` |
+| `uv run python scripts/make_rq3_patient_figure.py` | P13 | `docs/figures/rq3_patients.{pdf,png}`, PDF copied to `paper/figures/` |
+| `uv run python scripts/count_eegnet_weights.py` | P14 | `results/summary/eegnet_weights.json` |
+| `uv run python scripts/time_demo_inference.py` | P14 | `results/summary/demo_inference_timing.{json,csv}`: a new timing, so run it on the machine you quote, with little else running |
 
 The group numbers the text quotes, written by each analysis's own summary step from the stored
 per-patient values, without fitting anything (add `--no-figures` where the script draws
@@ -187,6 +190,7 @@ How to verify the demo is honest and working:
 | Paper numbers | `uv run python scripts/make_paper_numbers.py` | now | rewrites `paper/generated/numbers.tex` (one macro per number, about 5000) and `paper/generated/numbers-index.md` (each macro's value, meaning and source file) in a second; prints the macros the paper or report use that it does not make, which the PDFs show as red TBDs |
 | Check they are current | `uv run python scripts/make_paper_numbers.py --out /tmp/numbers.tex --index /tmp/numbers-index.md && diff /tmp/numbers.tex paper/generated/numbers.tex` | now | no output; `tests/test_paper_numbers.py` fails in `make check` when the committed files are stale |
 | Web figures | `make web-figures` (or `npm --prefix web run figures`; add `-- leak setup` for some, `-- --no-build` to reuse the last build) | now | under a minute (needs `uv` the first time); writes `docs/figures/web/` (PDF, 3x PNG, SVG where pure) and copies the paper's to `paper/figures/web/`; commit web changes first, look at the PNGs, then commit both folders together |
+| Paper supplement | `make paper-supplement` (or `tectonic -X compile paper/supplement.tex --outdir paper/build`) | now | `paper/build/supplement.pdf`, 2 pages: the reproducibility checklist; red TBD(P15) for the code DOI |
 | Paper PDF | `make paper` | now (skeleton) | `paper/build/main.pdf`; red TBD markers where the text has no number yet |
 | Documents on the site | `make site-docs` | now | builds the paper, then copies it and the slides (and their PDF, once one is exported) to `web/public/docs/` under stable names and lists them with their sizes in `web/src/explain/documents.json`, which the page's links read; commit both. The report joins when `"report"` is added to `PUBLISHED` in `scripts/copy_site_docs.py`, once its cover is complete; every file stays under 5 MB |
 | Report PDF | `make report` | now (skeleton) | `report/build/main.pdf` |
