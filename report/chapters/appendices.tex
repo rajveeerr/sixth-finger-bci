@@ -1,15 +1,453 @@
-\chapter{Reproducibility}
-% From docs/RUNBOOK.md: environment, data download, commands, seeds, data manifest hash, git tags.
-\TBD{P15}
-\chapter{Full Results Tables}
-\TBD{P08}
-\chapter{Hyperparameters}
-\TBD{P08}
-\chapter{Pre-Registration and Deviations}
-\TBD{P05}
-\chapter{Selected Code Listings}
-% \lstinputlisting[language=Python, firstline=..., lastline=..., caption={Leakage guard (src/sixthfinger/evaluation/leakage.py)}]{../src/sixthfinger/evaluation/leakage.py}
-\TBD{P14}
-\chapter{Demonstrator User Guide}
-% Screenshots and the live link.
-\TBD{P12}
+% Appendices A to F (project-report-guide.md §2). Sources: docs/RUNBOOK.md, configs/,
+% _workspace/research/preregistration*.md, the deviation log (03-EVALUATION-PROTOCOL.md §12)
+% and web/src. Numbers only from ../paper/generated/numbers.tex.
+% Let the appendices' large tables share a page with text instead of standing alone.
+\renewcommand{\topfraction}{0.9}
+\renewcommand{\bottomfraction}{0.8}
+\renewcommand{\textfraction}{0.07}
+\renewcommand{\floatpagefraction}{0.85}
+
+% ---------------------------------------------------------------------------------------
+\chapter{Reproducibility}\label{app:repro}
+
+This appendix says how to run the whole study again, from an empty folder to the PDFs.
+
+The code, the settings, the results summaries and this report are in one public repository,
+\url{https://github.com/rajveeerr/sixth-finger-bci}. The EEG data are downloaded from
+figshare~\cite{wang2026figshare}, where Wang et al.\ published them under the CC~BY~4.0 licence.
+Table~\ref{tab:repro-commands} lists the steps, run from the top folder of the repository; its
+runbook (\code{docs/RUNBOOK.md}) says what each one should print.
+
+\begin{table}[!htbp]
+\centering
+\caption{The steps that rebuild the study, with the runbook's time estimates.}
+\label{tab:repro-commands}
+\footnotesize
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{4.4cm}>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}p{2.2cm}}
+\toprule
+Command & What it does & Time \\
+\midrule
+\code{make setup} & Python environment, git hooks, server and web packages & 3 to 6 min \\
+\code{make data} & downloads the preprocessed files (3.5 GB), checks the published checksum, verifies them & network \\
+\code{make audit}, \code{make epochs} & the integrity audit, then the cached 4\,s windows with their manifest & minutes \\
+\code{make check} & lint, format check and every Python, server and web test & minutes \\
+\code{uv run sixthfinger run configs/\allowbreak experiments/\allowbreak <name>.yaml} & one experiment: \code{rq1\_benchmark}, \code{rq2\_calib\_s1}, \code{rq3\_calib\_s2}, \ldots & hours each \\
+\code{notebooks/kaggle/push.sh} & EEGNet baselines and pre-training on a cloud GPU & about 2.5 h (T4) \\
+\code{uv run python scripts/\allowbreak summarise\_*.py} & tables and figures from the stored scores & minutes \\
+\code{uv run python scripts/\allowbreak make\_paper\_numbers.py} & every number of the paper and this report, as LaTeX macros & seconds \\
+\code{make report} & this report as a PDF & a minute \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Four things keep the numbers the same on a re-run. \textbf{Seeds} for folds, draws, training
+and the bootstrap are fixed in the settings files (Appendix~\ref{app:hyper}). \textbf{The window
+cache} has a manifest (channels, sampling rate, window, exclusions, code version, a checksum per
+file) that every later step checks before it runs. \textbf{Every result row} stores the git commit
+that made it and hashes of its settings and of the data manifest. \textbf{Git tags} mark fixed
+points: \code{setup-v1}, \code{prereg-v1} and \code{prereg-rq5-v1} (plans frozen before the main
+results) and \code{results-v1}; \code{demo-v1} and \code{submission-v1} will follow. No result in
+this report is typed by hand: a script writes each one as a LaTeX macro from the results
+summaries. Classical methods give identical numbers on a re-run; networks trained on a GPU can
+differ slightly. The classical work ran on an Apple M1 laptop with 8\,GB of memory, and every
+EEGNet of the main study on a free Kaggle \dlPretrainDevice{} GPU.
+
+% ---------------------------------------------------------------------------------------
+\chapter{Full Results Tables}\label{app:tables}
+
+This appendix holds the tables that are too large for Chapter~4. All values are balanced
+accuracy in percent, the mean over patients. Chance is 50\,\% for two classes and 33.3\,\% for
+three.
+
+\section{The re-benchmark on the session after therapy}
+
+Table~\ref{tab:app-rq1-post} repeats the main re-benchmark for the session recorded after
+therapy (\code{post}). The pattern is the same as before therapy: the published way of testing
+(\emph{replica}) scores far above the three fair ways.
+
+\begin{table}[!htbp]
+\centering
+\caption[Hand versus sixth finger, \code{post} session, all \nPost{} patients]{Hand versus sixth finger, \code{post} session, all \nPost{} patients. Replica: the
+filters are fitted on all trials before the test split, as in the published code. CV leak-free:
+the same folds with everything fitted inside them. Leave-run-out: one run held out at a time.
+Chronological: learn on runs 1 and 2, test on runs 3 and 4.}
+\label{tab:app-rq1-post}
+\small
+\begin{tabular}{lcccc}
+\toprule
+Method & Replica & CV leak-free & Leave-run-out & Chronological \\
+\midrule
+CSP+LDA & \rqOnePostCspLdaPaperReplicaMean & \rqOnePostCspLdaCvLeakfreeMean & \rqOnePostCspLdaLoroMean & \rqOnePostCspLdaChronoMean \\
+CSP+LDA, authors' recipe & \rqOnePostCspLdaReplicaPaperReplicaMean & \rqOnePostCspLdaReplicaCvLeakfreeMean & \rqOnePostCspLdaReplicaLoroMean & \rqOnePostCspLdaReplicaChronoMean \\
+CSP+SVM & \rqOnePostCspSvmPaperReplicaMean & \rqOnePostCspSvmCvLeakfreeMean & \rqOnePostCspSvmLoroMean & \rqOnePostCspSvmChronoMean \\
+FBCSP+LDA & \rqOnePostFbcspLdaPaperReplicaMean & \rqOnePostFbcspLdaCvLeakfreeMean & \rqOnePostFbcspLdaLoroMean & \rqOnePostFbcspLdaChronoMean \\
+MDM & \rqOnePostMdmPaperReplicaMean & \rqOnePostMdmCvLeakfreeMean & \rqOnePostMdmLoroMean & \rqOnePostMdmChronoMean \\
+TS+LR & \rqOnePostTsLrPaperReplicaMean & \rqOnePostTsLrCvLeakfreeMean & \rqOnePostTsLrLoroMean & \rqOnePostTsLrChronoMean \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{The other two tasks}
+
+Table~\ref{tab:app-context} gives the five classical methods on the three-class task and on
+sixth finger versus rest, before therapy, under the two run-wise protocols. Telling imagery from
+rest is easy; adding the choice between hand and finger brings the score far down.
+
+\begin{table}[!htbp]
+\centering
+\caption{The other two tasks, \code{pre} session, \nPre{} patients, run-wise protocols.}
+\label{tab:app-context}
+\small
+\begin{tabular}{lcccc}
+\toprule
+& \multicolumn{2}{c}{Rest, hand or sixth finger} & \multicolumn{2}{c}{Sixth finger or rest} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+Method & Leave-run-out & Chronological & Leave-run-out & Chronological \\
+\midrule
+CSP+LDA & \rqOneRestAhSfCspLdaLoroMean & \rqOneRestAhSfCspLdaChronoMean & \rqOneSfRestCspLdaLoroMean & \rqOneSfRestCspLdaChronoMean \\
+CSP+SVM & \rqOneRestAhSfCspSvmLoroMean & \rqOneRestAhSfCspSvmChronoMean & \rqOneSfRestCspSvmLoroMean & \rqOneSfRestCspSvmChronoMean \\
+FBCSP+LDA & \rqOneRestAhSfFbcspLdaLoroMean & \rqOneRestAhSfFbcspLdaChronoMean & \rqOneSfRestFbcspLdaLoroMean & \rqOneSfRestFbcspLdaChronoMean \\
+MDM & \rqOneRestAhSfMdmLoroMean & \rqOneRestAhSfMdmChronoMean & \rqOneSfRestMdmLoroMean & \rqOneSfRestMdmChronoMean \\
+TS+LR & \rqOneRestAhSfTsLrLoroMean & \rqOneRestAhSfTsLrChronoMean & \rqOneSfRestTsLrLoroMean & \rqOneSfRestTsLrChronoMean \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Calibration curves, every method}
+
+Tables~\ref{tab:app-s1} and~\ref{tab:app-s2} give every point of the calibration curves of
+Chapter~4. The column is the budget $k$: the number of practice trials per class the patient
+gives. A dash marks a method that cannot be trained at that budget. Methods that learn only
+from the patient need at least one trial of every class, and CSP needs at least two. At $k = 0$
+only the transfer methods run; they use the patient's rest recording without labels.
+
+\begin{table}[!htbp]
+\centering
+\caption[Scenario S1, a new patient, \code{pre} session, \nPre{} patients, tested on runs 3 and 4]{Scenario S1, a new patient, \code{pre} session, \nPre{} patients, tested on runs 3 and
+4. The patient gives $k$ hand and $k$ sixth-finger trials with their rest periods. The second
+row is the labelled practice time.}
+\label{tab:app-s1}
+\footnotesize
+\setlength{\tabcolsep}{4.5pt}
+\begin{tabular}{lccccccc}
+\toprule
+$k$ (trials per class) & 0 & 1 & 2 & 3 & 5 & 10 & all \\
+Practice (minutes) & 0 & \rqTwoMinutesKOne & \rqTwoMinutesKTwo & \rqTwoMinutesKThree & \rqTwoMinutesKFive & \rqTwoMinutesKTen & \rqTwoMinutesKAll \\
+\midrule
+\multicolumn{8}{l}{\textit{Rest, hand or sixth finger (chance 33.3\,\%)}} \\
+CSP+LDA & -- & -- & \rqTwoRestAhSfCspLdaKTwoMean & \rqTwoRestAhSfCspLdaKThreeMean & \rqTwoRestAhSfCspLdaKFiveMean & \rqTwoRestAhSfCspLdaKTenMean & \rqTwoRestAhSfCspLdaKAllMean \\
+MDM & -- & \rqTwoRestAhSfMdmKOneMean & \rqTwoRestAhSfMdmKTwoMean & \rqTwoRestAhSfMdmKThreeMean & \rqTwoRestAhSfMdmKFiveMean & \rqTwoRestAhSfMdmKTenMean & \rqTwoRestAhSfMdmKAllMean \\
+TS+LR & -- & \rqTwoRestAhSfTsLrKOneMean & \rqTwoRestAhSfTsLrKTwoMean & \rqTwoRestAhSfTsLrKThreeMean & \rqTwoRestAhSfTsLrKFiveMean & \rqTwoRestAhSfTsLrKTenMean & \rqTwoRestAhSfTsLrKAllMean \\
+EEGNet, from scratch & -- & \rqTwoRestAhSfEegnetScratchKOneMean & \rqTwoRestAhSfEegnetScratchKTwoMean & \rqTwoRestAhSfEegnetScratchKThreeMean & \rqTwoRestAhSfEegnetScratchKFiveMean & \rqTwoRestAhSfEegnetScratchKTenMean & \rqTwoRestAhSfEegnetScratchKAllMean \\
+Pooled TS+LR & \rqTwoRestAhSfPooledTslrKZeroMean & \rqTwoRestAhSfPooledTslrKOneMean & \rqTwoRestAhSfPooledTslrKTwoMean & \rqTwoRestAhSfPooledTslrKThreeMean & \rqTwoRestAhSfPooledTslrKFiveMean & \rqTwoRestAhSfPooledTslrKTenMean & \rqTwoRestAhSfPooledTslrKAllMean \\
+Re-centred MDM & \rqTwoRestAhSfRctMdmKZeroMean & \rqTwoRestAhSfRctMdmKOneMean & \rqTwoRestAhSfRctMdmKTwoMean & \rqTwoRestAhSfRctMdmKThreeMean & \rqTwoRestAhSfRctMdmKFiveMean & \rqTwoRestAhSfRctMdmKTenMean & \rqTwoRestAhSfRctMdmKAllMean \\
+Re-centred TS+LR & \rqTwoRestAhSfRctTslrKZeroMean & \rqTwoRestAhSfRctTslrKOneMean & \rqTwoRestAhSfRctTslrKTwoMean & \rqTwoRestAhSfRctTslrKThreeMean & \rqTwoRestAhSfRctTslrKFiveMean & \rqTwoRestAhSfRctTslrKTenMean & \rqTwoRestAhSfRctTslrKAllMean \\
+EEGNet, pre-trained & \rqTwoRestAhSfEegnetEaFtKZeroMean & \rqTwoRestAhSfEegnetEaFtKOneMean & \rqTwoRestAhSfEegnetEaFtKTwoMean & \rqTwoRestAhSfEegnetEaFtKThreeMean & \rqTwoRestAhSfEegnetEaFtKFiveMean & \rqTwoRestAhSfEegnetEaFtKTenMean & \rqTwoRestAhSfEegnetEaFtKAllMean \\
+\midrule
+\multicolumn{8}{l}{\textit{Sixth finger or rest (chance 50\,\%)}} \\
+CSP+LDA & -- & -- & \rqTwoSfRestCspLdaKTwoMean & \rqTwoSfRestCspLdaKThreeMean & \rqTwoSfRestCspLdaKFiveMean & \rqTwoSfRestCspLdaKTenMean & \rqTwoSfRestCspLdaKAllMean \\
+MDM & -- & \rqTwoSfRestMdmKOneMean & \rqTwoSfRestMdmKTwoMean & \rqTwoSfRestMdmKThreeMean & \rqTwoSfRestMdmKFiveMean & \rqTwoSfRestMdmKTenMean & \rqTwoSfRestMdmKAllMean \\
+TS+LR & -- & \rqTwoSfRestTsLrKOneMean & \rqTwoSfRestTsLrKTwoMean & \rqTwoSfRestTsLrKThreeMean & \rqTwoSfRestTsLrKFiveMean & \rqTwoSfRestTsLrKTenMean & \rqTwoSfRestTsLrKAllMean \\
+EEGNet, from scratch & -- & \rqTwoSfRestEegnetScratchKOneMean & \rqTwoSfRestEegnetScratchKTwoMean & \rqTwoSfRestEegnetScratchKThreeMean & \rqTwoSfRestEegnetScratchKFiveMean & \rqTwoSfRestEegnetScratchKTenMean & \rqTwoSfRestEegnetScratchKAllMean \\
+Pooled TS+LR & \rqTwoSfRestPooledTslrKZeroMean & \rqTwoSfRestPooledTslrKOneMean & \rqTwoSfRestPooledTslrKTwoMean & \rqTwoSfRestPooledTslrKThreeMean & \rqTwoSfRestPooledTslrKFiveMean & \rqTwoSfRestPooledTslrKTenMean & \rqTwoSfRestPooledTslrKAllMean \\
+Re-centred MDM & \rqTwoSfRestRctMdmKZeroMean & \rqTwoSfRestRctMdmKOneMean & \rqTwoSfRestRctMdmKTwoMean & \rqTwoSfRestRctMdmKThreeMean & \rqTwoSfRestRctMdmKFiveMean & \rqTwoSfRestRctMdmKTenMean & \rqTwoSfRestRctMdmKAllMean \\
+Re-centred TS+LR & \rqTwoSfRestRctTslrKZeroMean & \rqTwoSfRestRctTslrKOneMean & \rqTwoSfRestRctTslrKTwoMean & \rqTwoSfRestRctTslrKThreeMean & \rqTwoSfRestRctTslrKFiveMean & \rqTwoSfRestRctTslrKTenMean & \rqTwoSfRestRctTslrKAllMean \\
+EEGNet, pre-trained & \rqTwoSfRestEegnetEaFtKZeroMean & \rqTwoSfRestEegnetEaFtKOneMean & \rqTwoSfRestEegnetEaFtKTwoMean & \rqTwoSfRestEegnetEaFtKThreeMean & \rqTwoSfRestEegnetEaFtKFiveMean & \rqTwoSfRestEegnetEaFtKTenMean & \rqTwoSfRestEegnetEaFtKAllMean \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[!htbp]
+\centering
+\caption[Scenario S2, adding the sixth finger to a hand decoder, \code{pre} session, \nPre{} patients]{Scenario S2, adding the sixth finger to a hand decoder, \code{pre} session, \nPre{}
+patients. The patient has already given every hand trial of runs 1 and 2 and adds $k$
+sixth-finger trials. The own-hand control never sees a sixth-finger trial, so it has one value
+for every $k$.}
+\label{tab:app-s2}
+\footnotesize
+\setlength{\tabcolsep}{4.5pt}
+\begin{tabular}{lccccccc}
+\toprule
+$k$ (sixth-finger trials) & 0 & 1 & 2 & 3 & 5 & 10 & all \\
+Practice (minutes) & 0 & \rqThreeMinutesKOne & \rqThreeMinutesKTwo & \rqThreeMinutesKThree & \rqThreeMinutesKFive & \rqThreeMinutesKTen & \rqThreeMinutesKAll \\
+\midrule
+\multicolumn{8}{l}{\textit{Rest, hand or sixth finger (chance 33.3\,\%)}} \\
+CSP+LDA & -- & -- & \rqThreeRestAhSfCspLdaKTwoMean & \rqThreeRestAhSfCspLdaKThreeMean & \rqThreeRestAhSfCspLdaKFiveMean & \rqThreeRestAhSfCspLdaKTenMean & \rqThreeRestAhSfCspLdaKAllMean \\
+MDM & -- & \rqThreeRestAhSfMdmKOneMean & \rqThreeRestAhSfMdmKTwoMean & \rqThreeRestAhSfMdmKThreeMean & \rqThreeRestAhSfMdmKFiveMean & \rqThreeRestAhSfMdmKTenMean & \rqThreeRestAhSfMdmKAllMean \\
+TS+LR & -- & \rqThreeRestAhSfTsLrKOneMean & \rqThreeRestAhSfTsLrKTwoMean & \rqThreeRestAhSfTsLrKThreeMean & \rqThreeRestAhSfTsLrKFiveMean & \rqThreeRestAhSfTsLrKTenMean & \rqThreeRestAhSfTsLrKAllMean \\
+EEGNet, from scratch & -- & \rqThreeRestAhSfEegnetScratchKOneMean & \rqThreeRestAhSfEegnetScratchKTwoMean & \rqThreeRestAhSfEegnetScratchKThreeMean & \rqThreeRestAhSfEegnetScratchKFiveMean & \rqThreeRestAhSfEegnetScratchKTenMean & \rqThreeRestAhSfEegnetScratchKAllMean \\
+Pooled TS+LR & \rqThreeRestAhSfPooledTslrKZeroMean & \rqThreeRestAhSfPooledTslrKOneMean & \rqThreeRestAhSfPooledTslrKTwoMean & \rqThreeRestAhSfPooledTslrKThreeMean & \rqThreeRestAhSfPooledTslrKFiveMean & \rqThreeRestAhSfPooledTslrKTenMean & \rqThreeRestAhSfPooledTslrKAllMean \\
+Re-centred MDM & \rqThreeRestAhSfRctMdmKZeroMean & \rqThreeRestAhSfRctMdmKOneMean & \rqThreeRestAhSfRctMdmKTwoMean & \rqThreeRestAhSfRctMdmKThreeMean & \rqThreeRestAhSfRctMdmKFiveMean & \rqThreeRestAhSfRctMdmKTenMean & \rqThreeRestAhSfRctMdmKAllMean \\
+Re-centred TS+LR & \rqThreeRestAhSfRctTslrKZeroMean & \rqThreeRestAhSfRctTslrKOneMean & \rqThreeRestAhSfRctTslrKTwoMean & \rqThreeRestAhSfRctTslrKThreeMean & \rqThreeRestAhSfRctTslrKFiveMean & \rqThreeRestAhSfRctTslrKTenMean & \rqThreeRestAhSfRctTslrKAllMean \\
+EEGNet, pre-trained & \rqThreeRestAhSfEegnetEaFtKZeroMean & \rqThreeRestAhSfEegnetEaFtKOneMean & \rqThreeRestAhSfEegnetEaFtKTwoMean & \rqThreeRestAhSfEegnetEaFtKThreeMean & \rqThreeRestAhSfEegnetEaFtKFiveMean & \rqThreeRestAhSfEegnetEaFtKTenMean & \rqThreeRestAhSfEegnetEaFtKAllMean \\
+Own-hand control & \multicolumn{7}{c}{\rqThreeRestAhSfAhProxyMean{} at every $k$} \\
+\midrule
+\multicolumn{8}{l}{\textit{Sixth finger or rest (chance 50\,\%)}} \\
+CSP+LDA & -- & -- & \rqThreeSfRestCspLdaKTwoMean & \rqThreeSfRestCspLdaKThreeMean & \rqThreeSfRestCspLdaKFiveMean & \rqThreeSfRestCspLdaKTenMean & \rqThreeSfRestCspLdaKAllMean \\
+MDM & -- & \rqThreeSfRestMdmKOneMean & \rqThreeSfRestMdmKTwoMean & \rqThreeSfRestMdmKThreeMean & \rqThreeSfRestMdmKFiveMean & \rqThreeSfRestMdmKTenMean & \rqThreeSfRestMdmKAllMean \\
+TS+LR & -- & \rqThreeSfRestTsLrKOneMean & \rqThreeSfRestTsLrKTwoMean & \rqThreeSfRestTsLrKThreeMean & \rqThreeSfRestTsLrKFiveMean & \rqThreeSfRestTsLrKTenMean & \rqThreeSfRestTsLrKAllMean \\
+EEGNet, from scratch & -- & \rqThreeSfRestEegnetScratchKOneMean & \rqThreeSfRestEegnetScratchKTwoMean & \rqThreeSfRestEegnetScratchKThreeMean & \rqThreeSfRestEegnetScratchKFiveMean & \rqThreeSfRestEegnetScratchKTenMean & \rqThreeSfRestEegnetScratchKAllMean \\
+Pooled TS+LR & \rqThreeSfRestPooledTslrKZeroMean & \rqThreeSfRestPooledTslrKOneMean & \rqThreeSfRestPooledTslrKTwoMean & \rqThreeSfRestPooledTslrKThreeMean & \rqThreeSfRestPooledTslrKFiveMean & \rqThreeSfRestPooledTslrKTenMean & \rqThreeSfRestPooledTslrKAllMean \\
+Re-centred MDM & \rqThreeSfRestRctMdmKZeroMean & \rqThreeSfRestRctMdmKOneMean & \rqThreeSfRestRctMdmKTwoMean & \rqThreeSfRestRctMdmKThreeMean & \rqThreeSfRestRctMdmKFiveMean & \rqThreeSfRestRctMdmKTenMean & \rqThreeSfRestRctMdmKAllMean \\
+Re-centred TS+LR & \rqThreeSfRestRctTslrKZeroMean & \rqThreeSfRestRctTslrKOneMean & \rqThreeSfRestRctTslrKTwoMean & \rqThreeSfRestRctTslrKThreeMean & \rqThreeSfRestRctTslrKFiveMean & \rqThreeSfRestRctTslrKTenMean & \rqThreeSfRestRctTslrKAllMean \\
+EEGNet, pre-trained & \rqThreeSfRestEegnetEaFtKZeroMean & \rqThreeSfRestEegnetEaFtKOneMean & \rqThreeSfRestEegnetEaFtKTwoMean & \rqThreeSfRestEegnetEaFtKThreeMean & \rqThreeSfRestEegnetEaFtKFiveMean & \rqThreeSfRestEegnetEaFtKTenMean & \rqThreeSfRestEegnetEaFtKAllMean \\
+Own-hand control & \multicolumn{7}{c}{\rqThreeSfRestAhProxyMean{} at every $k$} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% ---------------------------------------------------------------------------------------
+\chapter{Hyperparameters}\label{app:hyper}
+
+This appendix lists every setting of every model. All of them were fixed in the
+pre-registration before the main results, except the transfer settings, which were chosen once,
+by a rule written in advance, on two development patients (\code{sub-01} and \code{sub-03}) and
+never on test runs. The settings live in \code{configs/models/} and \code{configs/protocol.yaml}.
+
+\begin{table}[!htbp]
+\centering
+\caption{The classical and Riemannian decoders.}
+\label{tab:app-hyper-classical}
+\footnotesize
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{3.0cm}>{\raggedright\arraybackslash}X}
+\toprule
+Method & Settings \\
+\midrule
+CSP+LDA & 6 CSP filters with Ledoit--Wolf shrinkage, log-variance features; LDA with the lsqr solver and automatic shrinkage \\
+CSP+LDA, authors' recipe & input: mu power (8--13\,Hz) in dB against the second before the cue; 10 CSP filters, no regularisation; LDA with default settings \\
+CSP+SVM & the CSP of CSP+LDA; linear SVM, $C = 1$, Platt-scaled probabilities, seed 0 \\
+FBCSP+LDA & six 4\,Hz bands from 8 to 32\,Hz, 4th-order Butterworth filters run forwards and backwards; 4 CSP filters per band; the 8 features with the most mutual information (seed 0); shrinkage LDA \\
+MDM & OAS covariance per window; nearest class mean under the Riemannian distance \\
+TS+LR & OAS covariance; tangent space at the Riemannian mean; logistic regression, $C = 1$, up to 1000 iterations \\
+Own-hand control & as TS+LR, trained on the patient's own hand and rest trials; any answer other than rest counts as ``sixth finger'' \\
+Pooled TS+LR & as TS+LR, on the other patients' windows and the patient's together, without alignment \\
+Re-centred MDM & each patient's covariances moved so that their mean is the identity, then MDM; the patient's windows weighted \rqTwoHparamRctMdmWeight{} (chosen from 1, 5, 20) \\
+Re-centred TS+LR & the same re-centring, then TS+LR; the patient's windows weighted \rqTwoHparamRctTslrWeight{} (chosen from 1, 5, 20) \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The target weight says how much one of the new patient's windows counts against one window of
+another patient. On the development patients the three candidate weights for re-centred TS+LR
+scored between \pct{\rqTwoHparamRctTslrMeanMin} and \pct{\rqTwoHparamRctTslrMeanMax}, so the
+choice made little difference there.
+
+\begin{table}[!htbp]
+\centering
+\caption{The neural networks (braindecode 1.8.1 on PyTorch).}
+\label{tab:app-hyper-deep}
+\footnotesize
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{3.0cm}>{\raggedright\arraybackslash}X}
+\toprule
+Part & Settings \\
+\midrule
+EEGNet architecture & library defaults: 8 temporal filters of 64 samples, depth multiplier 2, 16 separable filters, dropout 0.25; input 40 channels $\times$ 1000 samples, in microvolts; \TBD{dlEegnetWeights} trainable weights; the exported demo model holds \demoParameters{} numbers (\demoModelKb{}\,KB) \\
+Training recipe & AdamW, learning rate $10^{-3}$, weight decay $10^{-3}$, batch size 32, cosine decay of the learning rate to zero \\
+EEGNet from scratch & a fixed 150 epochs and no early stopping, so no training window is set aside; seeds 0, 1 and 2, and the result is their mean \\
+Pre-training & one network per target patient, trained on every other patient (all sessions, three classes), each source patient aligned by Euclidean alignment; 3 source patients held out (seed 0) to stop after 20 epochs without improvement, at most 150; the best epoch's weights kept \\
+Fine-tuning & every layer, learning rate $10^{-4}$ for 20 epochs, chosen from $\{10^{-4}, 3\times10^{-4}\} \times \{20, 50\}$ on the development patients \\
+Euclidean alignment & reference matrix computed in double precision; eigenvalues floored at $10^{-6}$ of the largest \\
+ShallowConvNet & optional second network, never in a confirmatory test: AdamW, learning rate $6.25\times10^{-4}$, no weight decay, 150 epochs \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{table}[!htbp]
+\centering
+\caption{The evaluation, the statistics and the command gate.}
+\label{tab:app-hyper-eval}
+\footnotesize
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{3.0cm}>{\raggedright\arraybackslash}X}
+\toprule
+Item & Setting \\
+\midrule
+Windows & 1 to 5\,s after each rest marker and each cue (1000 samples at 250\,Hz), 40 channels \\
+Cross-validation & 10 folds, 10 repeats, stratified by the imagery class of each trial, seed 0; fewer folds when a class has fewer than ten trials \\
+Run-wise protocols & leave-one-run-out (four folds); chronological: learn on runs 1--2, test on runs 3--4 \\
+Calibration budgets & $k \in \{0, 1, 2, 3, 5, 10, \text{all}\}$ trials per class from runs 1--2; 10 random draws for classical methods, 5 for networks, plus the first $k$ trials in time order \\
+Practice time & 14\,s per trial (one rest and one imagery period) \\
+Statistics & Wilcoxon signed-rank tests, Holm correction, $\alpha = 0.05$; 95\,\% bootstrap confidence intervals from 10\,000 resamples of patients, seed 12345; Friedman test with the Nemenyi critical difference \\
+Command gate & a reading every 0.5\,s from the last 4\,s; probabilities smoothed with weight 0.3 on the newest; switches on when a movement class stays at or above 0.6 for 2 readings in a row; switches off below 0.45; rest by default \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+% ---------------------------------------------------------------------------------------
+\chapter{Pre-Registration and Deviations}\label{app:prereg}
+
+This appendix gives the hypotheses we wrote down before the main results, what came of each, and
+every change made to the plan after it was frozen.
+
+\section{The hypotheses}
+
+A pre-registration is a plan written and frozen before the data are analysed. It fixes the
+questions, the methods and the tests, so that the results cannot steer the analysis. Ours was
+frozen as the git tag \code{prereg-v1}; the separate depression study was frozen as
+\code{prereg-rq5-v1} before any of its data were downloaded. Table~\ref{tab:app-hypotheses}
+lists the hypotheses. ``Supported'' means the test passed its pre-set bar. ``Inconclusive''
+means it did not, which is not evidence that the opposite is true.
+
+\begin{table}[!htbp]
+\centering
+\caption{The pre-registered hypotheses and their outcomes (\code{pre} session unless stated).}
+\label{tab:app-hypotheses}
+\footnotesize
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{0.9cm}>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}p{4.3cm}}
+\toprule
+& What it says & Outcome \\
+\midrule
+H1 & Fitting CSP on all trials before the test split (the published way) gives higher accuracy for hand versus sixth finger than fitting it inside the folds. One-sided Wilcoxon test. & \rqOneHOneCategory: \rqOneHOneDiff{} points higher, $p = \rqOneHOneP$ \\
+H1b & The same happens on two public datasets of healthy people imagining the left or the right hand (BNCI2014\_001, Cho2017), Holm-corrected over the two. & supported on both: \rqOneBnciHOneBDiff{} and \rqOneChoHOneBDiff{} points, Holm $p = \rqOneBnciHOneBPHolm$ and $\rqOneChoHOneBPHolm$ \\
+H2a & For a new patient (three classes), re-centred transfer and learning from scratch differ in the area under the learning curve over $k$ = 1 to 10 (expected: transfer higher). Two-sided. & \rqTwoHTwoACategory, $p = \rqTwoHTwoAP$ \\
+H2b & The advantage of transfer is smaller with all trials than at $k = 5$: the curves meet. One-sided. & \rqTwoHTwoBCategory, $p = \rqTwoHTwoBP$ \\
+H3 & When a sixth-finger command is added to a hand decoder, re-centred transfer beats learning from scratch on (a) sixth finger versus rest or (b) the three-class task, over $k$ = 1 to 5. Holm over (a) and (b). & (a) \rqThreeHThreeACategory; (b) \rqThreeHThreeBCategory \\
+H3c & At $k = 2$ and $k = 5$, the transfer decoder detects the sixth finger against rest better than the patient's own hand decoder does. This asks whether the sixth finger adds anything over detecting any imagined movement. & $k = 2$: \rqThreeHThreeCKTwoCategory; $k = 5$: \rqThreeHThreeCKFiveCategory \\
+H4 & Exploratory, no test: mirroring helps transfer; decoders lose accuracy on later visits; 8 electrodes keep most of the accuracy of 40; in a continuous replay the sixth-finger command fires in most sixth-finger periods. & mirroring did not help; accuracy fell on later visits; electrodes not studied; the command fired in only \pct{\rqFourReplayFingerDetectMin} to \pct{\rqFourReplayFingerDetectMax} of the periods \\
+H5 & In public depression EEG (Mumtaz), splitting by segment rather than by person inflates accuracy, for both pipelines, Holm-corrected. & band power: \rqFiveMumtazBpLrCategory; tangent space: \rqFiveMumtazTsLrCategory \\
+H5b & The same on a second depression dataset (MODMA). & band power: \rqFiveModmaBpLrCategory; tangent space: \rqFiveModmaTsLrCategory \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+On the session after therapy, H1, H2a and H2b had the same outcome as before therapy. H3 did not
+replicate: its outcome (a) was \rqThreeHThreeAPostCategory{} after therapy but
+\rqThreeHThreeACategory{} before it.
+
+\section{Changes after the plan was frozen}
+
+Some details only became clear once the code met the data. Every such change went into a
+deviation log with its date and reason, and with what results were known at the time.
+Table~\ref{tab:app-deviations} summarises the log (\code{03-EVALUATION-PROTOCOL.md}, section 12).
+No change altered a confirmatory outcome.
+
+\begin{table}[!htbp]
+\centering
+\caption{Deviations from the pre-registration, in order.}
+\label{tab:app-deviations}
+\footnotesize
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{1.75cm}>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}p{3.4cm}}
+\toprule
+Date & Change and reason & Known when decided \\
+\midrule
+2026-10-09 & Cho2017, first set aside for disk space, was run as planned. With one run per person its run-wise protocols are impossible, so H1b uses cross-validation only. & no public data scored \\
+2026-10-09 & Authors' recipe: a window whose baseline crosses a cut is dropped for this method only. FBCSP's feature selection gets a fixed seed. & no RQ1 result \\
+2026-10-10 & Authors' recipe: a fold where unregularised CSP has no solution is recorded as missing (one session after therapy). & H1 unaffected \\
+2026-10-11 & Calibration details the plan left open: ``all'' means every trial; alignment uses the draw's own unlabelled windows; the pre-trained EEGNet keeps three outputs; the scope of the \code{post} replication; how ``trials saved'' is counted; the no-signal check. & no calibration result \\
+2026-10-12 & Draws below ``all'' pick only trials that kept both their windows, so every training set holds every class. & no result on runs 3--4 \\
+2026-10-12 & EEGNet had dropped the last incomplete batch of each epoch; all networks were trained again. & EEGNet baselines (descriptive); no calibration result \\
+2026-10-12 & A check against the RQ1 values failed: its premise was off by \auditOrphanRestMin{} to \auditOrphanRestMax{} rest windows per session. Refits reproduced both in \auditRefitReproduced{} of \auditRefitCases{} cases. & calibration results; nothing changed \\
+2026-10-12 & RQ4 reduced: no electrode study; mirroring with classical transfer only. & calibration results; no RQ4 result \\
+2026-10-12 & Two post hoc checks added: the visual cue (central against back-of-head channels), and how often hand imagery fires the sixth-finger command in the replay. & calibration results \\
+2026-10-12 & The demo-patient rule tied two patients; the share of uncut held-out trials broke the tie. & all results; before the demo \\
+2026-10-23 & Five exploratory follow-ups added (Section~\ref{app:prereg-followups}). & every confirmatory result \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Follow-ups added after the results}\label{app:prereg-followups}
+
+Five exploratory analyses were added on 2026-10-23, after every confirmatory result was known
+(Chapter~4). None was pre-registered; each had its settings fixed before any score on runs 3
+and 4. They change no confirmatory outcome and are labelled exploratory wherever they appear.
+
+% ---------------------------------------------------------------------------------------
+\chapter{Selected Code Listings}\label{app:code}
+
+This appendix shows two more pieces of the code that carry the study's safeguards.
+Chapter~3 already shows the leakage guard, Euclidean alignment and the command gate.
+
+Listing~\ref{lst:calib} draws the practice trials for one patient, one budget and one random
+draw. The rest window of each chosen trial comes with it. The unlabelled windows that alignment
+may use are exactly the labelled ones, so alignment never sees a window the labels did not.
+
+\begin{singlespace}
+\lstinputlisting[linerange={32-40,51-75},caption={Drawing the calibration trials (\code{src/sixthfinger/evaluation/calibration.py}, lines 32--40 and 51--75; the docstring is left out).},label=lst:calib]{../src/sixthfinger/evaluation/calibration.py}
+\end{singlespace}
+
+Listing~\ref{lst:rct} fits the re-centred transfer decoder. Each source patient's covariance
+matrices were already moved to a common centre. The new patient is moved with a reference built
+from the unlabelled set only, never from test windows, and the patient's labelled windows get
+the chosen target weight.
+
+\begin{singlespace}
+\lstinputlisting[firstline=101,lastline=121,caption={Fitting re-centred transfer (\code{src/sixthfinger/models/transfer.py}, lines 101--121).},label=lst:rct]{../src/sixthfinger/models/transfer.py}
+\end{singlespace}
+
+% ---------------------------------------------------------------------------------------
+\chapter{Demonstrator User Guide}\label{app:guide}
+
+This appendix explains how to open the demonstrator and what each part of its screen means.
+
+\section{Opening it}
+
+\noindent\begin{minipage}[c]{0.70\textwidth}
+The project page is online at \url{https://sixthfinger.rajveers.com}. The demonstrator alone,
+for presenting on a projector, is at \url{https://sixthfinger.rajveers.com/live}. A copy runs at
+\url{https://sixth-finger-bci.vercel.app}. The code in Figure~\ref{fig:app-qr} opens the page on
+a phone. Nothing needs to be installed; any recent browser works, on a computer or a phone.
+\end{minipage}\hfill
+\begin{minipage}[c]{0.25\textwidth}
+\centering
+\qrcode[height=2.6cm]{https://sixthfinger.rajveers.com}
+\captionof{figure}{Scan to open the project page.}
+\label{fig:app-qr}
+\end{minipage}
+
+\section{What it plays}
+
+The demonstrator replays the last two runs of patient \demoSubject{}: \demoTrials{} whole trials
+that the model never trained on, at their real speed. The model is an EEGNet trained on that
+patient's first two runs. It reads each 4\,s window and says whether the patient was imagining a
+movement or resting. On these held-out windows it was right \pct{\demoMoveRestAcc} of the time
+for move or rest (balanced accuracy). When it reads a movement it also guesses which one, hand
+or sixth finger; that guess is right \pct{\demoHandFingerAcc} of the time, where guessing gets
+50\,\%. The EEG is a recording, replayed; no headset is connected. The hand is a drawing; no
+physical finger moves. The demonstrator does not read thoughts, and it is not a medical device.
+
+\section{The screen, left to right}
+
+\begin{enumerate}
+\item \textbf{The patient is told.} The instruction on the patient's screen at that moment:
+      rest, get ready, or imagine moving the hand or the sixth finger.
+\item \textbf{Their brain signal.} Three of the 40 sensors, over the part of the brain that moves
+      the hands, drawn as the signal arrives.
+\item \textbf{The model reads.} ``Move'' or ``Rest'', marked right or wrong against the
+      instruction; how sure the model is; its guess of hand or finger; and a drawn hand whose
+      robotic sixth finger bends when the model reads a movement. Below it are the running
+      score, where the decision was made and how long it took.
+\end{enumerate}
+
+A badge above the screen names where the model is running: ``Model running on the server'',
+``Model running in this browser'' or ``Showing stored decisions''. The page chooses by itself.
+It uses the server if one answers; otherwise it runs the same model inside the browser; if even
+that fails, it replays the decisions the same model made earlier, and the badge says so.
+
+\section{The controls}
+
+\begin{itemize}
+\item \textbf{Space} pauses and resumes. The \textbf{left} and \textbf{right arrow} keys go to
+      the previous or the next trial. The speed buttons play at 1$\times$, 2$\times$ or 4$\times$.
+\item \textbf{Per trial} reads the 4\,s after each instruction, as the study tests the model.
+      \textbf{Continuous} reads every half second without knowing when instructions come, as a
+      real device would; the finger then follows the command gate of Appendix~\ref{app:hyper}.
+\item When a server is available, \textbf{On the server} and \textbf{In this browser} choose
+      where the model runs.
+\item Keys \textbf{1}, \textbf{2} and \textbf{3} pose the hand directly (rest, hand closed, sixth
+      finger bent) to check the drawing. A banner then says that this is a manual test and not
+      decoded EEG; \textbf{Esc} returns to the recording.
+\end{itemize}
+
+\section{Running it without the internet}
+
+On a laptop with the repository, \code{npm -{}-prefix web run build} followed by
+\code{npm -{}-prefix web run preview} serves the page at \url{http://localhost:4173}. It then
+decodes in the browser with no outside connection. \code{make demo} starts the local streaming
+server and the page together.
+
+\begin{figure}[!htbp]
+\centering
+\includegraphics[height=0.3\textheight]{demo_phone.png}
+\caption[The demonstrator on a phone, as captured on 2026-10-13]{The demonstrator on a phone, as captured on 2026-10-13. The page has changed since, so
+some labels in this picture are older than the ones described above.}
+\label{fig:app-phone}
+\end{figure}
