@@ -3347,10 +3347,206 @@ code {
   color: var(--ink-2);
 }
 
+/* The benchmark: every headline score in one table, the best of each row in its own white
+   column, then a line for each result tested its own way. On a phone each task is a card. */
+.bench {
+  margin: 0 0 30px;
+}
+.bench-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.bench-table caption {
+  caption-side: top;
+  max-width: var(--text);
+  margin: 0 0 14px;
+  text-align: left;
+  font-size: var(--fs-small);
+  line-height: 1.5;
+  color: var(--ink-3);
+}
+.bench-table th,
+.bench-table td {
+  padding: 15px 14px;
+  border-bottom: 1px solid var(--rule);
+  text-align: left;
+  vertical-align: baseline;
+}
+.bench-table th:first-child {
+  padding-left: 0;
+}
+.bench-table thead th {
+  padding-top: 12px;
+  padding-bottom: 10px;
+  border-bottom-color: var(--ink-4);
+  font-size: var(--fs-small);
+  font-weight: 560;
+  line-height: 1.35;
+  color: var(--ink-3);
+  vertical-align: bottom;
+}
+.bench-table thead th:first-child {
+  width: 25%;
+}
+.bench-table .bench-num {
+  width: 16%;
+  padding-left: 10px;
+  padding-right: 10px;
+  text-align: right;
+}
+.bench-table td.bench-num {
+  font-size: var(--fs-sub);
+  color: var(--ink-2);
+}
+.bench-table tbody th {
+  font-weight: 560;
+}
+.bench-task {
+  display: block;
+  font-size: var(--fs-body);
+  line-height: 1.35;
+  white-space: nowrap;
+}
+.bench-guess {
+  display: block;
+  margin-top: 2px;
+  font-size: var(--fs-small);
+  font-weight: 450;
+  color: var(--ink-3);
+}
+.bench-table .bench-best {
+  width: 27%;
+  padding-left: 20px;
+  padding-right: 16px;
+  background: #fff;
+  box-shadow:
+    inset 1px 0 0 var(--rule),
+    inset -1px 0 0 var(--rule);
+}
+.bench-table thead .bench-best {
+  border-radius: 12px 12px 0 0;
+  box-shadow:
+    inset 1px 0 0 var(--rule),
+    inset -1px 0 0 var(--rule),
+    inset 0 1px 0 var(--rule);
+  color: var(--ink);
+}
+.bench-table td.bench-best b {
+  font-size: 20px;
+  font-weight: 640;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+.bench-how {
+  display: block;
+  margin-top: 3px;
+  font-size: var(--fs-small);
+  line-height: 1.4;
+  color: var(--ink-2);
+  text-wrap: pretty;
+}
+.bench-sure {
+  display: block;
+  color: var(--ink-3);
+}
+.bench-lines {
+  margin: 0 0 36px;
+  border-top: 1px solid var(--rule);
+}
+.bench-lines > div {
+  display: grid;
+  grid-template-columns: 9em minmax(0, 1fr);
+  gap: 16px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--rule);
+}
+.bench-lines dt {
+  font-weight: 560;
+}
+.bench-lines dd {
+  margin: 0;
+  color: var(--ink-2);
+  text-wrap: pretty;
+}
+
 @media (max-width: 700px) {
   .q {
     padding-top: 84px;
     scroll-margin-top: -64px;
+  }
+  .bench-table,
+  .bench-table tbody,
+  .bench-table tr,
+  .bench-table th,
+  .bench-table td {
+    display: block;
+  }
+  .bench-table caption {
+    display: block;
+  }
+  .bench-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  .bench-table tbody tr {
+    margin: 0 0 12px;
+    padding: 4px 16px;
+    border: 1px solid var(--rule);
+    border-radius: 14px;
+    background: #fff;
+  }
+  .bench-table tbody th {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 0 12px;
+    padding: 10px 0;
+  }
+  .bench-task {
+    white-space: normal;
+  }
+  .bench-guess {
+    margin: 0;
+  }
+  .bench-table td,
+  .bench-table .bench-num {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 16px;
+    width: auto;
+    padding: 8px 0;
+  }
+  .bench-table td::before {
+    content: attr(data-label);
+    font-size: var(--fs-note);
+    color: var(--ink-2);
+    text-align: left;
+  }
+  .bench-table .bench-best {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    row-gap: 0;
+    width: auto;
+    padding: 10px 0 12px;
+    border-bottom: 0;
+    background: none;
+    box-shadow: none;
+  }
+  .bench-table td.bench-best::before {
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .bench-how {
+    grid-column: 1 / -1;
+  }
+  .bench-lines > div {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2px;
   }
   .q-answer[data-dial] {
     grid-template-columns: minmax(0, 1fr);

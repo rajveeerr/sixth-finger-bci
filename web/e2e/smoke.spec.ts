@@ -9,11 +9,12 @@ test("the demo page loads with its main panels", async ({ page }) => {
 
 test("one chapter for the patient's path and what is built, each part drawn once", async ({ page }) => {
   await page.goto("/?server=http://127.0.0.1:9");
-  await expect(page.locator(".index li")).toHaveCount(8);
+  await expect(page.locator(".index li")).toHaveCount(9);
   const use = page.locator("#use");
   await expect(use.locator(".q-num")).toHaveText("7");
   await expect(use.locator("h2")).toHaveText("How would a patient use it, and which parts are built?");
-  await expect(page.locator("#added .q-num")).toHaveText("8");
+  await expect(page.locator("#numbers .q-num")).toHaveText("8");
+  await expect(page.locator("#added .q-num")).toHaveText("9");
   await expect(page.locator("#added h2")).toHaveText("What did you add?");
   await expect(page.getByText("How you can check it")).toHaveCount(0);
   await expect(page.locator("#built")).toHaveCount(0);
@@ -59,4 +60,26 @@ test("the chapter on the published 85% says what it means and why it is too high
   ]);
   await expect(published.locator(".q-points")).toBeVisible();
   await expect(published.locator("details.more")).not.toHaveAttribute("open");
+});
+
+test("the benchmark puts every headline score in one table, the best of each row marked", async ({ page }) => {
+  await page.goto("/?server=http://127.0.0.1:9");
+  const bench = page.locator("#numbers");
+  await expect(bench.locator("h2")).toHaveText("How good is it, in numbers?");
+  await expect(bench.locator(".bench-table thead th")).toHaveText([
+    "Task",
+    "CSP+LDA",
+    "Tangent space + logistic regression",
+    "EEGNet per patient",
+    "Best",
+  ]);
+  const rows = bench.locator(".bench-table tbody tr");
+  await expect(rows.locator(".bench-task")).toHaveText([
+    "Sixth finger or rest",
+    "Hand or sixth finger",
+    "Rest, hand or sixth finger",
+  ]);
+  await expect(rows.locator(".bench-guess")).toHaveText(["guessing gets 50%", "guessing gets 50%", "guessing gets 33%"]);
+  await expect(rows.locator("td.bench-best b")).toHaveText([/^\d+\.\d%$/, /^\d+\.\d%$/, /^\d+\.\d%$/]);
+  await expect(bench.locator(".bench-lines dt")).toHaveText(["Setting up", "Another day", "Live", "The leak", "Model size"]);
 });

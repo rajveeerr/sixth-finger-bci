@@ -1,8 +1,11 @@
 // The page is a list of questions, in the order an examiner would ask them. Each chapter takes
 // its title from here, and the list under the opening shows every answer in a few words.
 
-import { data, pct } from "./data";
+import { benchRow, data, pct } from "./data";
 import { PRACTICE_S } from "./findings";
+
+const SWITCH = benchRow("T3_sf_vs_rest");
+const WHICH = benchRow("T1_ah_vs_sf");
 
 export interface Question {
   id: string;
@@ -34,6 +37,11 @@ export const QUESTIONS: Question[] = [
     id: "use",
     ask: "How would a patient use it, and which parts are built?",
     short: `About ${PRACTICE_S} s of practice to start; the model is built, the headset link and finger are not`,
+  },
+  {
+    id: "numbers",
+    ask: "How good is it, in numbers?",
+    short: `${pct(SWITCH.best.mean)} on sixth finger or rest, ${pct(WHICH.best.mean)} on hand or sixth finger; guessing gets ${pct(SWITCH.chance)}`,
   },
   {
     id: "added",

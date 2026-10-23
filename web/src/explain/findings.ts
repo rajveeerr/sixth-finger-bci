@@ -38,7 +38,7 @@ export const timesWord = (n: number) => {
   return r <= 1 ? "once" : r === 2 ? "twice" : `${r} times`;
 };
 
-export const SPLITS: Record<"setup" | "sixth" | "live" | "later", Split> = {
+export const SPLITS: Record<"setup" | "sixth" | "live" | "later" | "bench", Split> = {
   setup: {
     label: "What the model learned from and what it was tested on, for each patient in turn",
     rows: [
@@ -91,6 +91,26 @@ export const SPLITS: Record<"setup" | "sixth" | "live" | "later", Split> = {
         runs: ["learn", "learn", "replay", "replay"],
         learns: "learns from runs 1 and 2",
         tested: "runs 3 and 4 each played start to end, a reading every half second",
+      },
+    ],
+  },
+  bench: {
+    label: "What each model in the table learned from and what it was tested on",
+    rows: [
+      {
+        title: "Other patients",
+        note: "only for the network that learned from them first",
+        many: true,
+        runs: ["learn", "learn", "learn", "learn"],
+        learns: "the network first learns from all their sessions",
+        sometimes: true,
+      },
+      {
+        title: "Each patient",
+        note: "session 1",
+        runs: ["learn", "learn", "test", "test"],
+        learns: "learns from runs 1 and 2, and the switch how sure to be",
+        tested: "tested on runs 3 and 4",
       },
     ],
   },

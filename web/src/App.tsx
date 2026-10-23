@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { IntroHand } from "./components/IntroHand";
 import { ManualTestBanner } from "./components/ManualTestBanner";
 import { Added } from "./explain/chapters/Added";
+import { Numbers } from "./explain/chapters/Numbers";
 import { OwnCommand } from "./explain/chapters/OwnCommand";
 import { PatientUse } from "./explain/chapters/PatientUse";
 import { Problem } from "./explain/chapters/Problem";
@@ -72,6 +73,7 @@ export default function App() {
         <Published />
         <OwnCommand />
         <PatientUse />
+        <Numbers />
         <Added />
 
         <footer className="colophon">
