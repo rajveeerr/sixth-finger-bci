@@ -404,8 +404,12 @@ to quote.
 The exported model gives the same answers as the original: the largest difference was
 \demoParityRandom{} on random input, \demoParityReal{} on real windows and
 \demoParityMethod{} end to end. The browser's decisions equal the stored ones to within
-$10^{-4}$. One window takes \TBD{demoInferenceMedianMs} to decide on the laptop, far less
-than the 0.5 seconds between readings. The failure paths were tested on purpose: with the
+$10^{-4}$. One window takes \demoInferenceMedianMs{}\,ms to decide (the median of
+\demoInferenceN{} windows; interquartile range \demoInferenceIqrLoMs{} to
+\demoInferenceIqrHiMs{}\,ms), far less than the 0.5 seconds between readings. This is a new
+measurement, made for this report on an \demoInferenceMachine{} laptop with onnxruntime
+\demoInferenceOnnxruntimeVersion{} on a single CPU thread, as the server runs the model.
+The failure paths were tested on purpose: with the
 server down the page moved to the browser within seconds; with the network cut it still
 decoded; it showed no sideways scrolling from 320 to 1920 pixels wide; and the live site
 passed in Chromium, Firefox, WebKit and an iPhone profile. Figure~\ref{fig:qr} gives the

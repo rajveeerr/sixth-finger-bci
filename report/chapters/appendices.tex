@@ -241,7 +241,7 @@ choice made little difference there.
 \toprule
 Part & Settings \\
 \midrule
-EEGNet architecture & library defaults: 8 temporal filters of 64 samples, depth multiplier 2, 16 separable filters, dropout 0.25; input 40 channels $\times$ 1000 samples, in microvolts; \TBD{dlEegnetWeights} trainable weights; the exported demo model holds \demoParameters{} numbers (\demoModelKb{}\,KB) \\
+EEGNet architecture & library defaults: 8 temporal filters of 64 samples, depth multiplier 2, 16 separable filters, dropout 0.25; input 40 channels $\times$ 1000 samples, in microvolts; \dlEegnetWeights{} trainable weights for three classes; the exported demo model holds \demoParameters{} numbers (\demoModelKb{}\,KB), fewer because the export folds each batch normalisation into the convolution before it, one bias per channel in place of a scale and a shift \\
 Training recipe & AdamW, learning rate $10^{-3}$, weight decay $10^{-3}$, batch size 32, cosine decay of the learning rate to zero \\
 EEGNet from scratch & a fixed 150 epochs and no early stopping, so no training window is set aside; seeds 0, 1 and 2, and the result is their mean \\
 Pre-training & one network per target patient, trained on every other patient (all sessions, three classes), each source patient aligned by Euclidean alignment; 3 source patients held out (seed 0) to stop after 20 epochs without improvement, at most 150; the best epoch's weights kept \\

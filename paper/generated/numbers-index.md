@@ -8,7 +8,7 @@ and rows with a short meaning belong to the last full one. Sources are under
 largest of the cells named, (count) is counted from audit rows. The naming scheme is
 in the script's docstring.
 
-4958 macros. Not generated yet, printed as TBD: `\repoURL` (P15), `\repoTag` (P15), `\codeDOI` (P15).
+4966 macros. Not generated yet, printed as TBD: `\repoURL` (P15), `\repoTag` (P15), `\codeDOI` (P15).
 
 ## Dataset counts (`\n`)
 
@@ -1210,6 +1210,12 @@ in the script's docstring.
 | `\dlSfRestLoroEegnetScratchVsTsLrDiffCiHi` | 2.0 | CI upper |
 | `\dlSfRestLoroEegnetScratchVsTsLrP` | 0.70 | two-sided Wilcoxon p |
 | `\dlN` | 22 | patients in the deep-learning baselines |
+
+`summary/eegnet_weights.json`
+
+| Macro | Value | Meaning |
+|---|---|---|
+| `\dlEegnetWeights` | 3235 | EEGNet as the study builds it (40 channels, 3 classes, 4 s): trainable weights |
 
 `summary/dl_zeroshot_table.csv`
 
@@ -5419,6 +5425,18 @@ in the script's docstring.
 | `\demoHandFingerAcc` | 69.4 | the demo's reading, hand or sixth finger, the imagery windows: balanced accuracy (%) |
 | `\demoHandFingerRight` | 25 | windows read right |
 | `\demoHandFingerN` | 36 | windows |
+
+`summary/demo_inference_timing.json`
+
+| Macro | Value | Meaning |
+|---|---|---|
+| `\demoInferenceMedianMs` | 1.20 | deciding one 4 s window, measured in P14: median (ms) |
+| `\demoInferenceIqrLoMs` | 1.20 | lower quartile (ms) |
+| `\demoInferenceIqrHiMs` | 1.21 | upper quartile (ms) |
+| `\demoInferenceN` | 3960 | windows timed |
+| `\demoInferenceMachine` | Apple M1 | the machine timed on (CPU) |
+| `\demoInferenceOnnxruntimeVersion` | 1.30.0 | onnxruntime version |
+| `\demoInferenceThreads` | 1 | CPU threads |
 
 ## Fit times (`\runtime`)
 

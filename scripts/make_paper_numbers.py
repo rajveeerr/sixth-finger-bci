@@ -20,7 +20,7 @@ Macro names are letters only (LaTeX forbids digits), camelCase, read left to rig
     dl       deep-learning baselines           exOne    transfer for AH vs SF
     rqTwo    RQ2, a new user (scenario S1)     exTwo    raw recordings, slow waves
     rqThree  RQ3, a new command (S2)           exThree  grasp pre-training, healthy benchmark
-    demo     the demo model and its choice     exFour   the sixth finger as its own command
+    demo     the demo model, choice, timing    exFour   the sixth finger as its own command
     runtime  fit times                         exFive   the central switch played as if live
     repo, code   repository and code DOI, filled in P15 (TBD until then)
 
@@ -737,6 +737,11 @@ def deep(nums: Numbers) -> None:
         nums.add(vs + "DiffCiHi", fixed(row.diff_ci_hi_points), src, "CI upper")
         nums.add(vs + "P", sig(row.paired_p_two_sided), src, "two-sided Wilcoxon p")
     nums.add("dlN", integer(single(table.n)), src, "patients in the deep-learning baselines")
+
+    src = "summary/eegnet_weights.json"
+    weights = nums.json(src)["study_model"]
+    what = "EEGNet as the study builds it (40 channels, 3 classes, 4 s): trainable weights"
+    nums.add("dlEegnetWeights", integer(weights["trainable"]), src, what)
 
     src = "summary/dl_zeroshot_table.csv"
     for _, row in nums.csv(src).iterrows():
@@ -1979,6 +1984,23 @@ def demo(nums: Numbers) -> None:
         nums.add(f"demo{token}Acc", pct(reading["acc"]), src, what)
         nums.add(f"demo{token}Right", integer(reading["right"]), src, "windows read right")
         nums.add(f"demo{token}N", integer(reading["n"]), src, "windows")
+    src = "summary/demo_inference_timing.json"
+    timing = nums.json(src)
+    latency, host = timing["latency_ms"], timing["machine"]
+    for name, value, meaning in (
+        (
+            "demoInferenceMedianMs",
+            fixed2(latency["median"]),
+            "deciding one 4 s window, measured in P14: median (ms)",
+        ),
+        ("demoInferenceIqrLoMs", fixed2(latency["q1"]), "lower quartile (ms)"),
+        ("demoInferenceIqrHiMs", fixed2(latency["q3"]), "upper quartile (ms)"),
+        ("demoInferenceN", integer(timing["n"]), "windows timed"),
+        ("demoInferenceMachine", word(host["cpu"]), "the machine timed on (CPU)"),
+        ("demoInferenceOnnxruntimeVersion", word(host["onnxruntime"]), "onnxruntime version"),
+        ("demoInferenceThreads", integer(host["intra_op_threads"]), "CPU threads"),
+    ):
+        nums.add(name, value, src, meaning)
 
 
 SECTIONS = (

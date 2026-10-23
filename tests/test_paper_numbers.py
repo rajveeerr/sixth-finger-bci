@@ -153,6 +153,21 @@ def test_group_numbers_are_the_summaries_values(nums):
     assert nums.entries["nTrials"].kind == "count"
 
 
+def test_demo_timing_and_weights_are_the_files_values(nums):
+    import json
+
+    def read(name):
+        return json.loads((ROOT / "results" / "summary" / name).read_text())
+
+    timing, weights = read("demo_inference_timing.json"), read("eegnet_weights.json")
+    assert nums.entries["demoInferenceMedianMs"].plain == f"{timing['latency_ms']['median']:.2f}"
+    assert nums.entries["demoInferenceIqrHiMs"].plain == f"{timing['latency_ms']['q3']:.2f}"
+    assert nums.entries["demoInferenceN"].plain == str(timing["n"])
+    assert nums.entries["demoInferenceMachine"].plain == timing["machine"]["cpu"]
+    assert nums.entries["dlEegnetWeights"].plain == str(weights["study_model"]["trainable"])
+    assert weights["deployed_onnx"]["numbers"] == int(nums.entries["demoParameters"].plain)
+
+
 def test_formats(module):
     assert module.pct(0.584693).tex == "58.5"
     assert module.pct(-0.0123).tex == r"\ensuremath{-1.2}"
