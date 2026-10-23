@@ -59,8 +59,11 @@ const IN_PAPER = [
   "leak-slope",
   "elsewhere",
   "switch-patients",
+  "switch-on",
   "setup",
+  "session",
   "later",
+  "later-adjusted",
   "path",
 ];
 
