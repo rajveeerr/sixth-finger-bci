@@ -1,0 +1,49 @@
+// The page is a list of questions, in the order an examiner would ask them. Each chapter takes
+// its title from here, and the list under the opening shows every answer in a few words.
+
+import { data, pct } from "./data";
+import { about, AGAIN_MIN, PRACTICE_S } from "./findings";
+
+export interface Question {
+  id: string;
+  ask: string;
+  /** The answer in a few words, for the list under the opening. */
+  short: string;
+}
+
+export const QUESTIONS: Question[] = [
+  { id: "what", ask: "What is this?", short: "A robotic sixth finger, moved by reading the brain" },
+  { id: "demo", ask: "Can we see it work?", short: "Yes, on recordings the model never learned from" },
+  { id: "data", ask: "Did you record the brain signals?", short: "No: a public recording of 24 stroke patients" },
+  {
+    id: "published",
+    ask: `The paper reports ${pct(data.leak.published[0])}. Is that right?`,
+    short: `No: tested fairly, the same method gets ${pct(data.leak.mean_leakfree)}`,
+  },
+  {
+    id: "command",
+    ask: "Can the sixth finger be a command of its own?",
+    short: "As a switch, yes; apart from the hand, not yet",
+  },
+  {
+    id: "use",
+    ask: "How would a patient use it?",
+    short: `About ${PRACTICE_S} s of practice to start, ${about(AGAIN_MIN).replace("about ", "")} on later visits`,
+  },
+  {
+    id: "built",
+    ask: "What is built, and what is not?",
+    short: "The model, its server and this page; not the headset link or the finger",
+  },
+  {
+    id: "added",
+    ask: "What did you add, and how can we check it?",
+    short: "A fair test of what was already there, fixed in advance, with open code",
+  },
+];
+
+export const question = (id: string) => {
+  const i = QUESTIONS.findIndex((q) => q.id === id);
+  if (i < 0) throw new Error(`No question ${id}`);
+  return { ...QUESTIONS[i], n: i + 1 };
+};

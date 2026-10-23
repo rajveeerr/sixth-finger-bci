@@ -19,14 +19,16 @@ to the browser, then to the stored predictions.
 
 ## The page
 
-`App.tsx` tells the project in chapters: the idea, the recordings, the brain
-rhythm, the research questions, the data checks, the model, the demo, the five
-answers and what a BCI is. The demo is three steps read left to right: what the
+`App.tsx` tells the project as the questions an examiner would ask, in order
+(`explain/questions.ts`), one chapter each in `explain/chapters/`: the question as
+its title, the answer in one sentence, the figure that shows it, and the evidence
+folded under "How we know". The demo is three steps read left to right: what the
 patient is told (`Told`), their brain signal (`EEGPanel`, `TrialStrip`) and what
 the model reads, with the hand (`PredictionCard`, `hands/IsoHand.tsx`). The
 figures live in `src/explain/`: isometric drawings on the drawing core in
 `explain/iso/kit.ts` (the bench in `iso/chain.ts`, the head in `iso/head.ts`),
-charts in `explain/charts.tsx`, the answers' text in `explain/findings.ts`.
+charts in `explain/charts.tsx`, the numbers the chapters say in words in
+`explain/findings.ts`.
 
 The numbers in those figures come from the results summaries. After any of them
 changes, regenerate the page's copy (a Python test fails until you do):

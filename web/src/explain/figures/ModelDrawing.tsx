@@ -25,7 +25,7 @@ const STEPS: Step[] = [
     kicker: "Step 1",
     title: "Finds rhythms in time",
     note: `${rhythms.filters} patterns, each a quarter second long`,
-    text: `It slides ${rhythms.filters} short patterns, each a quarter of a second (${rhythms.kernel} readings) long, along every sensor's line; each responds where the line carries its rhythm, such as the rhythm that fades when someone imagines moving (chapter 3). Out come ${rhythms.filters} copies of the ${CHANNELS} lines, one for each pattern. ${rhythms.learned} of the numbers it learned.`,
+    text: `It slides ${rhythms.filters} short patterns, each a quarter of a second (${rhythms.kernel} readings) long, along every sensor's line; each responds where the line carries its rhythm, such as the rhythm that fades when someone imagines moving. Out come ${rhythms.filters} copies of the ${CHANNELS} lines, one for each pattern. ${rhythms.learned} of the numbers it learned.`,
   },
   {
     kicker: "Step 2",

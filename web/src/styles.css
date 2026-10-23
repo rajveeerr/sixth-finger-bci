@@ -154,25 +154,12 @@ code {
   color: var(--ink-3);
   text-wrap: balance;
 }
-.hero-text {
-  margin: 36px auto 0;
-  max-width: 640px;
-  font-size: 17px;
-  line-height: 1.65;
-  color: var(--ink-2);
-  text-align: left;
-}
 .hero-meta {
   margin: 16px auto 0;
   max-width: 640px;
   font-size: 14px;
   color: var(--ink-3);
   text-align: left;
-}
-.chapter-lede a {
-  color: var(--ink);
-  text-underline-offset: 3px;
-  text-decoration-color: var(--ink-4);
 }
 .demo-status {
   display: flex;
@@ -396,14 +383,16 @@ code {
 }
 
 /* Playback: quiet text buttons, each with its key. */
+.playbar {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--rule);
+}
 .controls {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 6px 20px;
-  margin-top: 16px;
-  padding-top: 12px;
-  border-top: 1px solid var(--rule);
   font-size: 13.5px;
 }
 .ctl {
@@ -473,53 +462,6 @@ code {
   padding: 9px 15px;
   border-radius: 8px;
   font-size: 14px;
-}
-
-/* Chapters: a title ruled to its number, a short lede, then the figures. */
-.chapter {
-  padding-top: 70px;
-  scroll-margin-top: -50px;
-}
-#demo .chapter-lede {
-  margin-bottom: 20px;
-}
-.chapter-head {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-.chapter h2 {
-  margin: 0;
-  font-size: 15px;
-  font-weight: 560;
-  white-space: nowrap;
-}
-.chapter-rule {
-  flex: 1;
-  min-width: 16px;
-  height: 1px;
-  background: var(--rule);
-}
-@media (max-width: 420px) {
-  .chapter h2 {
-    white-space: normal;
-  }
-}
-.chapter-num {
-  font: italic 400 20px/1 var(--serif);
-  color: var(--ink-3);
-}
-.chapter-lede {
-  margin: 18px 0 36px;
-  max-width: var(--text);
-}
-.chapter-lede p {
-  margin: 0 0 14px;
-  font-size: 17px;
-  line-height: 1.65;
-}
-.chapter-lede p + p {
-  color: var(--ink-2);
 }
 
 .plate {
@@ -1083,98 +1025,6 @@ code {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
 }
 
-/* What we found: the five dials are tabs, and one answer shows at a time under them. */
-.answer-tabs {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 6px;
-  margin: 0 0 8px;
-}
-.answer-tab {
-  display: grid;
-  justify-items: center;
-  gap: 1px;
-  padding: 10px 6px 12px;
-  border: 1px solid transparent;
-  border-radius: 14px;
-  background: none;
-  cursor: pointer;
-  text-align: center;
-  touch-action: manipulation;
-  transition:
-    background 0.15s,
-    border-color 0.15s;
-}
-.answer-tab:hover {
-  background: #f2f2f2;
-}
-.answer-tab[aria-selected="true"] {
-  background: #fff;
-  border-color: var(--rule);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
-}
-.answer-tab .gauge {
-  width: 100%;
-  max-width: 150px;
-}
-.answer-tab-n {
-  font-size: 12.5px;
-  line-height: 1.2;
-  color: var(--ink-3);
-}
-.answer-tab-name {
-  font-size: 13.5px;
-  font-weight: 560;
-  line-height: 1.3;
-}
-.answer-tab-value {
-  margin-top: 2px;
-  font-size: 12.5px;
-  line-height: 1.35;
-  color: var(--ink-3);
-  text-wrap: balance;
-}
-.answer-tab-value b {
-  display: block;
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--ink);
-}
-.answer {
-  max-width: var(--text);
-  padding: 22px 0 0;
-  border-top: 1px solid var(--rule);
-}
-/* One type scale in an answer: the question as its heading, the short answer under it,
-   then body text, then the small notes; all in the sans. */
-.finding-q {
-  margin: 0;
-  font-size: 20px;
-  line-height: 1.3;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-}
-.finding-lead {
-  margin: 8px 0 0;
-  font-size: 17px;
-  line-height: 1.45;
-  font-weight: 500;
-}
-.finding-a {
-  margin: 8px 0 18px;
-  font-size: 16px;
-  line-height: 1.6;
-  color: var(--ink-2);
-}
-.finding-points {
-  margin: -8px 0 18px;
-  padding: 0 0 0 20px;
-  display: grid;
-  gap: 6px;
-  font-size: 16px;
-  line-height: 1.55;
-  color: var(--ink-2);
-}
 .chart-say {
   margin: 6px 0 0;
   min-height: 1.5em;
@@ -1223,26 +1073,6 @@ code {
   fill: transparent;
   cursor: crosshair;
   touch-action: pan-y;
-}
-.finding-note {
-  margin: 8px 0 0;
-  font-size: 13.5px;
-  color: var(--ink-3);
-}
-/* An answer with several figures: a small name over each, and a line under it. */
-.evidence-title {
-  margin: 26px 0 6px;
-  font-size: 15px;
-  font-weight: 600;
-}
-.evidence-title:first-child {
-  margin-top: 4px;
-}
-.evidence-say {
-  margin: 6px 0 0;
-  font-size: 13.5px;
-  line-height: 1.5;
-  color: var(--ink-3);
 }
 .figures-row {
   margin: 4px 0 0;
@@ -1745,9 +1575,6 @@ code {
   .intro-hand-art {
     height: 300px;
   }
-  .chapter {
-    padding-top: 54px;
-  }
   .stage {
     grid-template-columns: minmax(0, 1fr);
     gap: 36px;
@@ -1764,21 +1591,6 @@ code {
   }
   .ctl-quiet {
     margin-left: 0;
-  }
-  .answer-tabs {
-    display: flex;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    margin: 0 -18px 8px;
-    padding: 0 18px;
-    scrollbar-width: none;
-  }
-  .answer-tab {
-    flex: 0 0 116px;
-    scroll-snap-align: start;
-  }
-  .finding-lead {
-    font-size: 18px;
   }
   .facts dl > div {
     grid-template-columns: minmax(0, 1fr);
@@ -2096,40 +1908,6 @@ code {
   }
 }
 
-/* The research questions. */
-.questions {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  counter-reset: q;
-  max-width: var(--text);
-  border-top: 1px solid var(--rule);
-}
-.questions li {
-  counter-increment: q;
-  position: relative;
-  padding: 16px 0 16px 44px;
-  border-bottom: 1px solid var(--rule);
-}
-.questions li::before {
-  content: counter(q);
-  position: absolute;
-  left: 4px;
-  top: 13px;
-  font: italic 400 24px/1 var(--serif);
-  color: var(--ink-3);
-}
-.questions h3 {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 560;
-}
-.questions p {
-  margin: 4px 0 0;
-  font-size: 15.5px;
-  line-height: 1.55;
-  color: var(--ink-2);
-}
 /* A side matter the reader can open: a quiet row with a plus. */
 .aside {
   max-width: var(--text);
@@ -2237,15 +2015,12 @@ code {
   line-height: 1.6;
   color: var(--ink-3);
 }
-.hero-text a,
 .checks-note a,
 .links a,
-.chapter-lede a,
 .plate-caption a,
 .plate-side a,
-.questions a,
-.finding-kicker a,
-.uses a {
+.more-lede a,
+.follow a {
   color: var(--ink);
   text-underline-offset: 3px;
   text-decoration-color: var(--ink-4);
@@ -2270,411 +2045,6 @@ code {
 .links li span {
   color: var(--ink-2);
   line-height: 1.5;
-}
-.finding-kicker {
-  margin: 0 0 4px;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--ink-3);
-}
-.finding-kicker a {
-  color: inherit !important;
-  text-decoration: none !important;
-}
-.finding-kicker a:hover {
-  text-decoration: underline !important;
-}
-
-/* Under each answer: how we found it, and where the page shows it. */
-.how {
-  margin: 22px 0 6px;
-  padding: 14px 16px;
-  border-radius: 12px;
-  background: #f1f1f0;
-}
-.how h4 {
-  margin: 0 0 4px;
-  font-size: 14px;
-  font-weight: 600;
-}
-.how p {
-  margin: 0;
-  font-size: 15px;
-  line-height: 1.55;
-  color: var(--ink-2);
-}
-.how ul {
-  list-style: none;
-  margin: 8px 0 0;
-  padding: 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 18px;
-  font-size: 14.5px;
-}
-.how a {
-  color: var(--ink);
-  text-underline-offset: 3px;
-  text-decoration-color: var(--ink-4);
-}
-
-/* A patient's path: one row of steps on a wide screen, a row for each day below that.
-   What a real system still needs is drawn dashed and unshaded. */
-.journey {
-  margin-top: 44px;
-  margin-bottom: 40px;
-}
-.journey-top {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  align-items: start;
-  gap: 10px 48px;
-}
-.journey-title {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 560;
-}
-.journey-top .toggle {
-  grid-row: 2;
-  margin: 0;
-  justify-self: start;
-}
-.journey-key {
-  grid-column: 2;
-  grid-row: 1 / span 2;
-  justify-self: end;
-}
-.journey-key {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  gap: 5px;
-  max-width: 680px;
-  font-size: 13px;
-  line-height: 1.45;
-  color: var(--ink-3);
-}
-.journey-key li {
-  position: relative;
-  padding-left: 24px;
-}
-.journey-key li::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 3px;
-  width: 14px;
-  height: 11px;
-  border: 1.3px dashed #8a8a8f;
-  border-radius: 2px;
-  background: var(--page);
-}
-.journey-key li[data-built]::before {
-  border: 1.3px solid var(--ink-2);
-  background: linear-gradient(to bottom, #fff 0 45%, #e5e5e2 45%);
-}
-.journey-key b {
-  margin-right: 5px;
-  font-weight: 560;
-  color: var(--ink);
-}
-.journey-days {
-  list-style: none;
-  margin: 22px 0 0;
-  padding: 0;
-  display: grid;
-  grid-template-columns: minmax(0, 4.3fr) minmax(0, 0.7fr) minmax(0, 4.3fr) minmax(0, 0.7fr) minmax(0, 1fr);
-}
-.journey-day-name {
-  margin: 0;
-  height: 24px;
-  padding-left: 10px;
-  font-size: 14px;
-  font-weight: 600;
-}
-.journey-gap {
-  padding-top: 24px;
-}
-.journey-steps {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.3fr);
-}
-.journey-gap .journey-steps,
-.journey-day[data-group="day-3"] .journey-steps {
-  grid-template-columns: minmax(0, 1fr);
-}
-.journey-step {
-  display: grid;
-  justify-items: center;
-  width: 100%;
-  padding: 0 0 4px;
-  border: 0;
-  border-radius: 10px;
-  background: none;
-  color: inherit;
-  text-align: center;
-  cursor: pointer;
-  touch-action: manipulation;
-}
-.journey-step .iso-svg {
-  width: 100%;
-}
-.journey-node {
-  position: relative;
-  display: block;
-  width: 100%;
-  height: 14px;
-  margin-top: 2px;
-}
-.journey-node::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 6px;
-  border-top: 1.5px solid var(--ink-3);
-}
-.journey-node::after {
-  content: "";
-  position: absolute;
-  left: 50%;
-  top: 2px;
-  width: 9px;
-  height: 9px;
-  margin-left: -6px;
-  border: 1.5px solid var(--ink-2);
-  border-radius: 50%;
-  background: var(--page);
-}
-.journey-gap .journey-node::before {
-  border-top-style: dashed;
-  border-top-color: #8a8a8f;
-}
-.journey-gap .journey-node::after {
-  border-style: dashed;
-  border-color: #8a8a8f;
-}
-.journey-step[data-on] .journey-node::after {
-  background: var(--ink);
-  border-color: var(--ink);
-}
-.journey-name {
-  margin-top: 6px;
-  font-size: 13.5px;
-  font-weight: 560;
-  line-height: 1.25;
-  text-wrap: balance;
-}
-.journey-meta {
-  min-height: 1.45em;
-  font-size: 13px;
-  line-height: 1.45;
-  color: var(--ink-3);
-}
-.journey-meta[data-score] {
-  font-weight: 600;
-  color: var(--ink);
-}
-.journey-step[data-on] .journey-name {
-  text-decoration: underline;
-  text-decoration-color: var(--ink-4);
-  text-underline-offset: 3px;
-}
-.journey-say {
-  margin: 12px auto 0;
-  max-width: var(--text);
-  min-height: 1.5em;
-  font-size: 14.5px;
-  line-height: 1.5;
-  color: var(--ink-2);
-  text-align: center;
-  text-wrap: balance;
-}
-.journey-hint {
-  color: var(--ink-3);
-}
-.journey-say-narrow {
-  display: none;
-}
-.journey-note {
-  margin: 6px auto 0;
-  max-width: var(--text);
-  font-size: 13.5px;
-  line-height: 1.5;
-  color: var(--ink-3);
-  text-align: center;
-}
-.jn-track {
-  fill: #4a4a4f;
-}
-.jn-fill {
-  fill: #ffffff;
-}
-.jn-visit {
-  fill: none;
-  stroke: var(--sixth);
-  stroke-width: 1.3;
-}
-.journey [data-needed] .iso-fill {
-  fill: var(--page);
-}
-.journey [data-needed] .iso-shade,
-.journey [data-needed] .iso-top,
-.journey [data-needed] .iso-halo {
-  display: none;
-}
-.journey [data-needed] .iso-line {
-  stroke: #5c5c61;
-  stroke-width: 1;
-  stroke-dasharray: 2.4 2;
-}
-.journey [data-needed] .iso-dots circle {
-  opacity: 0.3;
-}
-.journey [data-needed] .link-edge {
-  stroke: #5c5c61;
-  stroke-dasharray: 2.4 2;
-  stroke-linecap: butt;
-}
-.journey [data-needed] .link-body {
-  stroke: var(--page);
-}
-.journey [data-needed] .link-strip {
-  stroke: var(--sixth);
-  opacity: 0.55;
-}
-.journey [data-needed] .link-pin {
-  fill: var(--page);
-  stroke: #5c5c61;
-}
-.journey [data-needed] .link-tip {
-  fill: #5c5c61;
-}
-.journey [data-cap] .head-cap {
-  fill: #f1f1ef;
-  stroke: #f1f1ef;
-}
-.journey [data-cap] .head-seam,
-.journey [data-cap] .head-strap {
-  stroke: #5c5c61;
-  stroke-width: 1;
-  stroke-dasharray: 2.4 2;
-}
-.journey [data-cap] .cup-base,
-.journey [data-cap] .cup-top {
-  fill: var(--page);
-  stroke: #8a8a8f;
-}
-/* Laptop and tablet: day 1 and the wait on one row, day 2 to day 3 on the next. */
-@media (max-width: 1100px) {
-  .journey-days {
-    grid-template-columns: minmax(0, 4.3fr) minmax(0, 0.7fr) minmax(0, 1fr);
-    row-gap: 18px;
-  }
-  .journey-days > [data-group="day-2"] {
-    grid-row: 2;
-    grid-column: 1;
-  }
-  .journey-days > [data-group="gap-2"] {
-    grid-row: 2;
-    grid-column: 2;
-  }
-  .journey-days > [data-group="day-3"] {
-    grid-row: 2;
-    grid-column: 3;
-  }
-}
-/* Phone: a row for each day, the waits between them as slim rows. */
-@media (max-width: 1100px) {
-  .journey-top {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .journey-key {
-    grid-column: 1;
-    grid-row: 3;
-    justify-self: start;
-  }
-}
-@media (max-width: 700px) {
-  .journey-days {
-    grid-template-columns: minmax(0, 1fr);
-    row-gap: 4px;
-  }
-  .journey-days > [data-group] {
-    grid-row: auto;
-    grid-column: 1;
-  }
-  .journey-gap {
-    padding-top: 0;
-  }
-  .journey-day[data-group="day-3"] .journey-steps {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.3fr);
-  }
-  .journey-gap .journey-step {
-    display: flex;
-    align-items: flex-end;
-    gap: 12px;
-    padding: 2px 0 6px;
-  }
-  .journey-gap .iso-svg {
-    flex: none;
-    width: 52px;
-  }
-  .journey-gap .journey-node,
-  .journey-gap .journey-meta {
-    display: none;
-  }
-  .journey-gap .journey-name {
-    margin: 0;
-  }
-  .journey-name {
-    font-size: 12.5px;
-  }
-  .journey-meta {
-    font-size: 12px;
-  }
-  .journey-say-narrow {
-    display: block;
-    margin: 6px auto 8px;
-    font-size: 14px;
-  }
-  .journey[data-shown] .journey-say-wide {
-    display: none;
-  }
-}
-
-/* What this project adds: a ruled list, then the leak in other data. */
-.adds {
-  list-style: none;
-  margin: 0 0 40px;
-  padding: 0;
-  max-width: var(--text);
-  border-top: 1px solid var(--rule);
-}
-.adds li {
-  padding: 13px 0;
-  border-bottom: 1px solid var(--rule);
-}
-.adds h3 {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 600;
-}
-.adds p {
-  margin: 4px 0 0;
-  font-size: 15.5px;
-  line-height: 1.55;
-  color: var(--ink-2);
-}
-.adds a {
-  color: var(--ink);
-  text-underline-offset: 3px;
-  text-decoration-color: var(--ink-4);
 }
 .dumbbells h4 {
   margin: 16px 0 4px;
@@ -2860,164 +2230,7 @@ code {
   }
 }
 
-/* The BCI loop, its captions switched between this demo and a real system. */
-.loop {
-  margin: 8px 0 48px;
-}
-.loop-toggle {
-  margin-bottom: 18px;
-}
-.loop-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 110px minmax(0, 1fr) 110px minmax(0, 1fr);
-  align-items: center;
-  gap: 8px;
-}
-.loop-station {
-  min-width: 0;
-  display: grid;
-  gap: 8px;
-  align-content: start;
-}
-.loop-station .iso-svg {
-  height: 230px;
-  width: 100%;
-}
-.loop-hand {
-  position: relative;
-  height: 230px;
-}
-.loop-hand .iso-hand {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-}
-.loop-say {
-  margin: 0;
-  min-height: 4.5em;
-  font-size: 14.5px;
-  line-height: 1.5;
-  color: var(--ink-2);
-}
-.loop-say b {
-  color: var(--ink);
-  font-weight: 560;
-}
-.loop-say[data-drawn] {
-  color: var(--ink-3);
-}
-.loop-arrow {
-  display: grid;
-  gap: 2px;
-  text-align: center;
-  font-size: 13px;
-  line-height: 1.2;
-  color: var(--ink-3);
-  padding-bottom: 70px;
-}
-.loop-arrow svg {
-  width: 100%;
-  height: 12px;
-  overflow: visible;
-}
-.loop-arrow path {
-  fill: none;
-  stroke: var(--ink-2);
-  stroke-width: 1.4;
-  vector-effect: non-scaling-stroke;
-}
-.loop-back {
-  margin: 14px auto 0;
-  width: 70%;
-  text-align: center;
-}
-.loop-back .loop-arrow {
-  padding: 0;
-}
-.loop-back .loop-say {
-  min-height: 0;
-  margin-top: 6px;
-}
-.loop-note {
-  max-width: var(--text);
-  margin: 22px auto 0;
-  font-size: 14.5px;
-  line-height: 1.6;
-  color: var(--ink-3);
-  text-align: center;
-}
-.loop-note a {
-  color: var(--ink);
-  text-underline-offset: 3px;
-  text-decoration-color: var(--ink-4);
-}
-.pc-lamp {
-  fill: #e8e8e6;
-  stroke: #8a8a8f;
-  stroke-width: 0.8;
-  vector-effect: non-scaling-stroke;
-}
-.pc-lamp-on {
-  fill: var(--sixth);
-}
-.uses {
-  list-style: none;
-  margin: 0 0 40px;
-  padding: 0;
-  max-width: var(--text);
-  border-top: 1px solid var(--rule);
-}
-.uses li {
-  padding: 14px 0;
-  border-bottom: 1px solid var(--rule);
-}
-.uses h3 {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 560;
-}
-.uses p {
-  margin: 4px 0 0;
-  font-size: 15.5px;
-  line-height: 1.55;
-  color: var(--ink-2);
-}
-@media (max-width: 700px) {
-  .loop-row {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .loop-arrow {
-    padding: 0;
-  }
-  .loop-arrow svg {
-    width: 40px;
-    height: 40px;
-    margin: 0 auto;
-    transform: rotate(90deg);
-  }
-  .loop-say {
-    min-height: 0;
-  }
-  .loop-back {
-    width: 100%;
-  }
-}
-
 /* A real system, part by part: four stations in a row on wide screens, stacked below. */
-.pipe-defs {
-  position: absolute;
-  width: 0;
-  height: 0;
-  overflow: hidden;
-}
-.pipe-defs path {
-  stroke: #c4c4c8;
-  stroke-width: 0.8;
-}
-.pipe-hatch {
-  stroke: none;
-}
 .screen-window {
   fill: #3e3e42;
   stroke: #8a8a8f;
@@ -3057,20 +2270,8 @@ code {
   gap: 6px;
   white-space: nowrap;
 }
-.pipe-tag::before {
-  content: "";
-  flex: none;
-  width: 11px;
-  height: 11px;
-  border: 1px solid #8a8a8f;
-  border-radius: 2px;
-  background: repeating-linear-gradient(-45deg, #b4b4b8 0 1px, #fff 1px 3.5px);
-}
 .pipe-tag[data-built] {
   color: var(--ink-2);
-}
-.pipe-tag[data-built]::before {
-  background: #fff;
 }
 .pipe-link {
   margin: 0;
@@ -3110,8 +2311,6 @@ code {
     column-gap: 12px;
     row-gap: 12px;
     --pipe-link: 118px;
-    margin-left: calc((760px - min(1180px, 100vw - 80px)) / 2);
-    margin-right: calc((760px - min(1180px, 100vw - 80px)) / 2);
   }
   .pipe-station {
     grid-row: 1 / span 2;
@@ -3427,5 +2626,793 @@ code {
   }
   .split-run {
     gap: 1.5px;
+  }
+}
+
+/* The questions this page answers, under the opening: each with its answer in a few words,
+   so the whole viva can be read on one screen before any chapter. */
+.index {
+  margin: 76px 0 0;
+}
+.index-title {
+  margin: 0 0 12px;
+  font-size: 15px;
+  font-weight: 560;
+}
+.index ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  counter-reset: q;
+  border-top: 1px solid var(--rule);
+}
+.index li {
+  counter-increment: q;
+  border-bottom: 1px solid var(--rule);
+}
+.index a {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1.05fr) minmax(0, 1fr);
+  align-items: baseline;
+  gap: 2px 22px;
+  padding: 12px 0;
+  color: inherit;
+  text-decoration: none;
+}
+.index a::before {
+  content: counter(q);
+  font: italic 400 21px/1 var(--serif);
+  color: var(--ink-3);
+}
+.index-ask {
+  font-size: 16.5px;
+  font-weight: 560;
+  line-height: 1.35;
+}
+.index-short {
+  font-size: 15px;
+  line-height: 1.45;
+  color: var(--ink-2);
+}
+.index a:hover .index-ask {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--ink-4);
+}
+
+/* A chapter is a question: the question as its title, the answer in one sentence under it, the
+   one figure that shows it, and the rest folded. The questions are the page's one loud thing. */
+.q {
+  position: relative;
+  padding-top: 128px;
+  scroll-margin-top: -100px;
+}
+.q-num {
+  display: block;
+  margin: 0 0 10px;
+  font: italic 400 24px/1 var(--serif);
+  color: var(--ink-3);
+}
+.q h2 {
+  margin: 0;
+  max-width: 720px;
+  font-size: 34px;
+  line-height: 1.12;
+  font-weight: 560;
+  letter-spacing: -0.024em;
+  text-wrap: balance;
+}
+.q-answer {
+  margin: 16px 0 40px;
+  max-width: 680px;
+}
+#demo .q-answer {
+  margin-bottom: 32px;
+}
+.q-say {
+  margin: 0;
+  font-size: 19px;
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+.q-say a {
+  color: inherit;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--ink-4);
+}
+.q-answer[data-dial] {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 196px;
+  align-items: center;
+  gap: 36px;
+  max-width: none;
+}
+.q-dial {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+}
+.q-dial .gauge {
+  width: 100%;
+}
+.q-reading {
+  margin: 0;
+  display: grid;
+  gap: 2px;
+  font-size: 12.5px;
+  line-height: 1.35;
+  color: var(--ink-2);
+  text-align: center;
+}
+/* A short stroke before each reading, black or grey like the needle it reads. */
+.q-reading span::before {
+  content: "";
+  display: inline-block;
+  width: 10px;
+  height: 2.5px;
+  margin: 0 6px 0 0;
+  vertical-align: 3px;
+  border-radius: 1px;
+  background: var(--ink);
+}
+.q-reading .q-reading-other {
+  color: var(--ink-3);
+}
+.q-reading .q-reading-other::before {
+  background: #b9b9b9;
+}
+.q-reading b {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+}
+@media (min-width: 1101px) {
+  /* The number hangs in the margin, so the question and its answer share one left edge. */
+  .q-num {
+    position: absolute;
+    left: -60px;
+    margin: 0;
+    padding-top: 7px;
+  }
+}
+
+/* The fold under each answer: one ruled row with what is inside, opened for the evidence. */
+.more {
+  margin: 4px 0 0;
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+}
+.more > summary {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 12px;
+  padding: 15px 0 15px 36px;
+  cursor: pointer;
+  list-style: none;
+  touch-action: manipulation;
+}
+.more > summary::-webkit-details-marker {
+  display: none;
+}
+.more > summary::before {
+  content: "+";
+  position: absolute;
+  left: 0;
+  top: 13px;
+  display: grid;
+  place-items: center;
+  width: 23px;
+  height: 23px;
+  border: 1px solid var(--ink-4);
+  border-radius: 50%;
+  font-size: 15px;
+  line-height: 1;
+  color: var(--ink-2);
+}
+.more[open] > summary::before {
+  content: "\2212";
+}
+.more > summary:hover::before {
+  border-color: var(--ink-2);
+}
+.more-label {
+  font-size: 16px;
+  font-weight: 560;
+}
+.more-what {
+  font-size: 14px;
+  color: var(--ink-3);
+}
+.more-body {
+  padding: 4px 0 36px;
+}
+.more-lede {
+  max-width: var(--text);
+  margin: 10px 0 36px;
+  font-size: 15.5px;
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+/* A question asked next, inside a fold: smaller than the chapter's, its answer, its figure. */
+.follow {
+  margin: 0 0 44px;
+}
+.follow:last-child {
+  margin-bottom: 0;
+}
+.follow h3 {
+  margin: 30px 0 6px;
+  font-size: 19px;
+  line-height: 1.3;
+  font-weight: 560;
+  letter-spacing: -0.01em;
+}
+.follow > p {
+  max-width: var(--text);
+  margin: 0 0 20px;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+.follow .plate:last-child {
+  margin-bottom: 0;
+}
+.figure {
+  margin: 0 0 40px;
+}
+.figure-note {
+  max-width: var(--text);
+  margin: 12px 0 24px;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--ink-3);
+}
+.figure .figure-note {
+  margin-bottom: 0;
+}
+.facts-terms dl > div {
+  grid-template-columns: 6em minmax(0, 1fr);
+}
+
+/* Built or needed: one language for every drawing. Built is drawn solid and shaded; what a
+   real system still needs is drawn dashed and unshaded, with the same small key each time. */
+.built-key {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 20px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--ink-2);
+}
+.built-key li {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.built-key li::before,
+.pipe-tag::before {
+  content: "";
+  flex: none;
+  width: 14px;
+  height: 11px;
+  border: 1.3px dashed #8a8a8f;
+  border-radius: 2px;
+  background: var(--page);
+}
+.built-key li[data-built]::before,
+.pipe-tag[data-built]::before {
+  border: 1.3px solid var(--ink-2);
+  background: linear-gradient(to bottom, #fff 0 45%, #e5e5e2 45%);
+}
+.iso-svg [data-needed] .iso-fill {
+  fill: var(--page);
+}
+.iso-svg [data-needed] .iso-shade,
+.iso-svg [data-needed] .iso-top,
+.iso-svg [data-needed] .iso-halo {
+  display: none;
+}
+.iso-svg [data-needed] .iso-line {
+  stroke: #5c5c61;
+  stroke-width: 1;
+  stroke-dasharray: 2.4 2;
+}
+.iso-svg [data-needed] .iso-dots circle {
+  opacity: 0.3;
+}
+.iso-svg [data-needed] .link-edge {
+  stroke: #5c5c61;
+  stroke-dasharray: 2.4 2;
+  stroke-linecap: butt;
+}
+.iso-svg [data-needed] .link-body {
+  stroke: var(--page);
+}
+.iso-svg [data-needed] .link-strip {
+  stroke: var(--sixth);
+  opacity: 0.55;
+}
+.iso-svg [data-needed] .link-pin {
+  fill: var(--page);
+  stroke: #5c5c61;
+}
+.iso-svg [data-needed] .link-tip {
+  fill: #5c5c61;
+}
+.iso-svg [data-needed] .screen-window,
+.iso-svg [data-needed] .screen-window-bar {
+  fill: none;
+  stroke: #c4c4c8;
+  stroke-width: 0.9;
+  stroke-dasharray: 2.4 2;
+}
+.iso-svg [data-cap] .head-cap {
+  fill: #f1f1ef;
+  stroke: #f1f1ef;
+}
+.iso-svg [data-cap] .head-seam,
+.iso-svg [data-cap] .head-strap {
+  stroke: #5c5c61;
+  stroke-width: 1;
+  stroke-dasharray: 2.4 2;
+}
+.iso-svg [data-cap] .cup-base,
+.iso-svg [data-cap] .cup-top {
+  fill: var(--page);
+  stroke: #8a8a8f;
+}
+.pc-lamp {
+  fill: #e8e8e6;
+  stroke: #8a8a8f;
+  stroke-width: 0.8;
+  vector-effect: non-scaling-stroke;
+}
+.pc-lamp-on {
+  fill: var(--sixth);
+}
+.jn-visit {
+  fill: none;
+  stroke: var(--sixth);
+  stroke-width: 1.3;
+}
+
+/* A patient's visits. Narrower than a projector, each step is a row: its drawing, then what
+   happens and, for the practice, both ways the model can start. */
+.journey {
+  margin-top: 0;
+  margin-bottom: 36px;
+}
+.jy .built-key {
+  margin: 0 0 6px;
+}
+.jy-visit > h3 {
+  margin: 22px 0 0;
+  padding: 0 0 7px;
+  border-bottom: 1px solid var(--ink-4);
+  font-size: 14.5px;
+  font-weight: 600;
+}
+.jy-step {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  column-gap: 28px;
+  align-items: start;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--rule);
+}
+.jy-step > svg {
+  grid-row: 1 / span 3;
+  align-self: center;
+  justify-self: center;
+  width: calc(var(--k) * 100%);
+}
+.jy-words,
+.jy-lanes,
+.jy-across {
+  grid-column: 2;
+}
+.jy-name,
+.jy-text {
+  margin: 0;
+}
+.jy-name {
+  font-size: 15.5px;
+  font-weight: 600;
+}
+.jy-text {
+  margin-top: 2px;
+  font-size: 14.5px;
+  line-height: 1.5;
+  color: var(--ink-2);
+  text-wrap: pretty;
+}
+.jy-lanes {
+  margin: 12px 0 0;
+  display: grid;
+  gap: 10px;
+}
+.jy-lanes dt {
+  font-size: 12.5px;
+  font-weight: 560;
+  color: var(--ink-3);
+}
+.jy-lanes dd {
+  margin: 3px 0 0;
+  display: grid;
+  gap: 2px;
+}
+/* The practice drawn to scale: the bar's length is its time against the longest shown. */
+.jy-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.jy-bar i {
+  flex: none;
+  width: calc(var(--share) * (100% - 96px));
+  min-width: 5px;
+  height: 9px;
+  border-radius: 2px;
+  background: var(--ink-2);
+}
+.jy-score,
+.jy-none {
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: var(--ink-3);
+}
+.jy-score b {
+  font-weight: 600;
+  color: var(--ink);
+}
+.jy-before {
+  display: block;
+}
+.jy-across {
+  margin: 12px 0 0;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+.jy-across b {
+  font-weight: 600;
+  color: var(--ink);
+}
+.jy-lane,
+.jy-track {
+  display: none;
+}
+.journey > .figure-note {
+  margin-top: 14px;
+}
+/* On a projector the steps stand in a row, left to right, and the two ways the model can start
+   run under them as two lanes, so the difference is seen without reading. */
+@media (min-width: 1101px) {
+  .jy {
+    display: grid;
+    grid-template-columns: 132px repeat(4, minmax(0, 1fr));
+    grid-template-rows: repeat(5, auto);
+    column-gap: 30px;
+  }
+  .jy .built-key {
+    grid-column: 1;
+    grid-row: 2;
+    align-self: end;
+    flex-direction: column;
+    gap: 6px;
+    margin: 0 0 4px;
+    font-size: 12.5px;
+  }
+  .jy-visit {
+    display: contents;
+  }
+  .jy-visit > h3 {
+    grid-row: 1;
+    margin: 0;
+  }
+  .jy-visit[data-visit="1"] > h3 {
+    grid-column: 2 / 5;
+  }
+  .jy-visit[data-visit="2"] > h3 {
+    grid-column: 5;
+  }
+  .jy-step {
+    position: relative;
+    z-index: 1;
+    grid-row: 2 / 6;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: subgrid;
+    padding: 0;
+    border: 0;
+  }
+  .jy-step[data-station="cap"] {
+    grid-column: 2;
+  }
+  .jy-step[data-station="practice"] {
+    grid-column: 3;
+  }
+  .jy-step[data-station="therapy"] {
+    grid-column: 4;
+  }
+  .jy-step[data-station="calendar"] {
+    grid-column: 5;
+  }
+  .jy-step > svg {
+    grid-row: 1;
+    align-self: end;
+    margin-top: 14px;
+  }
+  .jy-words,
+  .jy-lanes,
+  .jy-across {
+    grid-column: 1;
+  }
+  .jy-words {
+    grid-row: 2;
+    padding: 10px 0 16px;
+  }
+  .jy-lanes {
+    display: contents;
+  }
+  .jy-lanes > div {
+    padding: 11px 0 14px;
+  }
+  .jy-lanes > div[data-lane="scratch"] {
+    grid-row: 3;
+  }
+  .jy-lanes > div[data-lane="transfer"] {
+    grid-row: 4;
+  }
+  .jy-lanes dt {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .jy-lanes dd {
+    margin: 0;
+  }
+  .jy-across {
+    grid-row: 3 / 5;
+    align-self: start;
+    margin: 0;
+    padding: 11px 0;
+    background: var(--page);
+  }
+  .jy-lane {
+    display: block;
+    grid-column: 1;
+    margin: 0;
+    padding: 11px 0 0;
+    font-size: 13px;
+    font-weight: 560;
+    line-height: 1.35;
+    color: var(--ink-2);
+  }
+  .jy-lane[data-lane="scratch"] {
+    grid-row: 4;
+  }
+  .jy-lane[data-lane="transfer"] {
+    grid-row: 5;
+  }
+  .jy-track {
+    display: block;
+    grid-column: 1 / -1;
+    align-self: start;
+    border-top: 1px solid var(--rule);
+  }
+  .jy-track[data-lane="scratch"] {
+    grid-row: 4;
+  }
+  .jy-track[data-lane="transfer"] {
+    grid-row: 5;
+  }
+}
+@media (max-width: 700px) {
+  .jy-step {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 8px;
+  }
+  .jy-step > svg {
+    grid-row: auto;
+    justify-self: start;
+    width: calc(var(--k) * 300px);
+    max-width: 100%;
+  }
+  .jy-words,
+  .jy-lanes,
+  .jy-across {
+    grid-column: 1;
+  }
+}
+
+/* A real system, part by part, and what comes after it. */
+.real {
+  margin-top: 0;
+  margin-bottom: 30px;
+}
+.real > .built-key {
+  margin: 0 0 22px;
+}
+.q-next {
+  max-width: var(--text);
+  margin: 0;
+  font-size: 15.5px;
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+.q-next b {
+  margin-right: 4px;
+  font-weight: 560;
+  color: var(--ink);
+}
+
+/* The demo's two ways of reading, each with its line, as a choice of two. */
+.modes {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 8px;
+  margin-top: 12px;
+}
+.mode {
+  position: relative;
+  padding: 8px 12px 9px 34px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: none;
+  text-align: left;
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: var(--ink-3);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.mode::before {
+  content: "";
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  width: 9px;
+  height: 9px;
+  border: 1.4px solid var(--ink-3);
+  border-radius: 50%;
+}
+.mode b {
+  display: block;
+  font-weight: 560;
+  color: var(--ink-2);
+}
+.mode:hover {
+  color: var(--ink-2);
+}
+.mode.on {
+  border-color: var(--rule);
+  background: #fff;
+  color: var(--ink-2);
+}
+.mode.on b {
+  color: var(--ink);
+}
+.mode.on::before {
+  border-color: var(--ink);
+  background: var(--ink);
+  box-shadow: inset 0 0 0 2px #fff;
+}
+/* On a projector the choice sits beside the playback buttons, and on a short screen the stage
+   gives up a little height, so the question, the demo and its choice fit one screen. */
+@media (min-width: 1101px) and (max-height: 820px) {
+  .stage {
+    height: 450px;
+  }
+}
+@media (min-width: 1101px) {
+  .playbar {
+    display: grid;
+    grid-template-columns: minmax(0, 470px) minmax(0, 1fr);
+    align-items: center;
+    gap: 28px;
+  }
+  .modes {
+    margin-top: 0;
+    gap: 6px;
+  }
+  .mode {
+    padding: 6px 10px 7px 30px;
+    font-size: 13px;
+    line-height: 1.4;
+  }
+  .mode::before {
+    left: 10px;
+    top: 9px;
+  }
+}
+@media (max-width: 700px) {
+  .modes {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* What was added, each linked to the chapter that shows it, then how to check it. */
+.adds {
+  list-style: none;
+  margin: 0 0 44px;
+  padding: 0;
+  max-width: var(--text);
+  border-top: 1px solid var(--rule);
+}
+.adds li {
+  padding: 12px 0 13px;
+  border-bottom: 1px solid var(--rule);
+}
+.adds a {
+  font-size: 16px;
+  font-weight: 560;
+  color: var(--ink);
+  text-underline-offset: 3px;
+  text-decoration-color: var(--ink-4);
+}
+.adds p {
+  margin: 3px 0 0;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+.trust-title {
+  margin: 0 0 12px;
+  font-size: 19px;
+  line-height: 1.3;
+  font-weight: 560;
+  letter-spacing: -0.01em;
+}
+.trust {
+  margin: 0 0 36px;
+}
+
+@media (max-width: 700px) {
+  .q {
+    padding-top: 84px;
+    scroll-margin-top: -64px;
+  }
+  .q h2 {
+    font-size: 27px;
+  }
+  .q-say {
+    font-size: 17.5px;
+  }
+  .q-answer[data-dial] {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+  }
+  .q-dial {
+    grid-template-columns: 124px minmax(0, 1fr);
+    justify-items: start;
+    align-items: center;
+    gap: 14px;
+  }
+  .q-reading {
+    text-align: left;
+  }
+  .index {
+    margin-top: 56px;
+  }
+  .index a {
+    grid-template-columns: 26px minmax(0, 1fr);
+  }
+  .index-short {
+    grid-column: 2;
+  }
+  .more-what {
+    font-size: 13.5px;
   }
 }

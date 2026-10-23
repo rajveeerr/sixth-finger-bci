@@ -260,6 +260,8 @@ export function Slope({
 
 export interface Series {
   label: string;
+  /** Said instead on a chart too narrow for the label. */
+  short?: string;
   points: { x: number; y: number; lo: number; hi: number }[];
   muted?: boolean;
 }
@@ -288,6 +290,8 @@ export function Curves({
   const bottom = h - 42;
   const x = scale(0, 10, left, right);
   const y = scale(0.3, 0.7, bottom, top);
+  // A small phone has no room for the long labels beside the curves or under the axis.
+  const narrow = w < 420;
   return (
     <div ref={ref} className="chart">
       <svg width={w} height={h} role="img" aria-label={label}>
@@ -310,7 +314,7 @@ export function Curves({
           </text>
         ))}
         <text x={(left + right) / 2} y={bottom + 36} textAnchor="middle" className="chart-tick">
-          minutes the new patient spends on practice trials
+          {narrow ? "minutes of practice" : "minutes the new patient spends on practice trials"}
         </text>
         {reach && series[0] && (
           <g className="chart-reach">
@@ -348,7 +352,7 @@ export function Curves({
                 {pct(first.y)}
               </text>
               <text x={x(first.x) + 10} y={y(first.y) + (s.muted ? 20 : -12)} className="chart-row">
-                {s.label}
+                {narrow && s.short ? s.short : s.label}
               </text>
             </g>
           );

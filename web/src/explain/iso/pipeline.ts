@@ -2,8 +2,8 @@
 // head in an EEG cap wired to an amplifier, a laptop, the server that runs the model, and a
 // finger board wired to the motor of the robotic finger. All four share one camera and one
 // scale, so the parts keep their sizes whether the stations sit in a row or stack on a phone.
-// What this project has not built is hatched; the hatch is an SVG pattern the page defines
-// once, passed in as a paint (`url(#id)`).
+// What this project has not built sits in a `data-needed` group, which the page draws dashed,
+// as the patient's path does.
 
 import { headSvg, HEAD_BOUNDS, placeHead, type HeadPose } from "./head";
 import * as K from "./kit";
@@ -13,15 +13,17 @@ const VIEW_H = 210; // the tallest station's height
 const PAD = 8;
 export const BASE = 6; // the height of each station's plate
 
+/** What a real system needs and this project has not built, drawn dashed by the page. */
+export const needed = (svg: string, extra = "") => `<g data-needed=""${extra}>${svg}</g>`;
+
 /**
- * The laptop of the BCI loop on its pad, its screen showing the model's three lamps with the
- * sixth finger's lit, or the switch's two (rest, and move lit); given a hatch, a small window
- * for the bridge program sits in a corner.
+ * A laptop on its pad, its screen showing the model's three lamps with the sixth finger's lit,
+ * or the switch's two (rest, and move lit); with `bridge`, a small window for the bridge
+ * program, not built yet, sits in a corner.
  */
 export function laptopSvg(
   P: K.Projection,
-  hatch?: string,
-  { pad = true, lamps = "model" }: { pad?: boolean; lamps?: "model" | "switch" } = {},
+  { pad = true, lamps = "model", bridge = false }: { pad?: boolean; lamps?: "model" | "switch"; bridge?: boolean } = {},
 ) {
   const out: string[] = [];
   if (pad) {
@@ -68,15 +70,15 @@ export function laptopSvg(
     });
     out.push(`<path class="${l.cls}" d="${face(ring)}"/>`);
   });
-  if (hatch) {
+  if (bridge) {
     const win = face([
       [24, fy, 72],
       [52, fy, 72],
       [52, fy, 93],
       [24, fy, 93],
     ]);
-    out.push(`<path class="screen-window" d="${win}"/><path class="pipe-hatch" fill="${hatch}" d="${win}"/>`);
-    out.push(`<path class="screen-window-bar" d="${K.segment([24, fy, 88], [52, fy, 88], P)}"/>`);
+    const bar = K.segment([24, fy, 88], [52, fy, 88], P);
+    out.push(needed(`<path class="screen-window" d="${win}"/><path class="screen-window-bar" d="${bar}"/>`));
   }
   return out.join("");
 }
@@ -95,10 +97,7 @@ interface StationArt {
   h: number;
 }
 
-type Build = (P: K.Projection, hatch: string) => string;
-
-const hatched = (paths: K.SolidPaths, hatch: string, style: K.SolidStyle = {}) =>
-  K.solidSvg(paths, { ...style, inner: `<path class="pipe-hatch" fill="${hatch}" d="${paths.fill}"/>` });
+type Build = (P: K.Projection) => string;
 
 // The head: three-quarter view with the nose toward the viewer's left, as on the bench.
 const READ_PLATE: K.Plan = { x: 0, y: 0, w: 214, d: 124, r: 10 };
@@ -119,10 +118,11 @@ const readBounds: K.Point3[] = [
   [AMP.x, AMP.y, AMP_TOP + 14],
 ];
 
-const readArt: Build = (P, hatch) => {
+// The whole station is not built: the wearer stays solid, the cap and amplifier are dashed.
+const readArt: Build = (P) => {
   const at = (p: K.Point3) => K.iso(p, P);
   const out: string[] = [];
-  out.push(hatched(K.slabOf(READ_PLATE, 0, BASE, P, 8, 0.8), hatch, { tone: "mid", halo: true }));
+  out.push(K.solidSvg(K.slabOf(READ_PLATE, 0, BASE, P, 8, 0.8), { tone: "mid", halo: true }));
   const head = headSvg(P, POSE);
   out.push(K.solidSvg(K.cylinder(HEAD.cx, HEAD.cy, 40, BASE, 4, P, 56, 0.6), { tone: "mid" }));
   out.push(
@@ -131,12 +131,13 @@ const readArt: Build = (P, hatch) => {
       { tone: "hi" },
     ),
   );
-  out.push(head.svg);
+  out.push(needed(head.svg, ' data-cap=""'));
 
   // the amplifier: body, top panel, input connector, gain knob, three lights, vents
-  out.push(hatched(K.slabOf(AMP, BASE, AMP_TOP - BASE, P, 8, 1.2), hatch, { tone: "hi" }));
-  out.push(K.lineSvg(K.planOutline(K.insetPlan(AMP, 6), AMP_TOP, P), { tone: "faint" }));
-  out.push(
+  const amp: string[] = [];
+  amp.push(K.solidSvg(K.slabOf(AMP, BASE, AMP_TOP - BASE, P, 8, 1.2), { tone: "hi" }));
+  amp.push(K.lineSvg(K.planOutline(K.insetPlan(AMP, 6), AMP_TOP, P), { tone: "faint" }));
+  amp.push(
     K.dotsSvg(
       K.corners(AMP, 3.2).map(([x, y]) => at([x, y, AMP_TOP])),
       { size: 0.9, tone: "mid" },
@@ -145,16 +146,16 @@ const readArt: Build = (P, hatch) => {
   const shown = head.electrodes.filter((e) => e.shown && e.visible).sort((p, q) => p.p[1] - q.p[1]);
   const input: K.Plan = { x: AMP.x + 8, y: AMP.y + 14, w: 14, d: 42, r: 2 };
   const pin = (i: number) => input.y + 5 + (i * (input.d - 10)) / Math.max(1, shown.length - 1);
-  out.push(K.solidSvg(K.slabOf(input, AMP_TOP, 4, P), { tone: "hi" }));
-  out.push(
+  amp.push(K.solidSvg(K.slabOf(input, AMP_TOP, 4, P), { tone: "hi" }));
+  amp.push(
     K.dotsSvg(
       shown.map((_, i) => at([input.x + 7, pin(i), AMP_TOP + 4])),
       { size: 1.1, tone: "hi" },
     ),
   );
-  out.push(K.solidSvg(K.cylinder(AMP.x + 48, AMP.y + 24, 8, AMP_TOP, 6, P, 32, 0.6), { tone: "hi" }));
-  out.push(K.lineSvg(K.knurl(AMP.x + 48, AMP.y + 24, 8, AMP_TOP, AMP_TOP + 6, 36, P), { tone: "lo" }));
-  out.push(
+  amp.push(K.solidSvg(K.cylinder(AMP.x + 48, AMP.y + 24, 8, AMP_TOP, 6, P, 32, 0.6), { tone: "hi" }));
+  amp.push(K.lineSvg(K.knurl(AMP.x + 48, AMP.y + 24, 8, AMP_TOP, AMP_TOP + 6, 36, P), { tone: "lo" }));
+  amp.push(
     K.dotsSvg(
       [0, 1, 2].map((i) => at([AMP.x + 40 + i * 8, AMP.y + 54, AMP_TOP])),
       { size: 1.6, tone: "hi" },
@@ -162,7 +163,7 @@ const readArt: Build = (P, hatch) => {
   );
   for (let i = 0; i < 6; i++) {
     const y = AMP.y + 16 + i * 8;
-    out.push(K.lineSvg(K.segment([AMP.x + AMP.w, y, BASE + 12], [AMP.x + AMP.w, y, BASE + 28], P), { tone: "lo" }));
+    amp.push(K.lineSvg(K.segment([AMP.x + AMP.w, y, BASE + 12], [AMP.x + AMP.w, y, BASE + 28], P), { tone: "lo" }));
   }
 
   // the leads: off each drawn electrode in view, gathered side by side into the input
@@ -171,8 +172,9 @@ const readArt: Build = (P, hatch) => {
     const off: K.Point3 = [e.p[0] + e.n[0] * 9, e.p[1] + e.n[1] * 9, e.p[2] + e.n[2] * 9];
     const end: K.Point3 = [input.x + 7, pin(i), AMP_TOP + 4];
     const gather: K.Point3 = [input.x - 10, end[1], AMP_TOP + 22];
-    out.push(K.wireSvg(at(from), at(end), { via: [at(off), at(gather)], tone: "mid", size: 1 }));
+    amp.push(K.wireSvg(at(from), at(end), { via: [at(off), at(gather)], tone: "mid", size: 1 }));
   });
+  out.push(needed(amp.join("")));
   return out.join("");
 };
 
@@ -251,23 +253,24 @@ const actBounds: K.Point3[] = [
   ...fingerJoints().map(([x, y, z]) => [x + 8, y, z + 8] as K.Point3),
 ];
 
-const actArt: Build = (P, hatch) => {
+// None of it is built: the plate stays solid, everything on it is dashed.
+const actArt: Build = (P) => {
   const at = (p: K.Point3) => K.iso(p, P);
   const out: string[] = [];
-  out.push(hatched(K.slabOf(ACT_PLATE, 0, BASE, P, 8, 0.8), hatch, { tone: "mid", halo: true }));
+  const plate = K.solidSvg(K.slabOf(ACT_PLATE, 0, BASE, P, 8, 0.8), { tone: "mid", halo: true });
 
   // the board on four standoffs: its chip, two rows of header pins, a USB socket and a light
   const stands = K.corners(BOARD, 4).sort((p, q) => K.depthOf([...p, 0], P) - K.depthOf([...q, 0], P));
   for (const [x, y] of stands) out.push(K.solidSvg(K.cylinder(x, y, 2.6, BASE, 6, P, 16), { tone: "mid" }));
-  out.push(hatched(K.slabOf(BOARD, BOARD_Z, 2.4, P, 6, 0.4), hatch, { tone: "hi" }));
+  out.push(K.solidSvg(K.slabOf(BOARD, BOARD_Z, 2.4, P, 6, 0.4), { tone: "hi" }));
   const top = BOARD_Z + 2.4;
   out.push(K.solidSvg(K.slabOf({ x: 11, y: 52, w: 14, d: 16, r: 1 }, top, 5, P), { tone: "hi" }));
-  out.push(hatched(K.slabOf({ x: 42, y: 50, w: 22, d: 22, r: 1 }, top, 3, P), hatch, { tone: "hi" }));
+  out.push(K.solidSvg(K.slabOf({ x: 42, y: 50, w: 22, d: 22, r: 1 }, top, 3, P), { tone: "hi" }));
   const header = (y: number) => Array.from({ length: 10 }, (_, i) => at([PIN_X(i), y, top]));
   out.push(K.dotsSvg([...header(BOARD.y + 6), ...header(BOARD.y + BOARD.d - 6)], { size: 1.1, tone: "hi" }));
   out.push(K.dotsSvg([at([BOARD.x + 10, BOARD.y + BOARD.d - 12, top])], { size: 1.6, tone: "hi" }));
 
-  out.push(motorSvg(P, hatch));
+  out.push(motorSvg(P));
   // three leads from the board's header to the motor
   [0, 1, 2].forEach((i) => {
     const from: K.Point3 = [PIN_X(7 + i), BOARD.y + BOARD.d - 6, top];
@@ -281,14 +284,13 @@ const actArt: Build = (P, hatch) => {
     );
   });
   out.push(fingerSvg(P));
-  return out.join("");
+  return plate + needed(out.join(""));
 };
 
-/** The motor at MOTOR on a plate BASE high: body, mounting tabs and the shaft; hatched if given one. */
-export function motorSvg(P: K.Projection, hatch?: string) {
+/** The motor at MOTOR on a plate BASE high: body, mounting tabs and the shaft. */
+export function motorSvg(P: K.Projection) {
   const out: string[] = [];
-  const body = K.slabOf(MOTOR, BASE, MOTOR_TOP - BASE, P, 6, 0.8);
-  out.push(hatch ? hatched(body, hatch, { tone: "hi" }) : K.solidSvg(body, { tone: "hi" }));
+  out.push(K.solidSvg(K.slabOf(MOTOR, BASE, MOTOR_TOP - BASE, P, 6, 0.8), { tone: "hi" }));
   const tabs: K.Plan = { x: MOTOR.x - 10, y: MOTOR.y, w: MOTOR.w + 20, d: MOTOR.d, r: 1.5 };
   out.push(K.solidSvg(K.slabOf(tabs, MOTOR_TOP - 10, 3, P), { tone: "hi" }));
   out.push(K.solidSvg(K.cylinder(SHAFT[0], SHAFT[1], 8.5, MOTOR_TOP, 3.5, P, 28, 0.5), { tone: "hi" }));
@@ -332,13 +334,13 @@ function extent(points: K.Point3[]) {
 
 const STATIONS: { bounds: K.Point3[]; build: Build }[] = [
   { bounds: readBounds, build: readArt },
-  { bounds: LAPTOP_BOUNDS, build: laptopSvg },
+  { bounds: LAPTOP_BOUNDS, build: (P) => laptopSvg(P, { bridge: true }) },
   { bounds: serverBounds, build: serverArt },
   { bounds: actBounds, build: actArt },
 ];
 
 /** The four stations, left to right, each in a viewBox cut to its drawing. */
-export function buildPipeline(hatch: string): StationArt[] {
+export function buildPipeline(): StationArt[] {
   const boxes = STATIONS.map((s) => extent(s.bounds));
   const scale = Math.min(...boxes.map((b) => (VIEW_H - PAD * 2) / (b.down - b.up)));
   return STATIONS.map((s, i) => {
@@ -346,6 +348,6 @@ export function buildPipeline(hatch: string): StationArt[] {
     const w = Math.ceil((b.right - b.left) * scale + PAD * 2);
     const h = Math.ceil((b.down - b.up) * scale + PAD * 2);
     const P: K.Projection = { origin: [PAD - b.left * scale, h - PAD - b.down * scale], scale, azimuth: AZ };
-    return { svg: s.build(P, hatch), w, h };
+    return { svg: s.build(P), w, h };
   });
 }

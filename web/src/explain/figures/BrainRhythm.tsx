@@ -77,69 +77,68 @@ export function BrainRhythm() {
     };
     raf.current = requestAnimationFrame(step);
   };
+  return (
+    <Plate
+      title="The rhythm over the hand area"
+      hint="A drawing of the effect, 8 to 13 waves a second. Switch between resting and imagining."
+      readout={
+        imagining
+          ? `Imagining: the rhythm's power falls by ${Math.round(fall * 100)}% on average over ${sf.length} patients (grey: its size at rest). This drop is what the model learns to spot.`
+          : "Resting: the rhythm at its usual size."
+      }
+    >
+      <div className="toggle rhythm-toggle" role="radiogroup" aria-label="What the patient is doing">
+        {[false, true].map((on) => (
+          <button key={String(on)} type="button" role="radio" aria-checked={imagining === on} onClick={() => show(on)}>
+            {on ? "Imagining the movement" : "Resting"}
+          </button>
+        ))}
+      </div>
+      <svg
+        className="iso-svg rhythm-svg dotted"
+        viewBox={`0 0 ${W} ${H}`}
+        role="img"
+        aria-label={imagining ? "The rhythm, smaller while imagining" : "The rhythm while resting"}
+      >
+        <g dangerouslySetInnerHTML={{ __html: svg }} />
+        {scale < 0.999 && <path className="rhythm-ghost" d={wave(1)} />}
+        <path className="rhythm" d={wave(scale)} />
+      </svg>
+    </Plate>
+  );
+}
+
+/** The fall in that rhythm, measured in every patient, for the hand and the sixth finger. */
+export function RhythmMeasured() {
+  const sf = data.erd.sixth_finger.values;
   const fmt = (v: number) => `${v < 0 ? "−" : v > 0 ? "+" : ""}${Math.abs(Math.round(v * 100))}%`;
   return (
-    <>
-      <Plate
-        title="The rhythm over the hand area"
-        hint="A drawing of the effect, 8 to 13 waves a second. Switch between resting and imagining."
-        readout={
-          imagining
-            ? `Imagining: the rhythm's power falls by ${Math.round(fall * 100)}% on average over ${sf.length} patients (grey: its size at rest). This drop is what the model learns to spot.`
-            : "Resting: the rhythm at its usual size."
-        }
-      >
-        <div className="toggle rhythm-toggle" role="radiogroup" aria-label="What the patient is doing">
-          {[false, true].map((on) => (
-            <button
-              key={String(on)}
-              type="button"
-              role="radio"
-              aria-checked={imagining === on}
-              onClick={() => show(on)}
-            >
-              {on ? "Imagining the movement" : "Resting"}
-            </button>
-          ))}
-        </div>
-        <svg
-          className="iso-svg rhythm-svg dotted"
-          viewBox={`0 0 ${W} ${H}`}
-          role="img"
-          aria-label={imagining ? "The rhythm, smaller while imagining" : "The rhythm while resting"}
-        >
-          <g dangerouslySetInnerHTML={{ __html: svg }} />
-          {scale < 0.999 && <path className="rhythm-ghost" d={wave(1)} />}
-          <path className="rhythm" d={wave(scale)} />
-        </svg>
-      </Plate>
-      <Plate
-        title="Measured in every patient"
-        hint="Each dot is one patient: how much the rhythm's power fell while imagining, compared with the one second just before the instruction. Left of the dashed line means it fell."
-        readout={`It fell in ${sf.filter((v) => v < 0).length} of ${sf.length} patients for the sixth finger, by ${Math.round(-data.erd.sixth_finger.mean)}% on average, and by about as much for the hand, which is why the two are hard to tell apart.`}
-      >
-        <DotStrip
-          rows={[
-            {
-              label: "Imagining the hand",
-              values: data.erd.affected_hand.values.map((v) => v / 100),
-              mean: data.erd.affected_hand.mean / 100,
-              colour: "var(--hand)",
-            },
-            {
-              label: "Imagining the sixth finger",
-              values: data.erd.sixth_finger.values.map((v) => v / 100),
-              mean: data.erd.sixth_finger.mean / 100,
-              colour: "var(--sixth)",
-            },
-          ]}
-          domain={[-0.8, 0.2]}
-          ticks={[-0.8, -0.6, -0.4, -0.2, 0, 0.2]}
-          format={fmt}
-          marker={{ at: 0, text: "no change" }}
-          label="How much the rhythm's power fell in each patient while imagining the hand and the sixth finger"
-        />
-      </Plate>
-    </>
+    <Plate
+      title="Measured in every patient"
+      hint="Each dot is one patient: how much the rhythm's power fell while imagining, compared with the one second just before the instruction. Left of the dashed line means it fell."
+      readout={`It fell in ${sf.filter((v) => v < 0).length} of ${sf.length} patients for the sixth finger, by ${Math.round(-data.erd.sixth_finger.mean)}% on average, and by about as much for the hand, which is why the two are hard to tell apart.`}
+    >
+      <DotStrip
+        rows={[
+          {
+            label: "Imagining the hand",
+            values: data.erd.affected_hand.values.map((v) => v / 100),
+            mean: data.erd.affected_hand.mean / 100,
+            colour: "var(--hand)",
+          },
+          {
+            label: "Imagining the sixth finger",
+            values: data.erd.sixth_finger.values.map((v) => v / 100),
+            mean: data.erd.sixth_finger.mean / 100,
+            colour: "var(--sixth)",
+          },
+        ]}
+        domain={[-0.8, 0.2]}
+        ticks={[-0.8, -0.6, -0.4, -0.2, 0, 0.2]}
+        format={fmt}
+        marker={{ at: 0, text: "no change" }}
+        label="How much the rhythm's power fell in each patient while imagining the hand and the sixth finger"
+      />
+    </Plate>
   );
 }

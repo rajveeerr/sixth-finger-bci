@@ -6,7 +6,7 @@ test.use({ ...devices["iPhone 13"] });
 
 test("a tap opens a reference's card before its link, and a tapped trial stays named", async ({ page }) => {
   await page.goto("/?server=none");
-  const ref = page.locator("#recordings .ref").first();
+  const ref = page.locator("#data .ref").first();
   await ref.scrollIntoViewIfNeeded();
   await ref.locator("a").tap();
   await expect(ref.locator(".ref-card")).toBeVisible();
@@ -18,19 +18,19 @@ test("a tap opens a reference's card before its link, and a tapped trial stays n
   await expect(page.locator(".session-say")).toContainText("Trial 45 of 80");
 });
 
-test("a tapped step of the patient's path says what happens in it, and the switch changes the practice", async ({
-  page,
-}) => {
+test("a tap opens a chapter's evidence, and the patient's path shows both starts without one", async ({ page }) => {
   await page.goto("/?server=none");
-  const path = page.locator("#journey");
-  const cap = path.locator(".journey-step").first();
-  await cap.scrollIntoViewIfNeeded();
-  await cap.tap();
-  await expect(path.locator(".journey-say-narrow")).toContainText("headset streaming live");
-  const dayOne = path.locator("[data-group=day-1]");
-  await expect(dayOne).toContainText("about 5 min");
-  await path.getByRole("radio", { name: "Already learned from other patients" }).tap();
-  await expect(dayOne).toContainText("about 30 s");
+  const fold = page.locator("#published details.more");
+  await fold.locator("summary").scrollIntoViewIfNeeded();
+  await fold.locator("summary").tap();
+  await expect(fold).toHaveAttribute("open", "");
+  await expect(fold.getByRole("heading", { name: /mean\?/ })).toBeVisible();
+
+  const practice = page.locator("#journey [data-station=practice]");
+  await practice.scrollIntoViewIfNeeded();
+  await expect(practice).toContainText("Starting from nothing");
+  await expect(practice).toContainText("about 5 min");
+  await expect(practice).toContainText("about 30 s");
 });
 
 test("Space scrolls the page away from the demo instead of pausing it", async ({ page }) => {
