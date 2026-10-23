@@ -1,0 +1,33 @@
+% The paper's supplementary material, outside its six pages:
+% tectonic -X compile paper/supplement.tex --outdir paper/build
+\documentclass[conference,onecolumn]{IEEEtran}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{xcolor}
+\usepackage[hidelinks]{hyperref}
+
+% File paths that may break at a slash or an underscore.
+\newcommand{\file}[1]{\nolinkurl{#1}}
+\urlstyle{tt}
+
+\input{generated/numbers}
+
+\begin{document}
+
+\title{Supplementary Material to ``Teaching a Brain--Computer Interface a New Finger:
+Calibrating Sixth-Finger Motor Imagery Decoders in Stroke Patients''}
+
+\author{
+\IEEEauthorblockN{Rajveer Singh, Vivek Yadav, Ansh Dahiya, Suman Lata}
+\IEEEauthorblockA{Department of Electronics and Communication Engineering\\
+Maharaja Surajmal Institute of Technology, New Delhi, India}
+}
+
+\maketitle
+
+\input{sections/reproducibility}
+
+\end{document}
