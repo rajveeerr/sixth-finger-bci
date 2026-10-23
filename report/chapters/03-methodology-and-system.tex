@@ -1,78 +1,591 @@
-\chapter{Research Methodology and System Design}
-\begin{figure}[h]
+\chapter{Research Methodology and System Design}\label{ch:method}
+% Sources: report-material 04, 05, 06, 07 and research/from-demo-to-real-limb.md, rewritten.
+
+This chapter explains how the study was done and how the demonstrator was built. It
+answers, in order, the questions an examiner would ask about the method: where the data
+came from and whether it can be trusted, how it was cut into examples, which models were
+used, how the test was kept fair, how the results were judged, and how the trained model
+reaches a screen. Figure~\ref{fig:approach} shows the whole approach in eight stages.
+
+\begin{figure}[tbp]
   \centering
-  \includegraphics[width=0.62\textwidth]{fig-methodology-flowchart.pdf}
-  \caption{Overview of the research methodology.}
-  \label{fig:method}
+  \input{figures/approach}
+  \caption[The approach]{The approach. Blue boxes prepare the data (stages 1 to 4). The green box is the
+  framework that keeps every test fair (5). The studies (6) answer the research
+  questions; the dashed box holds the exploratory work, including the follow-ups added
+  after the planned study. Statistics (7) feed the demonstrator, the website and the
+  written reports (8).}
+  \label{fig:approach}
 \end{figure}
 
-\section{Dataset and Integrity Audit}
-\begin{figure}[h]
+\begin{enumerate}
+  \item \textbf{Public recording}: download the data and check every file's checksum.
+  \item \textbf{Integrity audit}: find broken files and duplicates; fix the exclusions first.
+  \item \textbf{Four-second pieces}: cut one window per rest period and imagined movement.
+  \item \textbf{Signal check}: confirm that the mu rhythm falls during imagery.
+  \item \textbf{Fair-test framework}: automatic leak checks, and an analysis plan frozen in advance.
+  \item \textbf{Studies}: the published method (RQ1), calibration (RQ2, RQ3), exploration (RQ4).
+  \item \textbf{Statistics}: paired per patient, with confidence intervals and corrections.
+  \item \textbf{Outputs}: the demonstrator and website, and every reported number from the results files.
+\end{enumerate}
+
+\section{Dataset and Integrity Audit}\label{sec:data}
+
+\subsection{Source and licence}
+Wang et al.\ released the recordings on figshare under the Creative Commons Attribution
+4.0 licence~\cite{wang2026dataset,wang2026figshare}. The release holds the raw EEG, the
+EEG after the authors' cleaning, information about the patients and the electrodes in
+the BIDS format~\cite{pernet2019}, and the authors' MATLAB scripts. We used the cleaned
+files and kept the raw files for checks.
+
+\subsection{Patients}
+\nSubjects{} stroke patients took part, all treated at one hospital in Tianjin, China,
+some months after a first stroke. Most were men, and their ages ranged from the thirties
+to the seventies. More of them had a weak right hand than a weak left hand. The patients
+were split into two groups for two weeks of therapy: \nPostGroupB{} trained with a
+brain-controlled robotic sixth finger (group~B) and \nPostGroupT{} received the same
+amount of conventional physical therapy (group~T). The hospital's ethics committee
+approved the study, and the patients agreed to public sharing of their anonymised
+data~\cite{wang2026dataset}. We collected no new data.
+
+\subsection{What each patient did}
+Each trial lasted 14 seconds (Figure~\ref{fig:trial}). A cross on the screen asked the
+patient to rest for 7 seconds. A grey circle for 1 second said ``get ready''. A picture
+then asked the patient to imagine, for 6 seconds, either grasping with the affected hand
+(called AH below) or bending the robotic sixth finger worn on the affected wrist
+(called SF).
+
+\begin{figure}[tbp]
   \centering
-  \includegraphics[width=0.55\textwidth]{montage_40.pdf}
-  \caption{The 40 analysis electrodes (10--10 system positions); sensorimotor channels highlighted.}
+  \includegraphics[width=\textwidth]{web/trial.pdf}
+  \caption[One trial as the patient saw it]{One trial as the patient saw it: rest while a cross is shown (7\,s), get ready
+  at a grey circle (1\,s), then imagine moving the hand or the sixth finger as the picture
+  asks (6\,s). The coloured marks on the time strip are the two 4-second pieces that the
+  models read: one from the rest period and one from the imagery period.}
+  \label{fig:trial}
+\end{figure}
+
+Trials came in runs of 20, with 10 hand and 10 sixth-finger trials in random order. A
+session had four runs. Each patient was recorded in up to three sessions: before therapy
+(\emph{pre}), right after the two weeks of therapy (\emph{post}) and one month later
+(\emph{follow-up}). Figure~\ref{fig:session} shows this structure and how we used it: a
+model learns from the first two runs of a session and is tested on the last two.
+
+\begin{figure}[tbp]
+  \centering
+  \includegraphics[width=\textwidth]{web/session.pdf}
+  \caption[Trials, runs and sessions]{Trials, runs and sessions. Each square is one trial. In the calibration study,
+  runs 1 and 2 (filled) are the practice a patient gives, and runs 3 and 4 (empty) are the
+  test the model never learns from. The three sessions are before therapy, after it, and a
+  month later.}
+  \label{fig:session}
+\end{figure}
+
+\subsection{Recording and the authors' cleaning}
+The EEG was recorded from 64 electrodes at \nSamplingRate{} samples per second. The
+authors filtered it to keep frequencies between 5 and 35 cycles per second (Hz), removed
+the electrodes at the edge of the cap and the eye and heart channels, and re-referenced
+every electrode to the average of all of them. They removed noisy stretches by hand and
+removed eye-blink components with independent component analysis (ICA), a method that
+splits the signal into independent sources. The cleaned files hold \nChannelsFile{}
+channels. Following the authors, we dropped the three electrodes on the forehead and kept
+the 40 shown in Figure~\ref{fig:montage}. Because parts of the cleaning were done by hand,
+it cannot be repeated exactly, so we treated the published cleaned files as our starting
+point.
+
+\begin{figure}[tbp]
+  \centering
+  \includegraphics[width=0.6\textwidth]{montage_40.pdf}
+  \caption[The 40 electrodes used in every analysis]{The 40 electrodes used in every analysis, seen from above with the nose at the
+  top. The blue ones lie over the strip of cortex that controls movement; C3 sits over the
+  left hand area and C4 over the right. The five at the back (PO3 to PO6 and POz) lie over
+  the visual cortex, which matters for the check in Section~\ref{sec:res-explore}.}
   \label{fig:montage}
 \end{figure}
-\begin{figure}[h]
+
+\subsection{The integrity audit}
+Before any model was trained, we checked every file. The download matched the checksum
+published by figshare, and every unpacked file matched the archive's listing. All
+\nRuns{} runs of the \nSessions{} sessions hold \nChannelsFile{} channels at
+\nSamplingRate{}\,Hz, and \auditFlatChannels{} channels are flat. \auditFewerEventsRuns{}
+runs have fewer event markers than the nominal 20 rest, 10 hand and 10 sixth-finger
+markers, because markers were removed together with the stretches the authors cut out;
+these runs were kept. One run lasts only \auditDegenerateSeconds{}\,s and holds
+\auditDegenerateRestMarkers{} rest markers and no imagery at all; it was excluded.
+
+The most important check looked for recordings that appear twice. We compared all
+\auditPairsScreened{} pairs of runs. For each pair, short segments of one run were slid
+along the other, and the median of their best correlations measured how alike the two
+runs are. A correlation near 1 means the same recording. The raw archive's checksums
+showed which files are byte-for-byte identical. Table~\ref{tab:audit} lists what we found.
+
+\begin{table}[tbp]
   \centering
-  \includegraphics[width=\textwidth]{fig-trial-timeline.pdf}
-  \caption{Trial timeline and analysis windows.}
-  \label{fig:timeline}
-\end{figure}
-\TBD{P14}
-\section{Data Preparation}
-\TBD{P14}
-\section{Decoders}
-\begin{figure}[h]
+  \caption[Recordings that appear twice in the release, and what we did]{Recordings that appear twice in the release, and what we did. ``Median $r$'' is
+  the median correlation of matching segments over the four runs; values above about
+  0.9 mean the same recording.}
+  \label{tab:audit}
+  \small
+  \begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{3.3cm}>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}p{2.1cm}>{\raggedright\arraybackslash}X@{}}
+    \toprule
+    Pair & Evidence & Median $r$ & Decision \\
+    \midrule
+    sub-02 post and sub-02 follow-up & all four raw runs byte-identical & \auditFollowCopyCorrMin{} to \auditFollowCopyCorrMax{} & follow-up session excluded \\
+    sub-21 pre and sub-22 pre & all four raw runs byte-identical, but the order of hand and finger cues differs in every run & \auditSharedPreCorrMin{} to \auditSharedPreCorrMax{} & both pre sessions excluded; the two patients are never split across training and test \\
+    \auditIndependentPairs{} pairs within sub-15 & not identical & \auditIndependentCorrMin{} to \auditIndependentCorrMax{} & independent; kept \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+The case of sub-21 and sub-22 needs one more sentence. Their pre-therapy recordings are
+the same signal, yet the two files carry different sequences of cues. One recording
+cannot have two different cue orders, so at least one set of labels is wrong, and the
+data do not say which. We therefore excluded both pre-therapy sessions and treated the
+two patients as one person wherever both appear.
+
+After the exclusions, \nRunsKept{} runs in \nSessionsKept{} sessions remain.
+\nPre{} patients have a usable pre-therapy session (\nPreGroupB{} in group~B and
+\nPreGroupT{} in group~T), all \nPost{} have a post-therapy session, and \nFollow{} have a
+follow-up. The main tests therefore use \nPre{} patients.
+
+\section{Data Preparation}\label{sec:prep}
+
+The cleaned files were read into MNE-Python~\cite{gramfort2013}, the standard Python
+library for EEG, and converted to volts. For every rest marker and every imagery cue we
+cut the piece of signal from 1 to 5 seconds after it: 4 seconds, or 1000 samples, on each
+of the 40 channels, marked on the time strip of Figure~\ref{fig:trial}. The first second
+is skipped because the brain needs a moment to respond to the cue. We call each piece a
+\emph{window}. The rest window and the imagery window of the same trial share a trial
+number, so that later splits always keep them on the same side.
+
+A window was dropped if it crossed a place where the authors had cut data out, because it
+would then join two pieces of signal that were never next to each other. Of the
+\nEvents{} markers, \nWindowsDropped{} (\pct{\nWindowsDroppedPct}) gave no window:
+\nWindowsDroppedBoundary{} for a cut inside the window and \nWindowsDroppedEnd{} because
+the run ended. No filtering or scaling was applied at this stage; anything a model
+learns from the data is learned inside its training set only. Table~\ref{tab:windows}
+gives the windows per session.
+
+\begin{table}[tbp]
   \centering
-  \includegraphics[width=\textwidth]{fig-eegnet-architecture.pdf}
-  \caption{EEGNet as used in this work, for a 40-channel, 4-second input.}
-  \label{fig:eegnet}
-\end{figure}
-\TBD{P14}
-\section{Transfer Learning Methods}
-\TBD{P14}
-\section{Evaluation Protocol and Safeguards}
-\begin{figure}[h]
+  \caption[Windows per session after the exclusions]{Windows per session after the exclusions. A file is one patient's session.}
+  \label{tab:windows}
+  \small
+  \begin{tabular}{@{}lrrrrrc@{}}
+    \toprule
+    Session & Files & Rest & Hand (AH) & Finger (SF) & Total & Per file \\
+    \midrule
+    Pre-therapy & \nWindowFilesPre & \nWindowsPreRest & \nWindowsPreHand & \nWindowsPreFinger & \nWindowsPre & \nWindowsPerFilePreMin--\nWindowsPerFilePreMax \\
+    Post-therapy & \nWindowFilesPost & \nWindowsPostRest & \nWindowsPostHand & \nWindowsPostFinger & \nWindowsPost & \nWindowsPerFilePostMin--\nWindowsPerFilePostMax \\
+    Follow-up & \nWindowFilesFollow & \nWindowsFollowRest & \nWindowsFollowHand & \nWindowsFollowFinger & \nWindowsFollow & \nWindowsPerFileFollowMin--\nWindowsPerFileFollowMax \\
+    \midrule
+    All & \nWindowFiles & \nWindowsRest & \nWindowsHand & \nWindowsFinger & \nWindows & \nWindowsPerFileMin--\nWindowsPerFileMax \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+The windows were saved per patient and session, together with a manifest: a file that
+records the settings, the exclusions, the code version and a checksum of every file.
+Every later step compares the manifest with its own settings and refuses to run if they
+differ.
+
+\section{Tasks and Decoders}\label{sec:decoders}
+
+\subsection{Three tasks}
+A \emph{decoder} is a model that takes one window and names the class it belongs to. We
+used three tasks:
+\begin{itemize}
+  \item \textbf{AH vs SF}: was the patient imagining the hand or the sixth finger? This is
+  the published task. Guessing scores 50\,\%.
+  \item \textbf{Three classes}, REST vs AH vs SF: the task the demonstrator performs.
+  Guessing scores 33.3\,\%.
+  \item \textbf{SF vs REST}: is the patient imagining the sixth finger or resting? This is
+  the ``move now'' switch. Guessing scores 50\,\%.
+\end{itemize}
+
+\subsection{The decoders}
+Table~\ref{tab:decoders} lists every decoder. The first five learn from one patient only.
+The others also learn from the other patients; they are the \emph{transfer} methods of
+Section~\ref{sec:transfer}. All settings were fixed in advance and are listed in
+Appendix~\ref{app:hyper}.
+
+\begin{table}[tbp]
   \centering
-  \includegraphics[width=0.8\textwidth]{fig-leakage-schematic.pdf}
-  \caption{Published versus leakage-free evaluation.}
-  \label{fig:leakage}
-\end{figure}
-\begin{figure}[h]
+  \caption[The decoders compared]{The decoders compared. ``Others'' says whether the method also learns from the
+  other patients. Code names in brackets are the names used in the figures.}
+  \label{tab:decoders}
+  \small
+  \begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{3.6cm}>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}p{1.2cm}@{}}
+    \toprule
+    Decoder & What it does & Others \\
+    \midrule
+    CSP+LDA (\code{csp\_lda}) & six spatial filters chosen to separate the classes, then a linear classifier~\cite{ramoser2000,ledoit2004} & no \\
+    Replica of the authors' recipe (\code{csp\_lda\_replica}) & the authors' feature (the mu rhythm's power over time), ten filters, no shrinkage; used only to check the published number & no \\
+    CSP+SVM, FBCSP+LDA & the same filters with a support vector machine~\cite{cortes1995}; filters in six frequency bands with feature selection~\cite{ang2008fbcsp}; RQ1 only & no \\
+    MDM (\code{mdm}) & assigns the class whose average covariance matrix is nearest~\cite{barachant2012} & no \\
+    TS+LR (\code{ts\_lr}) & flattens covariance matrices into a tangent space, then logistic regression~\cite{barachant2012} & no \\
+    EEGNet (\code{eegnet\_scratch}) & a small convolutional network that learns its own filters~\cite{lawhern2018} & no \\
+    Own-hand control (\code{ah\_proxy}) & the patient's own hand-vs-rest decoder, counting any movement as SF; a control for RQ3 & no \\
+    Pooled TS+LR (\code{pooled\_tslr}) & TS+LR trained on everyone's windows together & yes \\
+    Re-centred MDM and TS+LR (\code{rct\_mdm}, \code{rct\_tslr}) & each person's data moved to a common centre first~\cite{zanini2018} & yes \\
+    Pre-trained EEGNet (\code{eegnet\_ea\_ft}) & EEGNet trained on the other patients after Euclidean alignment, then fine-tuned on the new patient~\cite{he2020} & yes \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+Three ideas lie behind these decoders. The first is the \emph{spatial filter}. Each
+electrode picks up a blur of many brain sources. Common spatial patterns (CSP) find
+weighted sums of the electrodes whose power differs most between two classes; the
+logarithm of that power is then a short, telling feature. CSP learns from the labels, so
+it must only ever see training data. Linear discriminant analysis (LDA) then draws a
+straight boundary between the classes. Shrinkage keeps both steps stable when there are
+few trials~\cite{ledoit2004}.
+
+The second idea is the \emph{covariance matrix}. For each window, a 40-by-40 table records
+how strongly every pair of electrodes varies together. These tables lie on a curved
+surface, so ordinary averages and distances distort them. Riemannian methods use
+distances that respect the curve~\cite{barachant2012,congedo2017}. MDM picks the class
+whose average table is nearest. TS+LR flattens the tables around their average into an
+ordinary list of numbers (the \emph{tangent space}) and fits a logistic regression.
+
+The third idea is the \emph{neural network}. EEGNet~\cite{lawhern2018} reads the raw
+window and learns its own filters in four stages (Figure~\ref{fig:model}): filters in
+time that pick out rhythms, filters across electrodes that weigh where the rhythm is, a
+step that combines short summaries of the window, and a final layer that scores each
+class. It has only a few thousand weights, which suits small EEG datasets. We used the
+braindecode version~\cite{braindecode} with its default sizes and trained it with one
+fixed recipe, the AdamW optimiser~\cite{loshchilov2019adamw} for 150 passes over the
+patient's data, repeated with three random seeds.
+
+\begin{figure}[tbp]
   \centering
-  \includegraphics[width=\textwidth]{fig-calibration-protocol.pdf}
-  \caption{Calibration protocol for the new-user and new-command scenarios.}
-  \label{fig:calib}
+  \includegraphics[width=\textwidth]{web/model.pdf}
+  \caption[EEGNet, the network in the demonstrator, as five stations]{EEGNet, the network in the demonstrator, as five stations. In: 4\,s from 40
+  sensors. Step 1 finds rhythms in time; step 2 finds which sensors matter; step 3
+  combines short summaries of the 4\,s; step 4 decides between rest, hand and sixth
+  finger. The size printed on the box is that of the exported demonstrator model.}
+  \label{fig:model}
 \end{figure}
-\TBD{P14}
-\section{Metrics and Statistical Analysis}
-\TBD{P14}
-\section{System Architecture}
-\begin{figure}[h]
+
+\section{Transfer Learning Methods}\label{sec:transfer}
+
+Transfer learning gives a new patient a model that has already learned from the other
+patients. The difficulty is that every person's EEG sits in a different place: the cap
+fits differently, the skull differs, the stroke differs. A model trained on others then
+misreads the newcomer. All our transfer methods first move each person's data to a
+common centre.
+
+\textbf{Re-centring.} For each person we compute the average covariance matrix and
+transform every matrix so that this average becomes the identity, a neutral centre that
+is the same for everyone~\cite{zanini2018}. The other patients' re-centred windows and
+the new patient's re-centred practice windows are then pooled to train TS+LR or MDM. The
+new patient's windows count with a \emph{target weight}. The weight, \rqTwoHparamRctTslrWeight{}
+for TS+LR, was chosen by a fixed rule on two development patients (sub-01 and sub-03),
+never on test data. The candidate weights scored within one point of each other there
+(\pct{\rqTwoHparamRctTslrMeanMin} to \pct{\rqTwoHparamRctTslrMeanMax}).
+
+\textbf{Euclidean alignment.} The same idea applied to the raw windows~\cite{he2020}. For
+one person with windows $X_i$ (channels by samples), the reference matrix is the average
+\begin{equation}
+  R = \frac{1}{n}\sum_{i=1}^{n} \frac{X_i X_i^{\top}}{T}, \qquad \tilde{X}_i = R^{-1/2} X_i ,
+\end{equation}
+where $T$ is the number of samples. After this, the person's average covariance is the
+identity. Because it works on the windows themselves, any decoder can use it, including a
+network. Listing~\ref{lst:ea} shows our code. One detail mattered: in some sessions the
+authors' cleaning removed a direction of the signal entirely, so the smallest
+eigenvalues of $R$ are almost zero. We raise them to a small floor before taking the
+inverse square root; without the floor the result was numerically wrong.
+
+\lstinputlisting[firstline=13,lastline=27,caption={Euclidean alignment: the reference matrix
+(\code{src/sixthfinger/preprocessing/alignment.py}).},label=lst:ea,float=tbp]{../src/sixthfinger/preprocessing/alignment.py}
+
+\textbf{Pre-trained EEGNet.} For each of the \dlPretrainModels{} patients we trained one
+EEGNet on all the other patients (\dlPretrainSourcesMin{} or \dlPretrainSourcesMax{} of
+them, \dlPretrainWindowsMin{} to \dlPretrainWindowsMax{} windows), each aligned with its
+own reference. The patient being tested, and the patient linked to it, were never in
+this training data, and the code checks this. Training stopped when the loss on three
+held-out source patients stopped improving. All \dlPretrainModels{} models took
+\dlPretrainMinutes{} minutes on a \dlPretrainDevice{} graphics card in Kaggle's free cloud.
+For a new patient the network is aligned with the patient's practice windows (with no
+practice, with the patient's rest windows only) and then fine-tuned on them for
+\rqTwoHparamEegnetEpochs{} steps at a learning rate of \rqTwoHparamEegnetLr{}. Used
+without any fine-tuning, it is called \emph{zero-shot}.
+
+\section{Evaluation Protocol and Safeguards}\label{sec:protocol}
+
+\subsection{Four ways to test, and the leak}
+To answer RQ1 we scored every method in four ways on the same windows:
+\begin{itemize}
+  \item \textbf{The paper's way} (\code{paper\_replica}): every step before the classifier,
+  such as CSP, is fitted once on all windows of the session; only the classifier is then
+  trained and tested in 10 folds, repeated 10 times. This copies the published code.
+  \item \textbf{Fair cross-validation} (\code{cv\_leakfree}): the same 100 folds, but the
+  whole pipeline is fitted inside each training fold.
+  \item \textbf{Leave one run out} (\code{loro}): train on three runs, test on the fourth,
+  four times.
+  \item \textbf{Chronological} (\code{chrono}): train on runs 1 and 2, test on runs 3 and 4,
+  as a patient would use it.
+\end{itemize}
+The first two differ in one place only, which is exactly the leak (Figure~\ref{fig:leak}).
+A step that learns from labels, like CSP, chooses filters that separate the classes in the
+data it sees. If that data includes the test trials, the filters already separate the
+test trials, and the score rises without the model having learned anything that would
+work on new data. To see whether the effect is specific to this dataset, the same code
+was run on left- against right-hand imagery of two public datasets of healthy people:
+BCI Competition~IV~2a~\cite{tangermann2012} and the dataset of Cho et
+al.~\cite{cho2017}, loaded through MOABB~\cite{jayaram2018moabb}.
+
+\begin{figure}[tbp]
+  \centering
+  \includegraphics[width=0.78\textwidth]{web/leak.pdf}
+  \caption[The leak on one round of 20 trials]{The leak on one round of 20 trials. Dark squares are learning trials, orange
+  squares are test trials. In the paper's way (top), the first step studies all 20 trials,
+  the two test trials included. In the fair test (bottom), it studies only the 18 learning
+  trials. Nothing else differs. The scores printed are this study's results
+  (Section~\ref{sec:res-leak}).}
+  \label{fig:leak}
+\end{figure}
+
+\subsection{The calibration study}
+RQ2 and RQ3 simulate a new patient. Practice trials are drawn from runs 1 and 2 of the
+patient's session, and the model is always tested on runs 3 and 4 (Figure~\ref{fig:session}).
+The amount of practice, $k$, is the number of trials of each imagined movement: 0, 1, 2,
+3, 5, 10, or the whole pool of runs 1 and 2. Each trial takes 14 seconds, so one trial of
+each movement is about \rqTwoMinutesKOne{} minutes of practice and ten of each about
+\rqTwoMinutesKTen{} minutes. For every patient and budget we drew ten random sets of
+practice trials (five for the networks) plus the chronological first trials, and averaged
+the scores. All methods saw the same draws, so every comparison is paired. Two scenarios
+were studied:
+\begin{itemize}
+  \item \textbf{S1, a new patient}: $k$ trials of the hand and $k$ of the sixth finger,
+  with their rest periods (RQ2).
+  \item \textbf{S2, a new command}: the patient already has all hand trials of runs 1 and
+  2 and adds $k$ sixth-finger trials (RQ3).
+\end{itemize}
+Transfer methods at $k = 0$ may use the patient's unlabelled rest windows from runs 1 and
+2, about \rqTwoRestMinutes{} minutes of recording, to compute their alignment. No method
+ever saw a window of runs 3 and 4 before it was tested.
+
+\subsection{Safeguards}
+Before every single model was fitted, the code checked five rules and stopped with an
+error if any was broken (Listing~\ref{lst:leak}): no test trial in the training set; no
+test trial in the unlabelled set; no test trial in the other patients' data; none of the
+target patient's windows in the other patients' data; and none of the linked partner's
+windows either. The rules are checked by trial number, so the rest window of a test trial
+cannot slip into training. Automated tests on random data confirmed that with shuffled
+labels a fair pipeline stays at chance, while the paper's way climbs far above it.
+
+\lstinputlisting[firstline=27,lastline=45,caption={The leak check run before every fit
+(\code{src/sixthfinger/evaluation/leakage.py}).},label=lst:leak,float=tbp]{../src/sixthfinger/evaluation/leakage.py}
+
+The analysis plan, with its hypotheses and tests, was frozen in version control (git tag
+\code{prereg-v1}) before the main experiments. Every later change is recorded as a
+deviation with its date and reason (Appendix~\ref{app:prereg}). Analyses added after the
+results were known are called \emph{exploratory} in this report, and no conclusion rests
+on them alone.
+
+\section{Metrics and Statistical Analysis}\label{sec:stats}
+
+\textbf{Balanced accuracy} is the main score: the share of correct answers within each
+class, averaged over the classes. Unlike plain accuracy, it cannot be raised by always
+answering the most common class. A score is judged against chance: 50\,\% for two
+classes and 33.3\,\% for three. A single patient counts as \emph{above chance} only if
+the score beats the binomial threshold for that number of test windows~\cite{combrisson2015}.
+
+\textbf{The patient is the unit.} Every comparison pairs the two methods' scores patient
+by patient. We used the Wilcoxon signed-rank test~\cite{wilcoxon1945}, which asks whether
+the differences lean consistently one way without assuming a bell curve, and report its
+effect size, the rank-biserial correlation~\cite{kerby2014}, which runs from $-1$ to $1$.
+When several tests answer one question, Holm's method corrects the p-values. A 95\,\%
+confidence interval (CI) of a mean comes from resampling the patients 10\,000 times
+(bootstrap).
+
+\textbf{Calibration curves.} To compare two learning curves with one number we use the
+\emph{area under the learning curve} (ALC). Accuracy is first rescaled so that chance is
+0 and perfect is 1, and the area under the curve is measured over the budgets on a
+logarithmic axis, so that early trials count more. A curve stuck at chance has an ALC of
+0. The frozen hypotheses and their tests are listed in Appendix~\ref{app:prereg}; Chapter~\ref{ch:results}
+states each one where it is tested.
+
+
+\section{System Architecture}\label{sec:arch}
+
+The second half of the project turns a trained decoder into something people can see.
+The system has four parts (Figure~\ref{fig:arch}). The research pipeline trains and
+evaluates decoders. An export step converts the chosen decoder to ONNX, an open format
+that many programs can run, and packs it with the held-out recording of one patient into a
+\emph{demo bundle}. A server streams the recording and the decoder's answers. A web page
+draws the signal, the decision and the hand. Server and page read the same bundle, so they
+always show the same trials and the same model.
+
+\begin{figure}[tbp]
   \centering
   \includegraphics[width=0.85\textwidth]{fig-system-architecture.pdf}
-  \caption{Architecture of the demonstrator.}
+  \caption[Architecture of the demonstrator]{Architecture of the demonstrator. Read top to bottom: the research pipeline
+  exports one model and one patient's held-out trials as a bundle; the inference server
+  streams them to the web page, and the page can run the same model itself when the
+  server cannot be reached.}
   \label{fig:arch}
 \end{figure}
-\TBD{P14}
-\section{Demonstrator Design}
-\begin{figure}[h]
+
+The bundle holds a manifest (channels, classes, commands, window, model details, data
+licence and checksums), the ONNX model, the trials stored as 16-bit integers with a scale
+factor, and the answers the model gave offline. The server checks both checksums at start
+and refuses to run on a mismatch. The demonstrator's bundle holds the \demoTrials{} whole
+held-out trials of patient \demoSubject{}, chosen by a rule fixed in the protocol, with
+its EEGNet of \demoModelKb{}\,KB: \demoBundleMb{}\,MB in all.
+
+\section{Demonstrator Design}\label{sec:demo-design}
+
+\subsection{What the screen shows}
+The demonstrator plays the held-out recording of one patient at its original speed, and
+reads left to right in three numbered steps (Figure~\ref{fig:screen}). Step 1 shows what
+the patient was told: rest, get ready, or imagine moving the hand or the sixth finger.
+Step 2 shows the patient's brain signal, three channels over the motor cortex (C3, Cz and
+C4), with the 4-second window the model is reading marked on it. Step 3 shows what the
+model reads: \emph{Move} or \emph{Rest}, how sure it is, and whether that matched the
+instruction. A drawn hand wearing the robotic finger carries it out: on \emph{Move} the
+sixth finger bends toward the palm, and on \emph{Rest} it stays straight.
+
+\begin{figure}[tbp]
   \centering
-  \includegraphics[width=0.75\textwidth]{fig-fallback-states.pdf}
-  \caption{Selection of the data source in the web demonstrator: the live server, in-browser inference, or replay of offline predictions.}
-  \label{fig:fallback}
+  \includegraphics[width=\textwidth]{demo_projector.png}
+  \caption[The demonstrator at projector size (earlier version)]{The demonstrator at projector size (1366 by 768 pixels), in an earlier version
+  captured on 13 October 2026: the instruction the patient saw (left), three channels of
+  the recorded EEG with the window being read (middle), and the model's reading with the
+  hand (right). The live page has the same three steps; its labels and controls have
+  changed since (Appendix~\ref{app:guide}).}
+  \label{fig:screen}
 \end{figure}
-\TBD{P14}
-\section{From Demonstrator to a Physical Limb}
-\begin{figure}[h]
+
+The model itself still decides between rest, hand and sixth finger. The page adds the
+chances of the two movements together and calls the window \emph{Move} when that sum
+beats rest, because the results show that movement against rest is what the EEG supports
+(Section~\ref{sec:res-command}). Which movement it was is shown only as a guess, with the
+model's measured accuracy for that guess beside it. The model can read once per trial, on
+exactly the two windows it was trained on (``Per trial''), or every half second over the
+newest 4 seconds without knowing when instructions come (``Continuous''), as a real device
+would. Below the demonstrator, the page explains the project as the questions an examiner
+would ask, each answered by one figure whose numbers are written from the results files;
+a test fails if the page and the results disagree. Every screen says that the EEG is a
+recording and that this is not a medical device.
+
+\subsection{Stable commands from a noisy stream}
+In continuous mode the model's answers flicker. A \emph{command gate} turns them into
+stable commands (Listing~\ref{lst:gate}). It smooths the chances over time, switches the
+finger on only when the smoothed chance of a movement stays above 0.6 for two readings in
+a row, and switches it off when that chance falls below 0.45. Rest is the default. The
+web page has an identical copy of this code, and both are tested against the same inputs.
+
+\lstinputlisting[firstline=34,lastline=51,caption={The command gate's update step
+(\code{server/app/gate.py}).},label=lst:gate,float=tbp]{../server/app/gate.py}
+
+\subsection{When something fails}
+A live demonstration must not depend on one server being awake. The page chooses its
+source of decisions by itself. It first tries the server. If
+the server does not answer within 2 seconds, the page loads the same ONNX model into the
+browser with ONNX Runtime Web and decodes the bundled trials itself. If even that fails,
+it replays the answers stored in the bundle. When a sleeping server wakes up, the page
+moves back to it, and the viewer can also choose ``On the server'' or ``In this browser''
+by hand. A badge always says which source is active. In the browser, the trials are streamed with the same messages and timing as from
+the server, so the screen behaves the same either way, and the browser's outputs equal
+the stored ones to within $10^{-4}$.
+
+
+\section{From Demonstrator to a Physical Limb}\label{sec:limb}
+
+The demonstrator replaces only the last two steps of a brain-controlled finger. The
+intention (recorded stroke patients), the EEG (their real recordings, replayed at
+original speed), the signal processing, the trained decoder and the command are the same
+parts a physical system would use. Only the motor controller and the finger are drawn on
+screen. Figure~\ref{fig:path} follows a patient through a real system and marks which
+parts this project built.
+
+\begin{figure}[tbp]
   \centering
-  \includegraphics[width=\textwidth]{fig-demo-vs-real.pdf}
-  \caption{Layers of a BCI-controlled limb: what is real in this project, what the demo simulates, and what a physical system adds.}
-  \label{fig:layers}
+  \includegraphics[width=\textwidth]{web/path.pdf}
+  \caption[How a patient would use it, and which parts are built]{How a patient would use it, and which parts are built. Solid outlines are
+  built in this project (the page and its model, and the model server); dashed outlines
+  are what a real system still needs (a live cap and amplifier, a bridge program, and the
+  finger's board and motor). Arrows carry the brain signal every 80\,ms and a command
+  every half second from the last 4\,s. Two weeks later the patient practises again.}
+  \label{fig:path}
 \end{figure}
-\TBD{P14}
-\section{Tools, Implementation and Testing}
-\TBD{P14}
-\section{Deployment}
-\TBD{P14}
+
+A physical finger would add four things. First, live recording: the stream would come
+from a cap and amplifier instead of the bundle, in the same chunks the server already
+sends. Second, filters that use only past samples, since a live system cannot look
+ahead. Third, safety: joint limits, a speed limit, an emergency stop, and rest as the
+default whenever messages stop. Fourth, calibration for each user, which is the subject
+of this study. Table~\ref{tab:layers} sums up the layers.
+
+\begin{table}[tbp]
+  \centering
+  \caption{The layers of a brain-controlled finger, and what this project does with each.}
+  \label{tab:layers}
+  \small
+  \begin{tabularx}{\textwidth}{@{}l>{\raggedright\arraybackslash}p{3.4cm}>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X@{}}
+    \toprule
+    & Layer & In this project & In a physical system \\
+    \midrule
+    1 & Intention & real: recorded stroke patients & the user, live \\
+    2 & Recording & real data, replayed at original speed & cap and amplifier, streaming live \\
+    3 & Processing & real: the same code, 4\,s windows & the same, with causal filters \\
+    4 & Decoder & real: the trained model (ONNX) & the same model, calibrated per user \\
+    5 & Command & real: IDLE, HAND\_GRASP, SIXTH\_FINGER\_FLEX, with the gate & identical \\
+    6 & Controller & simulated: spring-damped animation & microcontroller with limits and an emergency stop \\
+    7 & Finger & simulated: a drawn hand and sixth finger & motor- or tendon-driven robotic finger \\
+    8 & Feedback & visual, not closed-loop & sight and touch, closed loop \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\section{Tools, Implementation and Testing}\label{sec:tools}
+
+The research code is a Python package with one module for each stage: download and
+audit, loading and windowing, evaluation (splits, calibration draws, leak checks,
+metrics, statistics and the experiment runner), models, and export. Settings live in
+YAML files that are validated when they are loaded, and a command-line tool runs each
+stage.
+The research code uses MNE-Python~\cite{gramfort2013} for EEG,
+scikit-learn~\cite{pedregosa2011} for the CSP pipelines and classifiers,
+pyRiemann~\cite{pyriemann} for the covariance methods and re-centring,
+PyTorch~\cite{paszke2019} with braindecode~\cite{braindecode} for EEGNet, and
+MOABB~\cite{jayaram2018moabb} for the healthy-subject datasets. The model is exported with
+ONNX and run with ONNX Runtime, in Python on the server and in WebAssembly in the browser.
+The server uses FastAPI; the page uses React and draws its figures and the hand itself. Tests use
+pytest, Vitest and Playwright, and the reports are written in LaTeX. Exact versions are
+locked in the repository.
+
+Development ran on an Apple M1 laptop; the networks were trained on free Kaggle cloud
+sessions with a \dlPretrainDevice{} graphics card. Every result row
+records the git commit that produced it, a hash of its settings and a hash of the data
+manifest, and runs resume safely after an interruption. Every number in this report is a
+LaTeX macro written by a script from the results files, so the text cannot drift from
+the results.
+
+Testing ran at four levels. Python unit tests on synthetic data cover every stage from
+windowing to the leak checks, statistics and export. Server tests check that the stream
+is in order and that its answers equal the stored ones. Web unit tests check the command
+gate against the server's test vectors and the in-browser model against Python. Browser
+tests load the built page in Chromium, Firefox and WebKit, at widths from 320 to 1920
+pixels, with the server down and with the network cut. A continuous-integration job runs
+them on every push.
+
+\section{Deployment}\label{sec:deploy}
+
+The web page is a static site on Vercel at \url{\siteURL} (also
+\url{https://sixth-finger-bci.vercel.app}); the demonstrator alone is at \code{/live}. A streaming server for the same bundle runs on Render, a small
+function on the same site can decide one window per request, and the browser decodes by
+itself whenever neither answers. The browser uses the WebAssembly-only build of ONNX
+Runtime Web, half the size of the default build. The code is public at
+\url{https://github.com/rajveeerr/sixth-finger-bci}. Appendix~\ref{app:guide} is a user
+guide with the link as a QR code.
+
+\section{Chapter Summary}
+The data were checked before use, and the doubtful recordings were excluded before any
+result existed. Every model was tested on data it had never seen, with checks that stop
+the code if a test trial leaks into training, and the plan was frozen before the main
+experiments. The same trained model runs on a server, in a browser or from stored
+answers, and moves a drawn hand that stands in for the physical finger. The next chapter
+reports what these tests found.

@@ -1,0 +1,28 @@
+% The approach in eight numbered stages (Chapter 3 opening). Colours as paper/figures/tikz/style.tex.
+\begin{tikzpicture}[node distance=6mm and 5mm,
+  stage/.style={draw, rounded corners=3pt, align=center, text width=27mm, minimum height=13mm,
+    font=\footnotesize, line width=0.7pt},
+  databox/.style={stage, draw=rblue, fill=rblue!8},
+  studybox/.style={stage, draw=black!70, fill=white},
+  explorebox/.style={stage, draw=black!55, dashed, fill=white},
+  outbox/.style={stage, draw=rorange, fill=rorange!12},
+  flow/.style={-{Stealth[length=2mm]}, line width=0.7pt, draw=black!75},
+  num/.style={circle, draw=black!70, fill=white, inner sep=0.8pt, font=\scriptsize\bfseries}]
+  \node[databox] (s1) {Public recording\\ \nSubjects{} stroke patients};
+  \node[databox, right=of s1] (s2) {Integrity audit\\ duplicates, events};
+  \node[databox, right=of s2] (s3) {4-second pieces\\ rest, hand, sixth finger};
+  \node[databox, right=of s3] (s4) {Signal check\\ the mu rhythm falls};
+  \node[stage, draw=rgreen, fill=rgreen!10, below=8mm of s4] (s5) {Fair-test framework\\ leak checks, plan frozen};
+  \node[studybox, left=of s5] (s6b) {RQ2, RQ3: practice needed, from nothing or from others};
+  \node[studybox, left=of s6b] (s6a) {RQ1: the published way against a fair test};
+  \node[explorebox, left=of s6a] (s6c) {RQ4 and later follow-ups (exploratory)};
+  \node[stage, below=8mm of s6a, text width=91mm] (s7) {Statistics, with every number written from the results files};
+  \node[outbox, below=8mm of s5] (s8a) {Demonstrator and website};
+  \node[outbox, below=6mm of s7] (s8b) {Report and paper};
+  \foreach \a/\b in {s1/s2, s2/s3, s3/s4, s4/s5, s5/s6b, s6b/s6a, s6a/s6c} \draw[flow] (\a) -- (\b);
+  \draw[flow] (s6a) -- (s7); \draw[flow] (s6b.south) -- (s6b.south |- s7.north);
+  \draw[flow] (s6c.south) -- (s6c.south |- s7.north);
+  \draw[flow] (s7.east |- s8a.west) -- (s8a); \draw[flow] (s7) -- (s8b);
+  \foreach \n/\k in {s1/1, s2/2, s3/3, s4/4, s5/5, s6a/6, s6b/6, s6c/6, s7/7, s8a/8, s8b/8}
+    \node[num] at (\n.north west) {\k};
+\end{tikzpicture}
