@@ -53,7 +53,8 @@ export class DemoController {
   private upgradeTimer: ReturnType<typeof setTimeout> | undefined;
 
   constructor(private readonly opts: ControllerOptions) {
-    this.base = opts.base ?? "/demo";
+    // Under the site's base path, so a copy served from a sub-folder finds its bundle.
+    this.base = opts.base ?? `${import.meta.env.BASE_URL}demo`;
     this.speed = opts.speed;
     this.mode = opts.mode;
   }

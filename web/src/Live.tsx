@@ -12,13 +12,13 @@ export function Live() {
       <main className="live-main" id="demo">
         <header className="live-head">
           <h1>
-            <a href="/">Sixth-Finger BCI</a>
+            <a href={import.meta.env.BASE_URL}>Sixth-Finger BCI</a>
           </h1>
           <p>Patient {patient}&apos;s last two runs, which the model never trained on, played at real speed.</p>
         </header>
         <DemoStage stream={stream} />
         <p className="live-foot">
-          <a href="/">The whole project, explained</a>
+          <a href={import.meta.env.BASE_URL}>The whole project, explained</a>
         </p>
       </main>
       <ManualTestBanner />

@@ -8,5 +8,7 @@ import { Live } from "./Live";
 import "./styles.css";
 
 createRoot(document.getElementById("root")!).render(
-  <StrictMode>{window.location.pathname.replace(/\/+$/, "") === "/live" ? <Live /> : <App />}</StrictMode>,
+  <StrictMode>
+    {window.location.pathname.replace(/\/+$/, "") === `${import.meta.env.BASE_URL}live` ? <Live /> : <App />}
+  </StrictMode>,
 );
