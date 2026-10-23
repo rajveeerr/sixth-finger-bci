@@ -1,5 +1,59 @@
-\chapter{Conclusion and Future Scope}
-\section{Conclusion}
-\TBD{P14}
-\section{Future Scope}
-\TBD{P14}
+\chapter{Conclusion and Future Scope}\label{ch:conclusion}
+% Source: report-material 10, rewritten from the findings of Chapter 4. No new information.
+
+This chapter answers the project's question in a few sentences and lists the work that
+should come next.
+
+\section{Conclusion}\label{sec:conclusion}
+
+The project asked whether the brain signals of stroke patients, read by an EEG cap, can
+tell a robotic sixth finger when to move, and how much practice a new patient must give
+before they can. Working on a public recording of \nSubjects{} patients, we reached four
+conclusions.
+
+\begin{enumerate}
+  \item \textbf{The published accuracy was inflated.} The published method let its test
+  trials shape its first step. Tested fairly, hand and sixth-finger imagery were told
+  apart \pct{\rqOneCspLdaCvLeakfreeMean} of the time, against
+  \pct{\rqOneCspLdaPaperReplicaMean} for the same method run the published way. The same
+  mistake raised accuracy on two datasets of healthy people too.
+  \item \textbf{Learning from other patients is a quick start, not a better model.} A model
+  that had learned from the other patients reached \pct{\rqTwoRestAhSfRctTslrKOneMean} on
+  three choices after one practice trial of each movement, about \rqTwoMinutesKOne{}
+  minutes, where starting from nothing needed about \rqTwoMinutesKTen{} minutes to get
+  there. It then levelled off, and the patient's own model overtook it. Both findings were
+  pre-registered and replicated after therapy.
+  \item \textbf{The sixth finger works as a switch.} Sixth-finger imagery against rest was
+  recognised \pct{\exFourTsLrCentralMean} of the time, but the same switch also responded to
+  imagined hand movements. The data show a ``move now'' command, not a command distinct
+  from the hand. A model also needs a short top-up of practice on each new day.
+  \item \textbf{The pipeline works end to end.} The trained model runs in any browser on a
+  real patient's held-out recording and moves a drawn hand with a sixth finger, at
+  \url{\siteURL}.
+\end{enumerate}
+
+The project's lasting contribution is a fair benchmark of this dataset and a
+pre-registered measurement of calibration for a new kind of command, with code and data
+open so that both can be checked.
+
+\section{Future Scope}\label{sec:future}
+
+\begin{enumerate}
+  \item \textbf{A closed-loop study.} Patients would see or feel the sixth finger respond
+  while they practise. Feedback lets people adapt to the decoder, and it would test the
+  switch where it matters.
+  \item \textbf{A better switch.} Fewer false movements at rest are the first need. Options
+  include a threshold tuned on each patient's practice runs and a decoder trained for rest
+  against any movement.
+  \item \textbf{Transfer that adapts as practice grows.} Giving the new patient's own trials
+  more weight as they accumulate could keep the quick start without the plateau.
+  \item \textbf{Other patients and centres.} Other public stroke datasets would show whether
+  the results hold beyond one hospital~\cite{liu2024acute,lu2026chronic,liu2025lowerlimb}.
+  \item \textbf{Large pre-trained EEG models.} Models trained on very large collections of EEG
+  may transfer better than models trained on the patients of one study~\cite{jiang2024labram,wang2025cbramod}.
+  \item \textbf{A physical finger.} The command already leaves the decoder in a standard
+  form; a microcontroller with joint limits and an emergency stop, live EEG and causal
+  filters would connect it to a real robotic finger (Section~\ref{sec:limb}).
+  \item \textbf{Fewer electrodes.} The switch worked from the central electrodes alone,
+  which points toward a smaller cap that a patient could wear at home.
+\end{enumerate}
