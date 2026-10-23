@@ -34,6 +34,8 @@ export interface Finding {
 }
 
 const pct = (v: number) => `${Math.round(v * 100)}%`;
+/** What guessing gets between two choices. */
+const HALF = 0.5;
 /** A share, with one decimal when it is small enough for rounding to hide it. */
 export const pctFine = (v: number) => (v < 0.095 ? `${(v * 100).toFixed(1)}%` : pct(v));
 const L = data.later;
@@ -59,15 +61,14 @@ export const FINDINGS: Finding[] = [
     scale: "guessing gets 50%",
     value: data.leak.mean_leakfree,
     other: { value: data.leak.mean_replica, label: "tested the published way" },
-    guess: 0.5,
+    guess: HALF,
     lead: "No. The method had already seen the trials it was tested on.",
-    answer: `The 85% comes from the paper that shared these recordings: it reports that a standard method (CSP with LDA) tells imagining the hand from imagining the sixth finger ${pct(data.leak.published[0])} to ${pct(data.leak.published[1])} of the time.`,
+    answer: `The published ${pct(data.leak.published[0])} means that out of every 100 times a patient imagined moving either the hand or the sixth finger, the paper's method named the right one about ${Math.round(data.leak.published[0] * 100)} times, where guessing names it ${HALF * 100} times.`,
     points: [
-      "The catch: the method's first step, CSP, learns from labelled trials how to combine the 40 sensors. In the paper's analysis code it learned from every trial of a session, including the ones it was later tested on. It is like marking an exam whose questions the student saw in advance.",
-      `Tested fairly, with that step learning only from the trials used for learning, the same method gets ${pct(data.leak.mean_leakfree)}, where guessing gets 50%. Every one of the ${data.leak.subjects.length} patients scored lower.`,
-      "Nothing else differs between the two tests: the same patients, the same trials, the same method, and the same test trials each time.",
+      "Why that is too high: the method's first step, CSP, learns from labelled trials how to combine the 40 sensors, and in the paper's code it learned from every trial, including the ones it was later tested on. It is like marking an exam whose questions the student saw in advance.",
+      `Tested fairly, with that step learning only from the trials used for learning, the same method gets ${pct(data.leak.mean_leakfree)}.`,
     ],
-    note: `Each grey line is one patient, scored the published way (left) and fairly (right); the black line is the average. All ${data.leak.n_positive} of ${data.leak.subjects.length} scored lower when tested fairly. Our rebuild of the published way gives ${pct(data.leak.mean_replica)}, close to the paper's 85 to 86%.`,
+    note: `Each grey line is one patient, scored the published way (left) and fairly (right); the black line is the average. All ${data.leak.n_positive} of ${data.leak.subjects.length} scored lower when tested fairly. Our rebuild of the published way gives ${pct(data.leak.mean_replica)}, close to the paper's ${pctRange(data.leak.published)}.`,
     how: "We rebuilt the paper's method from its published code and scored it twice on the same patients and trials. Once as the paper did: the method's first step learned from all the trials, and only then were some set aside for testing. Once fairly: that step learned only from the trials used for learning. Nothing else changed.",
     see: [
       { href: "#checks", text: "Problem 4 in chapter 5, and how we spotted it" },
