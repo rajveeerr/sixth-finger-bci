@@ -1,41 +1,48 @@
 \section{Introduction}
-% Outline (structure.md): why MI-BCIs matter -> calibration problem -> sixth-finger
-% paradigm and dataset -> gap -> numbered contributions.
+\label{sec:intro}
+A brain--computer interface (BCI) turns measured brain activity into commands
+for a device~\cite{wolpaw2002}. In a motor-imagery (MI) BCI the user imagines
+a movement, which weakens the mu and beta rhythms over the motor
+cortex~\cite{pfurtscheller1999,pfurtscheller2001}, and a decoder learns to
+recognise this change in the electroencephalogram (EEG). MI-BCIs are studied
+for stroke rehabilitation~\cite{cervera2018,biasiucci2018} and for motor
+augmentation, in which people learn to control an extra robotic
+digit~\cite{kieliba2021,eden2022}. Wang et al.\ joined the two: stroke patients
+imagine flexing a robotic sixth finger worn on the affected
+wrist~\cite{wang2024jbhi,wang2024tnsre}. Their recent public dataset of
+\nSubjects{} patients now makes this paradigm open to independent
+study~\cite{wang2026dataset}.
 
-A brain--computer interface (BCI) translates measured brain activity into commands for
-an external device~\cite{wolpaw2002}. In motor-imagery (MI) BCIs the user imagines a
-movement, which weakens the sensorimotor mu and beta rhythms over the motor
-cortex~\cite{pfurtscheller1999,pfurtscheller2001}; a decoder learns to recognise these
-changes from the electroencephalogram (EEG). MI-BCIs are studied for stroke
-rehabilitation~\cite{cervera2018,biasiucci2018} and, more recently, for human motor
-augmentation, where users learn to control an extra robotic digit~\cite{kieliba2021,eden2022}.
+Every MI-BCI must first be calibrated: the user performs labelled trials so
+that the decoder can learn their patterns~\cite{lotte2015}. For a patient,
+each minute of calibration is effort spent before any therapy starts.
+Transfer learning reuses data from other people and shortens calibration for
+healthy users~\cite{zanini2018,he2020,wu2022review}. Whether it helps stroke
+patients learn a command with no natural counterpart, such as a sixth
+finger, has not been measured.
 
-EEG patterns differ between people and between sessions, so every new user must first
-record labelled calibration trials~\cite{lotte2015}. Transfer learning reduces this
-burden by reusing data from other users~\cite{he2020,zanini2018,wu2022review}. The
-problem is sharper for a novel command: a ``sixth finger'' has no natural motor
-representation to build on. Wang et al.\ introduced sixth-finger motor imagery and
-showed that it produces stronger event-related desynchronisation than imagery of a
-natural limb~\cite{wang2024jbhi,wang2024tnsre}, and released a longitudinal dataset of
-stroke patients performing both kinds of imagery~\cite{wang2026dataset}.
+A fair measurement needs a fair protocol. The dataset paper reports
+85--86\,\% for telling imagined hand from imagined sixth-finger
+movements~\cite{wang2026dataset}. Its classification script, however, fits
+the spatial filters on all trials before cross-validation, so the test trials
+help to shape the features. Such leakage is a common cause of optimistic
+results in machine learning~\cite{kapoor2023,brookshire2024}. We therefore
+re-test the dataset fairly first, and base every later number on that test.
 
-% Gap and contributions: finalise after results (P13).
-\begin{figure*}[t]
-  \centering
-  \includegraphics[width=\textwidth]{figures/fig-bci-pipeline.pdf}
-  \caption{The pipeline studied in this work. Motor imagery of rest, the affected hand or a robotic sixth finger is recorded as EEG, cut into 4\,s windows and decoded into a command that drives a 3D hand. Calibration uses $k$ trials of the new user and, for transfer methods, data of other patients.}
-  \label{fig:pipeline}
-\end{figure*}
-
-In this work we ask how much calibration a decoder needs before it recognises the
-sixth-finger command, and whether transfer reduces it. Our contributions are:
+We ask how much calibration a stroke patient needs before a decoder
+recognises rest, the affected hand and the sixth finger, and whether data
+from other patients reduce it. Our contributions are:
 \begin{enumerate}
-  \item a leakage-free re-benchmark of the published dataset, together with an
-        integrity audit that identified duplicated recordings;
-  \item a pre-registered calibration study for a new user and for a new command,
-        comparing from-scratch decoders with Riemannian and deep transfer methods;
-  \item exploratory analyses of hemisphere mirroring, cross-session stability and
-        electrode count; and
-  \item open code and a real-time demonstrator in which decoded intent drives a 3D
-        hand with a robotic sixth finger.
+  \item to our knowledge, the first leakage-free benchmark of this sixth-finger
+        stroke dataset, with an integrity audit that found duplicated
+        recordings;
+  \item to our knowledge, the first calibration study of a supernumerary
+        (novel) motor command in stroke patients, with two realistic
+        scenarios, a new user and a new command added to a hand decoder, and
+        pre-registered hypotheses;
+  \item a comparison of Riemannian and deep transfer for this population,
+        with stroke-specific analyses (hemisphere mirroring, other days) as
+        exploratory work; and
+  \item open, reproducible code and a demonstrator that turns decoded intent
+        into the movement of a virtual hand with a sixth finger.
 \end{enumerate}
