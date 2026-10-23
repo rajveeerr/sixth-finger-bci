@@ -162,7 +162,8 @@ export const FINDINGS: Finding[] = [
       note: "The switch learned from rest and sixth-finger trials only, so the hand trials of runs 3 and 4 were new to it.",
     },
     see: [
-      { href: "#demo", text: "The demo's finger, moved by this switch" },
+      { href: "#demo", text: "The demo's finger, moved by one switch for either movement" },
+      { href: "#answer-4", text: "How it does played as if live, in answer 4" },
       { href: "#model", text: "The model, in chapter 6" },
       { href: "#brain", text: "What changes in the brain, in chapter 3" },
     ],
@@ -179,6 +180,7 @@ export const FINDINGS: Finding[] = [
     points: [
       `A harder test than question 3's ${pct(S.rest.mean)}. There, the model read 4 s placed from the moment the instruction appeared, so it knew where to look; here it reads every half second and must find the start of imagining itself.`,
       "And another model: here it is the demo's, EEGNet learned from the patient alone on all 40 sensors. Question 3's switch is a simpler model on the 14 sensors over the movement strip.",
+      `Played the same way, that simpler model did not do better. Taught to tell rest from any movement, it caught ${pct(data.switch.central.detection)} against ${pct(data.switch.detection)} here, though with fewer mistakes (${data.switch.central.false_per_minute.toFixed(1)} a minute against ${data.switch.false_per_minute.toFixed(1)}).`,
     ],
     note: `Every half second the model reads the newest 4 s and gives the chance that a movement is being imagined (hand and sixth finger added together). A running average steadies that chance; the finger turns on when it is above 60% twice in a row, and off when it falls below 45%. Average of ${data.switch.n} patients.`,
     how: "We played each of a patient's last two runs to the model as one unbroken signal, a reading every half second, without telling it when the instructions came, and counted when the finger would have switched on: while the patient imagined (caught) or while they rested (a mistake).",

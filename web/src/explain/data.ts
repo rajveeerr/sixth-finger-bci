@@ -64,7 +64,16 @@ export interface ExplainData {
     published: [number, number];
   };
   calibration: { scratch: CurvePoint[]; transfer: CurvePoint[] };
-  switch: { detection: number; detection_ci: [number, number]; false_per_minute: number; latency_s: number; n: number };
+  /** The demo's network played as if live (answer 4). */
+  switch: {
+    detection: number;
+    detection_ci: [number, number];
+    false_per_minute: number;
+    latency_s: number;
+    n: number;
+    /** Question 3's simpler model played the same way, learned as rest or any movement. */
+    central: { detection: number; false_per_minute: number; latency_s: number; n: number };
+  };
   later: {
     same_session: number;
     post: { as_is: Scored; re_setup: Scored };
