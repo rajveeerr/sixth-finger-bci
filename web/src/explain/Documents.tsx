@@ -15,27 +15,40 @@ function Sheet({ label }: { label: string }) {
 
 const SHORT: Record<string, string> = { PDF: "PDF", PowerPoint: "PPT" };
 
+/** Only the PDFs open in the browser; anything else downloads under its own name. */
+const downloadAs = (f: (typeof FILES)[number]) => (f.format === "PDF" ? undefined : f.file);
+
+/**
+ * The paper, the slides and the report, one row each with its format, size and a line on what it
+ * is; a page may say that line its own way.
+ */
+export function DocList({ text = {} }: { text?: Record<string, string> }) {
+  return (
+    <ul className="docs">
+      {FILES.map((f) => (
+        <li key={f.file}>
+          <Sheet label={SHORT[f.format] ?? f.format} />
+          <div>
+            <p className="doc-head">
+              <a href={f.href} download={downloadAs(f)}>
+                <b>{f.name}</b>, {f.format}, {fileSize(f.bytes)}
+              </a>
+              {f.tag && <span className="doc-tag">{f.tag}</span>}
+            </p>
+            <p className="doc-text">{text[f.doc] ?? f.text}</p>
+          </div>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 /** The paper, the slides and the report, at the end of the page and linked from its opening. */
 export function Documents() {
   return (
     <section className="read" id="read" aria-labelledby="read-title">
       <h2 id="read-title">{READ_TITLE}</h2>
-      <ul className="docs">
-        {FILES.map((f) => (
-          <li key={f.file}>
-            <Sheet label={SHORT[f.format] ?? f.format} />
-            <div>
-              <p className="doc-head">
-                <a href={f.href} download={f.format === "PDF" ? undefined : f.file}>
-                  <b>{f.name}</b>, {f.format}, {fileSize(f.bytes)}
-                </a>
-                {f.tag && <span className="doc-tag">{f.tag}</span>}
-              </p>
-              <p className="doc-text">{f.text}</p>
-            </div>
-          </li>
-        ))}
-      </ul>
+      <DocList />
     </section>
   );
 }

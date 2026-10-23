@@ -1,4 +1,4 @@
-import { Chapter, FollowUp, More } from "../../components/Chapter";
+import { Chapter, FollowUp, More, type Point } from "../../components/Chapter";
 import { data, pct, pctRange } from "../data";
 import { Elsewhere } from "../figures/Elsewhere";
 import { LeakSlope } from "../figures/Evidence";
@@ -10,6 +10,32 @@ const LOWER =
   L.n_positive === L.subjects.length
     ? `every one of the ${L.subjects.length} patients`
     : `${L.n_positive} of the ${L.subjects.length} patients`;
+
+/** What the published score means and why it is too high, in four lines; the chapter-by-chapter page says them too. */
+export const LEAK_POINTS: Point[] = [
+  {
+    label: `What ${pct(L.published[0])} means`,
+    text: (
+      <>
+        Shown 4 s of brain signal from one trial, the method had to say &quot;hand&quot; or &quot;sixth
+        finger&quot;. It was right about {Math.round(L.published[0] * 100)} times in 100; guessing is right 50
+        times.
+      </>
+    ),
+  },
+  {
+    label: "Why it is too high",
+    text: "Its first step learned from every trial, the test trials included, before it was tested on them: an exam seen in advance. The bracket below shows it.",
+  },
+  {
+    label: "The fair score",
+    text: `${pct(L.mean_leakfree)}, with that step learning only from the learning trials; lower for ${LOWER}.`,
+  },
+  {
+    label: "Why it matters",
+    text: `At ${pct(L.published[0])}, it would be a usable two-command device. At ${pct(L.mean_leakfree)}, it is barely above guessing.`,
+  },
+];
 
 export function Published() {
   return (
@@ -29,30 +55,7 @@ export function Published() {
           </>
         ),
       }}
-      points={[
-        {
-          label: `What ${pct(L.published[0])} means`,
-          text: (
-            <>
-              Shown 4 s of brain signal from one trial, the method had to say &quot;hand&quot; or &quot;sixth
-              finger&quot;. It was right about {Math.round(L.published[0] * 100)} times in 100; guessing is right 50
-              times.
-            </>
-          ),
-        },
-        {
-          label: "Why it is too high",
-          text: "Its first step learned from every trial, the test trials included, before it was tested on them: an exam seen in advance. The bracket below shows it.",
-        },
-        {
-          label: "The fair score",
-          text: `${pct(L.mean_leakfree)}, with that step learning only from the learning trials; lower for ${LOWER}.`,
-        },
-        {
-          label: "Why it matters",
-          text: `At ${pct(L.published[0])}, it would be a usable two-command device. At ${pct(L.mean_leakfree)}, it is barely above guessing.`,
-        },
-      ]}
+      points={LEAK_POINTS}
     >
       <LeakDiagram />
       <More what="every patient, how we rebuilt it, and the same mistake in other data">

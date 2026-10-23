@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { IntroHand } from "./components/IntroHand";
 import { ManualTestBanner } from "./components/ManualTestBanner";
 import { Added } from "./explain/chapters/Added";
@@ -13,27 +12,8 @@ import { WhatIsThis } from "./explain/chapters/WhatIsThis";
 import { READ_TITLE } from "./explain/siteDocs";
 import { Documents } from "./explain/Documents";
 import { QUESTIONS } from "./explain/questions";
+import { useLandOnLink } from "./lib/landOnLink";
 import { useDemoStream } from "./stream/useDemoStream";
-
-// The page is drawn after the browser looks for the address's #target, so go to it once it
-// exists; and a link to something inside a closed fold opens the fold first.
-function useLandOnLink() {
-  useEffect(() => {
-    const land = (always: boolean) => {
-      const id = decodeURIComponent(window.location.hash.slice(1));
-      const target = id ? document.getElementById(id) : null;
-      if (!target) return;
-      const fold = target.closest("details");
-      if (fold && !fold.open) fold.open = true;
-      else if (!always) return;
-      target.scrollIntoView();
-    };
-    land(true);
-    const onHash = () => land(false);
-    window.addEventListener("hashchange", onHash);
-    return () => window.removeEventListener("hashchange", onHash);
-  }, []);
-}
 
 export default function App() {
   const stream = useDemoStream();
