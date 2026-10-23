@@ -1,22 +1,492 @@
-\chapter{Results and Discussion}
-% Sources: report-material 08, 09. Numbers only from ../paper/generated/numbers.tex.
-\section{Neurophysiological Validation}
-\TBD{P04}
-\section{Leakage-Free Re-Benchmark (RQ1)}
-\TBD{P06}
-\section{Deep-Learning Baselines}
-\TBD{P07}
-\section{Calibration for a New User (RQ2)}
-\TBD{P08}
-\section{Adding the Sixth-Finger Command (RQ3)}
-\TBD{P08}
-\section{Exploratory Analyses}
-\TBD{P09}
-\section{The Demonstrator}
-% Screenshots (docs/figures/demo_*.png), latency, fallback tests, deployed link and QR code:
-% \qrcode[height=2.5cm]{https://<deployed-url>}
-\TBD{P12}
-\section{Discussion}
-\TBD{P13}
-\section{Limitations}
-\TBD{P13}
+\chapter{Results and Discussion}\label{ch:results}
+% Sources: report-material 08 and 09, rewritten. Every number is a macro from
+% ../paper/generated/numbers.tex.
+
+This chapter answers the research questions in the order an examiner would ask them.
+Does the data carry the brain signal it should? Is the published accuracy right? Do
+neural networks change the picture? How much practice does a new patient need? Can the
+sixth finger be a command of its own? What did the exploratory analyses add? Does the
+demonstrator work? Each section opens with its answer in one sentence. The chapter then
+discusses what the answers mean and where they stop. Unless stated otherwise, results are
+for the pre-therapy session of the \nPre{} patients, given as the mean over patients with
+a 95\,\% confidence interval (CI), and accuracy means balanced accuracy.
+
+\section{Does the Data Carry the Expected Signal?}\label{sec:res-erd}
+
+\textbf{Answer: yes.} Imagining either movement weakened the mu rhythm over the motor
+cortex in almost every patient.
+
+Figure~\ref{fig:erd} shows the mu rhythm's power over the hand area (electrode C3, on the
+side that controls the weak hand) as a change from the second before the cue. Soon after the
+cue it fell, and it stayed low for the whole imagery period. Averaged over
+the analysis window, its power changed by \pct{\edaErdMuCThreeAhMean} for the hand and
+\pct{\edaErdMuCThreeSfMean} for the sixth finger. The fall was present for the sixth finger
+in \edaErdMuCThreeSfNegative{} of \edaErdMuCThreeN{} patients and for the hand in
+\edaErdMuCThreeAhNegative. The sixth finger's fall was the larger in
+\edaErdMuCThreeSfMoreNegative{} patients, but the difference was not significant
+(exploratory Wilcoxon test, $p = \edaErdMuCThreeSfMinusAhP$). The weakening appeared on
+both sides of the head, a pattern also reported for this group of
+patients~\cite{wang2024tnsre}.
+
+\begin{figure}[tbp]
+  \centering
+  \includegraphics[width=0.6\textwidth]{eda_erd_timecourse.pdf}\\[6pt]
+  \includegraphics[width=0.66\textwidth]{web/rhythm-measured.pdf}
+  \caption[The brain signal is there]{The brain signal is there. Top: change in mu-rhythm power at C3 after the
+  imagery cue (time 0), hand (AH) and sixth finger (SF), mean $\pm$ standard error over
+  \nPre{} patients; the grey band is the window the models read. Bottom: the fall in each
+  patient, one dot each, with the average as a bar. Both imagery types lower the rhythm;
+  they overlap almost entirely.}
+  \label{fig:erd}
+\end{figure}
+
+\section{Is the Published Accuracy Right? (RQ1)}\label{sec:res-leak}
+
+\textbf{Answer: no.} Tested fairly, the standard method told hand from sixth finger
+\pct{\rqOneCspLdaCvLeakfreeMean} of the time, not the \pct{\rqOneCspLdaPaperReplicaMean}
+it scored the published way.
+
+\subsection{The leak}
+With CSP+LDA on hand against sixth finger, fitting CSP on all windows before the
+cross-validation, as the published code does, gave \pct{\rqOneCspLdaPaperReplicaMean}
+(\ci{\rqOneCspLdaPaperReplicaCiLo}{\rqOneCspLdaPaperReplicaCiHi}). Fitting it inside each
+training fold of the same 100 folds gave \pct{\rqOneCspLdaCvLeakfreeMean}
+(\ci{\rqOneCspLdaCvLeakfreeCiLo}{\rqOneCspLdaCvLeakfreeCiHi}). The difference,
+\rqOneHOneDiff{} points (\cipts{\rqOneHOneDiffCiLo}{\rqOneHOneDiffCiHi}), is the leak.
+It was positive for all \rqOneHOnePositive{} patients, from \rqOneHOneDiffMin{} to
+\rqOneHOneDiffMax{} points (Wilcoxon $W = \rqOneHOneW$, $p = \rqOneHOneP$, $r =
+\rqOneHOneR$). \textbf{H1 is \rqOneHOneCategory.} It held without the two development
+patients (\rqOneHOneNoDevDiff{} points) and was repeated on the post-therapy session
+(\rqOneHOnePostDiff{} points, $n = \rqOneHOnePostN$, $p = \rqOneHOnePostP$).
+Figure~\ref{fig:leakslope} shows every patient.
+
+\begin{figure}[tbp]
+  \centering
+  \includegraphics[width=0.62\textwidth]{web/leak-slope.pdf}
+  \caption[Every patient scored the published way and fairly]{Every patient scored twice on the same trials, one grey line each; the black
+  line is the average. Left: the published way, where the test trials were also used to
+  build the method. Right: the fair test, where they were kept apart. Every line falls.
+  The dashed line is guessing.}
+  \label{fig:leakslope}
+\end{figure}
+
+Table~\ref{tab:rqone} gives all six methods under the four ways of testing. Two patterns
+stand out. First, the leak grows with how much the steps before the classifier learn
+from the labels. It was \rqOneCspLdaReplicaLeakDiff{} points for the replica of the
+authors' recipe, which fits ten unshrunk filters, and \rqOneFbcspLdaLeakDiff{} for
+FBCSP+LDA, whose feature selection also uses the labels. It was \rqOneCspLdaLeakDiff{}
+and \rqOneCspSvmLeakDiff{} points for CSP with LDA and with an SVM. For TS+LR and MDM, whose
+early steps never see a label, it was \rqOneTsLrLeakDiff{} and \rqOneMdmLeakDiff. The
+labels, not the data, carry the inflation. Second, the fair tests of CSP+LDA land between
+\pct{\rqOneCspLdaCvLeakfreeMean} and \pct{\rqOneCspLdaLoroMean}, and under none of them did more than \rqOneCspLdaLoroNAbove{} of the \nPre{}
+patients beat their own chance threshold.
+
+\begin{table}[tbp]
+  \centering
+  \caption[Hand against sixth finger under the four ways of testing]{Hand against sixth finger, pre-therapy session, $n = \nPre$: balanced accuracy
+  (\%), mean over patients, with the number of patients above their chance threshold in
+  brackets. Only the first column lets the test trials into the steps before the
+  classifier. Guessing scores 50\,\%.}
+  \label{tab:rqone}
+  \small
+  \begin{tabular}{@{}lcccc@{}}
+    \toprule
+    Method & Paper's way & Fair CV & Leave run out & Chronological \\
+    \midrule
+    CSP+LDA (H1) & \rqOneCspLdaPaperReplicaMean{} (\rqOneCspLdaPaperReplicaNAbove) & \rqOneCspLdaCvLeakfreeMean{} (\rqOneCspLdaCvLeakfreeNAbove) & \rqOneCspLdaLoroMean{} (\rqOneCspLdaLoroNAbove) & \rqOneCspLdaChronoMean{} (\rqOneCspLdaChronoNAbove) \\
+    Replica of the authors' recipe & \rqOneCspLdaReplicaPaperReplicaMean{} (\rqOneCspLdaReplicaPaperReplicaNAbove) & \rqOneCspLdaReplicaCvLeakfreeMean{} (\rqOneCspLdaReplicaCvLeakfreeNAbove) & \rqOneCspLdaReplicaLoroMean{} (\rqOneCspLdaReplicaLoroNAbove) & \rqOneCspLdaReplicaChronoMean{} (\rqOneCspLdaReplicaChronoNAbove) \\
+    CSP+SVM & \rqOneCspSvmPaperReplicaMean{} (\rqOneCspSvmPaperReplicaNAbove) & \rqOneCspSvmCvLeakfreeMean{} (\rqOneCspSvmCvLeakfreeNAbove) & \rqOneCspSvmLoroMean{} (\rqOneCspSvmLoroNAbove) & \rqOneCspSvmChronoMean{} (\rqOneCspSvmChronoNAbove) \\
+    FBCSP+LDA & \rqOneFbcspLdaPaperReplicaMean{} (\rqOneFbcspLdaPaperReplicaNAbove) & \rqOneFbcspLdaCvLeakfreeMean{} (\rqOneFbcspLdaCvLeakfreeNAbove) & \rqOneFbcspLdaLoroMean{} (\rqOneFbcspLdaLoroNAbove) & \rqOneFbcspLdaChronoMean{} (\rqOneFbcspLdaChronoNAbove) \\
+    MDM & \rqOneMdmPaperReplicaMean{} (\rqOneMdmPaperReplicaNAbove) & \rqOneMdmCvLeakfreeMean{} (\rqOneMdmCvLeakfreeNAbove) & \rqOneMdmLoroMean{} (\rqOneMdmLoroNAbove) & \rqOneMdmChronoMean{} (\rqOneMdmChronoNAbove) \\
+    TS+LR & \rqOneTsLrPaperReplicaMean{} (\rqOneTsLrPaperReplicaNAbove) & \rqOneTsLrCvLeakfreeMean{} (\rqOneTsLrCvLeakfreeNAbove) & \rqOneTsLrLoroMean{} (\rqOneTsLrLoroNAbove) & \rqOneTsLrChronoMean{} (\rqOneTsLrChronoNAbove) \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Comparison with the published number}
+The replica of the authors' recipe, run their way, scored \pct{\rqOneCspLdaReplicaAcc}
+plain accuracy (\pct{\rqOneCspLdaReplicaGroupBAcc} and \pct{\rqOneCspLdaReplicaGroupTAcc}
+in the two groups), above the published \pct{\rqOnePublishedGroupBCspLda} and
+\pct{\rqOnePublishedGroupTCspLda}. We therefore reproduce the direction and the size of
+the leak, not the published number itself. Details that neither the paper nor the code
+fixes exactly, such as how the feature is averaged, the folds and the software, could
+each move the leaky value. Under every fair protocol the same recipe stayed between
+\pct{\rqOneCspLdaReplicaLoroMean} and \pct{\rqOneCspLdaReplicaCvLeakfreeMean}.
+
+\subsection{The same mistake elsewhere}
+The leak is a property of the procedure, not of these patients (Figure~\ref{fig:elsewhere}).
+On left- against right-hand imagery of healthy people, the same code inflated CSP+LDA by
+\rqOneBnciHOneBDiff{} points on BCI Competition~IV~2a ($n = \rqOneBnciHOneBN$,
+$p = \rqOneBnciHOneBP$) and by \rqOneChoHOneBDiff{} points on the Cho dataset
+($n = \rqOneChoHOneBN$, $p = \rqOneChoHOneBP$). \textbf{H1b is supported on both.} A
+separate pre-registered side study (RQ5) found the same kind of mistake in depression
+detection from resting EEG, where splitting a person's recording across training and test
+inflated accuracy by \rqFiveMumtazBpLrInflation{} to \rqFiveMumtazTsLrInflation{} points on
+one public dataset~\cite{mumtaz2016data} and by \rqFiveModmaBpLrInflation{} to
+\rqFiveModmaTsLrInflation{} on another~\cite{cai2022modma}.
+
+\begin{figure}[tbp]
+  \centering
+  \includegraphics[width=\textwidth]{web/elsewhere.pdf}
+  \caption[The same mistake in other data]{The same mistake in other data. For each dataset the grey ring is the leaky
+  score and the black dot the fair one. Top: imagined movement, these patients and two
+  healthy datasets. Bottom: depression detection from resting EEG (RQ5), where the leak is
+  letting one person's recording sit on both sides of the split.}
+  \label{fig:elsewhere}
+\end{figure}
+
+\subsection{What the data does support}
+The same fair tests on the other two tasks tell a different story. Detecting
+sixth-finger imagery against rest reached \pct{\rqOneSfRestLoroMeanMin} to
+\pct{\rqOneSfRestLoroMeanMax} across the five classical methods (leave one run out), with
+every patient above chance for every method. The three-class task reached
+\pct{\rqOneRestAhSfLoroMeanMin} to \pct{\rqOneRestAhSfLoroMeanMax}, where guessing gives
+33.3\,\%. Imagery against rest is easy to read; hand against sixth finger is not.
+
+\section{Do Neural Networks Change the Picture?}\label{sec:res-deep}
+
+\textbf{Answer: a little, not fundamentally.} These comparisons are descriptive and were
+not part of the frozen hypotheses.
+
+Trained on one patient's data and tested on a held-out run, EEGNet reached
+\pct{\dlAhSfLoroEegnetScratchMean} on hand against sixth finger,
+\pct{\dlRestAhSfLoroEegnetScratchMean} on three classes and
+\pct{\dlSfRestLoroEegnetScratchMean} on sixth finger against rest
+(Figure~\ref{fig:dl}). That is \dlAhSfLoroEegnetScratchVsCspLdaDiff{} and
+\dlRestAhSfLoroEegnetScratchVsCspLdaDiff{} points above CSP+LDA on the two imagery tasks
+($p = \dlAhSfLoroEegnetScratchVsCspLdaP$ and $\dlRestAhSfLoroEegnetScratchVsCspLdaP$) and
+level on the switch. A network pre-trained on the other patients and applied with no
+labelled trial from the patient (zero-shot) reached \pct{\dlZeroShotAhSfMean},
+\pct{\dlZeroShotRestAhSfMean} and \pct{\dlZeroShotSfRestMean}. Retraining with another
+random seed moved a patient's score by \dlEegnetScratchSeedSdMean{} points on average, a
+reminder that single-patient differences of a few points are noise.
+
+\begin{figure}[tbp]
+  \centering
+  \includegraphics[width=0.9\textwidth]{dl_baselines.pdf}
+  \caption[EEGNet against the classical decoders]{EEGNet trained on each patient alone, CSP+LDA and TS+LR (leave one run out),
+  and the pre-trained EEGNet with no labelled trial (zero-shot, tested on runs 3 and 4),
+  for the three tasks. Boxes show the middle half of the patients, dots are patients, the
+  grey line is guessing. The networks help a little on the imagery tasks; on the switch
+  all methods are alike.}
+  \label{fig:dl}
+\end{figure}
+
+\section{How Much Practice Does a New Patient Need? (RQ2)}\label{sec:res-calib}
+
+\textbf{Answer: learning from other patients gives a usable start almost at once, but it
+then levels off, and starting from nothing overtakes it.}
+
+Figure~\ref{fig:setup} shows the main result for three choices (rest, hand, sixth finger).
+With one practice trial of each movement, about \rqTwoMinutesKOne{} minutes, re-centred
+transfer reached \pct{\rqTwoRestAhSfRctTslrKOneMean}
+(\ci{\rqTwoRestAhSfRctTslrKOneCiLo}{\rqTwoRestAhSfRctTslrKOneCiHi}); the same classifier
+trained on the patient alone reached \pct{\rqTwoRestAhSfTsLrKOneMean}. The model starting
+from nothing needed ten trials of each, about \rqTwoMinutesKTen{} minutes, to reach the
+same \pct{\rqTwoRestAhSfTsLrKTenMean}. After that the transfer curve stayed almost flat,
+ending at \pct{\rqTwoRestAhSfRctTslrKAllMean} with the whole practice pool, while the
+model starting from nothing kept rising to \pct{\rqTwoRestAhSfTsLrKAllMean}.
+
+\begin{figure}[tbp]
+  \centering
+  \includegraphics[width=0.72\textwidth]{web/setup.pdf}
+  \caption[Practice time against accuracy for a new patient, three choices]{Practice time against accuracy for a new patient, three choices. Solid: the
+  model that has already learned from the other patients (re-centred TS+LR). Dashed: the
+  same model starting from nothing (TS+LR). Bands are 95\,\% CIs over \nPre{} patients;
+  the dotted line is guessing (33\,\%). The solid line starts high and stays flat; the
+  dashed one starts low and overtakes it.}
+  \label{fig:setup}
+\end{figure}
+
+\textbf{The confirmatory tests.} Over budgets of one to ten trials, the area under the
+learning curve was larger with transfer for the typical patient (median difference
+\rqTwoHTwoAMedianDiff, mean \rqTwoHTwoADiff, CI \rqTwoHTwoADiffCiLo{} to
+\rqTwoHTwoADiffCiHi; $W = \rqTwoHTwoAW$, $p = \rqTwoHTwoAP$, $r = \rqTwoHTwoAR$).
+\textbf{H2a is \rqTwoHTwoACategory.} The advantage at five trials was larger than with the
+whole pool ($p = \rqTwoHTwoBP$): \textbf{H2b is \rqTwoHTwoBCategory}, which is the
+levelling-off in statistical form. Budget by budget, transfer was \rqTwoAdvantageKOneDiff{}
+points ahead at one trial (Holm-adjusted $p = \rqTwoAdvantageKOnePHolm$),
+\rqTwoAdvantageKFiveDiff{} at five ($p = \rqTwoAdvantageKFivePHolm$) and level at ten
+(\rqTwoAdvantageKTenDiff{} points, $p = \rqTwoAdvantageKTenPHolm$). Both results held
+without the development patients and on the post-therapy session ($p =
+\rqTwoHTwoAPostP$ and $\rqTwoHTwoBPostP$).
+
+\textbf{Per patient.} \rqTwoReachRestAhSfSixtyBoth{} patients reached 60\,\% with both
+methods; for them transfer needed a median of \rqTwoReachRestAhSfSixtyMedianSaved{}
+fewer trials of each movement. \rqTwoReachRestAhSfSixtyOnlyScratch{} reached it only
+from nothing, because transfer levelled off below it, \rqTwoReachRestAhSfSixtyOnlyTransfer{}
+only with transfer, and \rqTwoReachRestAhSfSixtyNeither{} with neither.
+
+\textbf{The network.} The pre-trained EEGNet was the strongest method at small budgets
+(Table~\ref{tab:calib}): \pct{\rqTwoRestAhSfEegnetEaFtKZeroMean} with no labelled trial
+and \pct{\rqTwoRestAhSfEegnetEaFtKFiveMean} with five, against
+\pct{\rqTwoRestAhSfEegnetScratchKFiveMean} for EEGNet trained from nothing. It too was
+caught only with the whole pool (\pct{\rqTwoRestAhSfEegnetScratchKAllMean} against
+\pct{\rqTwoRestAhSfEegnetEaFtKAllMean}). This comparison was a secondary one, and no
+claim rests on it alone. With five trials, the methods ranked in this order:
+pre-trained EEGNet, re-centred TS+LR, CSP+LDA, pooled TS+LR, MDM, TS+LR, re-centred MDM,
+EEGNet from nothing (Friedman test, $p = \rqTwoFriedmanRestAhSfKFiveP$).
+
+\begin{table}[tbp]
+  \centering
+  \caption[A new patient, three choices: accuracy by amount of practice]{A new patient, three choices: balanced accuracy (\%) by the number of practice
+  trials of each movement, mean over \nPre{} patients. Methods that start from nothing
+  need at least one trial of each class. Guessing scores 33.3\,\%.}
+  \label{tab:calib}
+  \small
+  \begin{tabular}{@{}lccccccc@{}}
+    \toprule
+    Trials of each movement & 0 & 1 & 2 & 3 & 5 & 10 & all \\
+    Practice (minutes) & -- & \rqTwoMinutesKOne & \rqTwoMinutesKTwo & \rqTwoMinutesKThree & \rqTwoMinutesKFive & \rqTwoMinutesKTen & \rqTwoMinutesKAll \\
+    \midrule
+    Re-centred TS+LR (transfer) & \rqTwoRestAhSfRctTslrKZeroMean & \rqTwoRestAhSfRctTslrKOneMean & \rqTwoRestAhSfRctTslrKTwoMean & \rqTwoRestAhSfRctTslrKThreeMean & \rqTwoRestAhSfRctTslrKFiveMean & \rqTwoRestAhSfRctTslrKTenMean & \rqTwoRestAhSfRctTslrKAllMean \\
+    TS+LR (from nothing) & -- & \rqTwoRestAhSfTsLrKOneMean & \rqTwoRestAhSfTsLrKTwoMean & \rqTwoRestAhSfTsLrKThreeMean & \rqTwoRestAhSfTsLrKFiveMean & \rqTwoRestAhSfTsLrKTenMean & \rqTwoRestAhSfTsLrKAllMean \\
+    Pre-trained EEGNet (transfer) & \rqTwoRestAhSfEegnetEaFtKZeroMean & \rqTwoRestAhSfEegnetEaFtKOneMean & \rqTwoRestAhSfEegnetEaFtKTwoMean & \rqTwoRestAhSfEegnetEaFtKThreeMean & \rqTwoRestAhSfEegnetEaFtKFiveMean & \rqTwoRestAhSfEegnetEaFtKTenMean & \rqTwoRestAhSfEegnetEaFtKAllMean \\
+    EEGNet (from nothing) & -- & \rqTwoRestAhSfEegnetScratchKOneMean & \rqTwoRestAhSfEegnetScratchKTwoMean & \rqTwoRestAhSfEegnetScratchKThreeMean & \rqTwoRestAhSfEegnetScratchKFiveMean & \rqTwoRestAhSfEegnetScratchKTenMean & \rqTwoRestAhSfEegnetScratchKAllMean \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\section{Can the Sixth Finger Be a Command of Its Own? (RQ3)}\label{sec:res-command}
+
+\textbf{Answer: as a ``move now'' switch, yes; as a command distinct from the hand, not
+yet.}
+
+\subsection{The planned test}
+In the planned scenario, the patient already had a hand model and added the sixth finger
+with $k$ trials. For detecting the new command against rest, transfer reached
+\pct{\rqThreeSfRestRctTslrKOneMean} with one sixth-finger trial against
+\pct{\rqThreeSfRestTsLrKOneMean} from nothing. Its advantage in area under the curve was
+not significant ($p = \rqThreeHThreeAP$, Holm-adjusted $\rqThreeHThreeAPHolm$), and on the
+three-class outcome it was small ($p = \rqThreeHThreeBP$). \textbf{H3 is
+\rqThreeHThreeACategory} on this session. It was supported on the post-therapy session
+($p = \rqThreeHThreeAPostP$), so it did not replicate.
+
+The pre-registered control changed how the switch must be read. The patient's own
+hand-versus-rest model, which never saw a sixth-finger trial and simply counts any imagined
+movement as ``sixth finger'', detected the sixth-finger windows at
+\pct{\rqThreeSfRestAhProxyMean}. That is better than the transfer model at two and at
+five trials (\pct{\rqThreeSfRestRctTslrKTwoMean} and \pct{\rqThreeSfRestRctTslrKFiveMean}).
+\textbf{H3c is \rqThreeHThreeCKTwoCategory}: the test asked whether the sixth-finger model
+adds anything over a detector of any imagery, and it does not. The models trained to
+detect the sixth finger also called most \emph{hand} windows ``sixth finger'' (the
+own-hand control \pct{\rqThreeHandAsFingerAhProxy}, transfer \pct{\rqThreeHandAsFingerRctTslrKFive}
+at five trials). As the pre-registration foresaw, we therefore claim no distinct
+sixth-finger command.
+
+\subsection{A closer look, after the plan (exploratory)}
+A follow-up analysis, decided before its test scores were seen but added after the
+planned results, asked the switch question directly (Figure~\ref{fig:switch}). TS+LR on
+the 14 central electrodes told sixth-finger imagery from rest
+\pct{\exFourTsLrCentralMean} of the time (\ci{\exFourTsLrCentralCiLo}{\exFourTsLrCentralCiHi});
+\exFourTsLrCentralNAtLeastEighty{} of the \nPre{} patients reached 80\,\% or more. Allowed to
+act only when sure, with a threshold set per patient on the practice runs, it was right
+on \pct{\exFourTsLrCentralSureMean} of the windows it acted on, and acted on
+\pct{\exFourTsLrCentralSureShare} of them. But the same switch also turned on for
+\pct{\exFourTsLrCentralFiresAhMean} of the imagined \emph{hand} movements, against
+\pct{\exFourTsLrCentralFiresSfMean} of sixth-finger ones and \pct{\exFourTsLrCentralFiresRestMean}
+of rest periods. It detects ``a movement is being imagined'', not ``the sixth finger''.
+Telling the hand from the sixth finger stayed hard: the best model, a pre-trained
+EEGNet fine-tuned on the patient, reached \pct{\exFourAhSfEegnetEaFtMean}.
+
+\begin{figure}[tbp]
+  \centering
+  \includegraphics[width=0.62\textwidth]{web/switch-patients.pdf}\\[4pt]
+  \includegraphics[width=0.62\textwidth]{web/switch-on.pdf}
+  \caption[The sixth finger as a switch (exploratory follow-up)]{The sixth finger as a switch (exploratory follow-up). Top: each patient's score
+  for sixth finger or rest, and for hand or sixth finger; the bar is the average and the
+  dashed line guessing. Bottom: how often the switch turns on, per window, while the
+  patient rests, imagines the hand, or imagines the sixth finger. It separates movement
+  from rest, not the two movements.}
+  \label{fig:switch}
+\end{figure}
+
+\section{What Did the Exploratory Analyses Add?}\label{sec:res-explore}
+
+\textbf{Answer: a model needs a short top-up each day; as a live switch it catches
+\pct{\rqFourSwitchDetectMin} to \pct{\rqFourSwitchDetectMax} of imagined movements; and none of the later ideas made hand and sixth finger
+separable.} No result in this section was pre-registered.
+
+\textbf{Another day (RQ4).} A model built before therapy and used unchanged scored
+\pct{\rqFourLaterPostUnchangedMean} two weeks later and \pct{\rqFourLaterFollowUnchangedMean}
+a month after that, on three choices (Figure~\ref{fig:later}). Five new practice trials of
+each movement on the new day, combined with the old data, brought it back to
+\pct{\rqFourLaterPostRecentredKFiveMean} and \pct{\rqFourLaterFollowRecentredKFiveMean}, close
+to the \pct{\rqFourLaterPostWithinPostMean} of a model built entirely on the new day.
+
+\begin{figure}[tbp]
+  \centering
+  \begin{minipage}[b]{0.48\textwidth}\centering
+    \includegraphics[width=\linewidth]{web/later.pdf}\\[2pt]{\footnotesize (a) unchanged}
+  \end{minipage}\hfill
+  \begin{minipage}[b]{0.48\textwidth}\centering
+    \includegraphics[width=\linewidth]{web/later-adjusted.pdf}\\[2pt]{\footnotesize (b) after 5 trials of each on the new day}
+  \end{minipage}
+  \caption[Does a model still work another day?]{Does a model still work another day? (a) The first day's model used unchanged
+  on the same day, two weeks later and a month later, three choices; the dotted line is
+  guessing. (b) The same after a short top-up of practice on the new day.}
+  \label{fig:later}
+\end{figure}
+
+\textbf{Swapping sides (RQ4).} Mirroring the electrodes of patients with a weak left hand,
+so that every patient's affected side lines up, did not help transfer: it changed the
+three-class score by \rqFourMirrorRctTslrDiffMin{} to \rqFourMirrorRctTslrDiffMax{} points
+for re-centred TS+LR, and no difference was significant (smallest Holm-adjusted $p =
+\rqFourMirrorPHolmMin$). This fits the weakening on both sides of the head seen in
+Section~\ref{sec:res-erd}.
+
+\textbf{Running continuously (RQ4).} We replayed each patient's test runs as one
+unbroken signal, read every half second, through the demonstrator's command gate, with
+no cue telling the model when to look. As a separate sixth-finger command, it fired in
+only \pct{\rqFourReplayFingerDetectMin} to \pct{\rqFourReplayFingerDetectMax} of the
+sixth-finger periods, so the expectation of H4 did not hold. As one switch for any
+imagined movement, it caught \pct{\rqFourSwitchDetectMin} to \pct{\rqFourSwitchDetectMax}
+of the imagery periods, with \rqFourSwitchFalsePerMinMin{} to \rqFourSwitchFalsePerMinMax{}
+false switch-ons per minute of rest, about \rqFourSwitchLatencyMin{} to
+\rqFourSwitchLatencyMax{} seconds after the cue. That is much closer to usable, but false switch-ons at rest are still too frequent for a
+device.
+
+\textbf{Is it the picture on the screen?} Rest is recorded while a cross is shown and
+imagery while a picture is shown, so a model might read the screen rather than the
+imagined movement. With only the 14 central electrodes, sixth finger against rest reached
+\pct{\rqFourCueSfRestCentralMean}; with only the five electrodes over the visual cortex,
+\pct{\rqFourCueSfRestParietoOccipitalMean}. The switch is carried mainly by the motor
+area, though a visual part cannot be ruled out. For hand against sixth finger the visual
+electrodes did at least as well (\pct{\rqFourCueAhSfParietoOccipitalMean} against
+\pct{\rqFourCueAhSfCentralMean}), so part of that weak signal may be the two pictures
+rather than the two movements.
+
+\textbf{Follow-ups after the planned study.} Five further analyses were added after every
+confirmatory result was known. Each fixed its settings before scoring, but none was
+pre-registered, and all are exploratory. Table~\ref{tab:followups} summarises them; the
+fourth is the switch of Section~\ref{sec:res-command}.
+
+\begin{table}[tbp]
+  \centering
+  \caption[Follow-up analyses added after the planned study (exploratory)]{Follow-up analyses added after the planned study (exploratory). All use the
+  pre-therapy session, learning on runs 1 and 2 and testing on runs 3 and 4, $n = \nPre$.
+  Differences are in percentage points.}
+  \label{tab:followups}
+  \small
+  \begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{3.7cm}>{\raggedright\arraybackslash}X@{}}
+    \toprule
+    Question & What we found \\
+    \midrule
+    1. Can more data per decision separate hand and sixth finger? & Cutting more pieces from each trial: \exOneCropsVsTsLrDiff{} points. Adding another session: \exOneRctPooledVsPostOnlyDiff. A network pre-trained on the other patients and fine-tuned: \pct{\exOneArmBVsTsLrArmMean}, \exOneArmBVsTsLrDiff{} above TS+LR ($p = \exOneArmBVsTsLrP$), but only \pct{\exOneArmBVsTsLrCentralArmMean} from the central electrodes alone. \\
+    2. Do the raw recordings hold more? & Slow waves of all 59 raw channels: \pct{\exTwoSlowFiftyNineMean} against \pct{\exTwoBaseMean} ($p = \exTwoSlowFiftyNineVsBaseP$), but only \pct{\exTwoSlowCentralMean} from the central electrodes; not clearly from the movement area, and an open question. \\
+    3. Does healthy grasp imagery help pre-training? & No: \pct{\exThreeArmGpVsArmBArmMean} against \pct{\exThreeArmGpVsArmBBaseMean} ($p = \exThreeArmGpVsArmBP$). Healthy people told two grasps of one hand apart across days at only \pct{\exThreeBenchCylindricalSphericalTsLrMean} to \pct{\exThreeBenchCylindricalLumbricalTsLrMean}. \\
+    4. Is the sixth finger a command of its own? & As a switch against rest, \pct{\exFourTsLrCentralMean}; but it also fires for \pct{\exFourTsLrCentralFiresAhMean} of hand imaginings (Section~\ref{sec:res-command}). \\
+    5. Does that switch do better live? & Replayed continuously it caught \pct{\exFiveMoveDetectMean} of imagery periods with \exFiveMoveFalsePerMinMean{} false switch-ons per minute, against \pct{\exFiveEegnetScratchDetectMean} and \exFiveEegnetScratchFalsePerMinMean{} for the demonstrator's EEGNet: fewer mistakes, but no more catches, so the demonstrator keeps EEGNet. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\section{Does the Demonstrator Work?}\label{sec:res-demo}
+
+\textbf{Answer: yes.} The trained model runs live on a real patient's held-out recording,
+on a server or in any browser, and its decisions move the drawn hand.
+
+The demonstrator's model is EEGNet, the calibration study's best method with the whole
+practice pool (\pct{\demoChoiceEegnetScratchMean} on three choices), trained on runs 1 and 2
+of patient \demoSubject. The protocol picks the patient whose score lies closest to the
+group's median (\pct{\demoCohortMedianAcc}), so that the demonstration is typical rather
+than the best case. With an even number of patients the median falls halfway between the
+two middle ones, \demoSubject{} (\pct{\demoChosenByAcc}) and \demoTieSubject{}
+(\pct{\demoTieAcc}); the tie was broken in favour of the one with more whole held-out
+trials. On the
+\demoTrials{} whole held-out trials it carries, the model scored \pct{\demoHeldOutAcc} on
+three choices. Read as a switch, it told movement from rest in \demoMoveRestRight{} of
+\demoMoveRestN{} windows (\pct{\demoMoveRestAcc}); hand from sixth finger, in
+\demoHandFingerRight{} of \demoHandFingerN{} (\pct{\demoHandFingerAcc}). These are one
+patient's numbers and are higher than the group's; the group results above are the ones
+to quote.
+
+The exported model gives the same answers as the original: the largest difference was
+\demoParityRandom{} on random input, \demoParityReal{} on real windows and
+\demoParityMethod{} end to end. The browser's decisions equal the stored ones to within
+$10^{-4}$. One window takes \TBD{demoInferenceMedianMs} to decide on the laptop, far less
+than the 0.5 seconds between readings. The failure paths were tested on purpose: with the
+server down the page moved to the browser within seconds; with the network cut it still
+decoded; it showed no sideways scrolling from 320 to 1920 pixels wide; and the live site
+passed in Chromium, Firefox, WebKit and an iPhone profile. Figure~\ref{fig:qr} gives the
+link.
+
+\begin{figure}[tbp]
+  \centering
+  \qrcode[height=2.6cm]{https://sixthfinger.rajveers.com}\\[6pt]
+  {\small\url{\siteURL}}
+  \caption[The live website and demonstrator]{The live website and demonstrator. Scan with a phone camera; the demonstrator
+  alone is at \code{/live}.}
+  \label{fig:qr}
+\end{figure}
+
+\section{Discussion}\label{sec:discussion}
+
+\subsection{Why the published number was high}
+CSP is a supervised step: it picks the filters that best separate the labelled trials it
+is given. With 40 electrodes and a few dozen trials per class, there is enough freedom to
+separate even noise, so when the test trials are among those it is given, it separates
+them too~\cite{kapoor2023,varoquaux2017}. The pattern in Table~\ref{tab:rqone} is the
+signature of this: the more an early step learned from labels, the larger the gap, and
+steps that never saw a label showed none. This is a common, subtle pitfall, not a sign of
+bad faith. The authors released their data and code, and that openness is what made this
+check possible. For anyone using the dataset, the lesson is simple: fit every step that
+sees labels inside the training data, split by run or session, and report the fair score
+next to any comparison with the published one.
+
+\subsection{What calibration really costs}
+Transfer bought time, not accuracy. A new patient got from the other patients what ten
+trials of their own would give, after one trial of each movement. But the transfer model
+then hardly moved, and from about ten trials of each the patient's own model was better.
+Our reading, which we did not test, is that with a target weight of one the thousands of
+other patients' windows outweigh the newcomer's few dozen, so the model stays mostly
+theirs. A weight that grows as practice accumulates is the obvious next design. Stroke
+makes transfer hard in any case: lesions differ in place and size, and EEG responses vary
+with lesion location~\cite{park2016}. The day-to-day results add a practical point:
+calibration is not a one-off. A short top-up at the start of each session is part of the
+cost of using such a device. These findings agree with transfer studies in healthy
+people~\cite{he2020,zanini2018,wu2022review}, which also report the largest gains when
+the new user's data is scarce.
+
+\subsection{What the sixth finger can be}
+The data support a switch, not a second command. Imagery against rest was read well, and
+the patient's own hand model detected sixth-finger imagery as well as any sixth-finger
+model did. Telling the two imagery types apart stayed between \pct{\rqOneCspLdaCvLeakfreeMean} and
+\pct{\exFourAhSfEegnetEaFtMean} under every fair test, and the follow-ups did not change that. Two observations suggest this is not only a
+weakness of our models. The rhythm fell almost equally for both imagery types, and
+healthy people could not tell two grasps of one hand apart across days either. For a
+wearable sixth finger, a reliable ``move now'' switch may be enough: the finger has one
+job, to close the grip. Such a switch must still make fewer false movements than the
+current one makes at rest.
+
+\section{Limitations}\label{sec:limits}
+
+\begin{itemize}
+  \item \textbf{One centre, few patients.} The \nSubjects{} patients came from one hospital
+  (\nPre{} in the main tests), so the results may not hold for other sites, devices or kinds
+  of stroke. Per-patient results are shown for that reason.
+  \item \textbf{Offline only.} Calibration was simulated on recorded runs, with no feedback
+  to the patient. The continuous replay is closer to real use but is not a closed-loop
+  test.
+  \item \textbf{Someone else's cleaning.} The authors cleaned the data partly by hand,
+  possibly using all trials of a session, and this cannot be repeated exactly.
+  \item \textbf{The screen may help the switch.} Rest and imagery were recorded in front of
+  different pictures, and the robotic finger was worn during sixth-finger imagery. The
+  cue check reduces this concern for the switch but does not remove it.
+  \item \textbf{Two development patients.} The transfer settings were chosen on sub-01 and
+  sub-03, who are also among the tested patients; the results without them agree.
+  \item \textbf{The published number is not reproduced exactly.} The replica overshoots it;
+  we reproduce the size of the leak, not the value.
+  \item \textbf{Exploratory parts.} The follow-ups were added after the planned results;
+  their many comparisons are uncorrected, and they guide future work rather than prove
+  anything.
+  \item \textbf{No hardware.} The demonstrator replays recorded EEG and moves a drawn hand.
+\end{itemize}
+
+\section{Chapter Summary}
+The published accuracy came from a leak; tested fairly, hand and sixth finger are only
+weakly separable, while imagery against rest is read well. Learning from other patients
+gives a new patient a usable start almost at once, but a patient's own model overtakes it
+once about \rqTwoMinutesKTen{} minutes of practice are available. The sixth finger works as a ``move now'' switch,
+not as a command distinct from the hand. The demonstrator shows the trained model at work
+on a real patient's recording. The last chapter draws these threads together.
