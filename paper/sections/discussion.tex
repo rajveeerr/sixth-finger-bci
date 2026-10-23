@@ -1,11 +1,67 @@
 \section{Discussion}
-% Include the demo-to-physical-limb argument, with Fig.~\ref{fig:layers} if space allows.
+\label{sec:discussion}
 
-\begin{figure*}[t]
-  \centering
-  \includegraphics[width=0.9\textwidth]{figures/fig-demo-vs-real.pdf}
-  \caption{Layers of a BCI-controlled limb. Layers L1--L5 (intent to command) are implemented with real patient data and the trained decoder; the demonstrator replaces the motor controller and actuator (L6--L7) with an animated 3D hand. A physical robotic finger would consume the same commands.}
-  \label{fig:layers}
-\end{figure*}
+\emph{Transfer gives a fast start, not a better decoder.} With transfer,
+\rqTwoMinutesKOne\,min of trials gave a new patient the three-class accuracy
+that a decoder from scratch reached only after ten trials of each movement,
+\rqTwoMinutesKTen\,min. By ten trials the lead was gone, and with the whole pool the
+decoder from scratch was ahead. Transfer shortens calibration for healthy
+users of conventional commands~\cite{zanini2018,he2020,wu2022review}; here it
+did so only for the first few trials. These curves suggest starting a session
+with transfer and switching to the patient's own decoder once about ten
+trials of each movement are recorded. We did not test that schedule.
 
-\TBD{P13}
+\emph{Why transfer levels off.} Our reading, which we did not test, is that
+the other patients' thousands of windows outweigh the patient's few dozen,
+so the classifier stays mostly theirs. The pre-registered rule chose the
+smallest target weight, on two patients whose candidates scored within a
+point of each other; a weight that grows with $k$ may let transfer keep
+learning. Stroke also makes patients unlike each other, since EEG responses
+vary with lesion location~\cite{park2016}, and mirroring lesions to one side
+did not help. The deep pair levelled off the same way, so the plateau is not
+specific to one classifier.
+
+\emph{The fair test.} The inflation is a property of the procedure: the same
+code inflated accuracy on two healthy datasets. It says nothing about the
+quality of the recordings, and the release of the data and code is what made
+the check possible. Users of the dataset should fit every supervised step
+inside the training folds, split by run, and report the fair figure next to
+the published one. Tested fairly, hand and sixth finger are only weakly
+separable in this EEG.
+
+\emph{A switch, not yet a sixth finger.} No distinct sixth-finger command was
+shown, and none was ruled out. The pre-registered control found that a
+decoder which never saw a sixth-finger trial detects one as well, and the
+detectors fire for imagined hand movement too. Mu desynchronisation at C3 was
+slightly stronger for the sixth finger (\edaErdMuCThreeSfMean\,\% against
+\edaErdMuCThreeAhMean\,\%, $p = \edaErdMuCThreeSfMinusAhP$,
+$n = \edaErdMuCThreeN$, exploratory), but
+a difference in strength alone would not make the two separable. What the
+data support is one ``move now'' switch. It also needs new calibration each
+day; the patient's own earlier session, re-centred and topped up with five
+trials of each movement, is the practical form of the fast start.
+
+\emph{Limitations.} The \nSubjects{} patients came from one centre, which
+limits how far these results generalise. All evaluation is offline or
+pseudo-online (replayed), never closed-loop with a patient. The novel
+command was imagined, with the robotic finger worn but not driven by the
+decoder. We show per-patient results (Figs.~\ref{fig:leak}
+and~\ref{fig:switch}, the counts of $k^*$), not only means. Two limitations
+were declared in the pre-registration. Rest windows may contain the beta
+rebound that follows imagery, so accuracies that involve rest are upper
+bounds for self-paced rest. The difference in desynchronisation between
+sixth finger and hand is spatially diffuse, so sixth-finger decodability may
+reflect the intensity of imagery rather than a distinct motor map. Rest was
+also recorded with a cross on screen and imagery with a picture. The switch
+was carried more by the central channels (\rqFourCueSfRestCentralMean\,\%)
+than by five parieto-occipital ones (\rqFourCueSfRestParietoOccipitalMean\,\%),
+so the picture is not its main source, but a visual part is not ruled out.
+The authors' preprocessing included manual steps that cannot be repeated
+exactly. With \nPre{} patients the tests can detect only medium or large
+effects, so the inconclusive H3 and H3c are not evidence of no effect.
+
+\emph{Future work.} A closed-loop study in which the decoder drives the
+finger is the next test. Other stroke datasets~\cite{liu2024acute,lu2026chronic},
+EEG foundation models~\cite{jiang2024labram,wang2025cbramod} and pre-training
+on healthy people's imagery (a first exploratory attempt did not help) may
+lift the plateau.
