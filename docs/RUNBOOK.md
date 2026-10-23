@@ -26,7 +26,8 @@ module are harmless.
 | Download + verify | `make data` | now | downloads `processeddata.zip` (3.5 GB, resumable), checks md5 `7a3138c1…`, unzips, verifies, deletes the zip | `data/processed/` has 268 `.mat` files |
 | Re-verify | `make verify-data` | now | `OK: 268 .mat files, sizes match processeddata_listing.tsv` | exit code 0 |
 | Integrity audit | `make audit` | P02 | writes `results/audit/inventory.csv`, `event_flags.csv`, `near_duplicates.csv`, `raw_crc_duplicates.csv`, `audit_report.md` | sub-02 post/follow pairs at r ≥ 0.9; 8 duplicate groups in the raw archive |
-| Cut windows | `make epochs` (subset: `make epochs SUBJECTS=sub-01,sub-03`) | P03 | `data/derived/epochs/*.npz` (64 files), `metadata.parquet`, `manifest.json`, `results/audit/epoch_counts.csv` | 9615 windows of shape (40, 1000); `doctor` shows 64 cached session files |
+| Cut windows | `make epochs` (subset: `make epochs SUBJECTS=sub-01,sub-03`) | P03 | `data/derived/epochs/*.npz` (64 files), `metadata.parquet`, `manifest.json`, `results/audit/epoch_counts.csv`, `epoch_drops.csv`, `epoch_trials.csv` | 9615 windows of shape (40, 1000); `doctor` shows 64 cached session files |
+| Count them again | `uv run sixthfinger epochs counts` | now | rewrites the three `results/audit/epoch_*.csv` from the cache's tables in a second, without cutting | 5061 trials; the window counts unchanged |
 
 If the download stops, run `make data` again; it resumes. Never use figshare's
 "Download all".
@@ -89,6 +90,23 @@ Summaries and figures:
 | `uv run python scripts/summarise_calibration.py` | P08 | `results/summary/calib_*`, `rq3_sf_vs_ah.csv`, `docs/figures/rq2_*`, `rq3_*` |
 | `uv run python scripts/summarise_rq4.py` | P09 | `results/summary/rq4_mirror*`, `docs/figures/rq4_mirror_effect` |
 | `uv run python scripts/pseudo_online.py --summarise` | P09 | `results/summary/rq4_pseudo_online*`, `docs/figures/rq4_pseudo_online` |
+| `uv run python scripts/summarise_dl.py` | P07 | `results/summary/dl_*` (with `dl_summary.json` and `dl_class_recall.csv`), `results/audit/pretrain*`, `docs/figures/dl_*` |
+
+The group numbers the text quotes, written by each analysis's own summary step from the stored
+per-patient values, without fitting anything (add `--no-figures` where the script draws
+figures, to leave them alone): `make_eda_figures.py --summary-only` (`eda_erd_summary.csv`),
+`rq4_longitudinal.py --summary-only` (`rq4_longitudinal_reference.csv`),
+`make_explain_figures.py --summary-only` (`rq4_pattern_share_summary.csv`),
+`check_visual_cue.py --summary-only` (`rq4_visual_cue_paired.csv`),
+`ex2_slow_waves.py --part shifts` (`ex2_slow_waves_alignment_shifts.csv`),
+`make_web_explain_data.py --facts-only` (`demo_page.json`, the model's size and its two
+readings from the demo bundle); `summarise_rq1.py`, `summarise_dl.py`,
+`summarise_calibration.py`, `summarise_rq4.py`, `pseudo_online.py --summarise` and
+`rq5_depression.py summarise` write theirs on every run. After re-running any of them,
+`uv run python scripts/compare_summaries.py <ref> --record results/summary/summary_rerun_repro.csv`
+compares every file of `results/summary/` and `results/audit/` with the commit before, byte for
+byte, and the old columns of a table value by value; exit code 0 means nothing but new files and
+new columns appeared.
 
 Exploratory follow-ups, added after the results (deviation log, 2026-10-23). Each script
 reads its settings from `configs/experiments/<name>.yaml`, fixed before any score on runs
@@ -166,7 +184,7 @@ How to verify the demo is honest and working:
 
 | Step | Command | Available | Expected result |
 |------|---------|-----------|-----------------|
-| Paper numbers | `uv run python scripts/make_paper_numbers.py` | now | rewrites `paper/generated/numbers.tex` (one macro per number, about 4300) and `paper/generated/numbers-index.md` (each macro's value, meaning and source file) in a second; prints the macros the paper or report use that it does not make, which the PDFs show as red TBDs |
+| Paper numbers | `uv run python scripts/make_paper_numbers.py` | now | rewrites `paper/generated/numbers.tex` (one macro per number, about 5000) and `paper/generated/numbers-index.md` (each macro's value, meaning and source file) in a second; prints the macros the paper or report use that it does not make, which the PDFs show as red TBDs |
 | Check they are current | `uv run python scripts/make_paper_numbers.py --out /tmp/numbers.tex --index /tmp/numbers-index.md && diff /tmp/numbers.tex paper/generated/numbers.tex` | now | no output; `tests/test_paper_numbers.py` fails in `make check` when the committed files are stale |
 | Web figures | `make web-figures` (or `npm --prefix web run figures`; add `-- leak setup` for some, `-- --no-build` to reuse the last build) | now | under a minute (needs `uv` the first time); writes `docs/figures/web/` (PDF, 3x PNG, SVG where pure) and copies the paper's to `paper/figures/web/`; commit web changes first, look at the PNGs, then commit both folders together |
 | Paper PDF | `make paper` | now (skeleton) | `paper/build/main.pdf`; red TBD markers where the text has no number yet |
