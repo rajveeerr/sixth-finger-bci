@@ -43,6 +43,21 @@ export function DocList({ text = {} }: { text?: Record<string, string> }) {
   );
 }
 
+/** The same files as one quiet line of links, for the demo alone on its screen. */
+export function DocLinks() {
+  return (
+    <ul className="doc-links" aria-label={READ_TITLE}>
+      {FILES.map((f) => (
+        <li key={f.file}>
+          <a href={f.href} download={downloadAs(f)}>
+            <b>{f.name}</b>, {f.format}, {fileSize(f.bytes)}
+          </a>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 /** The paper, the slides and the report, at the end of the page and linked from its opening. */
 export function Documents() {
   return (

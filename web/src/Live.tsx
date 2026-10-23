@@ -1,6 +1,7 @@
 import { DemoStage } from "./components/DemoStage";
 import { ManualTestBanner } from "./components/ManualTestBanner";
 import { data } from "./explain/data";
+import { DocLinks } from "./explain/Documents";
 import { useDemoStream } from "./stream/useDemoStream";
 
 /** The demo alone on one screen (/live), for presenting; the full page explains it. */
@@ -17,9 +18,10 @@ export function Live() {
           <p>Patient {patient}&apos;s last two runs, which the model never trained on, played at real speed.</p>
         </header>
         <DemoStage stream={stream} />
-        <p className="live-foot">
+        <footer className="live-foot">
           <a href={import.meta.env.BASE_URL}>The whole project, explained</a>
-        </p>
+          <DocLinks />
+        </footer>
       </main>
       <ManualTestBanner />
     </div>
