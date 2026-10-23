@@ -102,6 +102,7 @@ reads its settings from `configs/experiments/<name>.yaml`, fixed before any scor
 | Raw recordings: slow waves and all 59 channels | `uv run python scripts/ex2_slow_waves.py --part fetch` (reads 1.7 GB from the remote archive, keeps 1.0 GB of cut windows in `data/derived/raw_windows/`), then `--part align`, `--part score`, `--part summary`, `--part posthoc` | Mac | 10 min after the download |
 | Pre-training with healthy grasp imagery | `uv run python scripts/ex3_grasp_pretraining.py --part fetch` (4.2 GB from OSF), then the parts listed in the script, from `--part convert` to `--part summary` | Mac (MPS for pre-training) | 13 h, most of it the GP pre-training |
 | The sixth finger as its own command | `uv run python scripts/ex4_sf_command.py --part inner_classical`, then `--part inner_eegnet`, `--part select`, `--part test_classical`, `--part test_eegnet`, `--part summary` | Mac (CPU) | 3 min classical; 80 min EEGNet |
+| The central switch played as if live | `uv run python scripts/ex5_live_switch.py --part repro` (question 4's `ts_lr` again; must match), then `--part inner`, `--part select`, `--part test`, `--part summary` | Mac (CPU) | about 1.5 min in all |
 
 When these were moved into the repository, the cheap parts were re-run and the expensive
 EEGNet parts were brought over from the first run (`--part carry --research <folder of that
@@ -109,6 +110,13 @@ run>`), each row keeping the commit that made it (`git_sha`) and the commit that
 (`source_commit`); the EEGNet parts with `--subjects` re-run some or all patients beside the
 stored values. `--part repro --research <folder of that run>` compares every output with the
 first run cell by cell and writes `results/summary/<name>_repro.csv`.
+
+The fifth, `ex5_live_switch`, was written in the repository from the start and has no first
+run to compare with. Its `--part repro` instead fits question 4's `ts_lr` again and replays
+it with the new code; every patient's values must equal `rq4_pseudo_online_switch.csv`, or
+the arms are never replayed. It reads the stored replays of question 4 in
+`results/runs/rq4_pseudo_online/replay/` (made by `scripts/pseudo_online.py`) for the
+baselines' hand and sixth-finger periods.
 
 How to verify a result: every row of every scores file carries `git_sha`,
 `config_hash` and `data_manifest_sha`. Runs made on the development machine
