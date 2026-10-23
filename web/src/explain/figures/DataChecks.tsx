@@ -1,4 +1,3 @@
-import { LINKS } from "../links";
 
 // What we found wrong in the published data and analysis, how, and what we did about it,
 // one line each until the reader opens one. Source: results/audit/audit_report.md and the
@@ -60,8 +59,7 @@ export function DataChecks() {
       </ol>
       <p className="checks-note">
         Open a row for what was wrong and how we found it. We decided what to drop before looking at any result, so the
-        choice could not push any result up. The full record is in our <a href={LINKS.audit.url}>data audit report</a>{" "}
-        and <a href={LINKS.card.url}>dataset card</a>.
+        choice could not push any result up. The full record is in the report (chapter 3, the integrity audit).
       </p>
     </div>
   );

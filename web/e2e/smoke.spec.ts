@@ -84,11 +84,11 @@ test("the benchmark puts every headline score in one table, the best of each row
   await expect(bench.locator(".bench-lines dt")).toHaveText(["Setting up", "Another day", "Live", "The leak", "Model size"]);
 });
 
-test("the paper and the slides are linked from the opening and served by the site", async ({ page, request }) => {
+test("the paper, the slides and the report are linked from the opening and served by the site", async ({ page, request }) => {
   await page.goto("/?server=http://127.0.0.1:9");
   await expect(page.locator(".hero-read a")).toHaveAttribute("href", "#read");
   const read = page.locator("#read");
-  await expect(read.locator("h2")).toHaveText(/^Read the paper and the slides/);
+  await expect(read.locator("h2")).toHaveText("Read the paper, the slides and the report");
   await expect(read.getByRole("link", { name: /^Paper, PDF, \d+\.\d MB$/ })).toHaveAttribute(
     "href",
     "/docs/sixth-finger-bci-paper.pdf",
@@ -98,12 +98,14 @@ test("the paper and the slides are linked from the opening and served by the sit
     "download",
     "sixth-finger-bci-slides.pptx",
   );
-  await expect(read.getByRole("link", { name: "Code, on GitHub" })).toHaveAttribute(
+  await expect(read.getByRole("link", { name: /^Report, PDF, \d+\.\d MB$/ })).toHaveAttribute(
     "href",
-    "https://github.com/rajveeerr/sixth-finger-bci",
+    "/docs/sixth-finger-bci-report.pdf",
   );
+  // The code is private, so nothing on the page links into the repository.
+  await expect(page.locator("a[href*='github.com']")).toHaveCount(0);
   const hrefs = await read.locator("a[href^='/docs/']").evaluateAll((links) => links.map((a) => a.getAttribute("href")));
-  expect(hrefs.length).toBeGreaterThanOrEqual(2);
+  expect(hrefs.length).toBeGreaterThanOrEqual(3);
   for (const href of hrefs) {
     const res = await request.get(href!);
     expect(res.ok()).toBe(true);

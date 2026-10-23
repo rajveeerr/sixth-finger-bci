@@ -1,5 +1,4 @@
 import { FILES, fileSize, READ_TITLE } from "./siteDocs";
-import { LINKS } from "./links";
 
 /** A sheet with its corner folded and its format on it, so a download reads as one at a glance. */
 function Sheet({ label }: { label: string }) {
@@ -16,7 +15,7 @@ function Sheet({ label }: { label: string }) {
 
 const SHORT: Record<string, string> = { PDF: "PDF", PowerPoint: "PPT" };
 
-/** The paper, the slides and the code, at the end of the page and linked from its opening. */
+/** The paper, the slides and the report, at the end of the page and linked from its opening. */
 export function Documents() {
   return (
     <section className="read" id="read" aria-labelledby="read-title">
@@ -36,17 +35,6 @@ export function Documents() {
             </div>
           </li>
         ))}
-        <li>
-          <Sheet label="</>" />
-          <div>
-            <p className="doc-head">
-              <a href={LINKS.code.url}>
-                <b>Code</b>, on GitHub
-              </a>
-            </p>
-            <p className="doc-text">{LINKS.code.note}</p>
-          </div>
-        </li>
       </ul>
     </section>
   );

@@ -1,7 +1,5 @@
-// Everything the page refers to, in one place. The repository links point at the public
-// copy of this project.
-
-const REPO = "https://github.com/rajveeerr/sixth-finger-bci";
+// Everything the page refers to, in one place. The project's code is private (available from
+// the authors on request), so nothing here points into it.
 
 export const LINKS = {
   paper: {
@@ -28,20 +26,5 @@ export const LINKS = {
     url: "https://doi.org/10.1002/acn3.544",
     title: "BCI therapy after stroke",
     note: "Cervera et al., \"Brain-computer interfaces for post-stroke motor rehabilitation: a meta-analysis\", Annals of Clinical and Translational Neurology (2018).",
-  },
-  code: {
-    url: REPO,
-    title: "Our code and results",
-    note: "Everything behind this page: the analysis, the tests, the model and this demo.",
-  },
-  audit: {
-    url: `${REPO}/blob/main/results/audit/audit_report.md`,
-    title: "Our data audit",
-    note: "Every pair of runs we compared and what we dropped.",
-  },
-  card: {
-    url: `${REPO}/blob/main/docs/dataset-card.md`,
-    title: "Dataset card",
-    note: "The dataset in one page: patients, task, signals and known issues.",
   },
 };

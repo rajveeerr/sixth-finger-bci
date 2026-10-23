@@ -21,8 +21,7 @@ export function TheData() {
       <Session />
       <More label="What is in it" what="the 40 sensors, one trial as the patient sees it, and four problems we found">
         <p className="more-lede">
-          The recordings are <a href={LINKS.data.url}>free to download</a>, and our{" "}
-          <a href={LINKS.card.url}>dataset card</a> sums them up in one page.
+          The recordings are <a href={LINKS.data.url}>free to download</a>.
         </p>
         <HeadMap />
         <PatientSees />
