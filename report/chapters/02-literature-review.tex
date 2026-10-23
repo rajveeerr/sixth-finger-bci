@@ -1,24 +1,361 @@
-\chapter{Literature Review}
-\section{Motor-Imagery Brain--Computer Interfaces}
-\begin{figure}[h]
+\chapter{Literature Review}\label{ch:lit}
+% Source: _workspace/report-material/02-literature-review.md, rewritten. Citations only from
+% paper/references.bib. No result of this project appears here; Chapter 4 reports them.
+
+This chapter reviews the work our project builds on. It follows the questions a reader
+would ask, in order: how a brain--computer interface reads imagined movement
+(Section~\ref{sec:lit-mi}), how the signals are decoded (Section~\ref{sec:lit-decoding}), how
+the practice a new user must give can be shortened (Section~\ref{sec:lit-transfer}), what is
+known about extra robotic fingers and imagining them (Section~\ref{sec:lit-sixth}), what such
+systems offer after a stroke (Section~\ref{sec:lit-stroke}) and what can go wrong when their
+accuracy is measured (Section~\ref{sec:lit-pitfalls}). Two tables summarise the main studies,
+and the chapter ends with the gaps this project addresses.
+
+\section{Motor-Imagery Brain--Computer Interfaces}\label{sec:lit-mi}
+
+A \emph{brain--computer interface} (BCI) is a system that turns measured brain activity into
+a command for a machine. Wolpaw and colleagues defined it as a channel of communication
+that does not depend on the brain's normal outputs, the nerves and muscles of the
+body~\cite{wolpaw2002}. Early BCIs were built for people who are almost completely
+paralysed, for whom any reliable channel matters~\cite{kubler2001}.
+
+Most non-invasive BCIs use the \emph{electroencephalogram} (EEG). EEG is the record of tiny
+voltages picked up by electrodes placed on the scalp. It is safe, cheap and portable, which
+is why it can be used outside a laboratory. It is also weak and noisy: the skull blurs the
+signal, and the muscles and the eyes add voltages of their own.
+
+In a \emph{motor-imagery} (MI) BCI the user imagines a movement without making it. The
+motor cortex, the strip of the brain that plans and controls movement, produces rhythmic
+activity when it is idle: the mu rhythm, at about 8 to 13 cycles per second, and the beta
+rhythm, at about 13 to 30. When a person moves or imagines moving, these rhythms weaken over
+the part of the cortex that controls the body part. This drop in power is called
+\emph{event-related desynchronisation} (ERD). When the movement ends, the rhythm often comes
+back stronger than before, which is called \emph{event-related synchronisation}
+(ERS)~\cite{pfurtscheller1999}.
+
+Imagined movements of different body parts can be told apart because the motor cortex is
+laid out like a map of the body (Figure~\ref{fig:homunculus}). The hand, the foot and the
+tongue each have their own region, and each half of the brain controls the opposite side of
+the body. Imagining the right hand therefore weakens the rhythm over the left half of the
+brain more than over the right. Pfurtscheller and colleagues showed that such differences
+can be classified from single trials and used as commands
+\cite{pfurtscheller2001,pfurtscheller2006}.
+
+\begin{figure}[tbp]
   \centering
-  \includegraphics[width=0.55\textwidth]{external/motor-homunculus.png}
-  \caption{The motor homunculus: body parts are controlled by neighbouring regions of the motor cortex, which is why imagined hand movement changes EEG over central electrodes. Image: Ralf Stephan, Wikimedia Commons, CC BY-SA 4.0.}
+  \includegraphics[width=0.5\textwidth]{external/motor-homunculus.png}
+  \caption[The motor homunculus]{The motor homunculus. Look at how the hand and the fingers take up a large region
+  of the motor cortex of their own, between the arm and the face: imagining a hand movement
+  changes the EEG over this region, which lies under the central electrodes (C3, Cz, C4).
+  Image: Ralf Stephan, Wikimedia Commons, CC BY-SA 4.0.}
   \label{fig:homunculus}
 \end{figure}
-\TBD{P14}
-\section{Decoding Methods}
-\TBD{P14}
-\section{Calibration and Transfer Learning}
-\TBD{P14}
-\section{Supernumerary Limbs and Sixth-Finger Motor Imagery}
-\TBD{P14}
-\section{Brain--Computer Interfaces in Stroke Rehabilitation}
-\TBD{P14}
-\section{Evaluation Pitfalls}
-\TBD{P14}
-\section{Summary of Reviewed Studies}
-% Table: study, task, population, method, result, limitation.
-\TBD{P14}
-\section{Research Gap}
-\TBD{P14}
+
+Motor imagery does not work equally well for everyone. A sizeable share of users never
+reach reliable control with standard methods, a problem called ``BCI illiteracy'' or, more
+neutrally, BCI inefficiency~\cite{vidaurre2010,ahn2015}. A large study of healthy volunteers
+using three kinds of BCI found the same wide spread between people~\cite{lee2019openbmi}.
+This matters for our project: an average accuracy can hide users for whom a system does not
+work at all, so results must also be shown person by person.
+
+\section{Decoding Methods}\label{sec:lit-decoding}
+
+A \emph{decoder} is the part of a BCI that looks at a short piece of EEG and decides which
+movement was imagined. It is learned from labelled examples, that is, pieces of EEG for
+which the imagined movement is known. Three families of decoders are common, and our
+project compares all three.
+
+\subsection{Spatial filters with a linear classifier}
+
+\emph{Common spatial patterns} (CSP) is the classic method for motor imagery. It learns a
+few weighted sums of the electrodes, called spatial filters, chosen so that the filtered
+signal has high power during one class and low power during the other. The logarithm of
+that power is a compact feature of each trial~\cite{ramoser2000,blankertz2008}.
+\emph{Filter-bank CSP} repeats this in several frequency bands and keeps the most useful
+features~\cite{ang2008fbcsp}.
+
+The features then go to a simple classifier. \emph{Linear discriminant analysis} (LDA)
+draws the straight boundary that best separates the classes when each class is spread like
+a bell curve. A \emph{support vector machine} (SVM) instead places the boundary as far as
+possible from the nearest examples of each class~\cite{cortes1995}. With few trials, the
+averages and spreads that CSP and LDA estimate become unstable. \emph{Shrinkage} pulls these
+estimates towards a simpler, steadier form and removes much of the problem~\cite{ledoit2004}.
+
+One property of CSP is central to Chapter~\ref{ch:results}: CSP is \emph{supervised}. It
+uses the class labels to choose its filters. If test trials are allowed into that choice,
+the filters are tuned to separate exactly those trials, and the test score rises for a
+reason that has nothing to do with the brain.
+
+\subsection{Riemannian methods}
+
+A second family describes each trial by its \emph{covariance matrix}: a table that holds the
+power at every electrode and how strongly every pair of electrodes varies together. These
+matrices live on a curved surface, studied in \emph{Riemannian geometry}, so ordinary
+straight-line distances between them are misleading. Barachant and colleagues measured
+distances along the curve instead~\cite{barachant2012}. Their \emph{minimum distance to mean}
+(MDM) classifier gives a new trial the class whose average matrix is nearest. Their
+\emph{tangent-space} method flattens the matrices around a central point, so that any
+standard classifier, such as logistic regression, can be used on them. Reviews describe
+these methods as simple, robust and well suited to small amounts of data
+\cite{congedo2017,yger2017}.
+
+\subsection{Deep learning}
+
+Neural networks can learn their own filters straight from the EEG. \emph{EEGNet} is a small
+convolutional network designed for EEG~\cite{lawhern2018}. It first learns filters in time,
+which act like frequency bands, then learns a spatial filter for each of them, much as CSP
+does, and finally combines the results. Lawhern and colleagues found that it matched the
+best traditional method on several kinds of BCI data while learning far fewer weights than
+larger networks. Schirrmeister and colleagues introduced shallow and deep convolutional
+networks for EEG~\cite{schirrmeister2017}, and their code grew into the braindecode toolbox
+that we use~\cite{braindecode}. Newer networks add attention layers~\cite{song2023conformer},
+and very large models are now pre-trained on thousands of hours of EEG from many people
+\cite{kostas2021bendr,jiang2024labram,wang2025cbramod}.
+
+Two cautions come with deep learning. A systematic review found that many deep-learning EEG
+studies are hard to reproduce~\cite{roy2019}. And a ten-year review of BCI classifiers
+concluded that, when training data are scarce, shrinkage LDA and Riemannian classifiers
+remain among the most reliable choices~\cite{lotte2018review}. We therefore treat EEGNet as
+one candidate among several, not as the expected winner.
+
+Finally, the weights of a linear decoder do not show directly where its useful signal lies.
+Haufe and colleagues showed how to turn weights into \emph{patterns} that can be read as maps
+of the brain~\cite{haufe2014}; we use them to check what our decoders rely on.
+
+\section{Calibration and Transfer Learning}\label{sec:lit-transfer}
+
+Before a new user can control an MI-BCI, they must record labelled trials from which the
+decoder learns their pattern. This step is called \emph{calibration}. It takes time and
+effort, which is a real barrier for tired or impaired users, and it is usually repeated in
+each session because the EEG changes from day to day. Lotte reviewed ways to shorten or
+remove it~\cite{lotte2015}.
+
+\emph{Transfer learning} is the idea behind most of these ways: knowledge learned from other
+people, or from earlier sessions, is reused for the new user. Early work built decoders from
+many other users~\cite{fazli2009} or from the same user's earlier
+sessions~\cite{krauledat2008}, so that little or no new training was needed, and adapted
+the classifier while it was in use~\cite{shenoy2006}. Jayaram and colleagues framed transfer
+between BCI users as learning several related tasks together~\cite{jayaram2016}.
+
+The difficulty is that every person's EEG sits in a different place. Head size, electrode
+position and the anatomy of the brain shift the signals, so a decoder trained on other
+people often fails on a new one. Two \emph{alignment} methods address this:
+
+\begin{itemize}
+  \item \emph{Riemannian re-centring} moves each person's covariance matrices so that their
+        average becomes the same reference matrix, the identity. After this step the data of
+        different people overlap and can be pooled~\cite{zanini2018}. Later work also matched
+        the spread and the rotation of the data~\cite{rodrigues2019}, and a related method for
+        another kind of BCI combined the class averages of other users with those of the new
+        user~\cite{kalunga2018}.
+  \item \emph{Euclidean alignment} applies the same idea to the raw trials. It whitens each
+        person's trials with the inverse square root of their average covariance, so that any
+        decoder, including a neural network, can be trained on the aligned
+        data~\cite{he2020}. It needs no labels from the new user. Its authors note that
+        outlying trials can distort the reference and that their online tests were
+        simulated.
+\end{itemize}
+
+Wu and colleagues reviewed transfer learning for EEG BCIs and found alignment and
+fine-tuning to be the most common tools~\cite{wu2022review}. \emph{Fine-tuning} means taking a
+network trained on other people and training it a little further on the new user's few
+trials. Ding and colleagues recently used this approach to move a robotic hand finger by
+finger from EEG~\cite{ding2025}, and continuous control of a robotic arm from non-invasive
+signals has also been shown~\cite{edelman2019}. All of this work used commands that people
+already know, such as moving their own hand or fingers.
+
+\section{Supernumerary Limbs and Sixth-Finger Motor Imagery}\label{sec:lit-sixth}
+
+A \emph{supernumerary} robotic limb is an extra robotic body part worn on the body, such as a
+third arm or an extra finger. It adds to the body rather than replacing a missing part.
+Reviews describe many designs, from wearable fingers that help one hand to grip, to extra
+arms for industrial work~\cite{prattichizzo2021,tong2021}. Eden and colleagues set out the
+principles and the open problems of such \emph{movement augmentation}, and named the control
+signal as one of the hardest~\cite{eden2022}.
+
+There is good evidence that the brain can learn to control an extra digit. People born with
+a sixth finger on each hand move it independently and can do with one hand some tasks that
+need two hands for other people~\cite{mehring2019}. Healthy people who wore a robotic ``Third
+Thumb'' for a few days learned to use it, and imaging showed that the brain's map of their
+hand changed~\cite{kieliba2021}. A third robotic arm has been driven by a brain--machine
+interface while the user did a second task with both natural arms~\cite{penaloza2018}.
+Outside such BCI studies, however, extra digits are usually driven by another body part,
+for example by pressure from the toes.
+
+A research group at Tianjin University introduced \emph{sixth-finger motor imagery}: the
+user imagines moving a robotic sixth finger worn on the hand. In healthy volunteers,
+imagining the sixth finger produced stronger ERD and better classification than imagining a
+natural limb~\cite{wang2024jbhi}. The same group reported stronger ERD and stronger
+connections between brain regions when stroke patients imagined the sixth
+finger~\cite{wang2024tnsre}. Related studies described the EEG of sixth-finger imagery and
+chose the electrodes most useful for classifying it~\cite{liu2022jne}, and a small pilot
+found changes in resting brain activity after several weeks of BCI training with a
+supernumerary finger~\cite{liu2022frontiers}.
+
+These studies make the sixth finger a promising command. They do not ask how many trials a
+decoder needs to learn it, or whether it can still be told apart from imagining the
+patient's own weak hand once the evaluation is strict.
+
+\section{Brain--Computer Interfaces in Stroke Rehabilitation}\label{sec:lit-stroke}
+
+A stroke often leaves one arm and hand weak. BCIs are studied as a way to help recovery: the
+patient tries or imagines a movement, the BCI detects it and a device responds, which closes
+the loop between the intention and the movement. A meta-analysis of controlled trials found
+that BCI-based therapy improved arm function after stroke more than the control
+treatments~\cite{cervera2018}. In one trial, stimulation of the arm muscles triggered by the
+brain produced recovery that lasted after the therapy had ended~\cite{biasiucci2018}. Other
+randomised trials combined motor imagery with a robot~\cite{ang2015rct} or with a picture of
+the patient's own hand as feedback~\cite{pichiorri2015}.
+
+Stroke also makes decoding harder. The damaged area differs between patients, and the EEG
+response to movement changes with the location of the lesion~\cite{park2016}. A pattern
+learned from one patient may therefore not fit the next, which is the core difficulty for
+transfer learning in this group.
+
+Several public EEG datasets of stroke patients have appeared recently: for acute
+stroke~\cite{liu2024acute}, for chronic stroke~\cite{lu2026chronic} and for imagined leg
+movements~\cite{liu2025lowerlimb}. The dataset we use was released by Wang and colleagues in
+2026~\cite{wang2026dataset}. It holds the EEG of \nSubjects{} stroke patients from one
+hospital who imagined either grasping with the affected hand or moving a robotic sixth
+finger, recorded before two weeks of therapy, right after it and one month later.
+\nPostGroupB{} patients received BCI training with the robotic finger and \nPostGroupT{}
+received conventional therapy. To our knowledge it is the only public dataset of
+sixth-finger imagery in stroke patients.
+
+The dataset paper reports that CSP followed by LDA separated hand imagery from sixth-finger
+imagery with an accuracy of \pct{\rqOnePublishedGroupBCspLda} in the BCI group and
+\pct{\rqOnePublishedGroupTCspLda} in the conventional group before therapy, and between
+\pct{\rqOnePublishedFollowGroupTCspSvm} and \pct{\rqOnePublishedFollowGroupBCspSvm} across all
+groups, sessions and classifiers. The features were the power of the mu rhythm over time,
+relative to a baseline before the cue, a measure introduced by Makeig~\cite{makeig1993}. The
+paper does not say at which stage the CSP filters were fitted. The analysis script released
+with it fits them on all the trials of a session before the data are split for testing.
+Section~\ref{sec:lit-pitfalls} explains why this matters, and Chapter~\ref{ch:results}
+measures its effect.
+
+\section{Evaluation Pitfalls}\label{sec:lit-pitfalls}
+
+A decoder's accuracy means something only if it was measured on trials the decoder never
+learned from. The usual tool is \emph{cross-validation}: the trials are split into several
+parts, called folds; the decoder learns from all folds but one and is tested on the one left
+out, and this is repeated until every fold has been tested once. Several ways of getting
+this wrong are known.
+
+\begin{itemize}
+  \item \textbf{Leakage.} \emph{Leakage} is any route by which information from the test data
+        reaches the training. Kapoor and Narayanan found it across many fields that use
+        machine learning, where it produced results that others could not
+        reproduce~\cite{kapoor2023}. Every step that learns from data, including spatial
+        filters, feature selection and scaling, must be fitted inside the training folds
+        only~\cite{varoquaux2017,lemm2011}.
+  \item \textbf{Splitting at the wrong level.} If short segments of one recording are spread
+        over the training and the test folds, the decoder can recognise the recording, or the
+        person, rather than the brain state. Brookshire and colleagues showed that splitting
+        clinical EEG by segment instead of by person greatly inflated the accuracy of deep
+        networks~\cite{brookshire2024}. Splits by run, session or person avoid this.
+  \item \textbf{Block designs.} When all trials of one class are recorded together, slow
+        drifts in the signal differ between the classes, and a decoder can learn the drift
+        instead of the brain state~\cite{li2021perils}.
+  \item \textbf{Misleading chance levels.} With two classes, guessing is right half the time
+        only on average. On a small test set a decoder can beat that by luck alone, so the
+        threshold for ``better than chance'' must come from the binomial distribution for the
+        actual number of test trials~\cite{combrisson2015}.
+  \item \textbf{Many comparisons.} Comparing many decoders over many people calls for tests
+        based on ranks, and for a correction when several tests are run, so that one lucky
+        result is not over-read~\cite{demsar2006}.
+\end{itemize}
+
+Shared benchmarks help to avoid these traps. The MOABB framework runs many decoders on many
+public datasets under the same fixed evaluation~\cite{jayaram2018moabb,chevallier2024moabb}.
+Two of the public datasets it includes, dataset 2a of BCI Competition IV~\cite{tangermann2012}
+and the dataset of Cho and colleagues~\cite{cho2017}, are the ones we use to check whether
+the leakage found in the stroke data also appears in healthy volunteers.
+
+\section{Summary of Reviewed Studies}\label{sec:lit-summary}
+
+Tables~\ref{tab:lit} and~\ref{tab:lit-b} summarise the studies that shape this project. For
+each, the last column says what the study leaves open for our question.
+
+\begin{table}[tbp]
+  \centering
+  \caption[Studies on motor imagery, decoding and calibration (part 1 of 2)]{Studies on motor imagery, decoding and calibration (part 1 of 2). The last column
+  says what each study leaves open for this project.}
+  \label{tab:lit}
+  \begingroup\footnotesize\setstretch{1.0}\renewcommand{\arraystretch}{1.2}
+  \begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{1.9cm}*{5}{>{\raggedright\arraybackslash}X}@{}}
+    \toprule
+    Study & Question or task & Data or population & Method & Main finding & Limitation for our purpose \\
+    \midrule
+    Pfurtscheller and Lopes da Silva~\cite{pfurtscheller1999} & What happens to brain rhythms during movement & EEG and MEG studies of healthy people & Band power over time & Movement and imagery weaken the mu and beta rhythms (ERD), with a rebound after (ERS) & Healthy brains; no stroke, no extra limb \\
+    Ramoser et al.~\cite{ramoser2000} & Classify imagined left and right hand from single trials & Healthy volunteers & CSP with a linear classifier & Spatial filters give compact, accurate features & Filters use labels, so they need care in evaluation, and data from each user \\
+    Barachant et al.~\cite{barachant2012} & Classify several imagined movements & Public healthy datasets & Covariance matrices with Riemannian distance (MDM, tangent space) & As good as CSP pipelines with simpler processing & Healthy users, calibrated one by one \\
+    Lawhern et al.~\cite{lawhern2018} & One compact network for many kinds of BCI & Public healthy datasets, motor imagery among them & EEGNet & Matched the best reference method with far fewer weights & Healthy users; not tested with a handful of patient trials \\
+    Lotte et al.~\cite{lotte2018review} & Which classifiers work for EEG & Ten years of BCI studies & Review & Shrinkage LDA and Riemannian methods are reliable with little data & General guidance; no patients, no new command \\
+    Lotte~\cite{lotte2015} & How to shorten calibration & Published methods & Review & Reuse other users' data, regularise, adapt during use & Mostly healthy users and familiar movements \\
+    Zanini et al.~\cite{zanini2018} & Transfer between sessions and people & Healthy motor-imagery and other BCI data & Riemannian re-centring & Re-centred data of different people can be pooled; less calibration & Familiar commands, healthy users \\
+    He and Wu~\cite{he2020} & Transfer between people for any decoder & Public healthy motor-imagery and ERP data & Euclidean alignment & Better than no alignment for most people; no labels needed & Outlying trials distort it; online use simulated \\
+    Ding et al.~\cite{ding2025} & Move a robotic hand finger by finger & Healthy volunteers & Network pre-trained on others, fine-tuned per user & Real-time control of single fingers from EEG & Natural fingers and healthy users \\
+    \bottomrule
+  \end{tabularx}
+  \endgroup
+\end{table}
+
+\begin{table}[tbp]
+  \centering
+  \caption{Studies on extra fingers, stroke and evaluation (part 2 of 2).}
+  \label{tab:lit-b}
+  \begingroup\footnotesize\setstretch{1.0}\renewcommand{\arraystretch}{1.2}
+  \begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{1.9cm}*{5}{>{\raggedright\arraybackslash}X}@{}}
+    \toprule
+    Study & Question or task & Data or population & Method & Main finding & Limitation for our purpose \\
+    \midrule
+    Kieliba et al.~\cite{kieliba2021} & Does an extra robotic thumb change the brain's map of the hand & Healthy people wearing a robotic thumb for several days & Behaviour and brain imaging & People learned to use it, and the map of the hand changed & Thumb driven by the toes, not by the brain \\
+    Wang et al.~\cite{wang2024jbhi} & Sixth-finger imagery against imagery of a natural limb & Healthy volunteers & ERD analysis and classification & Sixth-finger imagery gave stronger ERD and better classification & Healthy users; calibration not studied \\
+    Wang et al.~\cite{wang2024tnsre} & Sixth-finger imagery after stroke & Stroke patients & ERD and connectivity & Stronger ERD and connectivity with the sixth finger & No study of decoder calibration \\
+    Wang et al.~\cite{wang2026dataset} & Public dataset of sixth-finger and hand imagery after stroke & \nSubjects{} stroke patients, three sessions, one hospital & CSP with LDA or SVM, cross-validated & About \pct{\rqOnePublishedGroupBCspLda} for hand against sixth finger & Filters fitted on all trials before the split; one centre \\
+    Cervera et al.~\cite{cervera2018} & Do BCIs help arm recovery after stroke & Controlled clinical trials & Meta-analysis & BCI therapy improved arm function more than control treatments & About therapy, not decoding or calibration \\
+    Park et al.~\cite{park2016} & How stroke changes the EEG of movement & Chronic stroke patients & ERD by lesion location & The EEG response depends on where the lesion is & Makes transfer between patients harder \\
+    Kapoor and Narayanan~\cite{kapoor2023} & How common is leakage in machine-learning science & Studies in many fields & Survey and taxonomy & Leakage is widespread and inflates results & Not specific to EEG or BCIs \\
+    Brookshire et al.~\cite{brookshire2024} & Does splitting by segment inflate EEG results & Clinical EEG datasets & Re-analysis with different splits & Splits by segment greatly overstate accuracy & Clinical EEG, not motor imagery \\
+    Li et al.~\cite{li2021perils} & Can block designs fool EEG classifiers & EEG recorded in blocks of one class & Experiments with block and mixed orders & Classifiers learn slow drifts instead of the brain state & Visual paradigm, not motor imagery \\
+    Combrisson and Jerbi~\cite{combrisson2015} & When is a decoder better than chance & Simulations and brain recordings & Binomial and permutation thresholds & Small test sets beat theoretical chance by luck & A statistical rule, not a decoder \\
+    \bottomrule
+  \end{tabularx}
+  \endgroup
+\end{table}
+
+Three points stand out. The methods for decoding and for shortening calibration were built
+almost entirely on healthy people imagining familiar movements. The only public
+sixth-finger dataset reports high accuracy, but with spatial filters fitted before the data
+were split. And the evaluation literature names exactly that step as a common cause of
+inflated results.
+
+\section{Research Gap}\label{sec:lit-gap}
+
+The review leaves three questions open.
+
+\begin{enumerate}
+  \item \textbf{An honest benchmark of the dataset.} Although the dataset paper reports that
+        hand and sixth-finger imagery can be told apart with high accuracy, it remains unknown
+        how well this works when every fitted step stays inside the training data, and
+        whether the same evaluation step inflates results on other datasets too.
+  \item \textbf{Calibration for a new command in stroke patients.} Although transfer learning
+        is known to shorten calibration for familiar movements in healthy users, it remains
+        unknown how much practice a new stroke patient needs before a decoder recognises the
+        sixth finger, and whether learning from other patients reduces it.
+  \item \textbf{A command of its own.} Although sixth-finger imagery produces a clear change in
+        the EEG, it remains unknown whether a decoder can treat it as a command separate from
+        imagining the affected hand, or only as a sign that some movement is being imagined.
+\end{enumerate}
+
+The data and the protocol we used are in Sections~\ref{sec:data} and~\ref{sec:protocol}; the
+answers are in Sections~\ref{sec:res-leak}, \ref{sec:res-calib} and~\ref{sec:res-command}.
+
+\section{Chapter Summary}\label{sec:lit-end}
+
+In short, spatial filters, Riemannian methods and compact networks all decode imagined
+movement well in healthy people, and alignment and fine-tuning cut the practice a new user
+must give. For the sixth finger after stroke, three things are missing: an evaluation that
+keeps test data out of every fitted step, a measure of the calibration the new command
+needs, and a test of whether it is a command of its own. Chapter~\ref{ch:method} sets out how
+we answered them.
