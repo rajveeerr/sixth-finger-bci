@@ -117,7 +117,7 @@ export const FINDINGS: Finding[] = [
       note: "Dark squares in runs 1 and 2: one example of the practice trials, which were picked at random.",
     },
     see: [
-      { href: "#setup-flow", text: "The new patient's steps, above" },
+      { href: "#journey", text: "A patient's path, day by day, in chapter 10" },
       { href: "#recordings", text: "Runs and sessions, in chapter 2" },
     ],
   },

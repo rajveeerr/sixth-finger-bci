@@ -11,16 +11,23 @@ import * as K from "./kit";
 const AZ = 62;
 const VIEW_H = 210; // the tallest station's height
 const PAD = 8;
-const BASE = 6; // the height of each station's plate
+export const BASE = 6; // the height of each station's plate
 
 /**
  * The laptop of the BCI loop on its pad, its screen showing the model's three lamps with the
- * sixth finger's lit; given a hatch, a small window for the bridge program sits in a corner.
+ * sixth finger's lit, or the switch's two (rest, and move lit); given a hatch, a small window
+ * for the bridge program sits in a corner.
  */
-export function laptopSvg(P: K.Projection, hatch?: string) {
+export function laptopSvg(
+  P: K.Projection,
+  hatch?: string,
+  { pad = true, lamps = "model" }: { pad?: boolean; lamps?: "model" | "switch" } = {},
+) {
   const out: string[] = [];
-  const pad: K.Plan = { x: 0, y: 0, w: 160, d: 110, r: 10 };
-  out.push(K.solidSvg(K.slabOf(pad, 0, BASE, P, 8, 0.8), { tone: "mid", halo: true }));
+  if (pad) {
+    const plate: K.Plan = { x: 0, y: 0, w: 160, d: 110, r: 10 };
+    out.push(K.solidSvg(K.slabOf(plate, 0, BASE, P, 8, 0.8), { tone: "mid", halo: true }));
+  }
   // the laptop's base, keyboard rows and the screen standing behind it
   const base: K.Plan = { x: 12, y: 40, w: 136, d: 62, r: 5 };
   out.push(K.solidSvg(K.slabOf(base, 6, 5, P, 6, 0.6), { tone: "hi" }));
@@ -43,14 +50,21 @@ export function laptopSvg(P: K.Projection, hatch?: string) {
       [20, fy, 98],
     ])}"/>`,
   );
-  [
-    { x: 50, cls: "pc-lamp" },
-    { x: 80, cls: "pc-lamp" },
-    { x: 110, cls: "pc-lamp pc-lamp-on" },
-  ].forEach((l) => {
+  const shown =
+    lamps === "switch"
+      ? [
+          { x: 62, r: 13, cls: "pc-lamp" },
+          { x: 98, r: 13, cls: "pc-lamp pc-lamp-on" },
+        ]
+      : [
+          { x: 50, r: 9, cls: "pc-lamp" },
+          { x: 80, r: 9, cls: "pc-lamp" },
+          { x: 110, r: 9, cls: "pc-lamp pc-lamp-on" },
+        ];
+  shown.forEach((l) => {
     const ring = Array.from({ length: 24 }, (_, i) => {
       const t = (i / 24) * Math.PI * 2;
-      return [l.x + Math.cos(t) * 9, fy, 56 + Math.sin(t) * 9] as K.Point3;
+      return [l.x + Math.cos(t) * l.r, fy, 56 + Math.sin(t) * l.r] as K.Point3;
     });
     out.push(`<path class="${l.cls}" d="${face(ring)}"/>`);
   });
@@ -164,15 +178,18 @@ const readArt: Build = (P, hatch) => {
 
 // The server: a small box running the model, its name on the front.
 const SERVER_PLATE: K.Plan = { x: 0, y: 0, w: 96, d: 90, r: 8 };
-const SERVER: K.Plan = { x: 16, y: 18, w: 64, d: 54, r: 4 };
+export const SERVER: K.Plan = { x: 16, y: 18, w: 64, d: 54, r: 4 };
 const SERVER_TOP = BASE + 48;
 
 const serverBounds: K.Point3[] = [...K.boxCorners(SERVER_PLATE, 0, BASE), ...K.boxCorners(SERVER, BASE, SERVER_TOP)];
 
-const serverArt: Build = (P) => {
+const serverArt: Build = (P) =>
+  K.solidSvg(K.slabOf(SERVER_PLATE, 0, BASE, P, 8, 0.8), { tone: "mid", halo: true }) + serverBox(P);
+
+/** The server box alone, standing at SERVER on a plate BASE high. */
+export function serverBox(P: K.Projection) {
   const at = (p: K.Point3) => K.iso(p, P);
   const out: string[] = [];
-  out.push(K.solidSvg(K.slabOf(SERVER_PLATE, 0, BASE, P, 8, 0.8), { tone: "mid", halo: true }));
   out.push(K.solidSvg(K.slabOf(SERVER, BASE, SERVER_TOP - BASE, P, 8, 1.2), { tone: "hi" }));
   out.push(K.lineSvg(K.sideSeam(SERVER, SERVER_TOP - 7, P), { tone: "faint" }));
   out.push(K.lineSvg(K.planOutline(K.insetPlan(SERVER, 6), SERVER_TOP, P), { tone: "faint" }));
@@ -200,7 +217,7 @@ const serverArt: Build = (P) => {
     );
   }
   return out.join("");
-};
+}
 
 // The finger board, the motor and the robotic finger: the bench's links, a little larger,
 // on a small motor.
@@ -208,7 +225,7 @@ const ACT_PLATE: K.Plan = { x: 0, y: 0, w: 206, d: 120, r: 10 };
 const BOARD: K.Plan = { x: 16, y: 32, w: 74, d: 56, r: 3 };
 const BOARD_Z = BASE + 6;
 const PIN_X = (i: number) => BOARD.x + 20 + i * 5.6;
-const MOTOR: K.Plan = { x: 124, y: 48, w: 54, d: 34, r: 2.5 };
+export const MOTOR: K.Plan = { x: 124, y: 48, w: 54, d: 34, r: 2.5 };
 const MOTOR_TOP = BASE + 42;
 const SHAFT: K.Plane = [161, 65];
 const FINGER_ROOT: K.Point3 = [SHAFT[0], SHAFT[1], MOTOR_TOP + 7];
@@ -250,13 +267,7 @@ const actArt: Build = (P, hatch) => {
   out.push(K.dotsSvg([...header(BOARD.y + 6), ...header(BOARD.y + BOARD.d - 6)], { size: 1.1, tone: "hi" }));
   out.push(K.dotsSvg([at([BOARD.x + 10, BOARD.y + BOARD.d - 12, top])], { size: 1.6, tone: "hi" }));
 
-  // the motor: body, mounting tabs, the shaft the finger turns on
-  out.push(hatched(K.slabOf(MOTOR, BASE, MOTOR_TOP - BASE, P, 6, 0.8), hatch, { tone: "hi" }));
-  const tabs: K.Plan = { x: MOTOR.x - 10, y: MOTOR.y, w: MOTOR.w + 20, d: MOTOR.d, r: 1.5 };
-  out.push(K.solidSvg(K.slabOf(tabs, MOTOR_TOP - 10, 3, P), { tone: "hi" }));
-  out.push(K.solidSvg(K.cylinder(SHAFT[0], SHAFT[1], 8.5, MOTOR_TOP, 3.5, P, 28, 0.5), { tone: "hi" }));
-  out.push(K.solidSvg(K.cylinder(SHAFT[0], SHAFT[1], 5.5, MOTOR_TOP + 3.5, 3.5, P, 24), { tone: "hi" }));
-
+  out.push(motorSvg(P, hatch));
   // three leads from the board's header to the motor
   [0, 1, 2].forEach((i) => {
     const from: K.Point3 = [PIN_X(7 + i), BOARD.y + BOARD.d - 6, top];
@@ -269,8 +280,25 @@ const actArt: Build = (P, hatch) => {
       }),
     );
   });
+  out.push(fingerSvg(P));
+  return out.join("");
+};
 
-  // the robotic finger, bent, its light strip lit, drawn as the bench draws it
+/** The motor at MOTOR on a plate BASE high: body, mounting tabs and the shaft; hatched if given one. */
+export function motorSvg(P: K.Projection, hatch?: string) {
+  const out: string[] = [];
+  const body = K.slabOf(MOTOR, BASE, MOTOR_TOP - BASE, P, 6, 0.8);
+  out.push(hatch ? hatched(body, hatch, { tone: "hi" }) : K.solidSvg(body, { tone: "hi" }));
+  const tabs: K.Plan = { x: MOTOR.x - 10, y: MOTOR.y, w: MOTOR.w + 20, d: MOTOR.d, r: 1.5 };
+  out.push(K.solidSvg(K.slabOf(tabs, MOTOR_TOP - 10, 3, P), { tone: "hi" }));
+  out.push(K.solidSvg(K.cylinder(SHAFT[0], SHAFT[1], 8.5, MOTOR_TOP, 3.5, P, 28, 0.5), { tone: "hi" }));
+  out.push(K.solidSvg(K.cylinder(SHAFT[0], SHAFT[1], 5.5, MOTOR_TOP + 3.5, 3.5, P, 24), { tone: "hi" }));
+  return out.join("");
+}
+
+/** The robotic finger bent on the motor's shaft, its light strip lit, drawn as the bench draws it. */
+export function fingerSvg(P: K.Projection) {
+  const at = (p: K.Point3) => K.iso(p, P);
   const unit = Math.abs(K.axisVector(P, [0, 0, 1])[1]) / Math.cos(Math.PI / 6);
   const pts = fingerJoints().map(at);
   const seg = (i: number) => K.pathOf([pts[i], pts[i + 1]]);
@@ -284,9 +312,14 @@ const actArt: Build = (P, hatch) => {
       return `<circle class="${i === 3 ? "link-tip" : "link-pin"}" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${width(r)}"/>`;
     }),
   ];
-  out.push(`<g class="finger" data-active="">${links.join("")}</g>`);
-  return out.join("");
-};
+  return `<g class="finger" data-active="">${links.join("")}</g>`;
+}
+
+/** The points a motor and its bent finger reach, for fitting a view. */
+export const MOTOR_FINGER_BOUNDS: K.Point3[] = [
+  ...K.boxCorners({ x: MOTOR.x - 10, y: MOTOR.y, w: MOTOR.w + 20, d: MOTOR.d, r: 0 }, BASE, MOTOR_TOP),
+  ...fingerJoints().map(([x, y, z]) => [x + 8, y, z + 8] as K.Point3),
+];
 
 const unitView: K.Projection = { origin: [0, 0], scale: 1, azimuth: AZ };
 

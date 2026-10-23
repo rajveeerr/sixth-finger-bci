@@ -8,6 +8,7 @@ import { BrainRhythm } from "./explain/figures/BrainRhythm";
 import { DataChecks } from "./explain/figures/DataChecks";
 import { Elsewhere } from "./explain/figures/Elsewhere";
 import { HeadMap } from "./explain/figures/HeadMap";
+import { Journey } from "./explain/figures/Journey";
 import { ModelFacts } from "./explain/figures/ModelFacts";
 import { PatientSees } from "./explain/figures/PatientSees";
 import { ResultsGauges } from "./explain/figures/Results";
@@ -317,6 +318,7 @@ export default function App() {
           }
         >
           <BciLoop />
+          <Journey />
           <ol className="uses">
             <li>
               <h3>Help a weak hand hold things</h3>

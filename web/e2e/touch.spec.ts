@@ -18,6 +18,21 @@ test("a tap opens a reference's card before its link, and a tapped trial stays n
   await expect(page.locator(".session-say")).toContainText("Trial 45 of 80");
 });
 
+test("a tapped step of the patient's path says what happens in it, and the switch changes the practice", async ({
+  page,
+}) => {
+  await page.goto("/?server=none");
+  const path = page.locator("#journey");
+  const cap = path.locator(".journey-step").first();
+  await cap.scrollIntoViewIfNeeded();
+  await cap.tap();
+  await expect(path.locator(".journey-say-narrow")).toContainText("headset streaming live");
+  const dayOne = path.locator("[data-group=day-1]");
+  await expect(dayOne).toContainText("about 5 min");
+  await path.getByRole("radio", { name: "Already learned from other patients" }).tap();
+  await expect(dayOne).toContainText("about 30 s");
+});
+
 test("Space scrolls the page away from the demo instead of pausing it", async ({ page }) => {
   await page.setViewportSize({ width: 1366, height: 768 });
   await page.goto("/?server=none");

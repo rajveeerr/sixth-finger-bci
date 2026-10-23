@@ -7,7 +7,6 @@ import { coverageAt, plain, sayCoverage, type Said } from "../sure";
 import { Gauge } from "./Gauge";
 import { LeakDiagram } from "./LeakDiagram";
 import { LearnTest } from "./LearnTest";
-import { SetupFlow } from "./SetupFlow";
 
 const pct = (v: number) => `${Math.round(v * 100)}%`;
 const minutes = (m: number) => (m < 1 ? `${Math.round(m * 60)} s` : `${m.toFixed(1)} min`);
@@ -44,7 +43,6 @@ function SetupEvidence() {
         After {T[i].k} practice trial{T[i].k > 1 ? "s" : ""} of each movement ({minutes(T[i].minutes)}): already learned
         from other patients <b>{pct(T[i].mean)}</b>, starting from nothing <b>{pct(S[i].mean)}</b>.
       </p>
-      <SetupFlow />
     </>
   );
 }
