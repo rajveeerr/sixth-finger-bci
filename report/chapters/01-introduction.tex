@@ -1,41 +1,268 @@
-\chapter{Introduction}
-% Sections (project-report-guide.md §2): Background; The sixth finger and human augmentation;
-% Motivation and problem statement; Research questions and objectives; Scope; Contributions and novelty; Organisation.
-\section{Background}
-\begin{figure}[h]
+\chapter{Introduction}\label{ch:intro}
+% Sources: report-material 01 and 03 (project-report-guide.md §2), rewritten.
+
+This chapter explains why the project exists and what it set out to answer. It starts
+with the medical problem, a weak hand after stroke, and the idea of a robotic sixth finger
+that helps that hand grip. It then asks whether brain signals can move such a finger, and
+why that question needs a careful test. It ends with the research questions, the limits of
+the work, what is new in it, and a map of the report.
+
+\section{Background}\label{sec:intro-background}
+
+\subsection{A weak hand after stroke}
+A stroke cuts the blood supply to part of the brain. When the damaged part controls
+movement, one side of the body is often left weak. The hand is a common and lasting
+problem: many people regain some movement of the arm but still cannot open and close
+the hand well enough to hold a cup or a bottle. Tasks that need two hands then become
+hard or impossible.
+
+Rehabilitation tries to restore movement through practice. Some newer methods add
+technology to that practice. One of them reads the brain's own signals, so that the
+patient's intention to move can trigger help even when the hand itself barely
+moves~\cite{cervera2018,biasiucci2018,pichiorri2015}.
+
+\subsection{Reading movement intention from the scalp}
+The \emph{electroencephalogram} (EEG) is the very small voltage that brain cells produce
+together, measured by electrodes placed on the scalp. The electrodes sit in a cap
+(Figure~\ref{fig:bciphoto}). EEG is safe, portable and cheap compared with other ways of
+measuring the brain. Its drawbacks are that the signal is weak, noisy and different from
+one person to the next, and even from one day to the next for the same person.
+
+\begin{figure}[tbp]
   \centering
-  \includegraphics[width=0.7\textwidth]{external/bci-experiment-krol.jpg}
-  \caption{A brain--computer interface experiment: EEG cap, stimulus screen and live recording. Image: Laurens R.\ Krol, Wikimedia Commons, CC BY 4.0.}
+  \includegraphics[width=0.5\textwidth]{external/bci-experiment-krol.jpg}
+  \caption[An EEG experiment]{An EEG experiment. The person wears a cap of electrodes; a computer records
+  the brain's signals while a screen shows what to do. Image: Laurens R.\ Krol, Wikimedia
+  Commons, CC BY 4.0.}
   \label{fig:bciphoto}
 \end{figure}
-\begin{figure}[h]
+
+A \emph{brain--computer interface} (BCI) is a system that turns measured brain activity
+into a command for a device, without using the nerves and muscles that normally carry
+the command~\cite{wolpaw2002}. Figure~\ref{fig:bciloop} shows the loop: the signal is
+recorded, the computer picks out its useful parts (the \emph{features}) and a
+\emph{classifier} decides what the person intended. The command acts on the world, and
+the person sees the result.
+
+\begin{figure}[tbp]
   \centering
-  \includegraphics[width=0.9\textwidth]{external/bci-diagram-krol.png}
-  \caption{The general BCI loop: brain signals are measured, features are extracted and classified, and the resulting command acts on the environment, which the user perceives. Image: Laurens R.\ Krol, Wikimedia Commons, CC0.}
+  \includegraphics[width=0.72\textwidth]{external/bci-diagram-krol.png}
+  \caption[The loop of every BCI]{The loop of every BCI. Follow the arrows: the brain signal is measured, its
+  features are extracted and classified, the command acts on a device, and the user sees
+  the outcome and adjusts. Image: Laurens R.\ Krol, Wikimedia Commons, CC0.}
   \label{fig:bciloop}
 \end{figure}
-\begin{figure}[h]
+
+This project uses \emph{motor imagery} (MI): the person imagines a movement without
+making it. Imagining a movement changes the EEG over the motor cortex, the strip of the
+brain that controls movement. At rest, the cells there fire in step and produce a
+rhythm of about 8 to 13 cycles per second, called the mu rhythm. When the person imagines
+moving, the cells fall out of step and the rhythm becomes weaker
+(Figure~\ref{fig:rhythm}). This weakening is called \emph{event-related
+desynchronisation} (ERD)~\cite{pfurtscheller1999,pfurtscheller2001}. A computer model
+trained on labelled examples can learn to spot it and name the imagined movement.
+
+\begin{figure}[tbp]
   \centering
-  \includegraphics[width=\textwidth]{fig-bci-pipeline.pdf}
-  \caption{The brain--computer interface pipeline studied in this project.}
-  \label{fig:pipeline}
+  \includegraphics[width=0.95\textwidth]{web/rhythm.pdf}
+  \caption[What the model looks for]{What the model looks for. The black line is the rhythm over the hand area of
+  the motor cortex while the patient imagines a movement; the grey line behind it is its
+  size at rest. The wave is a drawing, but the drop in its size is the measured average
+  over the patients of this study (Section~\ref{sec:res-erd}).}
+  \label{fig:rhythm}
 \end{figure}
-\TBD{P14}
-\section{The Sixth Finger and Human Augmentation}
-\begin{figure}[h]
+
+\section{The Sixth Finger and Human Augmentation}\label{sec:intro-sixth}
+
+A \emph{supernumerary} robotic finger is an extra, motor-driven finger worn on the body.
+For a stroke patient it is strapped to the wrist of the weak hand, on the side of the
+little finger (Figure~\ref{fig:sixth}). When it bends toward the palm, it presses an
+object against the patient's own fingers and thumb, so the weak hand can hold things it
+could not hold alone~\cite{prattichizzo2021,tong2021}.
+
+\begin{figure}[tbp]
   \centering
-  \includegraphics[width=0.45\textwidth]{fig-sixth-finger-concept.pdf}
-  \caption{Concept of the robotic sixth finger worn on the affected wrist (schematic drawn for this report).}
+  \includegraphics[width=0.42\textwidth]{fig-sixth-finger-concept.pdf}
+  \caption[The robotic sixth finger worn on the affected wrist]{The robotic sixth finger worn on the affected wrist (schematic drawn for this
+  report). It bends toward the palm and closes the grip together with the patient's own
+  fingers.}
   \label{fig:sixth}
 \end{figure}
-\TBD{P14}
-\section{Motivation and Problem Statement}
-\TBD{P14}
-\section{Research Questions and Objectives}
-\TBD{P14}
-\section{Scope}
-\TBD{P14}
-\section{Contributions and Novelty}
-\TBD{P14}
-\section{Organisation of the Report}
-\TBD{P14}
+
+The finger must move when the wearer wants it to. A button is not always possible: the
+hand that would press it may be the weak one. Reading the wish to move from the brain is
+one answer. Wang and colleagues trained stroke patients to imagine moving such a finger.
+They reported that this \emph{sixth-finger imagery} produced a clear ERD, in some respects
+stronger than imagining a movement of the patient's own hand~\cite{wang2024jbhi,wang2024tnsre}.
+Healthy people can also learn to use an extra robotic thumb, and the brain's map of the
+hand changes as they do~\cite{kieliba2021,eden2022}.
+
+Figure~\ref{fig:system} shows the whole chain that this project studies, from the cap to
+the finger. Parts 1 and 2 record the brain signal. Part 3 is the piece of signal, four
+seconds long, that the model reads. Part 4, the model, decides between rest, the hand and
+the sixth finger, and part 5 is the finger that the decision would move.
+
+\begin{figure}[tbp]
+  \centering
+  \includegraphics[width=\textwidth]{web/system.pdf}
+  \caption[The system on one bench]{The system on one bench: (1) EEG cap, (2) amplifier, (3) the four-second piece
+  of signal the model reads, (4) the model, with one lamp for each answer, (5) the robotic
+  finger. This project built and tested the part from the recorded signal to the model's
+  decision; the finger is shown on screen as a drawing (Section~\ref{sec:limb}).}
+  \label{fig:system}
+\end{figure}
+
+\section{Motivation and Problem Statement}\label{sec:intro-motivation}
+
+\subsection{Every patient needs practice first}
+A model cannot read a new patient's EEG out of the box. Brains, caps and strokes all
+differ, so the patient must first perform a set of practice trials, each labelled with
+the movement that was asked for. The model learns from these trials. This step is called
+\emph{calibration}, and it costs the patient time and effort before the device does
+anything useful~\cite{lotte2015}. The cost is likely higher for a sixth finger than for a
+real hand, because the brain has never controlled such a finger and has no ready-made
+pattern for it.
+
+One way to shorten calibration is \emph{transfer learning}: the model first learns from
+other people's recordings and then adapts to the new person with only a few
+trials~\cite{he2020,zanini2018,wu2022review}. Whether this works for a new, artificial
+command in stroke patients had not been measured.
+
+\subsection{A public recording makes the question testable}
+In 2026 Wang et al.\ published the EEG of \nSubjects{} stroke patients who imagined either
+moving the affected hand or bending the sixth finger, recorded before and after two weeks
+of therapy and again a month later~\cite{wang2026dataset}. Their data and code are open,
+which let us study the question without recording new patients.
+
+\subsection{A published number that looked too good}
+The dataset paper reports that a standard method told the two kinds of imagery apart
+with an accuracy of \pct{\rqOnePublishedGroupBCspLda} and \pct{\rqOnePublishedGroupTCspLda}
+in its two patient groups before therapy~\cite{wang2026dataset}; guessing would score
+50\,\%. When we read the authors' code, we found that its first step, a filter that
+learns from the labels, was fitted on all trials, including the ones later used to test
+it. A test that the model has already seen is not a fair test. This mistake is called
+\emph{data leakage}, and it is a known cause of results that later fail to
+hold~\cite{kapoor2023,brookshire2024}. Before any calibration study could be trusted, we
+had to know what this data supports when it is tested fairly.
+
+\subsection{Problem statement}
+\begin{quote}
+\emph{Using a public EEG recording of stroke patients, find out how well imagined movements
+of the affected hand and of a robotic sixth finger can be told apart when tested fairly;
+measure how much practice a new patient must give a model before it is useful, with and
+without learning from other patients; and show the result working in a demonstrator that
+anyone can open.}
+\end{quote}
+
+\section{Research Questions and Objectives}\label{sec:intro-rq}
+
+The study was planned around four research questions (RQs). The hypotheses for the
+first three were written down and frozen before the main experiments, a practice called
+\emph{pre-registration} (Appendix~\ref{app:prereg}).
+
+\begin{description}[leftmargin=1.1cm,style=nextline]
+  \item[RQ1] \textbf{Is the published accuracy right?} What accuracy does a fair test give
+  for telling affected-hand imagery from sixth-finger imagery, compared with the published
+  value? As a check, does the same mistake raise accuracy on two public recordings of
+  healthy people (RQ1b)?
+  \item[RQ2] \textbf{How much practice does a new patient need?} How does accuracy grow
+  with the number of practice trials, and does learning from other patients reduce the
+  number needed?
+  \item[RQ3] \textbf{Can the sixth finger be added as a command of its own?} If a patient
+  already has a working hand model, how many sixth-finger trials does it take to add the
+  new command?
+  \item[RQ4] \textbf{Exploratory questions}, planned but not pre-registered: does swapping
+  the left and right sides of the head for left-side strokes help; does a model still work
+  on another day; and how would it behave if it ran continuously, with no cue telling it
+  when the patient starts?
+\end{description}
+
+A separate, pre-registered side study (RQ5) checked whether a related form of leakage
+inflates results in another field, depression detection from EEG. It is reported briefly
+in Section~\ref{sec:res-leak}.
+
+The objectives that follow from these questions were to:
+\begin{enumerate}
+  \item build a reproducible pipeline from the public files to labelled pieces of EEG,
+  with an audit of the data's integrity;
+  \item build an evaluation framework that cannot leak test data, with automatic checks
+  before every model is fitted;
+  \item test the published method fairly and measure the size of the leak (RQ1);
+  \item measure calibration curves for a new patient and a new command, with and without
+  transfer (RQ2, RQ3);
+  \item run the planned exploratory analyses (RQ4);
+  \item build and deploy a demonstrator in which the decoded intention moves a drawn hand with
+  a robotic sixth finger;
+  \item document the work in this report and in a research paper.
+\end{enumerate}
+
+\section{Scope}\label{sec:intro-scope}
+
+The project analyses data that were recorded by others and released publicly. It records
+no new patients and builds no hardware. Its limits should be clear from the start:
+\begin{itemize}
+  \item It makes no medical claim. Nothing here shows that the method helps a patient
+  recover.
+  \item It does not read thoughts. A model recognises one of a few trained patterns.
+  \item It does not use live EEG. The demonstrator replays a real patient's recording at
+  its original speed.
+  \item It moves no physical finger. The hand and the sixth finger are a drawing driven
+  by the model's command.
+  \item Calibration is simulated offline: the first runs of a recorded session serve as
+  practice and the last runs as the test.
+\end{itemize}
+
+\section{Contributions and Novelty}\label{sec:intro-contrib}
+
+The project makes four contributions. Their evidence is in Chapter~\ref{ch:results}.
+
+\begin{enumerate}
+  \item \textbf{An honest benchmark of the sixth-finger dataset.} An integrity audit found
+  recordings that appear twice in the release. Rebuilt the published way, the standard
+  method told hand from sixth finger \pct{\rqOneCspLdaPaperReplicaMean} of the time;
+  tested fairly, \pct{\rqOneCspLdaCvLeakfreeMean}, where guessing gives 50\,\%. The same
+  mistake also inflated two public datasets of healthy people, by \rqOneBnciHOneBDiff{}
+  and \rqOneChoHOneBDiff{} percentage points.
+  \item \textbf{A pre-registered calibration study, the main research contribution.} For a
+  new patient, a model that had first learned from the other patients reached
+  \pct{\rqTwoRestAhSfRctTslrKOneMean} on three choices (rest, hand, sixth finger) after one
+  practice trial of each, about \rqTwoMinutesKOne{} minutes of practice. A model starting
+  from nothing scored \pct{\rqTwoRestAhSfTsLrKOneMean} at that point and needed about
+  \rqTwoMinutesKTen{} minutes to catch up. Learning from others is therefore a usable start
+  almost at once, but it then levels off, and with the whole practice set the model that
+  started from nothing ends ahead (\pct{\rqTwoRestAhSfTsLrKAllMean} against
+  \pct{\rqTwoRestAhSfRctTslrKAllMean}).
+  \item \textbf{What the sixth finger can and cannot be.} As a ``move now'' switch against
+  rest, it was recognised \pct{\exFourTsLrCentralMean} of the time. But the same switch
+  also turned on for \pct{\exFourTsLrCentralFiresAhMean} of imagined hand movements, so the
+  data do not show a sixth-finger command that is distinct from the hand. These two
+  numbers come from follow-up analyses added after the planned study, and they are
+  labelled exploratory throughout.
+  \item \textbf{An open demonstrator and website.} The trained model runs in any web
+  browser on the held-out recording of one patient and moves a drawn hand with a robotic
+  sixth finger. The page explains the project in figures, and every number on it is
+  written from the results files.
+\end{enumerate}
+
+What we do not claim as ours: the sixth-finger idea and the dataset (Wang et
+al.~\cite{wang2024jbhi,wang2026dataset}), brain-controlled limbs in general, any
+clinical benefit, and live control.
+
+\section{Organisation of the Report}\label{sec:intro-org}
+
+Chapter~\ref{ch:lit} reviews earlier work on motor-imagery BCIs, the methods used to
+decode them, ways to shorten calibration, extra robotic fingers, BCIs after stroke and
+the pitfalls of testing these systems. Chapter~\ref{ch:method} describes the data, how
+we checked it, the models, the fair test, the statistics, and the design of the
+demonstrator and website. Chapter~\ref{ch:results} answers each research question in
+turn, then discusses what the answers mean and where they stop.
+Chapter~\ref{ch:conclusion} concludes and lists future work. The appendices hold the
+steps to reproduce every result, full tables, the models' settings, the pre-registration
+and its deviations, code listings and a user guide to the demonstrator.
+
+\section{Chapter Summary}
+A sixth finger could help a weak hand grip, if brain signals can tell it when to move.
+Testing that idea on a public recording raised two practical questions, how fair the
+published accuracy is and how much practice a new patient needs, and one methodological
+one, how to test such a system fairly. The next chapter reviews what earlier work says
+about each of them.
