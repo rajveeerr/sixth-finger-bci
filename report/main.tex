@@ -8,21 +8,51 @@
 \usepackage{setspace}
 \usepackage{graphicx}
 \usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
 \usepackage{amsmath}
 \usepackage{xcolor}
+\usepackage{float}
+\usepackage[font={small,stretch=1.05},labelfont=bf,labelsep=period]{caption}
+\captionsetup[lstlisting]{justification=raggedright,singlelinecheck=false}
+\usepackage{enumitem}
 \usepackage[hidelinks]{hyperref}
 \usepackage{cite}
 \usepackage{listings}
 \usepackage{qrcode}
 \usepackage{titlesec}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,calc}
+% Okabe-Ito colours, as in paper/figures/tikz/style.tex.
+\definecolor{rblue}{HTML}{0072B2}
+\definecolor{rorange}{HTML}{E69F00}
+\definecolor{rgreen}{HTML}{009E73}
 % Chapter heading style is not set by GGSIPU; 14 pt bold uppercase is the common local style.
-\titleformat{\chapter}[display]{\normalfont\fontsize{14}{17}\selectfont\bfseries\centering}{CHAPTER \thechapter}{6pt}{\MakeUppercase}
+% Sections are 12 pt bold, so that no heading is larger than its chapter's.
+\titleformat{\chapter}[display]{\normalfont\fontsize{14}{17}\selectfont\bfseries\centering}{\MakeUppercase{\chaptertitlename}\ \thechapter}{6pt}{\MakeUppercase}
 \titlespacing*{\chapter}{0pt}{0pt}{18pt}
-\lstset{basicstyle=\ttfamily\footnotesize, frame=single, breaklines=true, columns=fullflexible}
+\titleformat{\section}{\normalfont\fontsize{12}{15}\selectfont\bfseries}{\thesection}{0.8em}{}
+\titleformat{\subsection}{\normalfont\normalsize\bfseries\itshape}{\thesubsection}{0.8em}{}
+\titlespacing*{\section}{0pt}{14pt}{6pt}
+\titlespacing*{\subsection}{0pt}{10pt}{4pt}
+\setcounter{tocdepth}{1}
+\setlist{itemsep=0.15em,topsep=0.4em,parsep=0pt}
+\lstset{basicstyle=\ttfamily\footnotesize, frame=single, breaklines=true, columns=fullflexible,
+  language=Python, numbers=left, numberstyle=\tiny\color{gray}, keywordstyle=\bfseries,
+  commentstyle=\itshape\color{gray}, showstringspaces=false}
 \graphicspath{{../paper/figures/}{../docs/figures/}{figures/}}
 \onehalfspacing
 
 \input{../paper/generated/numbers}
+% numbers.tex defines \TBD while any placeholder is left; this keeps the report building either way.
+\providecommand{\TBD}[1]{\textcolor{red}{\textbf{TBD(#1)}}}
+% A percentage from numbers.tex: \pct{\rqOneCspLdaCvLeakfreeMean} prints "58.5 %".
+\newcommand{\pct}[1]{#1\,\%}
+% A 95 % bootstrap confidence interval, in percent or in percentage points.
+\newcommand{\ci}[2]{95\,\% CI #1 to #2\,\%}
+\newcommand{\cipts}[2]{95\,\% CI #1 to #2 points}
+\newcommand{\siteURL}{https://sixthfinger.rajveers.com}
+\newcommand{\code}[1]{\texttt{#1}}
 
 \begin{document}
 \pagenumbering{alph}
@@ -33,9 +63,12 @@
 \input{frontmatter/certificate}\thispagestyle{empty}
 \input{frontmatter/acknowledgement}\thispagestyle{empty}
 % GGSIPU order: contents and lists, then the abstract.
+% The contents and lists are single-spaced so that they stay short.
+\begin{singlespace}
 \tableofcontents
 \listoffigures
 \listoftables
+\end{singlespace}
 \input{frontmatter/abstract}
 \input{frontmatter/abbreviations}
 
@@ -47,8 +80,16 @@
 \input{chapters/04-results-and-discussion}
 \input{chapters/05-conclusion}
 
+% GGSIPU calls this list References; it is single-spaced like the lists above.
+\renewcommand{\bibname}{References}
+\clearpage
+\phantomsection
+\addcontentsline{toc}{chapter}{References}
+\begin{singlespace}
+\footnotesize
 \bibliographystyle{IEEEtran}
 \bibliography{../paper/references}
+\end{singlespace}
 
 \appendix
 \input{chapters/appendices}
