@@ -1,9 +1,24 @@
-% Write last (see the research-paper skill). 150-250 words: problem, gap, what we did,
-% main results with numbers from generated/numbers.tex, meaning.
-Brain--computer interfaces (BCIs) need user-specific calibration, and the burden is
-larger when the user must learn a command with no natural counterpart, such as a
-supernumerary robotic finger. Using a public longitudinal EEG dataset of
-\nSubjects{} stroke patients performing affected-hand and sixth-finger motor imagery,
-we (i) re-benchmark the published decoding protocol without information leakage,
-(ii) measure how many calibration trials a new patient and a new command require, and
-(iii) test whether transfer learning reduces that number. Results: \TBD{P06--P08}.
+Brain--computer interfaces (BCIs) must be calibrated for each user, and the
+burden is greater for a command with no natural counterpart, such as a
+robotic sixth finger. We asked how much calibration stroke patients need and
+whether data from other patients reduce it, using a public EEG dataset of
+\nSubjects{} patients imagining hand and sixth-finger movements. We first
+tested fairly: the published accuracy for hand against sixth finger relies
+on spatial filters fitted on all trials before cross-validation, and a
+standard pipeline reached \rqOneCspLdaPaperReplicaMean\,\% that way but
+\rqOneCspLdaCvLeakfreeMean\,\% when every step was fitted on training trials
+only. In pre-registered tests on \rqTwoHTwoAN{} patients, re-centred transfer
+from other patients reached \rqTwoRestAhSfRctTslrKOneMean\,\% on three classes
+(rest, hand, sixth finger) after one trial of each movement
+(\rqTwoMinutesKOne\,min), against \rqTwoRestAhSfTsLrKOneMean\,\% from scratch,
+and its area under the learning curve was larger ($p = \rqTwoHTwoAP$). It
+then levelled off near \rqTwoRestAhSfRctTslrKAllMean\,\%, while the decoder
+from scratch overtook it with the whole pool (\rqTwoRestAhSfTsLrKAllMean\,\%
+after \rqTwoMinutesKAll\,min). For adding the sixth finger to a hand decoder,
+transfer gave no clear benefit, and the patient's own hand decoder detected
+sixth-finger imagery at least as well, so we do not claim a distinct
+sixth-finger command. In exploratory analyses, a sixth-finger-against-rest
+switch reached \exFourTsLrCentralMean\,\% but also responded to imagined hand
+movement, and decoders lost accuracy on later days, most of which five new
+trials of each movement recovered. Transfer gives a fast start, not a better
+decoder.
