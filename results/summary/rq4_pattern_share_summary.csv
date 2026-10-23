@@ -1,0 +1,4 @@
+source,n,frontal_share_mean,parieto_occipital_share_mean,frontal_channel_share,parieto_occipital_channel_share
+csp_T1_ah_vs_sf,22,0.113372,0.140041,0.1,0.125
+csp_T3_sf_vs_rest,22,0.100752,0.147528,0.1,0.125
+eegnet_pretrained,24,0.0756341,0.143266,0.1,0.125

@@ -1,0 +1,17 @@
+{
+ "sources": [
+  "web/public/demo/model.onnx",
+  "web/public/demo/predictions.json"
+ ],
+ "parameters": 3195,
+ "move_rest": {
+  "acc": 0.875,
+  "right": 63,
+  "n": 72
+ },
+ "hand_finger": {
+  "acc": 0.6944,
+  "right": 25,
+  "n": 36
+ }
+}

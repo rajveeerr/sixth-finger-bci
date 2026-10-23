@@ -1,0 +1,9 @@
+scenario,task,session,k,pair,n,mean_diff_points,ci_lo_points,ci_hi_points,n_first_higher,n_second_higher
+S1_new_user,T2_rest_ah_sf,post,20,rct_tslr - ts_lr,24,-4.16785,-8.81376,0.0555587,10,14
+S1_new_user,T2_rest_ah_sf,pre,20,rct_tslr - ts_lr,22,-3.37661,-7.42056,0.631204,10,12
+S1_new_user,T3_sf_vs_rest,post,20,rct_tslr - ts_lr,24,-1.7745,-6.50785,2.57594,12,11
+S1_new_user,T3_sf_vs_rest,pre,20,rct_tslr - ts_lr,22,-6.43743,-10.2857,-2.7279,4,17
+S2_new_command,T2_rest_ah_sf,post,20,rct_tslr - ts_lr,24,-4.16785,-8.81376,0.0555587,10,14
+S2_new_command,T2_rest_ah_sf,pre,20,rct_tslr - ts_lr,22,-3.41449,-7.44845,0.593323,10,12
+S2_new_command,T3_sf_vs_rest,post,20,rct_tslr - ts_lr,24,-1.7745,-6.50785,2.57594,12,11
+S2_new_command,T3_sf_vs_rest,pre,20,rct_tslr - ts_lr,22,-6.43743,-10.2857,-2.7279,4,17

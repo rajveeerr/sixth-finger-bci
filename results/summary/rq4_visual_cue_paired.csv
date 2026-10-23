@@ -1,0 +1,7 @@
+task,comparison,arm,baseline,n,arm_mean,arm_ci_lo,arm_ci_hi,base_mean,base_ci_lo,base_ci_hi,diff_points,diff_ci_lo,diff_ci_hi,p_wilcoxon,better,worse,tied,n_without_dev,diff_points_without_dev,diff_ci_lo_without_dev,diff_ci_hi_without_dev
+T3_sf_vs_rest,parieto_occipital_5 vs central_14,parieto_occipital_5,central_14,22,0.732378,0.67199,0.792243,0.840451,0.790766,0.885379,-10.8073,-17.177,-4.72024,0.00803443,6,14,2,20,-10.6989,-17.4518,-4.30622
+T3_sf_vs_rest,central_14 vs all_40,central_14,all_40,22,0.840451,0.790766,0.885379,0.822489,0.767952,0.872821,1.7962,-0.953837,4.65425,0.295793,11,9,2,20,1.41171,-1.33332,4.38582
+T3_sf_vs_rest,parieto_occipital_5 vs all_40,parieto_occipital_5,all_40,22,0.732378,0.67199,0.792243,0.822489,0.767952,0.872821,-9.01106,-15.5747,-2.5963,0.0202627,5,17,0,20,-9.28716,-15.998,-2.59588
+T1_ah_vs_sf,parieto_occipital_5 vs central_14,parieto_occipital_5,central_14,22,0.614949,0.566183,0.665459,0.563907,0.529296,0.604018,5.10421,-0.205275,10.4254,0.0834938,12,7,3,20,5.98963,0.423959,11.573
+T1_ah_vs_sf,central_14 vs all_40,central_14,all_40,22,0.563907,0.529296,0.604018,0.594632,0.56842,0.619513,-3.07254,-6.03242,0.199729,0.0669594,4,15,3,20,-3.50479,-6.65278,-0.1074
+T1_ah_vs_sf,parieto_occipital_5 vs all_40,parieto_occipital_5,all_40,22,0.614949,0.566183,0.665459,0.594632,0.56842,0.619513,2.03167,-3.087,7.55619,0.652918,9,8,5,20,2.48484,-3.08777,8.22166

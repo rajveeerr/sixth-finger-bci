@@ -1,0 +1,5 @@
+method,n,n_sf_half,n_sf_none,sf_detection_max,ah_as_sf_over_sf_detection,false_activations,false_first_seconds,false_first_share,n_switch_half,sf_detection_rate_stopped_early_change,ah_detection_rate_stopped_early_change,ah_as_sf_rate_stopped_early_change,false_per_minute_stopped_early_change,n_detection_moved_stopped_early
+csp_lda,22,1,5,0.75,0.668332,132,70,0.530303,14,0,0,0,0.0262419,0
+ts_lr,22,1,10,0.7,0.509909,37,27,0.72973,15,0,0,0,0.0101106,0
+rct_tslr,22,2,2,0.6,0.738581,108,56,0.518519,17,0,0,0,0.0318463,0
+eegnet_scratch,22,2,6,0.8,0.650717,164,84,0.512195,19,0,0,0,0.0333138,0

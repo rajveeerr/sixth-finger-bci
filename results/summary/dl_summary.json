@@ -1,0 +1,25 @@
+{
+  "seed SD per patient, task and protocol (points)": {
+    "rows": 132,
+    "mean": 3.94649774364598,
+    "median": 3.7611821925861815,
+    "max": 17.5005087431139
+  },
+  "pre-training": {
+    "models": 24,
+    "training minutes, sum over the models": 44.169999999999995,
+    "training seconds per model, median": 107.1,
+    "best epoch, median": 5.0,
+    "devices": [
+      "cuda"
+    ],
+    "device name (Kaggle job)": "Tesla T4",
+    "job minutes (Kaggle job, wall clock)": 45.1
+  },
+  "zero-shot alignment, rest windows per patient": {
+    "patients": 22,
+    "median": 38.0,
+    "min": 32,
+    "max": 40
+  }
+}

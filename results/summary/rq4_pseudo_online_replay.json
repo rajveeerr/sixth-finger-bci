@@ -1,0 +1,31 @@
+{
+  "windows kept per run (share)": {
+    "runs": 44,
+    "median": 0.9626181818181818,
+    "min": 0.7917808219178082,
+    "max": 1.0
+  },
+  "periods": {
+    "total": 1734,
+    "overlapping the next": 38,
+    "holding a boundary cut": 76
+  },
+  "rest onset to the next rest onset (s)": {
+    "intervals": 821,
+    "min": 8.82,
+    "p5": 14.9,
+    "median": 16.028,
+    "p95": 18.576,
+    "max": 31.932
+  },
+  "a gate that never fires": {
+    "P correct, mean over patients": 0.6653688825298995,
+    "ITR bits per minute, mean over patients": 0.3452124832168613
+  },
+  "early false activation": {
+    "seconds": 2.0,
+    "rest period seconds": 7.0,
+    "share of the rest period": 0.2857142857142857
+  },
+  "patients reaching half of their SF periods with any method": 3
+}
