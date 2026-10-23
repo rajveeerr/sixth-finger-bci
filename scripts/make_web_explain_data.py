@@ -240,6 +240,112 @@ def healthy_benchmark(summary: Path) -> dict:
     }
 
 
+def benchmark(summary: Path) -> dict:
+    """The page's benchmark: every headline score in one place. The table is balanced accuracy
+    on the first session, each patient's model learning from runs 1 and 2 and tested on runs 3
+    and 4; values keep six digits so the page's one-decimal rounding matches the paper's. The
+    lines under it are setting up, another day, as if live, the leak and the demo model's size."""
+    rq1 = pd.read_csv(summary / "rq1_table.csv")
+    rq1 = rq1[(rq1.session == "pre") & (rq1.population == "all")].set_index(
+        ["task", "method", "protocol"]
+    )
+    dl = pd.read_csv(summary / "dl_baselines_table.csv").drop_duplicates()
+    dl = dl[(dl.protocol == "chrono") & (dl.method == "eegnet_scratch")].set_index("task")
+    ex4 = pd.read_csv(summary / "ex4_sf_command_table.csv").set_index(["section", "row"])
+    ex1 = pd.read_csv(summary / "ex1_transfer_ah_sf_paired.csv").set_index("comparison")
+
+    switch = ex4.loc[("part1", "ts_lr_c14")]
+    if str(switch.headline) != "True":
+        raise ValueError("ts_lr_c14 is no longer EX4's headline arm")
+    sure = ex4.loc[("arm_R", "R (ts_lr_c14), accuracy when acting")]
+    transfer = ex1.loc["B"]
+    if transfer.arm != "eegnet_ea_ft k=all":
+        raise ValueError(f"EX1's arm B is now {transfer.arm}")
+    if abs(transfer.arm_mean - ex4.loc[("part2_T1", "T1_ea_ft, all windows"), "mean"]) > 1e-6:
+        raise ValueError("EX1 and EX4 disagree on hand or sixth finger after learning from others")
+    # Each task's best: the switch EX4 chose on runs 1 and 2 (its headline arm), the network
+    # that first learned from the other patients, and for all three the demo's own model.
+    best = {
+        "T3_sf_vs_rest": {
+            "method": "ts_lr_c14",
+            "mean": r(switch["mean"], 6),
+            "sure": r(sure["mean"], 6),
+            "sure_share": r(sure.share_mean, 6),
+            # The arm that scored higher on runs 3 and 4 but lower on runs 1 and 2.
+            "not_chosen": r(ex4.loc[("part1", "T_ea_ft"), "mean"], 6),
+        },
+        "T1_ah_vs_sf": {"method": "eegnet_ea_ft", "mean": r(transfer.arm_mean, 6)},
+        "T2_rest_ah_sf": {
+            "method": "eegnet_scratch",
+            "mean": r(dl.loc["T2_rest_ah_sf", "mean"], 6),
+        },
+    }
+    chance = {key: c for key, _label, c in TASKS}
+    rows = []
+    for key, top in best.items():
+        cells = {
+            "csp_lda": rq1.loc[(key, "csp_lda", "chrono")],
+            "ts_lr": rq1.loc[(key, "ts_lr", "chrono")],
+            "eegnet_scratch": dl.loc[key],
+        }
+        if any(int(c.n) != 22 for c in cells.values()):
+            raise ValueError(f"{key}: a benchmark cell does not cover all 22 patients")
+        means = {m: r(c["mean"], 6) for m, c in cells.items()}
+        if top["mean"] < max(means.values()):
+            raise ValueError(f"{key}: the best column is below another method")
+        rows.append({"key": key, "chance": r(chance[key]), **means, "best": top})
+
+    curves = pd.read_csv(summary / "calib_curves.csv")
+    curves = curves[
+        (curves.scenario == "S1_new_user")
+        & (curves.task == "T2_rest_ah_sf")
+        & (curves.session == "pre")
+        & (curves.population == "all")
+        & (curves.k > 0)
+    ].set_index(["method", "k"])
+
+    def point(method: str, k: int) -> dict:
+        row = curves.loc[(method, k)]
+        return {"mean": r(row["mean"], 6), "minutes": r(row.minutes, 3)}
+
+    lon = pd.read_csv(summary / "rq4_longitudinal_table.csv")
+    lon = lon[(lon.session == "post") & (lon.population == "all")].set_index(["arm", "k"])
+    live = pd.read_csv(summary / "rq4_pseudo_online_switch_table.csv")
+    live = live[live.method == "eegnet_scratch"].set_index("metric")
+    ex5 = pd.read_csv(summary / "ex5_live_switch_table.csv")
+    ex5 = ex5[(ex5.arm == "M14") & (ex5.population == "all")].set_index("metric")
+    demo = json.loads((summary / "demo_model.json").read_text())
+    return {
+        "n": 22,
+        "tasks": rows,
+        "setup": {
+            "from_others": point("rct_tslr", 1),
+            "from_nothing": point("ts_lr", 1),
+            "from_nothing_end": point("ts_lr", int(curves.loc["ts_lr"].index.max())),
+        },
+        "later": {
+            "as_is": r(lon.loc[("pre_unchanged", 0), "mean"], 6),
+            "re_setup": r(lon.loc[("recentred", 5), "mean"], 6),
+            "k": 5,
+        },
+        "live": {
+            "demo": {
+                "detection": r(live.loc["imagery_detection_rate", "mean"], 6),
+                "false_per_minute": r(live.loc["false_per_minute", "mean"], 3),
+            },
+            "switch": {
+                "detection": r(ex5.loc["imagery_detection_rate", "mean"], 6),
+                "false_per_minute": r(ex5.loc["false_per_minute", "mean"], 3),
+            },
+        },
+        "leak": {
+            "paper_way": r(rq1.loc[("T1_ah_vs_sf", "csp_lda", "paper_replica"), "mean"], 6),
+            "fair": r(rq1.loc[("T1_ah_vs_sf", "csp_lda", "cv_leakfree"), "mean"], 6),
+        },
+        "model": {"parameters": model_parameters(), "bytes": demo["parity"]["bytes"]},
+    }
+
+
 def build() -> dict:
     """The page's numbers, from the results summaries."""
     summary = get_paths().root / "results" / "summary"
@@ -407,6 +513,8 @@ def build() -> dict:
             "results/summary/ex3_grasp_pretraining_benchmark_summary.csv",
             "results/summary/ex5_live_switch_table.csv",
             "results/summary/ex5_live_switch_checks.json",
+            "results/summary/rq1_table.csv",
+            "results/summary/ex1_transfer_ah_sf_paired.csv",
             "web/public/demo/model.onnx",
             "web/public/demo/predictions.json",
             "mne colin27_1005 template",
@@ -463,6 +571,7 @@ def build() -> dict:
             **demo_readings(),
         },
         "sixth": {**sixth_command(summary), "healthy": healthy_benchmark(summary)},
+        "benchmark": benchmark(summary),
     }
     return data
 

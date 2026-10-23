@@ -22,6 +22,8 @@
   "results/summary/ex3_grasp_pretraining_benchmark_summary.csv",
   "results/summary/ex5_live_switch_table.csv",
   "results/summary/ex5_live_switch_checks.json",
+  "results/summary/rq1_table.csv",
+  "results/summary/ex1_transfer_ah_sf_paired.csv",
   "web/public/demo/model.onnx",
   "web/public/demo/predictions.json",
   "mne colin27_1005 template"
@@ -996,6 +998,84 @@
     0.3476,
     0.3547
    ]
+  }
+ },
+ "benchmark": {
+  "n": 22,
+  "tasks": [
+   {
+    "key": "T3_sf_vs_rest",
+    "chance": 0.5,
+    "csp_lda": 0.826527,
+    "ts_lr": 0.822489,
+    "eegnet_scratch": 0.76231,
+    "best": {
+     "method": "ts_lr_c14",
+     "mean": 0.840451,
+     "sure": 0.893728,
+     "sure_share": 0.76528,
+     "not_chosen": 0.850144
+    }
+   },
+   {
+    "key": "T1_ah_vs_sf",
+    "chance": 0.5,
+    "csp_lda": 0.588229,
+    "ts_lr": 0.594632,
+    "eegnet_scratch": 0.615659,
+    "best": {
+     "method": "eegnet_ea_ft",
+     "mean": 0.655944
+    }
+   },
+   {
+    "key": "T2_rest_ah_sf",
+    "chance": 0.3333,
+    "csp_lda": 0.606282,
+    "ts_lr": 0.612781,
+    "eegnet_scratch": 0.637393,
+    "best": {
+     "method": "eegnet_scratch",
+     "mean": 0.637393
+    }
+   }
+  ],
+  "setup": {
+   "from_others": {
+    "mean": 0.560546,
+    "minutes": 0.467
+   },
+   "from_nothing": {
+    "mean": 0.395619,
+    "minutes": 0.467
+   },
+   "from_nothing_end": {
+    "mean": 0.612182,
+    "minutes": 9.333
+   }
+  },
+  "later": {
+   "as_is": 0.448638,
+   "re_setup": 0.596672,
+   "k": 5
+  },
+  "live": {
+   "demo": {
+    "detection": 0.648919,
+    "false_per_minute": 1.239
+   },
+   "switch": {
+    "detection": 0.604998,
+    "false_per_minute": 0.583
+   }
+  },
+  "leak": {
+   "paper_way": 0.810951,
+   "fair": 0.584693
+  },
+  "model": {
+   "parameters": 3195,
+   "bytes": 21812
   }
  }
 }
