@@ -30,9 +30,12 @@ session, population, method (CspLda, TsLr, RctTslr, EegnetEaFt, ...), protocol
 pool). A dimension at its default is left out: session pre (else Post, Follow), all patients
 (else NoDev without sub-01 and sub-03, Linked with sub-21 and sub-22 averaged), the random
 draw (else Chrono), and in RQ1 the task AH vs SF. Follow-up arms carry the names of the
-results chapter (ArmB, ArmGp, Move, Finger, ...). Statistics: Mean, CiLo and CiHi (95 %
-bootstrap CI), N, Diff (points unless the index says otherwise), P (two significant digits),
-PHolm, W, R (rank-biserial), Better, Worse, Tied (patients), Min and Max (ranges).
+results chapter (ArmB, ArmGp, Move, Finger, ...). Classes are Rest, Ah and Sf; ERD values carry
+the band and channel (Mu, Beta; CThree, Cz, CFour); one patient's value carries the patient
+(SubOne), and Patient marks the extreme over patients. Statistics: Mean, Median, CiLo and CiHi
+(95 % bootstrap CI), N, Diff (points unless the index says otherwise), P (two significant
+digits), PHolm, W, R (rank-biserial), Better, Worse, Tied (patients), Min and Max (ranges, or
+one cell where the results file states the extreme itself).
 
 Percentages print without the sign: write \\rqOneCspLdaCvLeakfreeMean\\,\\% for 58.5 %.
 paper/generated/numbers-index.md lists every macro with its value, meaning and source. Macros
@@ -58,7 +61,7 @@ TBD = r"\newcommand{\TBD}[1]{\textcolor{red}{\textbf{TBD(#1)}}}"
 TOPICS = {
     "n": "Dataset counts",
     "audit": "Integrity audit",
-    "eda": "Data-quality views",
+    "eda": "Neurophysiology and data-quality views",
     "rqOne": "RQ1 and RQ1b: leakage in the published protocol",
     "dl": "Deep-learning baselines and pre-training",
     "rqTwo": "RQ2: calibration for a new user (S1)",
@@ -138,6 +141,9 @@ SPELL = {
 FIVE_METHODS = ("csp_lda", "csp_svm", "fbcsp_lda", "mdm", "ts_lr")
 # The calibration methods the text quotes with intervals; the others get their means.
 CALIB_MAIN = ("rct_tslr", "ts_lr", "ah_proxy", "eegnet_ea_ft", "eegnet_scratch")
+CLASS_NAME = {"rest": "Rest", "affected_hand": "Ah", "sixth_finger": "Sf"}
+CLASS_LABEL = {"rest": "REST", "affected_hand": "AH", "sixth_finger": "SF"}
+SUBJECT = {"sub-01": "SubOne", "sub-02": "SubTwo", "sub-03": "SubThree"}
 
 
 @dataclass(frozen=True)
@@ -333,6 +339,13 @@ class Numbers:
         if "n_nonzero" in row:
             nonzero = integer(row.n_nonzero)
             self.add(stem + "NNonzero", nonzero, src, "patients with a non-zero difference")
+        if "min_diff" in row:
+            low, high = (row.min_diff, row.max_diff) if sign > 0 else (-row.max_diff, -row.min_diff)
+            self.add(stem + "DiffMin", fmt(low), src, f"smallest per-patient difference ({unit})")
+            self.add(stem + "DiffMax", fmt(high), src, f"largest per-patient difference ({unit})")
+            up, down = (row.n_positive, row.n_negative)[:: 1 if sign > 0 else -1]
+            self.add(stem + "Positive", integer(up), src, "patients with a positive difference")
+            self.add(stem + "Negative", integer(down), src, "patients with a negative difference")
 
     def paired(self, stem, row, src, what, means=True, nodev=True) -> None:
         """A row of the follow-ups' paired files (ex1, ex3, ex4): arm, baseline, difference."""
@@ -425,6 +438,24 @@ def dataset(nums: Numbers) -> None:
     if nums.entries["nPre"].plain != str(pre):
         raise SystemExit("the audit report and the RQ1 analyses disagree on the pre patients")
 
+    src = "audit/epoch_trials.csv"
+    trials = nums.csv(src)
+    if int(trials.trials.sum()) != int(per_file.sum()) - int(
+        trials[["rest_and_affected_hand", "rest_and_sixth_finger"]].to_numpy().sum()
+    ):
+        raise SystemExit(f"{src} no longer adds up to the windows")
+    nums.add("nTrials", integer(trials.trials.sum()), src, "trials the windows form", "count")
+    for column, token, label in (
+        ("rest_and_affected_hand", "RestAh", "a rest and an AH window"),
+        ("rest_and_sixth_finger", "RestSf", "a rest and an SF window"),
+        ("rest_only", "RestOnly", "only a rest window"),
+        ("affected_hand_only", "AhOnly", "only an AH window"),
+        ("sixth_finger_only", "SfOnly", "only an SF window"),
+    ):
+        nums.add(
+            f"nTrials{token}", integer(trials[column].sum()), src, f"trials with {label}", "count"
+        )
+
 
 def audit(nums: Numbers) -> None:
     src = "audit/audit_report.md"
@@ -493,6 +524,41 @@ def audit(nums: Numbers) -> None:
     row = one(quality, kind="channel_std")
     what = f"{row.subject} {row['item']}: {row.note}"
     nums.add("edaChannelStdRatio", fixed2(row.value), src, what)
+
+
+def erd(nums: Numbers) -> None:
+    src = "summary/eda_erd_summary.csv"
+    channel_tok = {"C3": "CThree", "Cz": "Cz", "C4": "CFour"}
+    for _, row in nums.csv(src).query("session == 'pre'").iterrows():
+        stem = f"edaErd{row.band.capitalize()}{channel_tok[row.channel]}"
+        what = f"{row.band} ERD at {row.channel} (mirrored), pre, 1-5 s"
+        nums.add(stem + "AhMean", fixed(row.mean_affected_hand), src, f"{what}: AH, mean (%)")
+        nums.add(stem + "SfMean", fixed(row.mean_sixth_finger), src, "SF, mean (%)")
+        nums.add(
+            stem + "AhNegative",
+            integer(row.n_negative_affected_hand),
+            src,
+            "patients with AH ERD below 0",
+        )
+        nums.add(
+            stem + "SfNegative",
+            integer(row.n_negative_sixth_finger),
+            src,
+            "patients with SF ERD below 0",
+        )
+        nums.add(stem + "N", integer(row.n_paired), src, "patients with both")
+        nums.add(
+            stem + "SfMoreNegative",
+            integer(row.n_sf_more_negative),
+            src,
+            "patients whose SF ERD is the more negative",
+        )
+        diff = f"{what}: SF minus AH, exploratory two-sided Wilcoxon"
+        nums.add(stem + "SfMinusAhDiff", fixed(row.sf_minus_ah_mean), src, f"{diff} (points)")
+        nums.add(stem + "SfMinusAhDiffCiLo", fixed(row.sf_minus_ah_ci_lo), src, "CI lower")
+        nums.add(stem + "SfMinusAhDiffCiHi", fixed(row.sf_minus_ah_ci_hi), src, "CI upper")
+        nums.add(stem + "SfMinusAhW", whole_or(row.W), src, "Wilcoxon W")
+        nums.add(stem + "SfMinusAhP", sig(row.p), src, "p")
 
 
 def rq_one(nums: Numbers) -> None:
@@ -707,6 +773,44 @@ def deep(nums: Numbers) -> None:
     sources = pd.Series([len(manifest[f]["train_subjects"]) for f in pretrain.file])
     nums.span("dlPretrainSources", sources, src, "source patients of a pre-trained model", integer)
 
+    src = "summary/dl_summary.json"
+    group = nums.json(src)
+    seeds = group["seed SD per patient, task and protocol (points)"]
+    what = "EEGNet on one patient: SD over 3 seeds, every patient, task and protocol (points)"
+    nums.add("dlEegnetScratchSeedSdMean", fixed(seeds["mean"]), src, f"{what}, mean")
+    nums.add("dlEegnetScratchSeedSdMedian", fixed(seeds["median"]), src, "median")
+    nums.add("dlEegnetScratchSeedSdMax", fixed(seeds["max"]), src, "largest")
+    nums.add("dlEegnetScratchSeedSdN", integer(seeds["rows"]), src, "patient, task and protocol")
+    pre = group["pre-training"]
+    minutes = fixed(pre["training minutes, sum over the models"])
+    nums.add("dlPretrainMinutes", minutes, src, "pre-training: minutes, sum over the 24 models")
+    job = fixed(pre["job minutes (Kaggle job, wall clock)"])
+    nums.add("dlPretrainJobMinutes", job, src, "pre-training: the Kaggle job's wall-clock minutes")
+    median = fixed(pre["training seconds per model, median"])
+    nums.add("dlPretrainSecondsMedian", median, src, "pre-training: seconds per model, median")
+    epoch = whole_or(pre["best epoch, median"])
+    nums.add("dlPretrainBestEpochMedian", epoch, src, "pre-training: best epoch, median")
+    device = word(pre["device name (Kaggle job)"])
+    nums.add("dlPretrainDevice", device, src, "pre-training: the GPU (Kaggle job record)")
+    reference = group["zero-shot alignment, rest windows per patient"]
+    what = "rest windows a zero-shot model is aligned with, median over patients"
+    nums.add("dlZeroShotReferenceWindowsMedian", whole_or(reference["median"]), src, what)
+
+    src = "summary/dl_class_recall.csv"
+    recall = nums.csv(src)
+    for _, row in recall.iterrows():
+        stem = "dl" + TASK[row.task] + PROTOCOL[row.protocol] + METHOD[row.method]
+        what = (
+            f"{TASK_LABEL[row.task]}, pre, {row.protocol}, {row.method}: "
+            f"recall of {CLASS_LABEL[row['class']]} (%)"
+        )
+        nums.add(f"{stem}Recall{CLASS_NAME[row['class']]}", pct(row.mean_recall), src, what)
+    classical = recall[recall.method != "eegnet_scratch"]
+    for (task, protocol, cls), part in classical.groupby(["task", "protocol", "class"]):
+        stem = f"dl{TASK[task]}{PROTOCOL[protocol]}ClassicalRecall{CLASS_NAME[cls]}"
+        what = f"{TASK_LABEL[task]}, pre, {protocol}, five classical methods: {cls} recall (%)"
+        nums.span(stem, part.mean_recall, src, what)
+
 
 def calibration(nums: Numbers) -> None:
     src = "summary/calib_curves.csv"
@@ -825,6 +929,50 @@ def calibration(nums: Numbers) -> None:
     passed = integer(nosignal.passes.sum())
     nums.add("rqTwoNoSignalPassed", passed, src, "labels permuted: cells within it", "count")
 
+    what = "labels permuted: largest distance of a method's mean from chance"
+    distance = fixed3(nosignal.distance_from_chance.max())
+    nums.add("rqTwoNoSignalDistanceMax", distance, src, what, "range")
+
+    src = "summary/calib_method_summary.csv"
+    methods = nums.csv(src)
+    for _, row in methods[methods.session == "pre"].iterrows():
+        stem = SCENARIO[row.scenario] + TASK[row.task] + METHOD[row.method]
+        what = f"{row.scenario}, {TASK_LABEL[row.task]}, pre, {row.method}"
+        nums.add(stem + "AlcMean", fixed3(row.mean_alc), src, f"{what}: ALC, mean over patients")
+        for thr, token in ((60, "Sixty"), (70, "Seventy")):
+            reach = integer(row[f"n_reach_{thr}"])
+            nums.add(f"{stem}Reach{token}", reach, src, f"patients reaching {thr} %", optional=True)
+            k = whole_or(row[f"median_k_star_{thr}"])
+            nums.add(
+                f"{stem}Reach{token}MedianK", k, src, f"their median k* ({thr} %)", optional=True
+            )
+        # The own-hand control ignores the budget.
+        if pd.isna(row.get("n_k0_k1")) or row.method == "ah_proxy":
+            continue
+        drop = fixed(row.k1_minus_k0_points)
+        nums.add(stem + "KOneMinusKZeroDiff", drop, src, "k = 1 minus k = 0, mean (points)")
+        below = integer(row.n_k1_below_k0)
+        nums.add(stem + "KOneBelowKZero", below, src, "patients lower at k = 1 than at k = 0")
+
+    src = "summary/calib_pair_whole_pool.csv"
+    for _, row in nums.csv(src).query("session == 'pre'").iterrows():
+        stem = SCENARIO[row.scenario] + TASK[row.task] + "TsLrMinusRctTslrKAll"
+        what = f"{row.scenario}, {TASK_LABEL[row.task]}, pre, k = all: ts_lr minus rct_tslr"
+        nums.add(stem + "Diff", fixed(-row.mean_diff_points), src, f"{what} (points, no test)")
+        nums.add(stem + "DiffCiLo", fixed(-row.ci_hi_points), src, "CI lower")
+        nums.add(stem + "DiffCiHi", fixed(-row.ci_lo_points), src, "CI upper")
+        nums.add(stem + "Better", integer(row.n_second_higher), src, "patients higher with ts_lr")
+        nums.add(stem + "Worse", integer(row.n_first_higher), src, "patients higher with rct_tslr")
+
+    src = "summary/calib_alc_subject_values.csv"
+    alcs = nums.csv(src)
+    h3a = alcs[(alcs.hypothesis == "H3a") & (alcs.role == "confirmatory")].nsmallest(3, "diff")
+    for (_, row), token in zip(h3a.iterrows(), ("", "Second", "Third"), strict=True):
+        stem = f"rqThreeHThreeAPatient{token}Lowest"
+        what = f"H3a, rct_tslr minus ts_lr, ALC: the {token.lower() or 'first'} lowest patient"
+        nums.add(stem + "Diff", fixed3(row["diff"]), src, f"{what}, difference", "range")
+        nums.add(stem + "Subject", word(row.subject), src, "that patient", "range")
+
     src = "summary/calib_zeroshot_check.csv"
     check = nums.csv(src)
     what = "EEGNet at k = 0 against P07's zero-shot"
@@ -895,6 +1043,19 @@ def rq_four(nums: Numbers) -> None:
     nums.add("rqFourMirrorNLeft", left, src, "mirroring: left-hemiplegic patients")
     lowest = sig(mirror.p_holm.min())
     nums.add("rqFourMirrorPHolmMin", lowest, src, "mirroring: smallest Holm p", "range")
+    for _, row in mirror.iterrows():
+        stem = "rqFourMirror" + METHOD[row.method] + K[row.k]
+        nums.add(stem + "MedianDiff", pct(row.median_diff), src, "per-patient median (points)")
+        nums.add(stem + "Better", integer(row.n_better), src, "patients higher mirrored")
+        nums.add(stem + "Worse", integer(row.n_worse), src, "patients lower mirrored")
+    for side, token, who in (
+        ("L", "Left", "left-hemiplegic, own data mirrored"),
+        ("R", "Right", "right-hemiplegic, own data unchanged"),
+    ):
+        what = f"mirroring, {who}: one patient's difference, every method and k (points)"
+        lows, highs = mirror[f"min_diff_{side}"], mirror[f"max_diff_{side}"]
+        nums.add(f"rqFourMirrorPatientDiff{token}Min", pct(lows.min()), src, what, "range")
+        nums.add(f"rqFourMirrorPatientDiff{token}Max", pct(highs.max()), src, "largest", "range")
 
     src = "summary/rq4_longitudinal_table.csv"
     arm_tok = {
@@ -913,6 +1074,27 @@ def rq_four(nums: Numbers) -> None:
         nums.mean_ci(stem, row, src, f"{what}: three-class balanced accuracy", ci=everyone)
         if everyone:
             nums.add(stem + "N", integer(row.n), src, "patients")
+
+    src = "summary/rq4_longitudinal_reference.csv"
+    refs = nums.csv(src)
+    for (session, ref), part in refs.groupby(["session", "reference_session"]):
+        stem = f"rqFourLater{session.capitalize()}Within{ref.capitalize()}"
+        what = (
+            f"ts_lr with the whole {ref} pool, within {ref}, on the {session} patients "
+            "(P08, three classes)"
+        )
+        nums.add(stem + "Mean", pct(single(part.reference_mean)), src, f"{what} (%)")
+        nums.add(stem + "N", integer(single(part.n)), src, "patients")
+    for _, row in refs.iterrows():
+        budget = "" if row.arm == "pre_unchanged" else K[row.k]
+        stem = f"rqFourLater{row.session.capitalize()}{arm_tok[row.arm]}{budget}"
+        what = f"{row.session}, {row.arm}, k = {row.k}, minus the within-{row.reference_session}"
+        nums.add(
+            f"{stem}VsWithin{row.reference_session.capitalize()}Diff",
+            fixed(row.arm_minus_reference_points),
+            src,
+            f"{what} reference (points)",
+        )
 
     replay_metrics = {
         "sf_detection_rate": ("FingerDetect", pct, "%", "SF periods with an SF command"),
@@ -938,6 +1120,160 @@ def rq_four(nums: Numbers) -> None:
         if metric == "sf_latency_s":
             what = f"pseudo-online, {POP_LABEL[population]}: patients with an SF detection"
             nums.span(f"rqFourReplay{POP[population]}FingerLatencyN", part.n, src, what, integer)
+    src = "summary/rq4_pseudo_online_details.csv"
+    details = nums.csv(src)
+    for _, row in details.iterrows():
+        stem = "rqFourReplay" + METHOD[row.method]
+        what = f"pseudo-online, {row.method}"
+        nums.add(
+            stem + "FingerHalf",
+            integer(row.n_sf_half),
+            src,
+            f"{what}: patients with half of their SF periods detected",
+        )
+        nums.add(stem + "FingerNone", integer(row.n_sf_none), src, "patients with none")
+        nums.add(
+            stem + "FingerDetectMax",
+            pct(row.sf_detection_max),
+            src,
+            "SF periods detected, best patient (%)",
+        )
+        ratio = fixed2(row.ah_as_sf_over_sf_detection)
+        nums.add(
+            stem + "HandAsFingerRatio",
+            ratio,
+            src,
+            "AH periods flexing SF over SF periods detected (means)",
+        )
+        nums.add(stem + "False", integer(row.false_activations), src, "false activations")
+        nums.add(
+            stem + "FalseEarly",
+            integer(row.false_first_seconds),
+            src,
+            "of them, in the first 2 s of a rest period",
+        )
+        nums.add(stem + "FalseEarlyShare", pct(row.false_first_share), src, "share (%)")
+        nums.add(
+            stem + "FalsePerMinStoppedEarlyDiff",
+            fixed2(row.false_per_minute_stopped_early_change),
+            src,
+            "periods stopped at the next one and at a cut: change of false per minute",
+        )
+        nums.add(
+            stem + "DetectMovedStoppedEarly",
+            integer(row.n_detection_moved_stopped_early),
+            src,
+            "patients whose detection rates change then",
+        )
+        nums.add(
+            "rqFourSwitch" + METHOD[row.method] + "Half",
+            integer(row.n_switch_half),
+            src,
+            f"one switch, {row.method}: patients with half of their imagery periods",
+        )
+    what = "pseudo-online, four methods"
+    nums.span(
+        "rqFourReplayFingerHalf",
+        details.n_sf_half,
+        src,
+        f"{what}: patients with half of their SF periods",
+        integer,
+    )
+    nums.span(
+        "rqFourReplayFalseEarlyShare",
+        details.false_first_share,
+        src,
+        f"{what}: false activations in the first 2 s of rest (%)",
+    )
+    nums.span(
+        "rqFourReplayFalsePerMinStoppedEarlyDiff",
+        details.false_per_minute_stopped_early_change,
+        src,
+        f"{what}: change of false per minute, periods stopped early",
+        fixed2,
+    )
+    nums.span(
+        "rqFourSwitchHalf",
+        details.n_switch_half,
+        src,
+        "one switch, four methods: patients with half of their imagery periods",
+        integer,
+    )
+
+    src = "summary/rq4_pseudo_online_replay.json"
+    replay = nums.json(src)
+    kept = replay["windows kept per run (share)"]
+    nums.add("rqFourReplayRuns", integer(kept["runs"]), src, "runs replayed")
+    nums.add(
+        "rqFourReplayWindowsKeptMedian",
+        pct(kept["median"]),
+        src,
+        "windows kept per run, median (%)",
+    )
+    nums.add("rqFourReplayWindowsKeptMin", pct(kept["min"]), src, "lowest run (%)")
+    nums.add("rqFourReplayWindowsKeptMax", pct(kept["max"]), src, "highest run (%)")
+    periods = replay["periods"]
+    nums.add("rqFourReplayPeriods", integer(periods["total"]), src, "scored periods")
+    nums.add(
+        "rqFourReplayPeriodsOverlapping",
+        integer(periods["overlapping the next"]),
+        src,
+        "periods overlapping the next",
+    )
+    nums.add(
+        "rqFourReplayPeriodsCut",
+        integer(periods["holding a boundary cut"]),
+        src,
+        "periods holding a boundary cut",
+    )
+    spacing = replay["rest onset to the next rest onset (s)"]
+    for key, token, label in (
+        ("median", "Median", "median"),
+        ("p5", "PercentileFive", "5th percentile"),
+        ("p95", "PercentileNinetyFive", "95th percentile"),
+        ("min", "Min", "shortest"),
+        ("max", "Max", "longest"),
+    ):
+        nums.add(
+            f"rqFourReplaySpacing{token}",
+            fixed(spacing[key]),
+            src,
+            f"one rest onset to the next, {label} (s)",
+        )
+    silent = replay["a gate that never fires"]
+    nums.add(
+        "rqFourReplaySilentP",
+        fixed3(silent["P correct, mean over patients"]),
+        src,
+        "a gate that never fires: P correct, mean over patients",
+    )
+    nums.add(
+        "rqFourReplaySilentItr",
+        fixed2(silent["ITR bits per minute, mean over patients"]),
+        src,
+        "a gate that never fires: bits per minute, mean over patients",
+    )
+    early = replay["early false activation"]
+    nums.add(
+        "rqFourReplayEarlySeconds",
+        whole_or(early["seconds"]),
+        src,
+        "an early false activation: within this many seconds of rest",
+    )
+    nums.add(
+        "rqFourReplayEarlyEvenShare",
+        pct(early["share of the rest period"]),
+        src,
+        "the share of a rest period those seconds are (%)",
+    )
+    anyone = integer(replay["patients reaching half of their SF periods with any method"])
+    nums.add(
+        "rqFourReplayFingerHalfAnyMethod",
+        anyone,
+        src,
+        "patients with half of their SF periods detected by any method",
+    )
+
     src = "summary/rq4_pseudo_online_repro.csv"
     for _, row in nums.csv(src).iterrows():
         what = f"replay refit of {row.method} against P08: largest balanced-accuracy difference"
@@ -974,6 +1310,71 @@ def rq_four(nums: Numbers) -> None:
         what = f"visual-cue check, ts_lr chrono, {TASK_LABEL[row.task]}, {row.channels}"
         nums.mean_ci(stem, row, src, f"{what}: balanced accuracy")
     nums.add("rqFourCueN", integer(single(cue.n)), src, "visual-cue check: patients")
+    src = "summary/rq4_visual_cue_paired.csv"
+    for _, row in nums.csv(src).iterrows():
+        stem = f"rqFourCue{TASK[row.task]}{channels[row.arm]}Vs{channels[row.baseline]}"
+        what = f"visual-cue check, {TASK_LABEL[row.task]}, {row.arm} minus {row.baseline}"
+        nums.paired(stem, row, src, what, means=False)
+        # The text says how far the central channels are ahead on SF vs REST.
+        if row.task == "T3_sf_vs_rest" and (row.arm, row.baseline) == (
+            "parieto_occipital_5",
+            "central_14",
+        ):
+            turned = f"rqFourCue{TASK[row.task]}CentralMinusParietoOccipital"
+            what = f"visual-cue check, {TASK_LABEL[row.task]}, central_14 minus parieto_occipital_5"
+            nums.add(turned + "Diff", fixed(-row.diff_points), src, f"{what} (points)")
+            nums.add(turned + "DiffCiLo", fixed(-row.diff_ci_hi), src, "CI lower")
+            nums.add(turned + "DiffCiHi", fixed(-row.diff_ci_lo), src, "CI upper")
+
+    src = "summary/rq4_pattern_share_summary.csv"
+    shares = nums.csv(src)
+    source_tok = {
+        "csp_T1_ah_vs_sf": "CspAhSf",
+        "csp_T3_sf_vs_rest": "CspSfRest",
+        "eegnet_pretrained": "Eegnet",
+    }
+    for _, row in shares.iterrows():
+        stem = "rqFourPattern" + source_tok[row.source]
+        what = f"pattern weight, {row.source}, mean over {row.n} maps"
+        nums.add(
+            stem + "FrontalShare",
+            pct(row.frontal_share_mean),
+            src,
+            f"{what}: four frontal channels (%)",
+        )
+        nums.add(
+            stem + "ParietoOccipitalShare",
+            pct(row.parieto_occipital_share_mean),
+            src,
+            "five parieto-occipital channels (%)",
+        )
+        nums.add(stem + "N", integer(row.n), src, "maps averaged")
+    csp = shares[shares.source.str.startswith("csp_")]
+    nums.span(
+        "rqFourPatternCspFrontalShare",
+        csp.frontal_share_mean,
+        src,
+        "pattern weight on the frontal channels, both CSP tasks (%)",
+    )
+    nums.span(
+        "rqFourPatternCspParietoOccipitalShare",
+        csp.parieto_occipital_share_mean,
+        src,
+        "pattern weight on the parieto-occipital channels, both CSP tasks (%)",
+    )
+    nums.add(
+        "rqFourPatternFrontalChannelShare",
+        pct(single(shares.frontal_channel_share)),
+        src,
+        "the frontal channels' share of the 40 (%)",
+    )
+    po_share = pct(single(shares.parieto_occipital_channel_share))
+    nums.add(
+        "rqFourPatternParietoOccipitalChannelShare",
+        po_share,
+        src,
+        "the parieto-occipital channels' share of the 40 (%)",
+    )
 
 
 def rq_five(nums: Numbers) -> None:
@@ -1033,6 +1434,10 @@ def rq_five(nums: Numbers) -> None:
         nums.span(f"rqFiveShuffled{prot_tok[protocol]}", part.ba, src, what)
     shuffles = integer(single(null.groupby("protocol").size()))
     nums.add("rqFiveShuffles", shuffles, src, "diagnoses shuffled: permutations", "count")
+    src = "summary/rq5_null_summary.csv"
+    for _, row in nums.csv(src).iterrows():
+        what = f"Mumtaz ts_lr, diagnoses shuffled, {row.protocol}: mean over the permutations (%)"
+        nums.add(f"rqFiveShuffled{prot_tok[row.protocol]}Mean", pct(row["mean"]), src, what)
     src = "summary/rq5_years_mumtaz.csv"
     year_tok = {2011: "TwentyEleven", 2013: "TwentyThirteen"}
     for _, row in nums.csv(src).iterrows():
@@ -1049,6 +1454,21 @@ def rq_five(nums: Numbers) -> None:
         for group, token in (("H", "Healthy"), ("MDD", "Depressed")):
             count = integer(kept[kept.group == group].subject.nunique())
             nums.add(stem + token, count, src, f"{name}: {group} people after the audit", "count")
+    src = "summary/rq5_signals_mumtaz.csv"
+    signals_tok = {21: "TwentyOne", 23: "TwentyThree"}
+    group_tok = {"H": "Healthy", "MDD": "Depressed"}
+    for _, row in nums.csv(src).iterrows():
+        name = f"rqFiveMumtaz{year_tok[row.year]}{group_tok[row.group]}"
+        name += f"Signals{signals_tok[row.n_signals]}"
+        what = f"Mumtaz {row.year}, {row.group}: kept files whose EDF header has {row.n_signals}"
+        nums.add(name, integer(row.files), src, f"{what} signals")
+    src = "summary/rq5_gad7_modma.csv"
+    side_tok = {"gad7_10_or_more": "AnxietyHigh", "gad7_below_10": "AnxietyLow"}
+    side_label = {"gad7_10_or_more": "GAD-7 of 10 or more", "gad7_below_10": "GAD-7 below 10"}
+    for _, row in nums.csv(src).iterrows():
+        name = f"rqFiveModma{side_tok[row.gad7_side]}{group_tok[row.group]}"
+        what = f"MODMA, {side_label[row.gad7_side]}, {row.group}: participants"
+        nums.add(name, integer(row.participants), src, what)
 
 
 EX_ONE = {
@@ -1189,6 +1609,10 @@ def ex_two(nums: Numbers) -> None:
     renumbered = integer(len(align["runs_renumbered"]))
     what = "sub-20's published runs that are other raw runs"
     nums.add("exTwoAlignRenumberedRuns", renumbered, src, what, "count")
+    src = "summary/ex2_slow_waves_alignment_shifts.csv"
+    shifted = nums.csv(src).shift_s
+    what = "raw alignment: seconds from cue to window, shifted windows"
+    nums.span("exTwoAlignShiftSeconds", shifted, src, what, fixed)
 
 
 EX_THREE = {
@@ -1263,6 +1687,20 @@ def ex_three(nums: Numbers) -> None:
         value = fixed(checks["device_timing"][device]["seconds_one_epoch"])
         what = f"one pre-training epoch on the Mac's {device} (s)"
         nums.add(f"exThreeEpochSeconds{token}", value, src, what)
+    summary = checks["summary"]
+    for subject, value in summary["P minus B per target, seed mean (points)"].items():
+        what = f"arm P minus arm B, {subject}, mean over seeds (points)"
+        nums.add(f"exThreeArmPVsArmB{SUBJECT[subject]}Diff", fixed(value), src, what)
+    spread = summary["GP minus B per patient (points)"]
+    what = "arm GP minus arm B, per patient (points)"
+    nums.add("exThreeArmGpVsArmBPatientSd", fixed(spread["sd"]), src, f"{what}: SD")
+    nums.add("exThreeArmGpVsArmBPatientMin", fixed(spread["min"]), src, "lowest patient")
+    nums.add("exThreeArmGpVsArmBPatientMax", fixed(spread["max"]), src, "highest patient")
+    moved = integer(spread["patients_moved_10_or_more"])
+    nums.add("exThreeArmGpVsArmBPatientMovedTen", moved, src, "patients moved 10 points or more")
+    for arm, hours in summary["pre-training hours on the device"].items():
+        what = f"arm {arm}: pre-training hours on the Mac's GPU, all its models"
+        nums.add(f"exThreeArm{arm.capitalize()}PretrainHours", fixed(hours), src, what)
 
 
 EX_FOUR_ARM = {
@@ -1529,11 +1967,24 @@ def demo(nums: Numbers) -> None:
     for _, row in nums.csv(src).iterrows():
         what = f"demo method choice, S1 three classes, {row.method}: balanced accuracy"
         nums.mean_ci("demoChoice" + METHOD[row.method], row, src, what)
+    src = "summary/demo_page.json"
+    page = nums.json(src)
+    nums.add("demoParameters", integer(page["parameters"]), src, "numbers in the ONNX model")
+    for key, token, label in (
+        ("move_rest", "MoveRest", "move or rest, every held-out window"),
+        ("hand_finger", "HandFinger", "hand or sixth finger, the imagery windows"),
+    ):
+        reading = page[key]
+        what = f"the demo's reading, {label}: balanced accuracy (%)"
+        nums.add(f"demo{token}Acc", pct(reading["acc"]), src, what)
+        nums.add(f"demo{token}Right", integer(reading["right"]), src, "windows read right")
+        nums.add(f"demo{token}N", integer(reading["n"]), src, "windows")
 
 
 SECTIONS = (
     dataset,
     audit,
+    erd,
     rq_one,
     rq_one_b,
     deep,

@@ -109,6 +109,50 @@ def test_values_are_the_results_files_values(nums):
     assert nums.entries["nWindows"].kind == "count"
 
 
+def test_group_numbers_are_the_summaries_values(nums):
+    """The numbers each analysis's summary step states for the text, copied unchanged."""
+    import json
+
+    erd = row(summary("eda_erd_summary.csv"), session="pre", band="mu", channel="C3")
+    leak = row(summary("rq1_stats.csv"), test_id="H1")
+    recall = row(
+        summary("dl_class_recall.csv"),
+        task="T3_sf_vs_rest",
+        method="eegnet_scratch",
+        protocol="chrono",
+        **{"class": "rest"},
+    )
+    pool = row(
+        summary("calib_pair_whole_pool.csv"),
+        scenario="S1_new_user",
+        task="T2_rest_ah_sf",
+        session="pre",
+    )
+    cue = row(
+        summary("rq4_visual_cue_paired.csv"),
+        task="T3_sf_vs_rest",
+        comparison="parieto_occipital_5 vs central_14",
+    )
+    shuffled = row(summary("rq5_null_summary.csv"), protocol="segment_cv")
+    dl = json.loads((ROOT / "results" / "summary" / "dl_summary.json").read_text())
+    expected = {
+        "edaErdMuCThreeAhMean": erd.mean_affected_hand,
+        "rqOneHOneDiffMin": leak.min_diff,
+        "rqOneHOneDiffMax": leak.max_diff,
+        "dlSfRestChronoEegnetScratchRecallRest": 100 * recall.mean_recall,
+        "dlEegnetScratchSeedSdMean": dl["seed SD per patient, task and protocol (points)"]["mean"],
+        "rqTwoRestAhSfTsLrMinusRctTslrKAllDiff": -pool.mean_diff_points,
+        "rqFourCueSfRestCentralMinusParietoOccipitalDiff": -cue.diff_points,
+        "rqFiveShuffledSegmentCvMean": 100 * shuffled["mean"],
+    }
+    for name, value in expected.items():
+        assert nums.entries[name].plain == f"{value:.1f}".replace("-", "\N{MINUS SIGN}"), name
+    assert nums.entries["edaErdMuCThreeSfMoreNegative"].plain == str(erd.n_sf_more_negative)
+    trials = pd.read_csv(ROOT / "results" / "audit" / "epoch_trials.csv")
+    assert nums.entries["nTrials"].plain == str(trials.trials.sum())
+    assert nums.entries["nTrials"].kind == "count"
+
+
 def test_formats(module):
     assert module.pct(0.584693).tex == "58.5"
     assert module.pct(-0.0123).tex == r"\ensuremath{-1.2}"
