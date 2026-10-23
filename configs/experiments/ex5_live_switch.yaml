@@ -1,0 +1,106 @@
+# Exploratory, added after the results (protocol §12, 2026-10-23): the central-channel switch of
+# ex4_sf_command played as if live, through the replay and command gate of question 4
+# (scripts/pseudo_online.py, protocol §6b). Every setting below was fixed before any replay of
+# runs 03-04 was scored; threshold_choice is added by --part select from runs 01-02 alone,
+# before any arm's replay of runs 03-04 exists. Read by scripts/ex5_live_switch.py.
+question: 'Played as if live, does the better trial-level switch (ts_lr on the 14 central channels)
+  catch more imagining and make fewer mistakes than the page''s current answer 4 (eegnet_scratch,
+  rq4_pseudo_online_switch_table.csv)?'
+status: exploratory; every setting fixed here before any replay of runs 03-04 is scored; runs 03-04
+  are only scored, never used to choose
+session: pre
+patients: the 22 with a usable pre session (configs/data.yaml exclusions)
+train_runs: [1, 2]
+replay_runs: [3, 4]
+channels:
+  central_14: [C1, C2, C3, C4, C5, C6, Cz, CP1, CP2, CP3, CP4, CP5, CP6, CPz]
+  note: CENTRAL_14 of sixthfinger.data.channels, taken from the 40 published channels after their
+    common average, as the cached windows are
+replay: 'evaluation/pseudo_online, unchanged: each replayed run is one continuous signal (run_signal),
+  a 4 s window ending every 0.5 s, windows split by a boundary skipped (the gate keeps its state),
+  the gate reset at the start of each run; periods: 7 s of rest after code 1, 6 s of imagery after
+  codes 2 and 3; an activation belongs to the period it falls in'
+gate:
+  class: server/app/gate.py CommandGate, loaded by evaluation/pseudo_online load_gate_class
+  classes: two, [rest, on]; the on column is P(movement) for M14, P(SF) for S14 and P(AH) + P(SF)
+    for the three-class baselines (pseudo_online any_imagery)
+  alpha: 0.3
+  threshold: 0.6
+  dwell: 2
+  release: 0.45
+arms:
+  M14:
+    method: ts_lr
+    channels: central_14
+    training_windows: every cached window of runs 01-02 (REST of hand and sixth-finger trials alike,
+      AH and SF)
+    labels: REST is rest (0); AH and SF are both movement (1), as the demo's one switch reads them
+    gate: unchanged
+  S14:
+    method: ts_lr
+    channels: central_14
+    training_windows: every cached REST and SF window of runs 01-02, exactly ex4_sf_command's ts_lr_c14
+      (T3_sf_vs_rest), the ex4 headline switch; no AH window
+    labels: REST 0, SF 2 (the ex4 class ids)
+    gate: unchanged
+    report: its activations in sixth-finger periods and in hand periods separately
+  M14_sure:
+    model: M14's model fitted on runs 01-02, its replay probabilities of runs 03-04 unchanged
+    gate: the on-threshold of each patient by threshold_rule; alpha, dwell and release unchanged
+threshold_rule:
+  inner_replay:
+    folds:
+      r1_to_r2: [[1], [2]]
+      r2_to_r1: [[2], [1]]
+    what: M14's recipe (method, channels, labels) learned on the cached windows of one run, the other
+      run replayed as a continuous signal through the gate; runs 03-04 never read
+  candidates: on-thresholds 0.50 to 0.99 in steps of 0.01 (50 values); 0.50 is the lowest at which
+    the two-class gate still asks movement to beat rest
+  mistakes: false activations in rest periods per minute of rest, pooled over the two inner replays
+    (pseudo_online switch_metrics over both runs)
+  limit_per_minute: 0.5
+  rule: the lowest candidate whose inner mistakes per minute are at most the limit; if none is, the
+    candidate with the fewest (the lower on a tie) (pseudo_online lowest_quiet_threshold)
+  written_by: --part select, into this file under threshold_choice, before any arm's replay of runs
+    03-04 exists
+metrics:
+  from: evaluation/pseudo_online switch_metrics and switch_by_kind, per patient over runs 03-04
+  imagery_detection_rate: share of imagery periods (hand and sixth finger) with an activation
+  false_per_minute: activations in rest periods per minute of rest
+  latency_s: median over detected imagery periods of the first activation after the period's start
+  ah_on_rate: share of hand periods with an activation (the trial-level share of hand periods that
+    switch it on)
+  sf_on_rate: share of sixth-finger periods with an activation
+  trial_fire: 'descriptive, not a replay: the share of the cached windows of runs 03-04 (REST, AH,
+    SF) the arm''s model reads as on (P(on) above P(rest)); for S14 it must equal ex4_sf_command''s
+    ts_lr_c14 fire rates, and S14''s balanced accuracy on the REST and SF windows its test_ts_lr_c14'
+baselines:
+  values: the committed per-patient rows of results/summary/rq4_pseudo_online_switch.csv (eegnet_scratch,
+    ts_lr, csp_lda; their means are rq4_pseudo_online_switch_table.csv)
+  hand_and_finger_apart: ah_on_rate and sf_on_rate of the baselines from the stored replay timelines
+    of rq4_pseudo_online (results/runs/rq4_pseudo_online/replay), after checking that those timelines
+    give the committed rows exactly
+  reproduction: 'before anything else, ts_lr is fitted again as the rq4 runner fits it (S1, three
+    classes, k = all: draw_calibration_set and task_windows on runs 01-02, all 40 channels) and its
+    runs 03-04 replayed by this script''s code; every patient''s imagery_detection_rate, false_per_minute,
+    latency_s and n_imagery_periods must equal the committed row at the 6 significant digits stored,
+    else the script stops before any arm is replayed'
+comparisons:
+  arms: [M14, S14, M14_sure]
+  against: [eegnet_scratch, ts_lr]
+  also: M14_sure vs M14
+  metrics: [imagery_detection_rate, false_per_minute, latency_s, ah_on_rate, sf_on_rate]
+  better: higher detection and on-rates (the switch is meant to turn on for either movement), fewer
+    false activations, shorter latency
+stats:
+  unit: patient (22); a patient without a value on either side (no detected period, so no latency)
+    is left out of that comparison and counted
+  paired: two-sided Wilcoxon (scipy, zero_method wilcox), uncorrected, descriptive
+  ci: 95 % percentile bootstrap of the mean (paired difference, or a single arm's mean), 10000 resamples,
+    seed 12345 (evaluation/stats.py)
+  sensitivity: the same without the development patients sub-01 and sub-03
+page_rule: 'the demo page''s answer 4 shows a new switch only if M14 or M14_sure has, over the 22
+  patients, a higher mean imagery_detection_rate and a lower mean false_per_minute than eegnet_scratch
+  (rq4_pseudo_online_switch_table.csv); if both do, the one with fewer mistakes per minute (then the
+  higher detection). Otherwise answer 4 keeps eegnet_scratch and says in one line that the central
+  switch did not do better live'

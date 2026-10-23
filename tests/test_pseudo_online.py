@@ -122,3 +122,38 @@ def test_latency_is_the_median_over_detected_periods():
     acts = pd.DataFrame({"sample": [250, 2500, 5000], "command": [2, 2, 2]})  # 1, 2 and 4 s
     m = po.subject_metrics([po.RunReplay(per, acts, 250)])
     assert m["sf_latency_s"] == pytest.approx(2.0)  # the mean would be 2.33
+
+
+def test_the_switch_counts_hand_and_finger_periods_apart():
+    per = pd.DataFrame(dict(kind=["rest", "AH", "rest", "SF", "rest", "AH"],
+                            start=[0, 2000, 3500, 5500, 7000, 9000],
+                            stop=[1750, 3500, 5250, 7000, 8750, 10500]))  # fmt: skip
+    acts = pd.DataFrame({"sample": [1000, 2600, 2700, 6000], "command": [1, 1, 1, 1]})
+    m = po.switch_by_kind([po.RunReplay(per, acts, 250)])
+    # Two activations in the first hand period count once; the second hand period has none.
+    assert (m["n_ah_periods"], m["ah_on_rate"]) == (2, 0.5)
+    assert (m["n_sf_periods"], m["sf_on_rate"]) == (1, 1.0)
+
+
+def test_a_gate_with_another_on_threshold_keeps_the_rest_of_the_gate():
+    gate = po.with_threshold(po.load_gate_class(), 0.8)(n_classes=2, rest_index=0)
+    assert (gate.threshold, gate.alpha, gate.dwell, gate.release) == (0.8, 0.3, 2, 0.45)
+    # A steady 0.7 for movement turns the usual gate on but not one that asks for 0.8.
+    steady = np.tile([0.3, 0.7], (20, 1))
+    assert po.replay(steady, po.load_gate_class())[-1] == 1
+    assert po.replay(steady, po.with_threshold(po.load_gate_class(), 0.8)).max() == 0
+
+
+def test_the_quiet_threshold_is_the_lowest_within_the_limit():
+    thresholds = [0.6, 0.5, 0.7, 0.8, 0.9]  # in any order
+    false = [0.9, 1.4, 0.5, 0.6, 0.1]
+    picked = po.lowest_quiet_threshold(thresholds, false, limit=0.5)
+    # 0.7 reaches the limit exactly; 0.8 lies above it again, 0.9 below, but the lowest wins.
+    assert picked == {"threshold": 0.7, "false_per_minute": 0.5, "within_limit": True}
+
+
+def test_without_a_quiet_threshold_the_fewest_mistakes_win_and_a_tie_takes_the_lower():
+    picked = po.lowest_quiet_threshold([0.5, 0.6, 0.7, 0.8], [2.0, 0.9, 1.1, 0.9], limit=0.5)
+    assert picked == {"threshold": 0.6, "false_per_minute": 0.9, "within_limit": False}
+    with pytest.raises(ValueError):
+        po.lowest_quiet_threshold([0.5, 0.6], [1.0, np.nan], limit=0.5)

@@ -73,6 +73,28 @@ def activations(active: np.ndarray, ends: np.ndarray) -> pd.DataFrame:
     return out
 
 
+def window_proba(
+    predict_proba,
+    data: np.ndarray,
+    codes: list[str],
+    samples: np.ndarray,
+    sfreq: float,
+    n_window: int,
+) -> tuple[np.ndarray, np.ndarray]:
+    """End samples of a run's replayed windows and the decoder's probabilities for them.
+
+    data: (channels, samples) of one continuous run; `predict_proba` takes windows
+    (n, channels, n_window).
+    """
+    boundaries = np.asarray(samples)[np.array(list(codes)) == "boundary"]
+    ends = window_ends(data.shape[1], n_window, round(STRIDE_S * sfreq), boundaries)
+    chunks = np.array_split(ends, max(1, len(ends) // 256))
+    proba = np.concatenate(
+        [predict_proba(np.stack([data[:, e - n_window : e] for e in c])) for c in chunks]
+    )
+    return ends, proba
+
+
 def replay_run(
     predict_proba,
     data: np.ndarray,
@@ -89,12 +111,7 @@ def replay_run(
     timeline (window end times, probabilities, gate output).
     """
     codes = list(codes)
-    boundaries = np.asarray(samples)[np.array(codes) == "boundary"]
-    ends = window_ends(data.shape[1], n_window, round(STRIDE_S * sfreq), boundaries)
-    chunks = np.array_split(ends, max(1, len(ends) // 256))
-    proba = np.concatenate(
-        [predict_proba(np.stack([data[:, e - n_window : e] for e in c])) for c in chunks]
-    )
+    ends, proba = window_proba(predict_proba, data, codes, samples, sfreq, n_window)
     if proba.shape != (len(ends), 3):
         raise ValueError(f"probabilities of shape {proba.shape}, expected ({len(ends)}, 3)")
     active = replay(proba, gate_cls)
@@ -207,4 +224,52 @@ def switch_metrics(runs: list[RunReplay]) -> dict:
         "imagery_detection_rate": hit / n_img if n_img else np.nan,
         "false_per_minute": false / (rest_s / 60) if rest_s else np.nan,
         "latency_s": float(np.median(latency)) if latency else np.nan,
+    }
+
+
+def switch_by_kind(runs: list[RunReplay]) -> dict:
+    """One-switch replay, the hand and the sixth-finger periods apart: the share of each with an
+    activation inside (exploratory ex5_live_switch)."""
+    n, on = {"AH": 0, "SF": 0}, {"AH": 0, "SF": 0}
+    for run in runs:
+        s = run.activations["sample"].to_numpy()
+        for p in run.periods.itertuples():
+            if p.kind in n:
+                n[p.kind] += 1
+                on[p.kind] += bool(_in(s, p.start, p.stop).any())
+    return {
+        "n_ah_periods": n["AH"],
+        "ah_on_rate": on["AH"] / n["AH"] if n["AH"] else np.nan,
+        "n_sf_periods": n["SF"],
+        "sf_on_rate": on["SF"] / n["SF"] if n["SF"] else np.nan,
+    }
+
+
+def with_threshold(gate_cls: type, threshold: float):
+    """The gate with another on-threshold; smoothing, dwell and release unchanged."""
+
+    def make(**kw):
+        return gate_cls(threshold=threshold, **kw)
+
+    return make
+
+
+def lowest_quiet_threshold(thresholds, false_per_minute, limit: float) -> dict:
+    """The lowest on-threshold whose false activations per minute of rest are at most `limit`.
+
+    If none is, the one with the fewest (the lower on a tie). Chosen on the calibration runs
+    only (exploratory ex5_live_switch), then applied unchanged to the replayed test runs.
+    """
+    t = np.asarray(thresholds, float)
+    f = np.asarray(false_per_minute, float)
+    if t.size == 0 or t.shape != f.shape or np.isnan(f).any():
+        raise ValueError("one false-activation rate per candidate threshold is needed")
+    order = np.argsort(t, kind="stable")
+    t, f = t[order], f[order]
+    quiet = np.flatnonzero(f <= limit + 1e-12)
+    i = int(quiet[0]) if quiet.size else int(np.flatnonzero(f == f.min())[0])
+    return {
+        "threshold": float(t[i]),
+        "false_per_minute": float(f[i]),
+        "within_limit": bool(quiet.size),
     }
