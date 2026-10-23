@@ -209,10 +209,7 @@ export default function App() {
           n={7}
           title="Watch it work"
           lede={
-            <p>
-              Patient {patient}&apos;s last two runs, which the model never trained on, play here at real speed. Follow
-              the three panels in order: what the patient is told, their brain signal, what the model reads.
-            </p>
+            <p>Patient {patient}&apos;s last two runs, which the model never trained on, played at real speed.</p>
           }
         >
           <DemoStage stream={stream} />

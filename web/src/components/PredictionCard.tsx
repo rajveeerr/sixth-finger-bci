@@ -7,28 +7,41 @@ import type { Prediction } from "../stream/types";
 const SOURCE_TEXT: Record<Prediction["source"], string> = {
   server: "Decided on the server",
   browser: "Decided in this browser",
-  replay: "Worked out earlier by the same model and saved",
+  replay: "Saved earlier by the same model",
 };
 
 const MOVEMENT: Record<string, string> = { affected_hand: "the hand", sixth_finger: "the sixth finger" };
 
+const times = (n: number) => (n === 1 ? "once" : `${n} times`);
+
+/** The running score: fixed windows read right per trial, switch-ons in continuous mode. */
+function Tally() {
+  const { mode, right, total, switches: sw } = useDemo();
+  if (mode === "continuous") {
+    return (
+      <span data-testid="switch-score">
+        Moved <b>{times(sw.moved)}</b>, <b>{sw.right}</b> right
+        {sw.missed > 0 && <span className="tally-missed">, missed {sw.missed}</span>}
+      </span>
+    );
+  }
+  if (!total) return <span>No reading yet</span>;
+  return (
+    <span>
+      <b>
+        {right} of {total}
+      </b>{" "}
+      right so far
+    </span>
+  );
+}
+
 /** Step 3: move or rest from the last 4 s, whether it was right, the guess at which movement, and the hand. */
 export function PredictionCard() {
-  const { lastPrediction: p, lastReading: r, classes, mode, right, total, manualMode } = useDemo();
+  const { lastPrediction: p, lastReading: r, manualMode } = useDemo();
   const command = useDemo(shownCommand);
   const kind = r ? (r.move ? "move" : "rest") : "";
   const surePct = r ? Math.min(99, Math.round(r.sure * 100)) : 0;
-  const asked = !p
-    ? ""
-    : p.truth === classes[0]?.name
-      ? "resting"
-      : `asked to imagine ${MOVEMENT[p.truth ?? ""] ?? "a movement"}`;
-  const tally =
-    mode === "continuous"
-      ? "A reading every half second, not counted in the score"
-      : total
-        ? `${right} of ${total} read right so far, rest as Rest and hand or finger as Move`
-        : "No reading yet";
   return (
     <section
       className="step step-read"
@@ -47,35 +60,21 @@ export function PredictionCard() {
           </span>
         )}
       </p>
-      <p className="step-note read-about">
-        {p ? (
-          <>
-            From the last 4 s, while the patient was <b>{asked}</b>. <SureTerm>{surePct}% sure</SureTerm>.
-          </>
-        ) : (
-          "The first reading comes 5 s into the trial."
-        )}
-      </p>
+      <p className="step-note read-about">{r && <SureTerm>{surePct}% sure</SureTerm>}</p>
       <p className="step-note read-guess" data-testid="guess" data-guess={r?.move ? r.guess : ""}>
-        {r?.move ? (
+        {r?.move && (
           <>
-            Which movement? A guess: <b>{MOVEMENT[r.guess] ?? r.guess}</b>. Right{" "}
-            {pct(data.demo.hand_finger.acc)} of the time for this patient; guessing gets 50%.
+            Hand or finger? A guess: <b>{MOVEMENT[r.guess] ?? r.guess}</b>, right {pct(data.demo.hand_finger.acc)} of
+            the time; guessing gets 50%.
           </>
-        ) : (
-          "Which movement? Guessed only on Move."
         )}
       </p>
       <div className="hand-stage" data-testid="hand" data-command={command}>
         <IsoHand command={command} />
       </div>
-      <p className="step-note hand-note">
-        {manualMode
-          ? "Test pose, not a reading. Press Esc to go back."
-          : "The robotic finger bends on Move, whichever movement was imagined."}
-      </p>
+      {manualMode && <p className="step-note hand-note">Test pose, not a reading. Press Esc to go back.</p>}
       <p className="step-note tally">
-        {tally}
+        <Tally />
         {p && `. ${SOURCE_TEXT[p.source]}${p.source !== "replay" ? ` in ${p.latency_ms.toFixed(0)} ms` : ""}.`}
       </p>
     </section>

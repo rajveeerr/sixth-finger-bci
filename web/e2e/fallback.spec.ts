@@ -20,7 +20,7 @@ async function bendsOnMove(page: Page) {
   );
   const { command, guess } = (await seen.jsonValue())!;
   expect(command).toBe("SIXTH_FINGER_FLEX");
-  expect(guess).toMatch(/A guess: the (hand|sixth finger)\. Right \d+% of the time for this patient/);
+  expect(guess).toMatch(/A guess: the (hand|sixth finger), right \d+% of the time/);
 }
 
 test("without a server the demo decodes in the browser and moves the hand", async ({ page }) => {
@@ -43,7 +43,7 @@ test("the sixth finger bends on Move, whichever movement was imagined", async ({
   await page.goto(`/?speed=8&${NO_SERVER}`);
   await expect(page.getByTestId("mode-badge")).toHaveAttribute("data-source", "browser", { timeout: 15_000 });
   await bendsOnMove(page);
-  await expect(page.getByTestId("prediction")).toContainText("rest as Rest and hand or finger as Move");
+  await expect(page.getByTestId("prediction")).toContainText(/\d+ of \d+ right so far/);
   await expect(page.getByRole("radio", { name: "Three choices" })).toHaveCount(0);
 });
 
@@ -52,15 +52,21 @@ test("the stored predictions drive the same switch when the in-browser model can
   await page.goto("/?speed=8&server=none");
   await expect(page.getByTestId("mode-badge")).toHaveAttribute("data-source", "replay", { timeout: 15_000 });
   await bendsOnMove(page);
-  await expect(page.getByTestId("prediction")).toContainText("Worked out earlier by the same model and saved");
+  await expect(page.getByTestId("prediction")).toContainText("Saved earlier by the same model");
 });
 
-test("continuous mode moves the finger through the switch, without counting", async ({ page }) => {
+test("continuous mode moves the finger through the switch and keeps its own score", async ({ page }) => {
   await page.goto(`/?speed=8&${NO_SERVER}`);
   await expect(page.getByTestId("mode-badge")).toHaveAttribute("data-source", "browser", { timeout: 15_000 });
-  await page.getByRole("radio", { name: "Continuous (experimental)" }).click();
-  await expect(page.getByTestId("prediction")).toContainText("A reading every half second", { timeout: 15_000 });
+  await page.getByRole("radio", { name: "Continuous" }).click();
+  const score = page.getByTestId("switch-score");
+  await expect(score).toContainText(/Moved (once|\d+ times), \d+ right/, { timeout: 15_000 });
   await bendsOnMove(page);
+  await expect(score).not.toContainText("Moved 0 times");
+  // Another trial is a jump: the score starts again (at real speed, before the switch can turn on).
+  await page.getByRole("radio", { name: "1×" }).click();
+  await page.getByRole("button", { name: "Next trial" }).click();
+  await expect(score).toHaveText("Moved 0 times, 0 right");
 });
 
 test("the live page runs the same switch", async ({ page }) => {

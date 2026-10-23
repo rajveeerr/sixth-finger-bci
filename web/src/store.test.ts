@@ -65,13 +65,99 @@ describe("the hand", () => {
     const { applyPrediction, applyMessage } = useDemo.getState();
     const start = (trial: number) =>
       applyMessage({ type: "trial_start", trial, pass: 0, uid: "x", n_samples: 3600, duration_s: 14.4, cue_onset_s: 8.6 });
+    start(0);
     applyPrediction(prediction("sliding", "sixth_finger", [0, 0.5, 0.5]));
+    applyMessage({ type: "trial_end", trial: 0 });
     start(1); // the next trial: the switch carries on
-    applyPrediction(prediction("sliding", "sixth_finger", [0, 0.5, 0.5]));
+    applyPrediction({ ...prediction("sliding", "sixth_finger", [0, 0.5, 0.5]), trial: 1 });
     expect(useDemo.getState().lastReading?.move).toBe(true);
     start(9); // a jump: it starts again at rest
-    applyPrediction(prediction("sliding", "sixth_finger", [0, 0.5, 0.5]));
+    applyPrediction({ ...prediction("sliding", "sixth_finger", [0, 0.5, 0.5]), trial: 9 });
     expect(useDemo.getState().lastReading?.move).toBe(false);
+  });
+
+  it("treats Next trial before the end of a trial as a jump", () => {
+    const { applyPrediction, applyMessage } = useDemo.getState();
+    const start = (trial: number) =>
+      applyMessage({ type: "trial_start", trial, pass: 0, uid: "x", n_samples: 3600, duration_s: 14.4, cue_onset_s: 8.6 });
+    start(0);
+    applyPrediction(prediction("sliding", "sixth_finger", [0, 0.5, 0.5]));
+    start(1); // trial 0 never ended
+    applyPrediction({ ...prediction("sliding", "sixth_finger", [0, 0.5, 0.5]), trial: 1 });
+    expect(useDemo.getState().lastReading?.move).toBe(false);
+  });
+});
+
+describe("the continuous score", () => {
+  const start = (trial: number) =>
+    useDemo
+      .getState()
+      .applyMessage({ type: "trial_start", trial, pass: 0, uid: "x", n_samples: 3650, duration_s: 14.6, cue_onset_s: 8.6 });
+  const end = (trial: number) => useDemo.getState().applyMessage({ type: "trial_end", trial });
+  /** A half-second reading of `trial` ending `t` s into it; a sure movement or a sure rest. */
+  const read = (trial: number, t: number, move: boolean) =>
+    useDemo
+      .getState()
+      .applyPrediction({ ...prediction("sliding", "sixth_finger", move ? [0, 0.5, 0.5] : [1, 0, 0]), trial, t });
+  const hello = () =>
+    useDemo.getState().applyMessage({
+      type: "hello", protocol: 1, server_version: "test", mode: "continuous", speed: 1, n_trials: 36, sfreq: 250,
+      display_sfreq: 125, display_channels: ["C3"], classes: CLASSES, window: { start_s: 1, end_s: 5 },
+      synthetic: false, model: { name: "m", method: "eegnet_scratch", sha256: "x" },
+    });
+
+  /** Trial 0: on during rest (wrong), off, on in the imagining (right). Trial 1: never on (missed). */
+  function twoTrials() {
+    start(0);
+    for (const t of [5, 5.5, 6, 6.5, 7, 7.5]) read(0, t, t < 6.5);
+    for (const t of [10, 10.5, 11]) read(0, t, true);
+    end(0);
+    start(1);
+    for (const t of [5, 10, 14]) read(1, t, false);
+    end(1);
+  }
+
+  it("counts switch-ons, those while imagining, and imaginings missed", () => {
+    twoTrials();
+    expect(useDemo.getState().switches).toEqual({ moved: 2, right: 1, missed: 1 });
+  });
+
+  it("marks each Move by its switch-on, as the score counts it", () => {
+    start(0);
+    read(0, 5, true);
+    read(0, 5.5, true);
+    expect(useDemo.getState().lastReading).toMatchObject({ move: true, right: false });
+    read(0, 6, false);
+    read(0, 6.5, false);
+    read(0, 7, false);
+    expect(useDemo.getState().lastReading).toMatchObject({ move: false, right: null });
+  });
+
+  it("starts again from nothing after a jump", () => {
+    twoTrials();
+    start(2);
+    read(2, 9, true);
+    read(2, 9.5, true);
+    start(20); // a jump in the middle of trial 2
+    expect(useDemo.getState().switches).toEqual({ moved: 0, right: 0, missed: 0 });
+    read(20, 9, true);
+    read(20, 9.5, true);
+    end(20);
+    expect(useDemo.getState().switches).toEqual({ moved: 1, right: 1, missed: 0 });
+  });
+
+  it("starts again from nothing when the replay restarts or is reset", () => {
+    twoTrials();
+    hello(); // a new stream: another mode, or the browser taking over from the server
+    expect(useDemo.getState().switches).toEqual({ moved: 0, right: 0, missed: 0 });
+    twoTrials();
+    useDemo.getState().reset();
+    expect(useDemo.getState().switches).toEqual({ moved: 0, right: 0, missed: 0 });
+  });
+
+  it("leaves the per-trial tally alone", () => {
+    twoTrials();
+    expect([useDemo.getState().right, useDemo.getState().total]).toEqual([0, 0]);
   });
 });
 

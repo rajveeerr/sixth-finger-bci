@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { countReading, guessOf, MoveSwitch, readWindow, type Reading } from "./decision";
+import { countReading, guessOf, IMAGERY_S, MoveSwitch, readWindow, SwitchCount, type Reading } from "./decision";
 import type { ClassInfo, Prediction } from "./stream/types";
 
 const CLASSES: ClassInfo[] = [
@@ -86,5 +86,87 @@ describe("the continuous switch", () => {
     for (let i = 0; i < 4; i++) sw.read(p([0, 0.5, 0.5], "affected_hand", "sliding"), CLASSES);
     sw.reset();
     expect(sw.read(p([0.5, 0.25, 0.25], "rest", "sliding"), CLASSES)).toMatchObject({ move: false, sure: 0.5 });
+  });
+});
+
+describe("the continuous switch's score", () => {
+  // A trial as the demo plays it: rest from 0 s, the cue at 8.6 s, imagining until 14.6 s.
+  const CUE = 8.6;
+  /** Plays one trial's readings, the switch's state at each half second from 4 s to 14.5 s. */
+  function play(count: SwitchCount, trial: number, onAt: (t: number) => boolean, end = true) {
+    count.start(trial, CUE);
+    for (let t = 4; t <= 14.5; t += 0.5) count.read(trial, t, onAt(t));
+    if (end) count.end(trial);
+  }
+
+  it("scores the same stretch as answer 4: the 6 s after the cue", () => {
+    expect(IMAGERY_S).toBe(6);
+  });
+
+  it("counts each switch-on, right only when it falls in the imagining", () => {
+    const count = new SwitchCount();
+    // On during rest (wrong), off, then on again 2 s into the imagining (right).
+    play(count, 0, (t) => (t >= 5 && t < 6) || t >= CUE + 2);
+    expect(count.tally).toEqual({ moved: 2, right: 1, missed: 0 });
+  });
+
+  it("counts an imagining with no switch-on inside as missed once the trial ends", () => {
+    const count = new SwitchCount();
+    play(count, 0, () => false, false);
+    expect(count.tally.missed).toBe(0); // not over yet
+    count.end(0);
+    expect(count.tally).toEqual({ moved: 0, right: 0, missed: 1 });
+  });
+
+  it("misses an imagining when the switch was already on before the cue, as answer 4 does", () => {
+    const count = new SwitchCount();
+    play(count, 0, (t) => t >= 7.5); // turned on in the wait before the cue and stayed on
+    expect(count.tally).toEqual({ moved: 1, right: 0, missed: 1 });
+  });
+
+  it("does not count a switch-on just after the 6 s as right", () => {
+    const count = new SwitchCount();
+    count.start(0, CUE);
+    count.read(0, CUE + IMAGERY_S - 0.1, false);
+    count.read(0, CUE + IMAGERY_S, true);
+    expect(count.tally).toEqual({ moved: 1, right: 0, missed: 1 });
+  });
+
+  it("marks a Move by the switch-on behind it, and a Rest not at all", () => {
+    const count = new SwitchCount();
+    count.start(0, CUE);
+    expect(count.read(0, 6, true)).toBe(false); // on during rest
+    expect(count.read(0, 9, true)).toBe(false); // still the same switch-on
+    expect(count.read(0, 10, false)).toBeNull();
+    expect(count.read(0, 11, true)).toBe(true);
+  });
+
+  it("stops marking a Move that runs on past the end of its trial", () => {
+    const count = new SwitchCount();
+    count.start(0, CUE);
+    expect(count.read(0, 13, true)).toBe(true);
+    count.end(0);
+    count.start(1, CUE);
+    expect(count.read(1, 0.5, true)).toBeNull(); // still on in the next trial's rest
+    expect(count.tally).toEqual({ moved: 1, right: 1, missed: 0 });
+  });
+
+  it("runs on across trials and starts from nothing after a reset", () => {
+    const count = new SwitchCount();
+    play(count, 0, (t) => t >= CUE + 1 && t < CUE + 3);
+    play(count, 1, () => false);
+    expect(count.tally).toEqual({ moved: 1, right: 1, missed: 1 });
+    count.reset();
+    expect(count.tally).toEqual({ moved: 0, right: 0, missed: 0 });
+    // The trial cut short by the reset is not scored when it ends.
+    count.end(1);
+    expect(count.tally.missed).toBe(0);
+  });
+
+  it("scores only trials seen from their start", () => {
+    const count = new SwitchCount();
+    count.read(3, 10, true); // a reading of a trial whose start it never saw
+    count.end(3);
+    expect(count.tally).toEqual({ moved: 1, right: 0, missed: 0 });
   });
 });

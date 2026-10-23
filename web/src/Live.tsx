@@ -14,10 +14,7 @@ export function Live() {
           <h1>
             <a href="/">Sixth-Finger BCI</a>
           </h1>
-          <p>
-            Patient {patient}&apos;s last two runs, which the model never trained on, played at real speed. Follow the
-            three panels in order: what the patient is told, their brain signal, what the model reads.
-          </p>
+          <p>Patient {patient}&apos;s last two runs, which the model never trained on, played at real speed.</p>
         </header>
         <DemoStage stream={stream} />
         <p className="live-foot">

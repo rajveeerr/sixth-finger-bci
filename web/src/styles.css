@@ -379,9 +379,13 @@ code {
   margin-top: 0;
 }
 .read-about b,
-.read-guess b {
+.read-guess b,
+.step-read .tally b {
   font-weight: 560;
   color: var(--ink-2);
+}
+.read-about {
+  min-height: 1.45em;
 }
 /* The guess at which movement sits under the reading, quieter, and keeps its two lines. */
 .read-guess {
@@ -2241,29 +2245,10 @@ code {
 .plate-side a,
 .questions a,
 .finding-kicker a,
-.modes a,
 .uses a {
   color: var(--ink);
   text-underline-offset: 3px;
   text-decoration-color: var(--ink-4);
-}
-
-/* The demo's two switches, explained. */
-.modes {
-  margin: 18px 0 0;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24px;
-  font-size: 14px;
-  line-height: 1.55;
-}
-.modes dt {
-  font-weight: 560;
-  margin-bottom: 3px;
-}
-.modes dd {
-  margin: 0;
-  color: var(--ink-2);
 }
 
 /* Read more. */
@@ -2577,10 +2562,6 @@ code {
   }
 }
 @media (max-width: 700px) {
-  .modes {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 8px;
-  }
   .links li {
     grid-template-columns: minmax(0, 1fr);
     gap: 2px;

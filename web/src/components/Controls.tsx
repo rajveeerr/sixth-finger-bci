@@ -55,7 +55,7 @@ export function Controls({ stream }: { stream: DemoStreamControls }) {
         </button>
         <button role="radio" aria-checked={mode === "continuous"} className={mode === "continuous" ? "opt on" : "opt"}
           onClick={() => mode !== "continuous" && stream.setMode("continuous")}>
-          Continuous (experimental)
+          Continuous
         </button>
       </span>
       {stream.hasServer && (

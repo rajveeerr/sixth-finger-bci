@@ -14,7 +14,10 @@ export interface Reading {
   sure: number;
   /** The likelier of the two movements, as a class name: only a guess. */
   guess: string;
-  /** Whether it matches the cue, hand and sixth finger both counting as a movement; null without a cue. */
+  /**
+   * Whether it matches the cue, hand and sixth finger both counting as a movement; null without
+   * a cue. In continuous mode the store sets it from the switch-on behind a Move (SwitchCount).
+   */
   right: boolean | null;
 }
 
@@ -63,6 +66,78 @@ export class MoveSwitch {
       guess: guessOf(p.probs, classes),
       right: moveIsRight(move, p, classes),
     };
+  }
+}
+
+/** Seconds after the cue that answer 4 scores as imagining (IMAGERY_S in evaluation/pseudo_online.py). */
+export const IMAGERY_S = 6;
+
+export interface SwitchTally {
+  /** Times the switch turned on. */
+  moved: number;
+  /** Switch-ons inside an imagining period. */
+  right: number;
+  /** Imagining periods that ended without a switch-on inside. */
+  missed: number;
+}
+
+export const NO_SWITCHES: SwitchTally = { moved: 0, right: 0, missed: 0 };
+
+/**
+ * The continuous switch's running score, counted as answer 4 counts it (switch_metrics in
+ * evaluation/pseudo_online.py): a switch-on is placed at the end of the window that turned it
+ * on, it is right when that falls in the 6 s after the cue, and an imagining period with no
+ * switch-on inside is missed. A period is scored only if its trial was seen from the start.
+ */
+export class SwitchCount {
+  tally: SwitchTally = NO_SWITCHES;
+  private on = false;
+  /** Whether the current run of Move began inside imagining; null while off, or once its trial's imagining is over. */
+  private onRight: boolean | null = null;
+  private period: { trial: number; from: number; to: number; caught: boolean } | null = null;
+
+  reset() {
+    this.tally = NO_SWITCHES;
+    this.on = false;
+    this.onRight = null;
+    this.period = null;
+  }
+
+  /** A trial starts from its beginning; `cueOnset` in seconds from that beginning. */
+  start(trial: number, cueOnset: number) {
+    this.period = { trial, from: cueOnset, to: cueOnset + IMAGERY_S, caught: false };
+  }
+
+  /**
+   * One half-second reading: whether the switch is on, with `t` the end of its window in
+   * seconds from the trial's start. Returns whether the switch-on behind a Move was right,
+   * while that trial's imagining lasts.
+   */
+  read(trial: number, t: number, on: boolean): boolean | null {
+    const p = this.period?.trial === trial ? this.period : null;
+    if (on && !this.on) {
+      const inside = !!p && t >= p.from && t < p.to;
+      if (p && inside) p.caught = true;
+      this.onRight = inside;
+      this.tally = { ...this.tally, moved: this.tally.moved + 1, right: this.tally.right + (inside ? 1 : 0) };
+    } else if (!on) {
+      this.onRight = null;
+    }
+    this.on = on;
+    if (p && t >= p.to) this.close();
+    return this.onRight;
+  }
+
+  /** The trial reached its end, and its imagining period with it. */
+  end(trial: number) {
+    if (this.period?.trial === trial) this.close();
+  }
+
+  private close() {
+    if (this.period && !this.period.caught) this.tally = { ...this.tally, missed: this.tally.missed + 1 };
+    this.period = null;
+    // A Move that runs on into the next trial is not marked again: its switch-on was scored.
+    this.onRight = null;
   }
 }
 
