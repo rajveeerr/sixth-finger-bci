@@ -1,67 +1,75 @@
 \section{Discussion}
 \label{sec:discussion}
 
-\emph{Transfer gives a fast start, not a better decoder.} With transfer,
-\rqTwoMinutesKOne\,min of trials gave a new patient the three-class accuracy
-that a decoder from scratch reached only after ten trials of each movement,
-\rqTwoMinutesKTen\,min. By ten trials the lead was gone, and with the whole pool the
-decoder from scratch was ahead. Transfer shortens calibration for healthy
-users of conventional commands~\cite{zanini2018,he2020,wu2022review}; here it
-did so only for the first few trials. These curves suggest starting a session
-with transfer and switching to the patient's own decoder after about ten
-trials of each movement, a schedule we did not test.
+\emph{A fast start from one transfer configuration.} Re-centred transfer with
+a target weight of \rqTwoHparamRctTslrWeight{} gave a new patient, after one
+trial of each movement (\rqTwoMinutesKOne\,min), the three-class accuracy that
+the same classifier from scratch reached after ten trials of each movement
+(\rqTwoMinutesKTen\,min nominal, \rqTwoMinutesRecordedKTen\,min as recorded),
+and then stayed nearly flat; with the whole pool the decoder from scratch
+ended numerically higher, a difference we did not test. Transfer shortens
+calibration for healthy users~\cite{zanini2018,he2020,wu2022review} and, across
+sessions, for stroke patients~\cite{giles2022,cao2021}; here, from other
+patients, it helped for the first few trials. These curves describe this
+configuration, not transfer in general. Each of the patient's windows weighed
+as much as one of the other patients' thousands, a weight chosen from
+candidates that all scored near chance, and the deep pair was likewise set to
+its least adaptive values. A weight that grows with $k$, a switch to the patient's own decoder chosen by cross-validation
+within the calibration data, or Procrustes alignment~\cite{rodrigues2019} may
+let transfer keep learning; we did not test them. Part of the early lead
+reflects how little a from-scratch decoder learns from a few windows.
 
-\emph{Why transfer levels off.} Our reading, which we did not test, is that
-the other patients' thousands of windows outweigh the patient's few dozen,
-so the classifier stays mostly theirs. The pre-registered rule chose the
-smallest target weight, on two patients whose candidates scored within a
-point of each other; a weight that grows with $k$ may let transfer keep
-learning. Stroke also makes patients unlike each other, since EEG responses
-vary with lesion location~\cite{park2016}, and mirroring lesions to one side
-did not help. The deep pair levelled off the same way, so the plateau is not
-specific to one classifier.
+\emph{Leakage.} The inflation is a property of the procedure: the same code
+inflated accuracy on two healthy datasets. It says nothing about the quality
+of the recordings, and the release of the data and code is what made the
+check possible. We did not reproduce the published value, and the inflation
+held against all three leakage-free estimates. Users of the dataset should
+fit every supervised step inside the training folds, split by run, and report
+the leakage-free figure next to the published one. Evaluated without leakage,
+hand and sixth finger are only weakly separable in this EEG, and part of that
+separation may be visual.
 
-\emph{The fair test.} The inflation is a property of the procedure: the same
-code inflated accuracy on two healthy datasets. It says nothing about the
-quality of the recordings, and the release of the data and code is what made
-the check possible. Users of the dataset should fit every supervised step
-inside the training folds, split by run, and report the fair figure next to
-the published one. Tested fairly, hand and sixth finger are only weakly
-separable in this EEG.
-
-\emph{A switch, not yet a sixth finger.} No distinct sixth-finger command was
-shown, and none was ruled out. The pre-registered control found that a
-decoder which never saw a sixth-finger trial detects one as well, and the
-detectors fire for imagined hand movement too. Mu desynchronisation at C3 was
-slightly stronger for the sixth finger (\edaErdMuCThreeSfMean\,\% against
+\emph{Imagery against rest, not yet a sixth finger.} No distinct sixth-finger
+command was shown, and none was ruled out. The pre-registered control found
+that a decoder which never saw a sixth-finger trial detects one as well, and
+the detectors fire for imagined hand movement too. Mu desynchronisation at C3
+was slightly stronger for the sixth finger (\edaErdMuCThreeSfMean\,\% against
 \edaErdMuCThreeAhMean\,\%, $p = \edaErdMuCThreeSfMinusAhP$,
-$n = \edaErdMuCThreeN$, exploratory), but
-a difference in strength alone would not make the two separable. What the
-data support is one ``move now'' switch. It also needs new calibration each
-day; the patient's own earlier session, re-centred and topped up with five
-trials of each movement, is the practical form of the fast start.
+$n = \edaErdMuCThreeN$), an observation made before the pre-registration,
+which declared that it would not be tested again; a difference in strength
+alone would not make the two separable. The only contrast these data support
+offline is imagery against rest, a candidate ``move now'' switch. Played
+continuously it caught fewer than half of the sixth-finger periods, late in
+the period, and also switched on for hand imagery, so whether a patient could use
+it is a question for a closed-loop study. It needs new calibration each day;
+the patient's earlier session topped up with five trials of each movement,
+pooled or re-centred, is the practical form of the fast start.
 
 \emph{Limitations.} The \nSubjects{} patients came from one centre, which
-limits how far these results generalise. All evaluation is offline or
-pseudo-online (replayed), never closed-loop with a patient. The novel
-command was imagined, with the robotic finger worn but not driven by the
-decoder. We show per-patient results (Figs.~\ref{fig:leak},
-\ref{fig:rqthree} and~\ref{fig:switch}, the counts of $k^*$), not only means. Two limitations
-were declared in the pre-registration. Rest windows may contain the beta
-rebound that follows imagery, so accuracies that involve rest are upper
-bounds for self-paced rest. The difference in desynchronisation between
-sixth finger and hand is spatially diffuse, so sixth-finger decodability may
-reflect the intensity of imagery rather than a distinct motor map. Rest was
-also recorded with a cross on screen and imagery with a picture. The switch
-was carried more by the central channels (\rqFourCueSfRestCentralMean\,\%)
-than by five parieto-occipital ones (\rqFourCueSfRestParietoOccipitalMean\,\%),
-so the picture is not its main source, but a visual part is not ruled out.
-The authors' preprocessing included manual steps that cannot be repeated
-exactly. With \nPre{} patients the tests can detect only medium or large
-effects, so the inconclusive H3 and H3c are not evidence of no effect.
+limits how far these results generalise, and between sessions they received
+one of two therapies. All evaluation is offline or pseudo-online (replayed),
+never closed-loop with a patient. The novel command was imagined, with the
+robotic finger worn but not driven by the decoder. We show per-patient
+results (Figs.~\ref{fig:leak}, \ref{fig:rqthree}, \ref{fig:later}
+and~\ref{fig:switch}, the counts of $k^*$), not only means. The from-scratch
+baselines are weak at small budgets by design, with four windows at $k = 1$
+and, for a new command, unbalanced classes without class weights; a
+regularised or class-weighted baseline may narrow transfer's early lead. Two
+limitations were declared in the pre-registration. Rest windows may
+contain the beta rebound that follows imagery, so accuracies that involve
+rest are upper bounds for self-paced rest. The difference in
+desynchronisation between sixth finger and hand is spatially diffuse, so
+sixth-finger decodability may reflect the intensity of imagery rather than a
+distinct motor map. Rest was also always shown as a cross and imagery as a
+picture: the switch draws mostly on central channels, but a visual part is
+not ruled out, and the hand-against-finger signal is at least as strong over
+the visual cortex. The authors' preprocessing included manual steps that
+cannot be repeated exactly. With \nPre{} patients the tests can detect only
+medium or large effects, so the inconclusive H3 and H3c are not evidence of
+no effect.
 
 \emph{Future work.} A closed-loop study in which the decoder drives the
-finger is the next test. Other stroke datasets~\cite{liu2024acute,lu2026chronic},
-EEG foundation models~\cite{jiang2024labram,wang2025cbramod} and pre-training
-on healthy people's imagery (a first exploratory attempt did not help) may
-lift the plateau.
+finger is the next test. Other stroke datasets~\cite{liu2024acute,lu2026chronic}
+and EEG foundation models~\cite{jiang2024labram,wang2025cbramod} may lift the
+plateau; pre-training on healthy people's imagery did not, in a first
+exploratory attempt.

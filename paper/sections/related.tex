@@ -5,29 +5,31 @@ combinations whose variance differs most between two
 classes~\cite{ramoser2000,blankertz2008}. Riemannian methods classify each
 trial's covariance matrix directly or after projecting it to a tangent
 space~\cite{barachant2012,congedo2017}, and compact networks such as EEGNet
-learn the filters from data~\cite{lawhern2018}. With few training trials,
-shrinkage and Riemannian classifiers are among the most reliable
-choices~\cite{lotte2018review}. We use these standard methods unchanged and
-ask how much patient data they need.
+learn the filters from data~\cite{lawhern2018}. We use these standard
+methods unchanged and ask how much patient data they need.
 
 \emph{Shortening calibration.} Re-centring each person's covariance matrices
 on their own mean makes data from different people
-comparable~\cite{zanini2018}; Euclidean alignment applies the same idea to
-the raw trials, so that a network can use it~\cite{he2020}. Both reduce
-calibration for healthy users of conventional
-commands~\cite{lotte2015,wu2022review}, and fine-tuning a pre-trained network
-recently enabled finger-level control of a robotic hand from
-EEG~\cite{ding2025}. We follow the whole calibration curve, up to the full
-pool, for stroke patients and a new command.
+comparable~\cite{zanini2018}; Riemannian Procrustes analysis also matches
+their spread and rotation~\cite{rodrigues2019}, and Euclidean alignment
+applies re-centring to the raw trials, so that a network can use
+it~\cite{he2020}. Such methods reduce calibration for healthy users of
+conventional commands~\cite{lotte2015,wu2022review}. In stroke patients, transfer has mostly reused a
+patient's own earlier sessions: it raised accuracy when few trials of the
+current session were available~\cite{giles2022}, and transfer from earlier
+sessions or from other patients helped the sessions that started with low
+accuracy~\cite{cao2021}. We follow the whole calibration curve, up to the
+full pool, for transfer from other stroke patients to a new command, with
+re-centring only; Procrustes analysis is left untested.
 
 \emph{Supernumerary limbs.} Extra robotic fingers and arms extend what a body
 can do~\cite{prattichizzo2021,eden2022}, and wearing one changes the brain's
 map of the hand~\cite{kieliba2021}. Sixth-finger imagery produced stronger
 desynchronisation than imagery of a natural limb in healthy
 people~\cite{wang2024jbhi}, and enhanced it in stroke
-patients~\cite{wang2024tnsre}. We
-know of no study that asks how many trials such a command needs, or whether
-it can be told apart from imagining the hand.
+patients~\cite{wang2024tnsre}. We know of no study that asks how many trials
+such a command needs, or whether it can be told apart from imagining the
+hand.
 
 \emph{Evaluation pitfalls.} Fitting any supervised step on data that later
 serve as test data inflates accuracy~\cite{kapoor2023,varoquaux2017}. In

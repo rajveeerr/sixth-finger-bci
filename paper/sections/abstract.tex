@@ -1,24 +1,28 @@
 Brain--computer interfaces (BCIs) must be calibrated for each user, and the
 burden is greater for a command with no natural counterpart, such as a
-robotic sixth finger. We asked how much calibration stroke patients need and
-whether data from other patients reduce it, using a public EEG dataset of
-\nSubjects{} patients imagining hand and sixth-finger movements. We first
-tested fairly: the published accuracy for hand against sixth finger relies
-on spatial filters fitted on all trials before cross-validation, and a
-standard pipeline reached \rqOneCspLdaPaperReplicaMean\,\% that way but
-\rqOneCspLdaCvLeakfreeMean\,\% when every step was fitted on training trials
-only. In pre-registered tests on \rqTwoHTwoAN{} patients, re-centred transfer
-from other patients reached \rqTwoRestAhSfRctTslrKOneMean\,\% on three classes
-(rest, hand, sixth finger) after one trial of each movement
-(\rqTwoMinutesKOne\,min), against \rqTwoRestAhSfTsLrKOneMean\,\% from scratch,
-and its area under the learning curve was larger ($p = \rqTwoHTwoAP$). It
-then levelled off near \rqTwoRestAhSfRctTslrKAllMean\,\%, while the decoder
-from scratch overtook it with the whole pool (\rqTwoRestAhSfTsLrKAllMean\,\%
-after \rqTwoMinutesKAll\,min). For adding the sixth finger to a hand decoder,
-transfer gave no clear benefit, and the patient's own hand decoder detected
-sixth-finger imagery at least as well, so we do not claim a distinct
-sixth-finger command. In exploratory analyses, a sixth-finger-against-rest
-switch reached \exFourTsLrCentralMean\,\% but also responded to imagined hand
-movement, and decoders lost accuracy on later days, most of which five new
-trials of each movement recovered. Transfer gives a fast start, not a better
-decoder.
+robotic sixth finger. Using public electroencephalography (EEG) recordings of
+\nSubjects{} stroke patients imagining hand and sixth-finger movements, we
+asked how much calibration a decoder needs and whether other patients' data
+reduce it. The dataset's classification script fits spatial filters on all
+trials before cross-validation; our rebuild of it scored
+\rqOneCspLdaReplicaPaperReplicaMean\,\% on hand against sixth finger, and
+\rqOneCspLdaReplicaCvLeakfreeMean\,\% with every step fitted on training trials
+only. In pre-registered tests on \rqTwoHTwoAN{} patients, re-centred
+Riemannian transfer, weighting the patient's windows like any of the other
+patients' thousands, reached \rqTwoRestAhSfRctTslrKOneMean\,\% on
+three classes after one trial of each movement, against
+\rqTwoRestAhSfTsLrKOneMean\,\% from scratch on those four windows, and its area under the learning curve was larger
+($p = \rqTwoHTwoAP$). It then stayed near \rqTwoRestAhSfRctTslrKAllMean\,\%;
+with the whole pool the decoder from scratch ended
+\rqTwoRestAhSfTsLrMinusRctTslrKAllDiff{} points higher (CI
+\rqTwoRestAhSfTsLrMinusRctTslrKAllDiffCiLo{} to
+\rqTwoRestAhSfTsLrMinusRctTslrKAllDiffCiHi, untested). For a new command, the
+Riemannian pair showed no clear benefit before therapy (supported after it,
+so not replicated), and a decoder trained only on hand imagery detected
+sixth-finger imagery at least as well, so we claim no distinct sixth-finger
+command. Exploratory analyses found a sixth-finger-against-rest decoder at
+\exFourTsLrCentralMean\,\% per window that fired on
+\exFourTsLrCentralFiresAhMean\,\% of hand-imagery windows and,
+replayed continuously, caught \exFiveFingerFingerOnMean\,\% of sixth-finger periods,
+with \exFiveFingerFalsePerMinMean{} false activations per minute. All
+evaluation was offline.

@@ -1,11 +1,13 @@
 \section{Conclusion}
 \label{sec:conclusion}
-Tested fairly, a sixth-finger BCI for stroke patients gains a fast start from
-other patients' data: one trial of each movement lifted three-class
-accuracy from \rqTwoRestAhSfTsLrKOneMean\,\% to
-\rqTwoRestAhSfRctTslrKOneMean\,\%. Transfer then levels off, and a decoder trained on the
-patient alone overtakes it once the whole pool, \rqTwoMinutesKAll\,min of trials, is
-recorded. Transfer gave no clear benefit for adding the sixth finger to a
-hand decoder, and the sixth finger was not shown to differ from imagined hand
-movement. It works best as a single ``move now'' switch, recalibrated each
-day.
+Evaluated without leakage, one re-centred transfer configuration gave stroke
+patients a fast start on a sixth-finger BCI, lifting three-class accuracy
+from \rqTwoRestAhSfTsLrKOneMean\,\% to \rqTwoRestAhSfRctTslrKOneMean\,\% after
+one trial of each movement, and then stayed nearly flat; with the whole pool
+(\rqTwoMinutesKAll\,min nominal, \rqTwoMinutesRecordedKAll\,min as recorded)
+a decoder trained on the patient alone ended numerically, not significantly,
+higher. No distinct sixth-finger command was shown. The only contrast these
+data support offline is imagery against rest, a candidate ``move now''
+switch; replayed continuously it caught \exFiveFingerFingerOnMean\,\% of
+sixth-finger periods at \exFiveFingerFalsePerMinMean{} false activations per
+minute, and it needs closed-loop testing.

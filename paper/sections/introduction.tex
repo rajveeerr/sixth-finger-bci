@@ -7,10 +7,10 @@ cortex~\cite{pfurtscheller1999,pfurtscheller2001}, and a decoder learns to
 recognise this change in the electroencephalogram (EEG). MI-BCIs are studied
 for stroke rehabilitation~\cite{cervera2018,biasiucci2018} and for motor
 augmentation, in which people learn to control an extra robotic
-digit~\cite{kieliba2021,eden2022}. Wang et al.\ joined the two: stroke patients
-imagine flexing a robotic sixth finger worn on the affected
-wrist~\cite{wang2024jbhi,wang2024tnsre}. Their recent public dataset of
-\nSubjects{} patients now makes this paradigm open to independent
+digit~\cite{kieliba2021,eden2022}. Wang et al.\ joined the two: healthy
+people~\cite{wang2024jbhi} and then stroke patients~\cite{wang2024tnsre}
+imagined flexing a robotic sixth finger worn on the wrist. Their public
+dataset of \nSubjects{} patients now opens this paradigm to independent
 study~\cite{wang2026dataset}.
 
 Every MI-BCI must first be calibrated: the user performs labelled trials so
@@ -21,28 +21,27 @@ healthy users~\cite{zanini2018,he2020,wu2022review}. Whether it helps stroke
 patients learn a command with no natural counterpart, such as a sixth
 finger, is untested.
 
-A fair measurement needs a fair protocol. The dataset paper reports
-85--86\,\% for telling imagined hand from imagined sixth-finger
-movements~\cite{wang2026dataset}. Its classification script, however, fits
-the spatial filters on all trials before cross-validation, so the test trials
-help to shape the features. Such leakage is a common cause of optimistic
-results in machine learning~\cite{kapoor2023,brookshire2024}. We therefore
-re-test the dataset fairly first, and base every later number on that test.
+Such a study needs an evaluation free of leakage first. The dataset paper
+reports 85--86\,\% for telling imagined hand from imagined sixth-finger
+movements, with spatial filters fitted on all trials of a session before
+cross-validation~\cite{wang2026dataset}, a common source of optimistic
+estimates~\cite{kapoor2023,brookshire2024}. We re-evaluate the dataset with
+every step fitted on training data only, and base every later number on
+that evaluation.
 
 We ask how much calibration a stroke patient needs before a decoder
 recognises rest, the affected hand and the sixth finger, and whether data
 from other patients reduce it. Our contributions are:
 \begin{enumerate}
-  \item to our knowledge, the first leakage-free benchmark of this sixth-finger
-        stroke dataset, with an integrity audit that found duplicated
-        recordings;
+  \item a leakage-free benchmark of this sixth-finger stroke dataset, with an
+        integrity audit that found duplicated recordings;
   \item to our knowledge, the first calibration study of a supernumerary
-        (novel) motor command in stroke patients, with two realistic
-        scenarios, a new user and a new command added to a hand decoder, and
-        pre-registered hypotheses;
+        (novel) motor command in stroke patients, with pre-registered
+        hypotheses, for a new user and for a new command whose hand trials
+        are already recorded;
   \item a comparison of Riemannian and deep transfer for this population,
         with stroke-specific analyses (hemisphere mirroring, other days) as
         exploratory work; and
-  \item open, reproducible code and a demonstrator in which decoded intent
+  \item a demonstrator that replays held-out recordings through a decoder and
         moves a virtual hand with a sixth finger.
 \end{enumerate}
