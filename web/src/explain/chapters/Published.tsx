@@ -6,17 +6,16 @@ import { LeakDiagram } from "../figures/LeakDiagram";
 import { LEAK_RANGE } from "../findings";
 
 const L = data.leak;
+const LOWER =
+  L.n_positive === L.subjects.length
+    ? `every one of the ${L.subjects.length} patients`
+    : `${L.n_positive} of the ${L.subjects.length} patients`;
 
 export function Published() {
   return (
     <Chapter
       q="published"
-      answer={
-        <>
-          No. The paper&apos;s method had already studied the trials it was tested on; tested fairly, it is right{" "}
-          {pct(L.mean_leakfree)} of the time, where guessing gets 50%.
-        </>
-      }
+      answer={<>No. Tested fairly, the same method is barely better than guessing.</>}
       dial={{
         value: L.mean_leakfree,
         other: L.mean_replica,
@@ -30,17 +29,33 @@ export function Published() {
           </>
         ),
       }}
+      points={[
+        {
+          label: `What ${pct(L.published[0])} means`,
+          text: (
+            <>
+              Shown 4 s of brain signal from one trial, the method had to say &quot;hand&quot; or &quot;sixth
+              finger&quot;. It was right about {Math.round(L.published[0] * 100)} times in 100; guessing is right 50
+              times.
+            </>
+          ),
+        },
+        {
+          label: "Why it is too high",
+          text: "Its first step learned from every trial, the test trials included, before it was tested on them: an exam seen in advance. The bracket below shows it.",
+        },
+        {
+          label: "The fair score",
+          text: `${pct(L.mean_leakfree)}, with that step learning only from the learning trials; lower for ${LOWER}.`,
+        },
+        {
+          label: "Why it matters",
+          text: `At ${pct(L.published[0])}, it would be a usable two-command device. At ${pct(L.mean_leakfree)}, it is barely above guessing.`,
+        },
+      ]}
     >
       <LeakDiagram />
-      <More
-        what={`what ${pct(L.published[0])} means, every patient, how we rebuilt it, and the same mistake in other data`}
-      >
-        <FollowUp ask={`What does ${pct(L.published[0])} mean?`}>
-          <p>
-            Out of every 100 times a patient imagined moving the hand or the sixth finger, the paper&apos;s method named
-            the right one about {Math.round(L.published[0] * 100)} times. Guessing names it 50 times.
-          </p>
-        </FollowUp>
+      <More what="every patient, how we rebuilt it, and the same mistake in other data">
         <FollowUp ask="Is it lower for every patient?">
           <p>
             Yes, for all {L.n_positive} of {L.subjects.length}. Our rebuild of the paper&apos;s way gives{" "}

@@ -45,3 +45,16 @@ test("the page opens with the problem: a hand a stroke left weak, and what the s
     "Our question",
   ]);
 });
+
+test("the chapter on the published 85% says what it means and why it is too high before its fold", async ({ page }) => {
+  await page.goto("/?server=http://127.0.0.1:9");
+  const published = page.locator("#published");
+  await expect(published.locator(".q-points dt")).toHaveText([
+    "What 85% means",
+    "Why it is too high",
+    "The fair score",
+    "Why it matters",
+  ]);
+  await expect(published.locator(".q-points")).toBeVisible();
+  await expect(published.locator("details.more")).not.toHaveAttribute("open");
+});

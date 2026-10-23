@@ -24,7 +24,7 @@ test("a tap opens a chapter's evidence, and the patient's path shows both starts
   await fold.locator("summary").scrollIntoViewIfNeeded();
   await fold.locator("summary").tap();
   await expect(fold).toHaveAttribute("open", "");
-  await expect(fold.getByRole("heading", { name: /mean\?/ })).toBeVisible();
+  await expect(fold.getByRole("heading", { name: /every patient\?/ })).toBeVisible();
 
   const practice = page.locator("#journey [data-station=practice]");
   await practice.scrollIntoViewIfNeeded();

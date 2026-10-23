@@ -2607,6 +2607,41 @@ code {
   justify-items: center;
   gap: 2px;
 }
+/* With lines that explain the answer, the answer stays under the question and the dial stands
+   beside both, so the three read as one. */
+.q-answer[data-points] {
+  grid-template-areas: "say dial" "points dial";
+  grid-template-rows: auto 1fr;
+  align-items: start;
+  row-gap: 0;
+}
+.q-answer[data-points] .q-say {
+  grid-area: say;
+}
+.q-answer[data-points] .q-dial {
+  grid-area: dial;
+  align-self: center;
+}
+.q-points {
+  grid-area: points;
+  margin: 18px 0 0;
+  border-top: 1px solid var(--rule);
+}
+.q-points > div {
+  display: grid;
+  grid-template-columns: 9em minmax(0, 1fr);
+  gap: 16px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--rule);
+}
+.q-points dt {
+  font-weight: 560;
+}
+.q-points dd {
+  margin: 0;
+  color: var(--ink-2);
+  text-wrap: pretty;
+}
 .q-dial .gauge {
   width: 100%;
 }
@@ -3355,6 +3390,17 @@ code {
   .q-answer[data-dial] {
     grid-template-columns: minmax(0, 1fr);
     gap: 14px;
+  }
+  .q-answer[data-points] {
+    grid-template-areas: "say" "dial" "points";
+    grid-template-rows: none;
+  }
+  .q-points {
+    margin-top: 4px;
+  }
+  .q-points > div {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2px;
   }
   .q-dial {
     grid-template-columns: 124px minmax(0, 1fr);

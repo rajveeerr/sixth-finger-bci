@@ -10,19 +10,28 @@ interface Dial {
   reading: ReactNode;
 }
 
+/** A line under the answer: what it is about in a few words, then the line itself. */
+export interface Point {
+  label: ReactNode;
+  text: ReactNode;
+}
+
 /**
- * A chapter is one question: its title is the question, then the answer in one sentence (beside
- * its dial, when it has a score), then the figure that shows it and anything folded under it.
+ * A chapter is one question: its title is the question, then the answer in one sentence and any
+ * lines that explain it (beside its dial, when it has a score), then the figure that shows it and
+ * anything folded under it.
  */
 export function Chapter({
   q,
   answer,
   dial,
+  points,
   children,
 }: {
   q: string;
   answer: ReactNode;
   dial?: Dial;
+  points?: Point[];
   children?: ReactNode;
 }) {
   const { id, n, ask } = question(q);
@@ -34,13 +43,23 @@ export function Chapter({
         </span>
         <h2 id={`${id}-title`}>{ask}</h2>
       </header>
-      <div className="q-answer" data-dial={dial ? "" : undefined}>
+      <div className="q-answer" data-dial={dial ? "" : undefined} data-points={points ? "" : undefined}>
         <p className="q-say">{answer}</p>
         {dial && (
           <div className="q-dial">
             <Gauge value={dial.value} other={dial.other} guess={dial.guess} />
             <p className="q-reading">{dial.reading}</p>
           </div>
+        )}
+        {points && (
+          <dl className="q-points">
+            {points.map((p, i) => (
+              <div key={i}>
+                <dt>{p.label}</dt>
+                <dd>{p.text}</dd>
+              </div>
+            ))}
+          </dl>
         )}
       </div>
       {children}
