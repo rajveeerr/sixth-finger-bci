@@ -14,6 +14,8 @@ test("one chapter for the patient's path and what is built, each part drawn once
   await expect(use.locator(".q-num")).toHaveText("7");
   await expect(use.locator("h2")).toHaveText("How would a patient use it, and which parts are built?");
   await expect(page.locator("#added .q-num")).toHaveText("8");
+  await expect(page.locator("#added h2")).toHaveText("What did you add?");
+  await expect(page.getByText("How you can check it")).toHaveCount(0);
   await expect(page.locator("#built")).toHaveCount(0);
 
   const path = page.locator("#journey");

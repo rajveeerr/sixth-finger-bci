@@ -1,7 +1,6 @@
 import { Chapter } from "../../components/Chapter";
 import { data, pct, pctRange } from "../data";
 import { LEAK_RANGE, PRACTICE_S, SCRATCH_MIN } from "../findings";
-import { LINKS } from "../links";
 
 const S = data.sixth;
 
@@ -43,15 +42,6 @@ const ADDS = [
   },
 ];
 
-const TRUST = [
-  { title: "Fair", text: "Every score is on trials the model never saw while learning." },
-  {
-    title: "Decided in advance",
-    text: "We wrote down the questions, how each would be tested and what would count as a yes before running the tests on all the patients.",
-  },
-  { title: "Open", text: "The code, the results and the data audit are public, below." },
-];
-
 export function Added() {
   return (
     <Chapter
@@ -71,25 +61,6 @@ export function Added() {
           </li>
         ))}
       </ol>
-      <h3 className="trust-title">How you can check it</h3>
-      <div className="facts trust">
-        <dl>
-          {TRUST.map((t) => (
-            <div key={t.title}>
-              <dt>{t.title}</dt>
-              <dd>{t.text}</dd>
-            </div>
-          ))}
-        </dl>
-      </div>
-      <ul className="links">
-        {Object.values(LINKS).map((l) => (
-          <li key={l.url}>
-            <a href={l.url}>{l.title}</a>
-            <span>{l.note}</span>
-          </li>
-        ))}
-      </ul>
     </Chapter>
   );
 }

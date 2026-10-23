@@ -37,8 +37,8 @@ export const QUESTIONS: Question[] = [
   },
   {
     id: "added",
-    ask: "What did you add, and how can we check it?",
-    short: "A fair test of what was already there, fixed in advance, with open code",
+    ask: "What did you add?",
+    short: "A fair test of what was already there, and what it shows",
   },
 ];
 
