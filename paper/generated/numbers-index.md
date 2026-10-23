@@ -8,7 +8,7 @@ and rows with a short meaning belong to the last full one. Sources are under
 largest of the cells named, (count) is counted from audit rows. The naming scheme is
 in the script's docstring.
 
-4304 macros. Not generated yet, printed as TBD: `\repoURL` (P15), `\repoTag` (P15), `\codeDOI` (P15).
+4958 macros. Not generated yet, printed as TBD: `\repoURL` (P15), `\repoTag` (P15), `\codeDOI` (P15).
 
 ## Dataset counts (`\n`)
 
@@ -89,6 +89,17 @@ in the script's docstring.
 | `\nPreGroupT` | 8 | patients with a usable pre session, group T |
 | `\nPre` | 22 | patients with a usable pre session, all patients |
 
+`audit/epoch_trials.csv`
+
+| Macro | Value | Meaning |
+|---|---|---|
+| `\nTrials` | 5061 | trials the windows form (count) |
+| `\nTrialsRestAh` | 2263 | trials with a rest and an AH window (count) |
+| `\nTrialsRestSf` | 2291 | trials with a rest and an SF window (count) |
+| `\nTrialsRestOnly` | 206 | trials with only a rest window (count) |
+| `\nTrialsAhOnly` | 156 | trials with only an AH window (count) |
+| `\nTrialsSfOnly` | 145 | trials with only an SF window (count) |
+
 ## Integrity audit (`\audit`)
 
 `audit/audit_report.md`
@@ -141,7 +152,7 @@ in the script's docstring.
 | `\auditOrphanRestMin` | 0 | orphan rest windows a session: smallest (range) |
 | `\auditOrphanRestMax` | 4 | largest (range) |
 
-## Data-quality views (`\eda`)
+## Neurophysiology and data-quality views (`\eda`)
 
 `summary/eda_quality_flags.csv`
 
@@ -149,6 +160,77 @@ in the script's docstring.
 |---|---|---|
 | `\edaOutlierWindows` | 1 | sub-01: outlying C3 windows (windows with |robust z| > 5 of log variance) |
 | `\edaChannelStdRatio` | 2.61 | sub-18 FC6: median window std relative to all subjects |
+
+`summary/eda_erd_summary.csv`
+
+| Macro | Value | Meaning |
+|---|---|---|
+| `\edaErdMuCThreeAhMean` | −32.0 | mu ERD at C3 (mirrored), pre, 1-5 s: AH, mean (%) |
+| `\edaErdMuCThreeSfMean` | −35.7 | SF, mean (%) |
+| `\edaErdMuCThreeAhNegative` | 21 | patients with AH ERD below 0 |
+| `\edaErdMuCThreeSfNegative` | 22 | patients with SF ERD below 0 |
+| `\edaErdMuCThreeN` | 22 | patients with both |
+| `\edaErdMuCThreeSfMoreNegative` | 17 | patients whose SF ERD is the more negative |
+| `\edaErdMuCThreeSfMinusAhDiff` | −3.7 | mu ERD at C3 (mirrored), pre, 1-5 s: SF minus AH, exploratory two-sided Wilcoxon (points) |
+| `\edaErdMuCThreeSfMinusAhDiffCiLo` | −7.2 | CI lower |
+| `\edaErdMuCThreeSfMinusAhDiffCiHi` | −0.1 | CI upper |
+| `\edaErdMuCThreeSfMinusAhW` | 68 | Wilcoxon W |
+| `\edaErdMuCThreeSfMinusAhP` | 0.059 | p |
+| `\edaErdMuCzAhMean` | −22.4 | mu ERD at Cz (mirrored), pre, 1-5 s: AH, mean (%) |
+| `\edaErdMuCzSfMean` | −26.0 | SF, mean (%) |
+| `\edaErdMuCzAhNegative` | 21 | patients with AH ERD below 0 |
+| `\edaErdMuCzSfNegative` | 21 | patients with SF ERD below 0 |
+| `\edaErdMuCzN` | 22 | patients with both |
+| `\edaErdMuCzSfMoreNegative` | 14 | patients whose SF ERD is the more negative |
+| `\edaErdMuCzSfMinusAhDiff` | −3.7 | mu ERD at Cz (mirrored), pre, 1-5 s: SF minus AH, exploratory two-sided Wilcoxon (points) |
+| `\edaErdMuCzSfMinusAhDiffCiLo` | −9.1 | CI lower |
+| `\edaErdMuCzSfMinusAhDiffCiHi` | 1.8 | CI upper |
+| `\edaErdMuCzSfMinusAhW` | 85 | Wilcoxon W |
+| `\edaErdMuCzSfMinusAhP` | 0.19 | p |
+| `\edaErdMuCFourAhMean` | −28.9 | mu ERD at C4 (mirrored), pre, 1-5 s: AH, mean (%) |
+| `\edaErdMuCFourSfMean` | −34.1 | SF, mean (%) |
+| `\edaErdMuCFourAhNegative` | 21 | patients with AH ERD below 0 |
+| `\edaErdMuCFourSfNegative` | 21 | patients with SF ERD below 0 |
+| `\edaErdMuCFourN` | 22 | patients with both |
+| `\edaErdMuCFourSfMoreNegative` | 14 | patients whose SF ERD is the more negative |
+| `\edaErdMuCFourSfMinusAhDiff` | −5.2 | mu ERD at C4 (mirrored), pre, 1-5 s: SF minus AH, exploratory two-sided Wilcoxon (points) |
+| `\edaErdMuCFourSfMinusAhDiffCiLo` | −9.3 | CI lower |
+| `\edaErdMuCFourSfMinusAhDiffCiHi` | −1.3 | CI upper |
+| `\edaErdMuCFourSfMinusAhW` | 64 | Wilcoxon W |
+| `\edaErdMuCFourSfMinusAhP` | 0.042 | p |
+| `\edaErdBetaCThreeAhMean` | −19.4 | beta ERD at C3 (mirrored), pre, 1-5 s: AH, mean (%) |
+| `\edaErdBetaCThreeSfMean` | −18.5 | SF, mean (%) |
+| `\edaErdBetaCThreeAhNegative` | 20 | patients with AH ERD below 0 |
+| `\edaErdBetaCThreeSfNegative` | 19 | patients with SF ERD below 0 |
+| `\edaErdBetaCThreeN` | 22 | patients with both |
+| `\edaErdBetaCThreeSfMoreNegative` | 10 | patients whose SF ERD is the more negative |
+| `\edaErdBetaCThreeSfMinusAhDiff` | 0.8 | beta ERD at C3 (mirrored), pre, 1-5 s: SF minus AH, exploratory two-sided Wilcoxon (points) |
+| `\edaErdBetaCThreeSfMinusAhDiffCiLo` | −2.7 | CI lower |
+| `\edaErdBetaCThreeSfMinusAhDiffCiHi` | 4.5 | CI upper |
+| `\edaErdBetaCThreeSfMinusAhW` | 125 | Wilcoxon W |
+| `\edaErdBetaCThreeSfMinusAhP` | 0.97 | p |
+| `\edaErdBetaCzAhMean` | −23.4 | beta ERD at Cz (mirrored), pre, 1-5 s: AH, mean (%) |
+| `\edaErdBetaCzSfMean` | −24.0 | SF, mean (%) |
+| `\edaErdBetaCzAhNegative` | 21 | patients with AH ERD below 0 |
+| `\edaErdBetaCzSfNegative` | 19 | patients with SF ERD below 0 |
+| `\edaErdBetaCzN` | 22 | patients with both |
+| `\edaErdBetaCzSfMoreNegative` | 11 | patients whose SF ERD is the more negative |
+| `\edaErdBetaCzSfMinusAhDiff` | −0.6 | beta ERD at Cz (mirrored), pre, 1-5 s: SF minus AH, exploratory two-sided Wilcoxon (points) |
+| `\edaErdBetaCzSfMinusAhDiffCiLo` | −3.8 | CI lower |
+| `\edaErdBetaCzSfMinusAhDiffCiHi` | 2.8 | CI upper |
+| `\edaErdBetaCzSfMinusAhW` | 103.5 | Wilcoxon W |
+| `\edaErdBetaCzSfMinusAhP` | 0.68 | p |
+| `\edaErdBetaCFourAhMean` | −20.3 | beta ERD at C4 (mirrored), pre, 1-5 s: AH, mean (%) |
+| `\edaErdBetaCFourSfMean` | −22.6 | SF, mean (%) |
+| `\edaErdBetaCFourAhNegative` | 20 | patients with AH ERD below 0 |
+| `\edaErdBetaCFourSfNegative` | 19 | patients with SF ERD below 0 |
+| `\edaErdBetaCFourN` | 22 | patients with both |
+| `\edaErdBetaCFourSfMoreNegative` | 13 | patients whose SF ERD is the more negative |
+| `\edaErdBetaCFourSfMinusAhDiff` | −2.3 | beta ERD at C4 (mirrored), pre, 1-5 s: SF minus AH, exploratory two-sided Wilcoxon (points) |
+| `\edaErdBetaCFourSfMinusAhDiffCiLo` | −6.5 | CI lower |
+| `\edaErdBetaCFourSfMinusAhDiffCiHi` | 1.8 | CI upper |
+| `\edaErdBetaCFourSfMinusAhW` | 96 | Wilcoxon W |
+| `\edaErdBetaCFourSfMinusAhP` | 0.34 | p |
 
 ## RQ1 and RQ1b: leakage in the published protocol (`\rqOne`)
 
@@ -637,6 +719,10 @@ in the script's docstring.
 | `\rqOneHOneR` | 1.00 | rank-biserial r |
 | `\rqOneHOneN` | 22 | patients |
 | `\rqOneHOneNNonzero` | 22 | patients with a non-zero difference |
+| `\rqOneHOneDiffMin` | 5.4 | smallest per-patient difference (points) |
+| `\rqOneHOneDiffMax` | 46.2 | largest per-patient difference (points) |
+| `\rqOneHOnePositive` | 22 | patients with a positive difference |
+| `\rqOneHOneNegative` | 0 | patients with a negative difference |
 | `\rqOneHOneNoDevDiff` | 22.8 | H1_without_dev, CSP+LDA, AH vs SF, paper_replica minus cv_leakfree: mean difference (points) |
 | `\rqOneHOneNoDevDiffCiLo` | 17.3 | CI lower |
 | `\rqOneHOneNoDevDiffCiHi` | 28.4 | CI upper |
@@ -648,6 +734,10 @@ in the script's docstring.
 | `\rqOneHOneNoDevR` | 1.00 | rank-biserial r |
 | `\rqOneHOneNoDevN` | 20 | patients |
 | `\rqOneHOneNoDevNNonzero` | 20 | patients with a non-zero difference |
+| `\rqOneHOneNoDevDiffMin` | 5.4 | smallest per-patient difference (points) |
+| `\rqOneHOneNoDevDiffMax` | 46.2 | largest per-patient difference (points) |
+| `\rqOneHOneNoDevPositive` | 20 | patients with a positive difference |
+| `\rqOneHOneNoDevNegative` | 0 | patients with a negative difference |
 | `\rqOneHOnePostDiff` | 19.9 | H1_post_all, CSP+LDA, AH vs SF, paper_replica minus cv_leakfree: mean difference (points) |
 | `\rqOneHOnePostDiffCiLo` | 15.8 | CI lower |
 | `\rqOneHOnePostDiffCiHi` | 24.0 | CI upper |
@@ -659,6 +749,10 @@ in the script's docstring.
 | `\rqOneHOnePostR` | 1.00 | rank-biserial r |
 | `\rqOneHOnePostN` | 24 | patients |
 | `\rqOneHOnePostNNonzero` | 24 | patients with a non-zero difference |
+| `\rqOneHOnePostDiffMin` | 3.5 | smallest per-patient difference (points) |
+| `\rqOneHOnePostDiffMax` | 39.5 | largest per-patient difference (points) |
+| `\rqOneHOnePostPositive` | 24 | patients with a positive difference |
+| `\rqOneHOnePostNegative` | 0 | patients with a negative difference |
 | `\rqOneHOnePostLinkedDiff` | 19.9 | H1_post_linked_merged, CSP+LDA, AH vs SF, paper_replica minus cv_leakfree: mean difference (points) |
 | `\rqOneHOnePostLinkedDiffCiLo` | 15.8 | CI lower |
 | `\rqOneHOnePostLinkedDiffCiHi` | 24.0 | CI upper |
@@ -670,6 +764,10 @@ in the script's docstring.
 | `\rqOneHOnePostLinkedR` | 1.00 | rank-biserial r |
 | `\rqOneHOnePostLinkedN` | 23 | patients |
 | `\rqOneHOnePostLinkedNNonzero` | 23 | patients with a non-zero difference |
+| `\rqOneHOnePostLinkedDiffMin` | 3.5 | smallest per-patient difference (points) |
+| `\rqOneHOnePostLinkedDiffMax` | 39.5 | largest per-patient difference (points) |
+| `\rqOneHOnePostLinkedPositive` | 23 | patients with a positive difference |
+| `\rqOneHOnePostLinkedNegative` | 0 | patients with a negative difference |
 | `\rqOneHOneFollowDiff` | 21.6 | H1_follow, CSP+LDA, AH vs SF, paper_replica minus cv_leakfree: mean difference (points) |
 | `\rqOneHOneFollowDiffCiLo` | 16.8 | CI lower |
 | `\rqOneHOneFollowDiffCiHi` | 26.4 | CI upper |
@@ -681,6 +779,10 @@ in the script's docstring.
 | `\rqOneHOneFollowR` | 1.00 | rank-biserial r |
 | `\rqOneHOneFollowN` | 18 | patients |
 | `\rqOneHOneFollowNNonzero` | 18 | patients with a non-zero difference |
+| `\rqOneHOneFollowDiffMin` | 3.8 | smallest per-patient difference (points) |
+| `\rqOneHOneFollowDiffMax` | 38.5 | largest per-patient difference (points) |
+| `\rqOneHOneFollowPositive` | 18 | patients with a positive difference |
+| `\rqOneHOneFollowNegative` | 0 | patients with a negative difference |
 | `\rqOneCspLdaLeakDiff` | 22.6 | csp_lda, AH vs SF, pre, paper_replica - cv_leakfree (descriptive, Holm over 18): mean difference (points) |
 | `\rqOneCspLdaLeakDiffCiLo` | 17.7 | CI lower |
 | `\rqOneCspLdaLeakDiffCiHi` | 27.8 | CI upper |
@@ -1195,6 +1297,138 @@ in the script's docstring.
 |---|---|---|
 | `\dlPretrainSourcesMin` | 19 | source patients of a pre-trained model: smallest (range) |
 | `\dlPretrainSourcesMax` | 20 | largest (range) |
+
+`summary/dl_summary.json`
+
+| Macro | Value | Meaning |
+|---|---|---|
+| `\dlEegnetScratchSeedSdMean` | 3.9 | EEGNet on one patient: SD over 3 seeds, every patient, task and protocol (points), mean |
+| `\dlEegnetScratchSeedSdMedian` | 3.8 | median |
+| `\dlEegnetScratchSeedSdMax` | 17.5 | largest |
+| `\dlEegnetScratchSeedSdN` | 132 | patient, task and protocol |
+| `\dlPretrainMinutes` | 44.2 | pre-training: minutes, sum over the 24 models |
+| `\dlPretrainJobMinutes` | 45.1 | pre-training: the Kaggle job's wall-clock minutes |
+| `\dlPretrainSecondsMedian` | 107.1 | pre-training: seconds per model, median |
+| `\dlPretrainBestEpochMedian` | 5 | pre-training: best epoch, median |
+| `\dlPretrainDevice` | Tesla T4 | pre-training: the GPU (Kaggle job record) |
+| `\dlZeroShotReferenceWindowsMedian` | 38 | rest windows a zero-shot model is aligned with, median over patients |
+
+`summary/dl_class_recall.csv`
+
+| Macro | Value | Meaning |
+|---|---|---|
+| `\dlAhSfChronoCspLdaRecallAh` | 68.5 | AH vs SF, pre, chrono, csp_lda: recall of AH (%) |
+| `\dlAhSfChronoCspLdaRecallSf` | 49.1 | AH vs SF, pre, chrono, csp_lda: recall of SF (%) |
+| `\dlAhSfLoroCspLdaRecallAh` | 62.7 | AH vs SF, pre, loro, csp_lda: recall of AH (%) |
+| `\dlAhSfLoroCspLdaRecallSf` | 60.4 | AH vs SF, pre, loro, csp_lda: recall of SF (%) |
+| `\dlAhSfChronoCspSvmRecallAh` | 68.5 | AH vs SF, pre, chrono, csp_svm: recall of AH (%) |
+| `\dlAhSfChronoCspSvmRecallSf` | 45.5 | AH vs SF, pre, chrono, csp_svm: recall of SF (%) |
+| `\dlAhSfLoroCspSvmRecallAh` | 61.8 | AH vs SF, pre, loro, csp_svm: recall of AH (%) |
+| `\dlAhSfLoroCspSvmRecallSf` | 59.8 | AH vs SF, pre, loro, csp_svm: recall of SF (%) |
+| `\dlAhSfChronoEegnetScratchRecallAh` | 60.9 | AH vs SF, pre, chrono, eegnet_scratch: recall of AH (%) |
+| `\dlAhSfChronoEegnetScratchRecallSf` | 62.3 | AH vs SF, pre, chrono, eegnet_scratch: recall of SF (%) |
+| `\dlAhSfLoroEegnetScratchRecallAh` | 61.8 | AH vs SF, pre, loro, eegnet_scratch: recall of AH (%) |
+| `\dlAhSfLoroEegnetScratchRecallSf` | 70.0 | AH vs SF, pre, loro, eegnet_scratch: recall of SF (%) |
+| `\dlAhSfChronoFbcspLdaRecallAh` | 64.2 | AH vs SF, pre, chrono, fbcsp_lda: recall of AH (%) |
+| `\dlAhSfChronoFbcspLdaRecallSf` | 47.5 | AH vs SF, pre, chrono, fbcsp_lda: recall of SF (%) |
+| `\dlAhSfLoroFbcspLdaRecallAh` | 60.6 | AH vs SF, pre, loro, fbcsp_lda: recall of AH (%) |
+| `\dlAhSfLoroFbcspLdaRecallSf` | 56.7 | AH vs SF, pre, loro, fbcsp_lda: recall of SF (%) |
+| `\dlAhSfChronoMdmRecallAh` | 64.1 | AH vs SF, pre, chrono, mdm: recall of AH (%) |
+| `\dlAhSfChronoMdmRecallSf` | 48.8 | AH vs SF, pre, chrono, mdm: recall of SF (%) |
+| `\dlAhSfLoroMdmRecallAh` | 55.9 | AH vs SF, pre, loro, mdm: recall of AH (%) |
+| `\dlAhSfLoroMdmRecallSf` | 61.0 | AH vs SF, pre, loro, mdm: recall of SF (%) |
+| `\dlAhSfChronoTsLrRecallAh` | 72.9 | AH vs SF, pre, chrono, ts_lr: recall of AH (%) |
+| `\dlAhSfChronoTsLrRecallSf` | 46.0 | AH vs SF, pre, chrono, ts_lr: recall of SF (%) |
+| `\dlAhSfLoroTsLrRecallAh` | 60.7 | AH vs SF, pre, loro, ts_lr: recall of AH (%) |
+| `\dlAhSfLoroTsLrRecallSf` | 61.8 | AH vs SF, pre, loro, ts_lr: recall of SF (%) |
+| `\dlRestAhSfChronoCspLdaRecallAh` | 53.6 | REST vs AH vs SF, pre, chrono, csp_lda: recall of AH (%) |
+| `\dlRestAhSfChronoCspLdaRecallRest` | 87.9 | REST vs AH vs SF, pre, chrono, csp_lda: recall of REST (%) |
+| `\dlRestAhSfChronoCspLdaRecallSf` | 40.4 | REST vs AH vs SF, pre, chrono, csp_lda: recall of SF (%) |
+| `\dlRestAhSfLoroCspLdaRecallAh` | 47.4 | REST vs AH vs SF, pre, loro, csp_lda: recall of AH (%) |
+| `\dlRestAhSfLoroCspLdaRecallRest` | 88.9 | REST vs AH vs SF, pre, loro, csp_lda: recall of REST (%) |
+| `\dlRestAhSfLoroCspLdaRecallSf` | 52.5 | REST vs AH vs SF, pre, loro, csp_lda: recall of SF (%) |
+| `\dlRestAhSfChronoCspSvmRecallAh` | 50.1 | REST vs AH vs SF, pre, chrono, csp_svm: recall of AH (%) |
+| `\dlRestAhSfChronoCspSvmRecallRest` | 89.2 | REST vs AH vs SF, pre, chrono, csp_svm: recall of REST (%) |
+| `\dlRestAhSfChronoCspSvmRecallSf` | 40.6 | REST vs AH vs SF, pre, chrono, csp_svm: recall of SF (%) |
+| `\dlRestAhSfLoroCspSvmRecallAh` | 45.8 | REST vs AH vs SF, pre, loro, csp_svm: recall of AH (%) |
+| `\dlRestAhSfLoroCspSvmRecallRest` | 91.5 | REST vs AH vs SF, pre, loro, csp_svm: recall of REST (%) |
+| `\dlRestAhSfLoroCspSvmRecallSf` | 47.9 | REST vs AH vs SF, pre, loro, csp_svm: recall of SF (%) |
+| `\dlRestAhSfChronoEegnetScratchRecallAh` | 52.2 | REST vs AH vs SF, pre, chrono, eegnet_scratch: recall of AH (%) |
+| `\dlRestAhSfChronoEegnetScratchRecallRest` | 76.8 | REST vs AH vs SF, pre, chrono, eegnet_scratch: recall of REST (%) |
+| `\dlRestAhSfChronoEegnetScratchRecallSf` | 62.2 | REST vs AH vs SF, pre, chrono, eegnet_scratch: recall of SF (%) |
+| `\dlRestAhSfLoroEegnetScratchRecallAh` | 55.3 | REST vs AH vs SF, pre, loro, eegnet_scratch: recall of AH (%) |
+| `\dlRestAhSfLoroEegnetScratchRecallRest` | 82.1 | REST vs AH vs SF, pre, loro, eegnet_scratch: recall of REST (%) |
+| `\dlRestAhSfLoroEegnetScratchRecallSf` | 64.9 | REST vs AH vs SF, pre, loro, eegnet_scratch: recall of SF (%) |
+| `\dlRestAhSfChronoFbcspLdaRecallAh` | 41.8 | REST vs AH vs SF, pre, chrono, fbcsp_lda: recall of AH (%) |
+| `\dlRestAhSfChronoFbcspLdaRecallRest` | 91.1 | REST vs AH vs SF, pre, chrono, fbcsp_lda: recall of REST (%) |
+| `\dlRestAhSfChronoFbcspLdaRecallSf` | 46.7 | REST vs AH vs SF, pre, chrono, fbcsp_lda: recall of SF (%) |
+| `\dlRestAhSfLoroFbcspLdaRecallAh` | 50.3 | REST vs AH vs SF, pre, loro, fbcsp_lda: recall of AH (%) |
+| `\dlRestAhSfLoroFbcspLdaRecallRest` | 91.7 | REST vs AH vs SF, pre, loro, fbcsp_lda: recall of REST (%) |
+| `\dlRestAhSfLoroFbcspLdaRecallSf` | 49.5 | REST vs AH vs SF, pre, loro, fbcsp_lda: recall of SF (%) |
+| `\dlRestAhSfChronoMdmRecallAh` | 50.8 | REST vs AH vs SF, pre, chrono, mdm: recall of AH (%) |
+| `\dlRestAhSfChronoMdmRecallRest` | 82.6 | REST vs AH vs SF, pre, chrono, mdm: recall of REST (%) |
+| `\dlRestAhSfChronoMdmRecallSf` | 40.3 | REST vs AH vs SF, pre, chrono, mdm: recall of SF (%) |
+| `\dlRestAhSfLoroMdmRecallAh` | 44.6 | REST vs AH vs SF, pre, loro, mdm: recall of AH (%) |
+| `\dlRestAhSfLoroMdmRecallRest` | 80.2 | REST vs AH vs SF, pre, loro, mdm: recall of REST (%) |
+| `\dlRestAhSfLoroMdmRecallSf` | 54.1 | REST vs AH vs SF, pre, loro, mdm: recall of SF (%) |
+| `\dlRestAhSfChronoTsLrRecallAh` | 55.2 | REST vs AH vs SF, pre, chrono, ts_lr: recall of AH (%) |
+| `\dlRestAhSfChronoTsLrRecallRest` | 91.7 | REST vs AH vs SF, pre, chrono, ts_lr: recall of REST (%) |
+| `\dlRestAhSfChronoTsLrRecallSf` | 36.9 | REST vs AH vs SF, pre, chrono, ts_lr: recall of SF (%) |
+| `\dlRestAhSfLoroTsLrRecallAh` | 49.0 | REST vs AH vs SF, pre, loro, ts_lr: recall of AH (%) |
+| `\dlRestAhSfLoroTsLrRecallRest` | 91.7 | REST vs AH vs SF, pre, loro, ts_lr: recall of REST (%) |
+| `\dlRestAhSfLoroTsLrRecallSf` | 53.0 | REST vs AH vs SF, pre, loro, ts_lr: recall of SF (%) |
+| `\dlSfRestChronoCspLdaRecallRest` | 93.0 | SF vs REST, pre, chrono, csp_lda: recall of REST (%) |
+| `\dlSfRestChronoCspLdaRecallSf` | 72.3 | SF vs REST, pre, chrono, csp_lda: recall of SF (%) |
+| `\dlSfRestLoroCspLdaRecallRest` | 92.1 | SF vs REST, pre, loro, csp_lda: recall of REST (%) |
+| `\dlSfRestLoroCspLdaRecallSf` | 80.9 | SF vs REST, pre, loro, csp_lda: recall of SF (%) |
+| `\dlSfRestChronoCspSvmRecallRest` | 94.1 | SF vs REST, pre, chrono, csp_svm: recall of REST (%) |
+| `\dlSfRestChronoCspSvmRecallSf` | 68.0 | SF vs REST, pre, chrono, csp_svm: recall of SF (%) |
+| `\dlSfRestLoroCspSvmRecallRest` | 94.4 | SF vs REST, pre, loro, csp_svm: recall of REST (%) |
+| `\dlSfRestLoroCspSvmRecallSf` | 74.9 | SF vs REST, pre, loro, csp_svm: recall of SF (%) |
+| `\dlSfRestChronoEegnetScratchRecallRest` | 57.7 | SF vs REST, pre, chrono, eegnet_scratch: recall of REST (%) |
+| `\dlSfRestChronoEegnetScratchRecallSf` | 94.7 | SF vs REST, pre, chrono, eegnet_scratch: recall of SF (%) |
+| `\dlSfRestLoroEegnetScratchRecallRest` | 80.9 | SF vs REST, pre, loro, eegnet_scratch: recall of REST (%) |
+| `\dlSfRestLoroEegnetScratchRecallSf` | 90.6 | SF vs REST, pre, loro, eegnet_scratch: recall of SF (%) |
+| `\dlSfRestChronoFbcspLdaRecallRest` | 96.6 | SF vs REST, pre, chrono, fbcsp_lda: recall of REST (%) |
+| `\dlSfRestChronoFbcspLdaRecallSf` | 63.0 | SF vs REST, pre, chrono, fbcsp_lda: recall of SF (%) |
+| `\dlSfRestLoroFbcspLdaRecallRest` | 95.2 | SF vs REST, pre, loro, fbcsp_lda: recall of REST (%) |
+| `\dlSfRestLoroFbcspLdaRecallSf` | 77.8 | SF vs REST, pre, loro, fbcsp_lda: recall of SF (%) |
+| `\dlSfRestChronoMdmRecallRest` | 87.3 | SF vs REST, pre, chrono, mdm: recall of REST (%) |
+| `\dlSfRestChronoMdmRecallSf` | 76.9 | SF vs REST, pre, chrono, mdm: recall of SF (%) |
+| `\dlSfRestLoroMdmRecallRest` | 83.5 | SF vs REST, pre, loro, mdm: recall of REST (%) |
+| `\dlSfRestLoroMdmRecallSf` | 81.9 | SF vs REST, pre, loro, mdm: recall of SF (%) |
+| `\dlSfRestChronoTsLrRecallRest` | 94.8 | SF vs REST, pre, chrono, ts_lr: recall of REST (%) |
+| `\dlSfRestChronoTsLrRecallSf` | 69.7 | SF vs REST, pre, chrono, ts_lr: recall of SF (%) |
+| `\dlSfRestLoroTsLrRecallRest` | 93.9 | SF vs REST, pre, loro, ts_lr: recall of REST (%) |
+| `\dlSfRestLoroTsLrRecallSf` | 77.6 | SF vs REST, pre, loro, ts_lr: recall of SF (%) |
+| `\dlAhSfChronoClassicalRecallAhMin` | 64.1 | AH vs SF, pre, chrono, five classical methods: affected_hand recall (%): smallest (range) |
+| `\dlAhSfChronoClassicalRecallAhMax` | 72.9 | largest (range) |
+| `\dlAhSfChronoClassicalRecallSfMin` | 45.5 | AH vs SF, pre, chrono, five classical methods: sixth_finger recall (%): smallest (range) |
+| `\dlAhSfChronoClassicalRecallSfMax` | 49.1 | largest (range) |
+| `\dlAhSfLoroClassicalRecallAhMin` | 55.9 | AH vs SF, pre, loro, five classical methods: affected_hand recall (%): smallest (range) |
+| `\dlAhSfLoroClassicalRecallAhMax` | 62.7 | largest (range) |
+| `\dlAhSfLoroClassicalRecallSfMin` | 56.7 | AH vs SF, pre, loro, five classical methods: sixth_finger recall (%): smallest (range) |
+| `\dlAhSfLoroClassicalRecallSfMax` | 61.8 | largest (range) |
+| `\dlRestAhSfChronoClassicalRecallAhMin` | 41.8 | REST vs AH vs SF, pre, chrono, five classical methods: affected_hand recall (%): smallest (range) |
+| `\dlRestAhSfChronoClassicalRecallAhMax` | 55.2 | largest (range) |
+| `\dlRestAhSfChronoClassicalRecallRestMin` | 82.6 | REST vs AH vs SF, pre, chrono, five classical methods: rest recall (%): smallest (range) |
+| `\dlRestAhSfChronoClassicalRecallRestMax` | 91.7 | largest (range) |
+| `\dlRestAhSfChronoClassicalRecallSfMin` | 36.9 | REST vs AH vs SF, pre, chrono, five classical methods: sixth_finger recall (%): smallest (range) |
+| `\dlRestAhSfChronoClassicalRecallSfMax` | 46.7 | largest (range) |
+| `\dlRestAhSfLoroClassicalRecallAhMin` | 44.6 | REST vs AH vs SF, pre, loro, five classical methods: affected_hand recall (%): smallest (range) |
+| `\dlRestAhSfLoroClassicalRecallAhMax` | 50.3 | largest (range) |
+| `\dlRestAhSfLoroClassicalRecallRestMin` | 80.2 | REST vs AH vs SF, pre, loro, five classical methods: rest recall (%): smallest (range) |
+| `\dlRestAhSfLoroClassicalRecallRestMax` | 91.7 | largest (range) |
+| `\dlRestAhSfLoroClassicalRecallSfMin` | 47.9 | REST vs AH vs SF, pre, loro, five classical methods: sixth_finger recall (%): smallest (range) |
+| `\dlRestAhSfLoroClassicalRecallSfMax` | 54.1 | largest (range) |
+| `\dlSfRestChronoClassicalRecallRestMin` | 87.3 | SF vs REST, pre, chrono, five classical methods: rest recall (%): smallest (range) |
+| `\dlSfRestChronoClassicalRecallRestMax` | 96.6 | largest (range) |
+| `\dlSfRestChronoClassicalRecallSfMin` | 63.0 | SF vs REST, pre, chrono, five classical methods: sixth_finger recall (%): smallest (range) |
+| `\dlSfRestChronoClassicalRecallSfMax` | 76.9 | largest (range) |
+| `\dlSfRestLoroClassicalRecallRestMin` | 83.5 | SF vs REST, pre, loro, five classical methods: rest recall (%): smallest (range) |
+| `\dlSfRestLoroClassicalRecallRestMax` | 95.2 | largest (range) |
+| `\dlSfRestLoroClassicalRecallSfMin` | 74.9 | SF vs REST, pre, loro, five classical methods: sixth_finger recall (%): smallest (range) |
+| `\dlSfRestLoroClassicalRecallSfMax` | 81.9 | largest (range) |
 
 ## RQ2: calibration for a new user (S1) (`\rqTwo`)
 
@@ -1726,6 +1960,106 @@ in the script's docstring.
 | `\rqTwoNoSignalSfRestTolerance` | 0.10 | labels permuted, SF vs REST: allowed distance from chance |
 | `\rqTwoNoSignalN` | 14 | labels permuted: patients |
 | `\rqTwoNoSignalPassed` | 16 | labels permuted: cells within it (count) |
+| `\rqTwoNoSignalDistanceMax` | 0.053 | labels permuted: largest distance of a method's mean from chance (range) |
+
+`summary/calib_method_summary.csv`
+
+| Macro | Value | Meaning |
+|---|---|---|
+| `\rqTwoRestAhSfCspLdaAlcMean` | 0.310 | S1_new_user, REST vs AH vs SF, pre, csp_lda: ALC, mean over patients |
+| `\rqTwoRestAhSfCspLdaReachSixty` | 13 | patients reaching 60 % |
+| `\rqTwoRestAhSfCspLdaReachSixtyMedianK` | 5 | their median k* (60 %) |
+| `\rqTwoRestAhSfCspLdaReachSeventy` | 6 | patients reaching 70 % |
+| `\rqTwoRestAhSfCspLdaReachSeventyMedianK` | 20 | their median k* (70 %) |
+| `\rqTwoRestAhSfEegnetEaFtAlcMean` | 0.432 | S1_new_user, REST vs AH vs SF, pre, eegnet_ea_ft: ALC, mean over patients |
+| `\rqTwoRestAhSfEegnetEaFtReachSixty` | 17 | patients reaching 60 % |
+| `\rqTwoRestAhSfEegnetEaFtReachSixtyMedianK` | 0 | their median k* (60 %) |
+| `\rqTwoRestAhSfEegnetEaFtReachSeventy` | 8 | patients reaching 70 % |
+| `\rqTwoRestAhSfEegnetEaFtReachSeventyMedianK` | 0 | their median k* (70 %) |
+| `\rqTwoRestAhSfEegnetEaFtKOneMinusKZeroDiff` | −4.6 | k = 1 minus k = 0, mean (points) |
+| `\rqTwoRestAhSfEegnetEaFtKOneBelowKZero` | 15 | patients lower at k = 1 than at k = 0 |
+| `\rqTwoRestAhSfEegnetScratchAlcMean` | 0.176 | S1_new_user, REST vs AH vs SF, pre, eegnet_scratch: ALC, mean over patients |
+| `\rqTwoRestAhSfEegnetScratchReachSixty` | 15 | patients reaching 60 % |
+| `\rqTwoRestAhSfEegnetScratchReachSixtyMedianK` | 20 | their median k* (60 %) |
+| `\rqTwoRestAhSfEegnetScratchReachSeventy` | 8 | patients reaching 70 % |
+| `\rqTwoRestAhSfEegnetScratchReachSeventyMedianK` | 20 | their median k* (70 %) |
+| `\rqTwoRestAhSfMdmAlcMean` | 0.264 | S1_new_user, REST vs AH vs SF, pre, mdm: ALC, mean over patients |
+| `\rqTwoRestAhSfMdmReachSixty` | 13 | patients reaching 60 % |
+| `\rqTwoRestAhSfMdmReachSixtyMedianK` | 10 | their median k* (60 %) |
+| `\rqTwoRestAhSfMdmReachSeventy` | 3 | patients reaching 70 % |
+| `\rqTwoRestAhSfMdmReachSeventyMedianK` | 20 | their median k* (70 %) |
+| `\rqTwoRestAhSfPooledTslrAlcMean` | 0.282 | S1_new_user, REST vs AH vs SF, pre, pooled_tslr: ALC, mean over patients |
+| `\rqTwoRestAhSfPooledTslrReachSixty` | 10 | patients reaching 60 % |
+| `\rqTwoRestAhSfPooledTslrReachSixtyMedianK` | 10 | their median k* (60 %) |
+| `\rqTwoRestAhSfPooledTslrReachSeventy` | 4 | patients reaching 70 % |
+| `\rqTwoRestAhSfPooledTslrReachSeventyMedianK` | 10 | their median k* (70 %) |
+| `\rqTwoRestAhSfPooledTslrKOneMinusKZeroDiff` | 2.5 | k = 1 minus k = 0, mean (points) |
+| `\rqTwoRestAhSfPooledTslrKOneBelowKZero` | 4 | patients lower at k = 1 than at k = 0 |
+| `\rqTwoRestAhSfRctMdmAlcMean` | 0.256 | S1_new_user, REST vs AH vs SF, pre, rct_mdm: ALC, mean over patients |
+| `\rqTwoRestAhSfRctMdmReachSixty` | 9 | patients reaching 60 % |
+| `\rqTwoRestAhSfRctMdmReachSixtyMedianK` | 1 | their median k* (60 %) |
+| `\rqTwoRestAhSfRctMdmReachSeventy` | 0 | patients reaching 70 % |
+| `\rqTwoRestAhSfRctMdmKOneMinusKZeroDiff` | 1.1 | k = 1 minus k = 0, mean (points) |
+| `\rqTwoRestAhSfRctMdmKOneBelowKZero` | 7 | patients lower at k = 1 than at k = 0 |
+| `\rqTwoRestAhSfRctTslrAlcMean` | 0.355 | S1_new_user, REST vs AH vs SF, pre, rct_tslr: ALC, mean over patients |
+| `\rqTwoRestAhSfRctTslrReachSixty` | 11 | patients reaching 60 % |
+| `\rqTwoRestAhSfRctTslrReachSixtyMedianK` | 1 | their median k* (60 %) |
+| `\rqTwoRestAhSfRctTslrReachSeventy` | 5 | patients reaching 70 % |
+| `\rqTwoRestAhSfRctTslrReachSeventyMedianK` | 2 | their median k* (70 %) |
+| `\rqTwoRestAhSfRctTslrKOneMinusKZeroDiff` | 4.2 | k = 1 minus k = 0, mean (points) |
+| `\rqTwoRestAhSfRctTslrKOneBelowKZero` | 8 | patients lower at k = 1 than at k = 0 |
+| `\rqTwoRestAhSfTsLrAlcMean` | 0.239 | S1_new_user, REST vs AH vs SF, pre, ts_lr: ALC, mean over patients |
+| `\rqTwoRestAhSfTsLrReachSixty` | 15 | patients reaching 60 % |
+| `\rqTwoRestAhSfTsLrReachSixtyMedianK` | 10 | their median k* (60 %) |
+| `\rqTwoRestAhSfTsLrReachSeventy` | 6 | patients reaching 70 % |
+| `\rqTwoRestAhSfTsLrReachSeventyMedianK` | 20 | their median k* (70 %) |
+| `\rqTwoSfRestCspLdaAlcMean` | 0.500 | S1_new_user, SF vs REST, pre, csp_lda: ALC, mean over patients |
+| `\rqTwoSfRestCspLdaReachSeventy` | 18 | patients reaching 70 % |
+| `\rqTwoSfRestCspLdaReachSeventyMedianK` | 2.5 | their median k* (70 %) |
+| `\rqTwoSfRestEegnetEaFtAlcMean` | 0.583 | S1_new_user, SF vs REST, pre, eegnet_ea_ft: ALC, mean over patients |
+| `\rqTwoSfRestEegnetEaFtReachSeventy` | 20 | patients reaching 70 % |
+| `\rqTwoSfRestEegnetEaFtReachSeventyMedianK` | 0 | their median k* (70 %) |
+| `\rqTwoSfRestEegnetEaFtKOneMinusKZeroDiff` | −11.6 | k = 1 minus k = 0, mean (points) |
+| `\rqTwoSfRestEegnetEaFtKOneBelowKZero` | 19 | patients lower at k = 1 than at k = 0 |
+| `\rqTwoSfRestEegnetScratchAlcMean` | 0.184 | S1_new_user, SF vs REST, pre, eegnet_scratch: ALC, mean over patients |
+| `\rqTwoSfRestEegnetScratchReachSeventy` | 11 | patients reaching 70 % |
+| `\rqTwoSfRestEegnetScratchReachSeventyMedianK` | 20 | their median k* (70 %) |
+| `\rqTwoSfRestMdmAlcMean` | 0.558 | S1_new_user, SF vs REST, pre, mdm: ALC, mean over patients |
+| `\rqTwoSfRestMdmReachSeventy` | 18 | patients reaching 70 % |
+| `\rqTwoSfRestMdmReachSeventyMedianK` | 1 | their median k* (70 %) |
+| `\rqTwoSfRestPooledTslrAlcMean` | 0.463 | S1_new_user, SF vs REST, pre, pooled_tslr: ALC, mean over patients |
+| `\rqTwoSfRestPooledTslrReachSeventy` | 17 | patients reaching 70 % |
+| `\rqTwoSfRestPooledTslrReachSeventyMedianK` | 0 | their median k* (70 %) |
+| `\rqTwoSfRestPooledTslrKOneMinusKZeroDiff` | 2.9 | k = 1 minus k = 0, mean (points) |
+| `\rqTwoSfRestPooledTslrKOneBelowKZero` | 2 | patients lower at k = 1 than at k = 0 |
+| `\rqTwoSfRestRctMdmAlcMean` | 0.440 | S1_new_user, SF vs REST, pre, rct_mdm: ALC, mean over patients |
+| `\rqTwoSfRestRctMdmReachSeventy` | 18 | patients reaching 70 % |
+| `\rqTwoSfRestRctMdmReachSeventyMedianK` | 0 | their median k* (70 %) |
+| `\rqTwoSfRestRctMdmKOneMinusKZeroDiff` | −5.4 | k = 1 minus k = 0, mean (points) |
+| `\rqTwoSfRestRctMdmKOneBelowKZero` | 15 | patients lower at k = 1 than at k = 0 |
+| `\rqTwoSfRestRctTslrAlcMean` | 0.590 | S1_new_user, SF vs REST, pre, rct_tslr: ALC, mean over patients |
+| `\rqTwoSfRestRctTslrReachSeventy` | 18 | patients reaching 70 % |
+| `\rqTwoSfRestRctTslrReachSeventyMedianK` | 0 | their median k* (70 %) |
+| `\rqTwoSfRestRctTslrKOneMinusKZeroDiff` | −0.5 | k = 1 minus k = 0, mean (points) |
+| `\rqTwoSfRestRctTslrKOneBelowKZero` | 12 | patients lower at k = 1 than at k = 0 |
+| `\rqTwoSfRestTsLrAlcMean` | 0.581 | S1_new_user, SF vs REST, pre, ts_lr: ALC, mean over patients |
+| `\rqTwoSfRestTsLrReachSeventy` | 19 | patients reaching 70 % |
+| `\rqTwoSfRestTsLrReachSeventyMedianK` | 1 | their median k* (70 %) |
+
+`summary/calib_pair_whole_pool.csv`
+
+| Macro | Value | Meaning |
+|---|---|---|
+| `\rqTwoRestAhSfTsLrMinusRctTslrKAllDiff` | 3.4 | S1_new_user, REST vs AH vs SF, pre, k = all: ts_lr minus rct_tslr (points, no test) |
+| `\rqTwoRestAhSfTsLrMinusRctTslrKAllDiffCiLo` | −0.6 | CI lower |
+| `\rqTwoRestAhSfTsLrMinusRctTslrKAllDiffCiHi` | 7.4 | CI upper |
+| `\rqTwoRestAhSfTsLrMinusRctTslrKAllBetter` | 12 | patients higher with ts_lr |
+| `\rqTwoRestAhSfTsLrMinusRctTslrKAllWorse` | 10 | patients higher with rct_tslr |
+| `\rqTwoSfRestTsLrMinusRctTslrKAllDiff` | 6.4 | S1_new_user, SF vs REST, pre, k = all: ts_lr minus rct_tslr (points, no test) |
+| `\rqTwoSfRestTsLrMinusRctTslrKAllDiffCiLo` | 2.7 | CI lower |
+| `\rqTwoSfRestTsLrMinusRctTslrKAllDiffCiHi` | 10.3 | CI upper |
+| `\rqTwoSfRestTsLrMinusRctTslrKAllBetter` | 17 | patients higher with ts_lr |
+| `\rqTwoSfRestTsLrMinusRctTslrKAllWorse` | 4 | patients higher with rct_tslr |
 
 `summary/calib_zeroshot_check.csv`
 
@@ -2331,6 +2665,123 @@ in the script's docstring.
 | `\rqThreeFriedmanSfRestKAllCd` | 2.56 | S2_new_command, SF vs REST, k = all: Friedman test over the methods, Nemenyi CD |
 | `\rqThreeFriedmanSfRestKAllN` | 22 | S2_new_command, SF vs REST, k = all: Friedman test over the methods, patients |
 
+`summary/calib_method_summary.csv`
+
+| Macro | Value | Meaning |
+|---|---|---|
+| `\rqThreeRestAhSfAhProxyAlcMean` | 0.344 | S2_new_command, REST vs AH vs SF, pre, ah_proxy: ALC, mean over patients |
+| `\rqThreeRestAhSfAhProxyReachSixty` | 11 | patients reaching 60 % |
+| `\rqThreeRestAhSfAhProxyReachSixtyMedianK` | 0 | their median k* (60 %) |
+| `\rqThreeRestAhSfAhProxyReachSeventy` | 0 | patients reaching 70 % |
+| `\rqThreeRestAhSfCspLdaAlcMean` | 0.318 | S2_new_command, REST vs AH vs SF, pre, csp_lda: ALC, mean over patients |
+| `\rqThreeRestAhSfCspLdaReachSixty` | 15 | patients reaching 60 % |
+| `\rqThreeRestAhSfCspLdaReachSixtyMedianK` | 5 | their median k* (60 %) |
+| `\rqThreeRestAhSfCspLdaReachSeventy` | 6 | patients reaching 70 % |
+| `\rqThreeRestAhSfCspLdaReachSeventyMedianK` | 15 | their median k* (70 %) |
+| `\rqThreeRestAhSfEegnetEaFtAlcMean` | 0.451 | S2_new_command, REST vs AH vs SF, pre, eegnet_ea_ft: ALC, mean over patients |
+| `\rqThreeRestAhSfEegnetEaFtReachSixty` | 17 | patients reaching 60 % |
+| `\rqThreeRestAhSfEegnetEaFtReachSixtyMedianK` | 0 | their median k* (60 %) |
+| `\rqThreeRestAhSfEegnetEaFtReachSeventy` | 8 | patients reaching 70 % |
+| `\rqThreeRestAhSfEegnetEaFtReachSeventyMedianK` | 0 | their median k* (70 %) |
+| `\rqThreeRestAhSfEegnetEaFtKOneMinusKZeroDiff` | −0.7 | k = 1 minus k = 0, mean (points) |
+| `\rqThreeRestAhSfEegnetEaFtKOneBelowKZero` | 16 | patients lower at k = 1 than at k = 0 |
+| `\rqThreeRestAhSfEegnetScratchAlcMean` | 0.258 | S2_new_command, REST vs AH vs SF, pre, eegnet_scratch: ALC, mean over patients |
+| `\rqThreeRestAhSfEegnetScratchReachSixty` | 15 | patients reaching 60 % |
+| `\rqThreeRestAhSfEegnetScratchReachSixtyMedianK` | 20 | their median k* (60 %) |
+| `\rqThreeRestAhSfEegnetScratchReachSeventy` | 8 | patients reaching 70 % |
+| `\rqThreeRestAhSfEegnetScratchReachSeventyMedianK` | 20 | their median k* (70 %) |
+| `\rqThreeRestAhSfMdmAlcMean` | 0.308 | S2_new_command, REST vs AH vs SF, pre, mdm: ALC, mean over patients |
+| `\rqThreeRestAhSfMdmReachSixty` | 13 | patients reaching 60 % |
+| `\rqThreeRestAhSfMdmReachSixtyMedianK` | 5 | their median k* (60 %) |
+| `\rqThreeRestAhSfMdmReachSeventy` | 3 | patients reaching 70 % |
+| `\rqThreeRestAhSfMdmReachSeventyMedianK` | 20 | their median k* (70 %) |
+| `\rqThreeRestAhSfPooledTslrAlcMean` | 0.294 | S2_new_command, REST vs AH vs SF, pre, pooled_tslr: ALC, mean over patients |
+| `\rqThreeRestAhSfPooledTslrReachSixty` | 10 | patients reaching 60 % |
+| `\rqThreeRestAhSfPooledTslrReachSixtyMedianK` | 1.5 | their median k* (60 %) |
+| `\rqThreeRestAhSfPooledTslrReachSeventy` | 3 | patients reaching 70 % |
+| `\rqThreeRestAhSfPooledTslrReachSeventyMedianK` | 0 | their median k* (70 %) |
+| `\rqThreeRestAhSfPooledTslrKOneMinusKZeroDiff` | 0.4 | k = 1 minus k = 0, mean (points) |
+| `\rqThreeRestAhSfPooledTslrKOneBelowKZero` | 8 | patients lower at k = 1 than at k = 0 |
+| `\rqThreeRestAhSfRctMdmAlcMean` | 0.275 | S2_new_command, REST vs AH vs SF, pre, rct_mdm: ALC, mean over patients |
+| `\rqThreeRestAhSfRctMdmReachSixty` | 7 | patients reaching 60 % |
+| `\rqThreeRestAhSfRctMdmReachSixtyMedianK` | 1 | their median k* (60 %) |
+| `\rqThreeRestAhSfRctMdmReachSeventy` | 0 | patients reaching 70 % |
+| `\rqThreeRestAhSfRctMdmKOneMinusKZeroDiff` | 3.0 | k = 1 minus k = 0, mean (points) |
+| `\rqThreeRestAhSfRctMdmKOneBelowKZero` | 6 | patients lower at k = 1 than at k = 0 |
+| `\rqThreeRestAhSfRctTslrAlcMean` | 0.366 | S2_new_command, REST vs AH vs SF, pre, rct_tslr: ALC, mean over patients |
+| `\rqThreeRestAhSfRctTslrReachSixty` | 12 | patients reaching 60 % |
+| `\rqThreeRestAhSfRctTslrReachSixtyMedianK` | 1 | their median k* (60 %) |
+| `\rqThreeRestAhSfRctTslrReachSeventy` | 5 | patients reaching 70 % |
+| `\rqThreeRestAhSfRctTslrReachSeventyMedianK` | 1 | their median k* (70 %) |
+| `\rqThreeRestAhSfRctTslrKOneMinusKZeroDiff` | 4.2 | k = 1 minus k = 0, mean (points) |
+| `\rqThreeRestAhSfRctTslrKOneBelowKZero` | 6 | patients lower at k = 1 than at k = 0 |
+| `\rqThreeRestAhSfTsLrAlcMean` | 0.344 | S2_new_command, REST vs AH vs SF, pre, ts_lr: ALC, mean over patients |
+| `\rqThreeRestAhSfTsLrReachSixty` | 15 | patients reaching 60 % |
+| `\rqThreeRestAhSfTsLrReachSixtyMedianK` | 1 | their median k* (60 %) |
+| `\rqThreeRestAhSfTsLrReachSeventy` | 6 | patients reaching 70 % |
+| `\rqThreeRestAhSfTsLrReachSeventyMedianK` | 20 | their median k* (70 %) |
+| `\rqThreeSfRestAhProxyAlcMean` | 0.673 | S2_new_command, SF vs REST, pre, ah_proxy: ALC, mean over patients |
+| `\rqThreeSfRestAhProxyReachSeventy` | 17 | patients reaching 70 % |
+| `\rqThreeSfRestAhProxyReachSeventyMedianK` | 0 | their median k* (70 %) |
+| `\rqThreeSfRestCspLdaAlcMean` | 0.456 | S2_new_command, SF vs REST, pre, csp_lda: ALC, mean over patients |
+| `\rqThreeSfRestCspLdaReachSeventy` | 18 | patients reaching 70 % |
+| `\rqThreeSfRestCspLdaReachSeventyMedianK` | 3 | their median k* (70 %) |
+| `\rqThreeSfRestEegnetEaFtAlcMean` | 0.552 | S2_new_command, SF vs REST, pre, eegnet_ea_ft: ALC, mean over patients |
+| `\rqThreeSfRestEegnetEaFtReachSeventy` | 20 | patients reaching 70 % |
+| `\rqThreeSfRestEegnetEaFtReachSeventyMedianK` | 0 | their median k* (70 %) |
+| `\rqThreeSfRestEegnetEaFtKOneMinusKZeroDiff` | −10.8 | k = 1 minus k = 0, mean (points) |
+| `\rqThreeSfRestEegnetEaFtKOneBelowKZero` | 16 | patients lower at k = 1 than at k = 0 |
+| `\rqThreeSfRestEegnetScratchAlcMean` | 0.164 | S2_new_command, SF vs REST, pre, eegnet_scratch: ALC, mean over patients |
+| `\rqThreeSfRestEegnetScratchReachSeventy` | 11 | patients reaching 70 % |
+| `\rqThreeSfRestEegnetScratchReachSeventyMedianK` | 10 | their median k* (70 %) |
+| `\rqThreeSfRestMdmAlcMean` | 0.514 | S2_new_command, SF vs REST, pre, mdm: ALC, mean over patients |
+| `\rqThreeSfRestMdmReachSeventy` | 18 | patients reaching 70 % |
+| `\rqThreeSfRestMdmReachSeventyMedianK` | 1 | their median k* (70 %) |
+| `\rqThreeSfRestPooledTslrAlcMean` | 0.439 | S2_new_command, SF vs REST, pre, pooled_tslr: ALC, mean over patients |
+| `\rqThreeSfRestPooledTslrReachSeventy` | 17 | patients reaching 70 % |
+| `\rqThreeSfRestPooledTslrReachSeventyMedianK` | 0 | their median k* (70 %) |
+| `\rqThreeSfRestPooledTslrKOneMinusKZeroDiff` | 2.7 | k = 1 minus k = 0, mean (points) |
+| `\rqThreeSfRestPooledTslrKOneBelowKZero` | 4 | patients lower at k = 1 than at k = 0 |
+| `\rqThreeSfRestRctMdmAlcMean` | 0.426 | S2_new_command, SF vs REST, pre, rct_mdm: ALC, mean over patients |
+| `\rqThreeSfRestRctMdmReachSeventy` | 18 | patients reaching 70 % |
+| `\rqThreeSfRestRctMdmReachSeventyMedianK` | 0 | their median k* (70 %) |
+| `\rqThreeSfRestRctMdmKOneMinusKZeroDiff` | −4.6 | k = 1 minus k = 0, mean (points) |
+| `\rqThreeSfRestRctMdmKOneBelowKZero` | 15 | patients lower at k = 1 than at k = 0 |
+| `\rqThreeSfRestRctTslrAlcMean` | 0.584 | S2_new_command, SF vs REST, pre, rct_tslr: ALC, mean over patients |
+| `\rqThreeSfRestRctTslrReachSeventy` | 18 | patients reaching 70 % |
+| `\rqThreeSfRestRctTslrReachSeventyMedianK` | 0 | their median k* (70 %) |
+| `\rqThreeSfRestRctTslrKOneMinusKZeroDiff` | −0.0 | k = 1 minus k = 0, mean (points) |
+| `\rqThreeSfRestRctTslrKOneBelowKZero` | 13 | patients lower at k = 1 than at k = 0 |
+| `\rqThreeSfRestTsLrAlcMean` | 0.531 | S2_new_command, SF vs REST, pre, ts_lr: ALC, mean over patients |
+| `\rqThreeSfRestTsLrReachSeventy` | 19 | patients reaching 70 % |
+| `\rqThreeSfRestTsLrReachSeventyMedianK` | 1 | their median k* (70 %) |
+
+`summary/calib_pair_whole_pool.csv`
+
+| Macro | Value | Meaning |
+|---|---|---|
+| `\rqThreeRestAhSfTsLrMinusRctTslrKAllDiff` | 3.4 | S2_new_command, REST vs AH vs SF, pre, k = all: ts_lr minus rct_tslr (points, no test) |
+| `\rqThreeRestAhSfTsLrMinusRctTslrKAllDiffCiLo` | −0.6 | CI lower |
+| `\rqThreeRestAhSfTsLrMinusRctTslrKAllDiffCiHi` | 7.4 | CI upper |
+| `\rqThreeRestAhSfTsLrMinusRctTslrKAllBetter` | 12 | patients higher with ts_lr |
+| `\rqThreeRestAhSfTsLrMinusRctTslrKAllWorse` | 10 | patients higher with rct_tslr |
+| `\rqThreeSfRestTsLrMinusRctTslrKAllDiff` | 6.4 | S2_new_command, SF vs REST, pre, k = all: ts_lr minus rct_tslr (points, no test) |
+| `\rqThreeSfRestTsLrMinusRctTslrKAllDiffCiLo` | 2.7 | CI lower |
+| `\rqThreeSfRestTsLrMinusRctTslrKAllDiffCiHi` | 10.3 | CI upper |
+| `\rqThreeSfRestTsLrMinusRctTslrKAllBetter` | 17 | patients higher with ts_lr |
+| `\rqThreeSfRestTsLrMinusRctTslrKAllWorse` | 4 | patients higher with rct_tslr |
+
+`summary/calib_alc_subject_values.csv`
+
+| Macro | Value | Meaning |
+|---|---|---|
+| `\rqThreeHThreeAPatientLowestDiff` | −0.271 | H3a, rct_tslr minus ts_lr, ALC: the first lowest patient, difference (range) |
+| `\rqThreeHThreeAPatientLowestSubject` | sub-13 | that patient (range) |
+| `\rqThreeHThreeAPatientSecondLowestDiff` | −0.234 | H3a, rct_tslr minus ts_lr, ALC: the second lowest patient, difference (range) |
+| `\rqThreeHThreeAPatientSecondLowestSubject` | sub-10 | that patient (range) |
+| `\rqThreeHThreeAPatientThirdLowestDiff` | −0.167 | H3a, rct_tslr minus ts_lr, ALC: the third lowest patient, difference (range) |
+| `\rqThreeHThreeAPatientThirdLowestSubject` | sub-12 | that patient (range) |
+
 `summary/rq3_sf_vs_ah.csv`
 
 | Macro | Value | Meaning |
@@ -2453,6 +2904,34 @@ in the script's docstring.
 | `\rqFourMirrorN` | 22 | mirroring: patients |
 | `\rqFourMirrorNLeft` | 9 | mirroring: left-hemiplegic patients |
 | `\rqFourMirrorPHolmMin` | 0.71 | mirroring: smallest Holm p (range) |
+| `\rqFourMirrorPooledTslrKZeroMedianDiff` | 0.0 | per-patient median (points) |
+| `\rqFourMirrorPooledTslrKZeroBetter` | 8 | patients higher mirrored |
+| `\rqFourMirrorPooledTslrKZeroWorse` | 10 | patients lower mirrored |
+| `\rqFourMirrorPooledTslrKTwoMedianDiff` | −0.7 | per-patient median (points) |
+| `\rqFourMirrorPooledTslrKTwoBetter` | 9 | patients higher mirrored |
+| `\rqFourMirrorPooledTslrKTwoWorse` | 13 | patients lower mirrored |
+| `\rqFourMirrorPooledTslrKFiveMedianDiff` | −1.5 | per-patient median (points) |
+| `\rqFourMirrorPooledTslrKFiveBetter` | 8 | patients higher mirrored |
+| `\rqFourMirrorPooledTslrKFiveWorse` | 13 | patients lower mirrored |
+| `\rqFourMirrorPooledTslrKTenMedianDiff` | −0.3 | per-patient median (points) |
+| `\rqFourMirrorPooledTslrKTenBetter` | 10 | patients higher mirrored |
+| `\rqFourMirrorPooledTslrKTenWorse` | 12 | patients lower mirrored |
+| `\rqFourMirrorRctTslrKZeroMedianDiff` | −0.1 | per-patient median (points) |
+| `\rqFourMirrorRctTslrKZeroBetter` | 11 | patients higher mirrored |
+| `\rqFourMirrorRctTslrKZeroWorse` | 11 | patients lower mirrored |
+| `\rqFourMirrorRctTslrKTwoMedianDiff` | −2.3 | per-patient median (points) |
+| `\rqFourMirrorRctTslrKTwoBetter` | 6 | patients higher mirrored |
+| `\rqFourMirrorRctTslrKTwoWorse` | 15 | patients lower mirrored |
+| `\rqFourMirrorRctTslrKFiveMedianDiff` | −2.2 | per-patient median (points) |
+| `\rqFourMirrorRctTslrKFiveBetter` | 6 | patients higher mirrored |
+| `\rqFourMirrorRctTslrKFiveWorse` | 16 | patients lower mirrored |
+| `\rqFourMirrorRctTslrKTenMedianDiff` | −2.4 | per-patient median (points) |
+| `\rqFourMirrorRctTslrKTenBetter` | 6 | patients higher mirrored |
+| `\rqFourMirrorRctTslrKTenWorse` | 16 | patients lower mirrored |
+| `\rqFourMirrorPatientDiffLeftMin` | −14.8 | mirroring, left-hemiplegic, own data mirrored: one patient's difference, every method and k (points) (range) |
+| `\rqFourMirrorPatientDiffLeftMax` | 15.0 | largest (range) |
+| `\rqFourMirrorPatientDiffRightMin` | −18.2 | mirroring, right-hemiplegic, own data unchanged: one patient's difference, every method and k (points) (range) |
+| `\rqFourMirrorPatientDiffRightMax` | 14.1 | largest (range) |
 
 `summary/rq4_longitudinal_table.csv`
 
@@ -2554,6 +3033,51 @@ in the script's docstring.
 | `\rqFourLaterPostRecentredKTenN` | 22 | patients |
 | `\rqFourLaterPostRecentredKTenGroupBMean` | 63.6 | pre decoder on post, recentred, 10 new trials per class, group B: three-class balanced accuracy (%) |
 | `\rqFourLaterPostRecentredKTenGroupTMean` | 59.1 | pre decoder on post, recentred, 10 new trials per class, group T: three-class balanced accuracy (%) |
+
+`summary/rq4_longitudinal_reference.csv`
+
+| Macro | Value | Meaning |
+|---|---|---|
+| `\rqFourLaterFollowWithinPostMean` | 61.8 | ts_lr with the whole post pool, within post, on the follow patients (P08, three classes) (%) |
+| `\rqFourLaterFollowWithinPostN` | 17 | patients |
+| `\rqFourLaterFollowWithinPreMean` | 60.6 | ts_lr with the whole pre pool, within pre, on the follow patients (P08, three classes) (%) |
+| `\rqFourLaterFollowWithinPreN` | 17 | patients |
+| `\rqFourLaterPostWithinPostMean` | 61.5 | ts_lr with the whole post pool, within post, on the post patients (P08, three classes) (%) |
+| `\rqFourLaterPostWithinPostN` | 22 | patients |
+| `\rqFourLaterPostWithinPreMean` | 61.2 | ts_lr with the whole pre pool, within pre, on the post patients (P08, three classes) (%) |
+| `\rqFourLaterPostWithinPreN` | 22 | patients |
+| `\rqFourLaterFollowNewOnlyKFiveVsWithinPostDiff` | −13.3 | follow, new_only, k = 5, minus the within-post reference (points) |
+| `\rqFourLaterFollowNewOnlyKFiveVsWithinPreDiff` | −12.0 | follow, new_only, k = 5, minus the within-pre reference (points) |
+| `\rqFourLaterFollowNewOnlyKTenVsWithinPostDiff` | −9.7 | follow, new_only, k = 10, minus the within-post reference (points) |
+| `\rqFourLaterFollowNewOnlyKTenVsWithinPreDiff` | −8.5 | follow, new_only, k = 10, minus the within-pre reference (points) |
+| `\rqFourLaterFollowPooledKFiveVsWithinPostDiff` | −6.0 | follow, pooled, k = 5, minus the within-post reference (points) |
+| `\rqFourLaterFollowPooledKFiveVsWithinPreDiff` | −4.7 | follow, pooled, k = 5, minus the within-pre reference (points) |
+| `\rqFourLaterFollowPooledKTenVsWithinPostDiff` | −4.2 | follow, pooled, k = 10, minus the within-post reference (points) |
+| `\rqFourLaterFollowPooledKTenVsWithinPreDiff` | −2.9 | follow, pooled, k = 10, minus the within-pre reference (points) |
+| `\rqFourLaterFollowUnchangedVsWithinPostDiff` | −17.8 | follow, pre_unchanged, k = 0, minus the within-post reference (points) |
+| `\rqFourLaterFollowUnchangedVsWithinPreDiff` | −16.5 | follow, pre_unchanged, k = 0, minus the within-pre reference (points) |
+| `\rqFourLaterFollowRecentredKZeroVsWithinPostDiff` | −10.1 | follow, recentred, k = 0, minus the within-post reference (points) |
+| `\rqFourLaterFollowRecentredKZeroVsWithinPreDiff` | −8.8 | follow, recentred, k = 0, minus the within-pre reference (points) |
+| `\rqFourLaterFollowRecentredKFiveVsWithinPostDiff` | −5.6 | follow, recentred, k = 5, minus the within-post reference (points) |
+| `\rqFourLaterFollowRecentredKFiveVsWithinPreDiff` | −4.3 | follow, recentred, k = 5, minus the within-pre reference (points) |
+| `\rqFourLaterFollowRecentredKTenVsWithinPostDiff` | −3.3 | follow, recentred, k = 10, minus the within-post reference (points) |
+| `\rqFourLaterFollowRecentredKTenVsWithinPreDiff` | −2.1 | follow, recentred, k = 10, minus the within-pre reference (points) |
+| `\rqFourLaterPostNewOnlyKFiveVsWithinPostDiff` | −8.1 | post, new_only, k = 5, minus the within-post reference (points) |
+| `\rqFourLaterPostNewOnlyKFiveVsWithinPreDiff` | −7.8 | post, new_only, k = 5, minus the within-pre reference (points) |
+| `\rqFourLaterPostNewOnlyKTenVsWithinPostDiff` | −4.5 | post, new_only, k = 10, minus the within-post reference (points) |
+| `\rqFourLaterPostNewOnlyKTenVsWithinPreDiff` | −4.2 | post, new_only, k = 10, minus the within-pre reference (points) |
+| `\rqFourLaterPostPooledKFiveVsWithinPostDiff` | −1.8 | post, pooled, k = 5, minus the within-post reference (points) |
+| `\rqFourLaterPostPooledKFiveVsWithinPreDiff` | −1.5 | post, pooled, k = 5, minus the within-pre reference (points) |
+| `\rqFourLaterPostPooledKTenVsWithinPostDiff` | 0.2 | post, pooled, k = 10, minus the within-post reference (points) |
+| `\rqFourLaterPostPooledKTenVsWithinPreDiff` | 0.5 | post, pooled, k = 10, minus the within-pre reference (points) |
+| `\rqFourLaterPostUnchangedVsWithinPostDiff` | −16.7 | post, pre_unchanged, k = 0, minus the within-post reference (points) |
+| `\rqFourLaterPostUnchangedVsWithinPreDiff` | −16.4 | post, pre_unchanged, k = 0, minus the within-pre reference (points) |
+| `\rqFourLaterPostRecentredKZeroVsWithinPostDiff` | −11.2 | post, recentred, k = 0, minus the within-post reference (points) |
+| `\rqFourLaterPostRecentredKZeroVsWithinPreDiff` | −10.9 | post, recentred, k = 0, minus the within-pre reference (points) |
+| `\rqFourLaterPostRecentredKFiveVsWithinPostDiff` | −1.8 | post, recentred, k = 5, minus the within-post reference (points) |
+| `\rqFourLaterPostRecentredKFiveVsWithinPreDiff` | −1.6 | post, recentred, k = 5, minus the within-pre reference (points) |
+| `\rqFourLaterPostRecentredKTenVsWithinPostDiff` | 0.5 | post, recentred, k = 10, minus the within-post reference (points) |
+| `\rqFourLaterPostRecentredKTenVsWithinPreDiff` | 0.8 | post, recentred, k = 10, minus the within-pre reference (points) |
 
 `summary/rq4_pseudo_online_table.csv`
 
@@ -2664,6 +3188,81 @@ in the script's docstring.
 | `\rqFourReplayUnflaggedFingerLatencyNMin` | 10 | pseudo-online, without the flagged patients: patients with an SF detection: smallest (range) |
 | `\rqFourReplayUnflaggedFingerLatencyNMax` | 18 | largest (range) |
 
+`summary/rq4_pseudo_online_details.csv`
+
+| Macro | Value | Meaning |
+|---|---|---|
+| `\rqFourReplayCspLdaFingerHalf` | 1 | pseudo-online, csp_lda: patients with half of their SF periods detected |
+| `\rqFourReplayCspLdaFingerNone` | 5 | patients with none |
+| `\rqFourReplayCspLdaFingerDetectMax` | 75.0 | SF periods detected, best patient (%) |
+| `\rqFourReplayCspLdaHandAsFingerRatio` | 0.67 | AH periods flexing SF over SF periods detected (means) |
+| `\rqFourReplayCspLdaFalse` | 132 | false activations |
+| `\rqFourReplayCspLdaFalseEarly` | 70 | of them, in the first 2 s of a rest period |
+| `\rqFourReplayCspLdaFalseEarlyShare` | 53.0 | share (%) |
+| `\rqFourReplayCspLdaFalsePerMinStoppedEarlyDiff` | 0.03 | periods stopped at the next one and at a cut: change of false per minute |
+| `\rqFourReplayCspLdaDetectMovedStoppedEarly` | 0 | patients whose detection rates change then |
+| `\rqFourSwitchCspLdaHalf` | 14 | one switch, csp_lda: patients with half of their imagery periods |
+| `\rqFourReplayTsLrFingerHalf` | 1 | pseudo-online, ts_lr: patients with half of their SF periods detected |
+| `\rqFourReplayTsLrFingerNone` | 10 | patients with none |
+| `\rqFourReplayTsLrFingerDetectMax` | 70.0 | SF periods detected, best patient (%) |
+| `\rqFourReplayTsLrHandAsFingerRatio` | 0.51 | AH periods flexing SF over SF periods detected (means) |
+| `\rqFourReplayTsLrFalse` | 37 | false activations |
+| `\rqFourReplayTsLrFalseEarly` | 27 | of them, in the first 2 s of a rest period |
+| `\rqFourReplayTsLrFalseEarlyShare` | 73.0 | share (%) |
+| `\rqFourReplayTsLrFalsePerMinStoppedEarlyDiff` | 0.01 | periods stopped at the next one and at a cut: change of false per minute |
+| `\rqFourReplayTsLrDetectMovedStoppedEarly` | 0 | patients whose detection rates change then |
+| `\rqFourSwitchTsLrHalf` | 15 | one switch, ts_lr: patients with half of their imagery periods |
+| `\rqFourReplayRctTslrFingerHalf` | 2 | pseudo-online, rct_tslr: patients with half of their SF periods detected |
+| `\rqFourReplayRctTslrFingerNone` | 2 | patients with none |
+| `\rqFourReplayRctTslrFingerDetectMax` | 60.0 | SF periods detected, best patient (%) |
+| `\rqFourReplayRctTslrHandAsFingerRatio` | 0.74 | AH periods flexing SF over SF periods detected (means) |
+| `\rqFourReplayRctTslrFalse` | 108 | false activations |
+| `\rqFourReplayRctTslrFalseEarly` | 56 | of them, in the first 2 s of a rest period |
+| `\rqFourReplayRctTslrFalseEarlyShare` | 51.9 | share (%) |
+| `\rqFourReplayRctTslrFalsePerMinStoppedEarlyDiff` | 0.03 | periods stopped at the next one and at a cut: change of false per minute |
+| `\rqFourReplayRctTslrDetectMovedStoppedEarly` | 0 | patients whose detection rates change then |
+| `\rqFourSwitchRctTslrHalf` | 17 | one switch, rct_tslr: patients with half of their imagery periods |
+| `\rqFourReplayEegnetScratchFingerHalf` | 2 | pseudo-online, eegnet_scratch: patients with half of their SF periods detected |
+| `\rqFourReplayEegnetScratchFingerNone` | 6 | patients with none |
+| `\rqFourReplayEegnetScratchFingerDetectMax` | 80.0 | SF periods detected, best patient (%) |
+| `\rqFourReplayEegnetScratchHandAsFingerRatio` | 0.65 | AH periods flexing SF over SF periods detected (means) |
+| `\rqFourReplayEegnetScratchFalse` | 164 | false activations |
+| `\rqFourReplayEegnetScratchFalseEarly` | 84 | of them, in the first 2 s of a rest period |
+| `\rqFourReplayEegnetScratchFalseEarlyShare` | 51.2 | share (%) |
+| `\rqFourReplayEegnetScratchFalsePerMinStoppedEarlyDiff` | 0.03 | periods stopped at the next one and at a cut: change of false per minute |
+| `\rqFourReplayEegnetScratchDetectMovedStoppedEarly` | 0 | patients whose detection rates change then |
+| `\rqFourSwitchEegnetScratchHalf` | 19 | one switch, eegnet_scratch: patients with half of their imagery periods |
+| `\rqFourReplayFingerHalfMin` | 1 | pseudo-online, four methods: patients with half of their SF periods: smallest (range) |
+| `\rqFourReplayFingerHalfMax` | 2 | largest (range) |
+| `\rqFourReplayFalseEarlyShareMin` | 51.2 | pseudo-online, four methods: false activations in the first 2 s of rest (%): smallest (range) |
+| `\rqFourReplayFalseEarlyShareMax` | 73.0 | largest (range) |
+| `\rqFourReplayFalsePerMinStoppedEarlyDiffMin` | 0.01 | pseudo-online, four methods: change of false per minute, periods stopped early: smallest (range) |
+| `\rqFourReplayFalsePerMinStoppedEarlyDiffMax` | 0.03 | largest (range) |
+| `\rqFourSwitchHalfMin` | 14 | one switch, four methods: patients with half of their imagery periods: smallest (range) |
+| `\rqFourSwitchHalfMax` | 19 | largest (range) |
+
+`summary/rq4_pseudo_online_replay.json`
+
+| Macro | Value | Meaning |
+|---|---|---|
+| `\rqFourReplayRuns` | 44 | runs replayed |
+| `\rqFourReplayWindowsKeptMedian` | 96.3 | windows kept per run, median (%) |
+| `\rqFourReplayWindowsKeptMin` | 79.2 | lowest run (%) |
+| `\rqFourReplayWindowsKeptMax` | 100.0 | highest run (%) |
+| `\rqFourReplayPeriods` | 1734 | scored periods |
+| `\rqFourReplayPeriodsOverlapping` | 38 | periods overlapping the next |
+| `\rqFourReplayPeriodsCut` | 76 | periods holding a boundary cut |
+| `\rqFourReplaySpacingMedian` | 16.0 | one rest onset to the next, median (s) |
+| `\rqFourReplaySpacingPercentileFive` | 14.9 | one rest onset to the next, 5th percentile (s) |
+| `\rqFourReplaySpacingPercentileNinetyFive` | 18.6 | one rest onset to the next, 95th percentile (s) |
+| `\rqFourReplaySpacingMin` | 8.8 | one rest onset to the next, shortest (s) |
+| `\rqFourReplaySpacingMax` | 31.9 | one rest onset to the next, longest (s) |
+| `\rqFourReplaySilentP` | 0.665 | a gate that never fires: P correct, mean over patients |
+| `\rqFourReplaySilentItr` | 0.35 | a gate that never fires: bits per minute, mean over patients |
+| `\rqFourReplayEarlySeconds` | 2 | an early false activation: within this many seconds of rest |
+| `\rqFourReplayEarlyEvenShare` | 28.6 | the share of a rest period those seconds are (%) |
+| `\rqFourReplayFingerHalfAnyMethod` | 3 | patients with half of their SF periods detected by any method |
+
 `summary/rq4_pseudo_online_repro.csv`
 
 | Macro | Value | Meaning |
@@ -2744,6 +3343,100 @@ in the script's docstring.
 | `\rqFourCueSfRestParietoOccipitalCiLo` | 67.2 | CI lower |
 | `\rqFourCueSfRestParietoOccipitalCiHi` | 79.2 | CI upper |
 | `\rqFourCueN` | 22 | visual-cue check: patients |
+
+`summary/rq4_visual_cue_paired.csv`
+
+| Macro | Value | Meaning |
+|---|---|---|
+| `\rqFourCueSfRestParietoOccipitalVsCentralDiff` | −10.8 | visual-cue check, SF vs REST, parieto_occipital_5 minus central_14: difference (points) |
+| `\rqFourCueSfRestParietoOccipitalVsCentralDiffCiLo` | −17.2 | CI lower |
+| `\rqFourCueSfRestParietoOccipitalVsCentralDiffCiHi` | −4.7 | CI upper |
+| `\rqFourCueSfRestParietoOccipitalVsCentralP` | 0.0080 | two-sided Wilcoxon p |
+| `\rqFourCueSfRestParietoOccipitalVsCentralN` | 22 | patients |
+| `\rqFourCueSfRestParietoOccipitalVsCentralBetter` | 6 | patients better |
+| `\rqFourCueSfRestParietoOccipitalVsCentralWorse` | 14 | patients worse |
+| `\rqFourCueSfRestParietoOccipitalVsCentralTied` | 2 | patients tied |
+| `\rqFourCueSfRestParietoOccipitalVsCentralDiffNoDev` | −10.7 | difference without sub-01, sub-03 |
+| `\rqFourCueSfRestParietoOccipitalVsCentralDiffNoDevCiLo` | −17.5 | CI lower |
+| `\rqFourCueSfRestParietoOccipitalVsCentralDiffNoDevCiHi` | −4.3 | CI upper |
+| `\rqFourCueSfRestCentralMinusParietoOccipitalDiff` | 10.8 | visual-cue check, SF vs REST, central_14 minus parieto_occipital_5 (points) |
+| `\rqFourCueSfRestCentralMinusParietoOccipitalDiffCiLo` | 4.7 | CI lower |
+| `\rqFourCueSfRestCentralMinusParietoOccipitalDiffCiHi` | 17.2 | CI upper |
+| `\rqFourCueSfRestCentralVsAllChannelsDiff` | 1.8 | visual-cue check, SF vs REST, central_14 minus all_40: difference (points) |
+| `\rqFourCueSfRestCentralVsAllChannelsDiffCiLo` | −1.0 | CI lower |
+| `\rqFourCueSfRestCentralVsAllChannelsDiffCiHi` | 4.7 | CI upper |
+| `\rqFourCueSfRestCentralVsAllChannelsP` | 0.30 | two-sided Wilcoxon p |
+| `\rqFourCueSfRestCentralVsAllChannelsN` | 22 | patients |
+| `\rqFourCueSfRestCentralVsAllChannelsBetter` | 11 | patients better |
+| `\rqFourCueSfRestCentralVsAllChannelsWorse` | 9 | patients worse |
+| `\rqFourCueSfRestCentralVsAllChannelsTied` | 2 | patients tied |
+| `\rqFourCueSfRestCentralVsAllChannelsDiffNoDev` | 1.4 | difference without sub-01, sub-03 |
+| `\rqFourCueSfRestCentralVsAllChannelsDiffNoDevCiLo` | −1.3 | CI lower |
+| `\rqFourCueSfRestCentralVsAllChannelsDiffNoDevCiHi` | 4.4 | CI upper |
+| `\rqFourCueSfRestParietoOccipitalVsAllChannelsDiff` | −9.0 | visual-cue check, SF vs REST, parieto_occipital_5 minus all_40: difference (points) |
+| `\rqFourCueSfRestParietoOccipitalVsAllChannelsDiffCiLo` | −15.6 | CI lower |
+| `\rqFourCueSfRestParietoOccipitalVsAllChannelsDiffCiHi` | −2.6 | CI upper |
+| `\rqFourCueSfRestParietoOccipitalVsAllChannelsP` | 0.020 | two-sided Wilcoxon p |
+| `\rqFourCueSfRestParietoOccipitalVsAllChannelsN` | 22 | patients |
+| `\rqFourCueSfRestParietoOccipitalVsAllChannelsBetter` | 5 | patients better |
+| `\rqFourCueSfRestParietoOccipitalVsAllChannelsWorse` | 17 | patients worse |
+| `\rqFourCueSfRestParietoOccipitalVsAllChannelsTied` | 0 | patients tied |
+| `\rqFourCueSfRestParietoOccipitalVsAllChannelsDiffNoDev` | −9.3 | difference without sub-01, sub-03 |
+| `\rqFourCueSfRestParietoOccipitalVsAllChannelsDiffNoDevCiLo` | −16.0 | CI lower |
+| `\rqFourCueSfRestParietoOccipitalVsAllChannelsDiffNoDevCiHi` | −2.6 | CI upper |
+| `\rqFourCueAhSfParietoOccipitalVsCentralDiff` | 5.1 | visual-cue check, AH vs SF, parieto_occipital_5 minus central_14: difference (points) |
+| `\rqFourCueAhSfParietoOccipitalVsCentralDiffCiLo` | −0.2 | CI lower |
+| `\rqFourCueAhSfParietoOccipitalVsCentralDiffCiHi` | 10.4 | CI upper |
+| `\rqFourCueAhSfParietoOccipitalVsCentralP` | 0.083 | two-sided Wilcoxon p |
+| `\rqFourCueAhSfParietoOccipitalVsCentralN` | 22 | patients |
+| `\rqFourCueAhSfParietoOccipitalVsCentralBetter` | 12 | patients better |
+| `\rqFourCueAhSfParietoOccipitalVsCentralWorse` | 7 | patients worse |
+| `\rqFourCueAhSfParietoOccipitalVsCentralTied` | 3 | patients tied |
+| `\rqFourCueAhSfParietoOccipitalVsCentralDiffNoDev` | 6.0 | difference without sub-01, sub-03 |
+| `\rqFourCueAhSfParietoOccipitalVsCentralDiffNoDevCiLo` | 0.4 | CI lower |
+| `\rqFourCueAhSfParietoOccipitalVsCentralDiffNoDevCiHi` | 11.6 | CI upper |
+| `\rqFourCueAhSfCentralVsAllChannelsDiff` | −3.1 | visual-cue check, AH vs SF, central_14 minus all_40: difference (points) |
+| `\rqFourCueAhSfCentralVsAllChannelsDiffCiLo` | −6.0 | CI lower |
+| `\rqFourCueAhSfCentralVsAllChannelsDiffCiHi` | 0.2 | CI upper |
+| `\rqFourCueAhSfCentralVsAllChannelsP` | 0.067 | two-sided Wilcoxon p |
+| `\rqFourCueAhSfCentralVsAllChannelsN` | 22 | patients |
+| `\rqFourCueAhSfCentralVsAllChannelsBetter` | 4 | patients better |
+| `\rqFourCueAhSfCentralVsAllChannelsWorse` | 15 | patients worse |
+| `\rqFourCueAhSfCentralVsAllChannelsTied` | 3 | patients tied |
+| `\rqFourCueAhSfCentralVsAllChannelsDiffNoDev` | −3.5 | difference without sub-01, sub-03 |
+| `\rqFourCueAhSfCentralVsAllChannelsDiffNoDevCiLo` | −6.7 | CI lower |
+| `\rqFourCueAhSfCentralVsAllChannelsDiffNoDevCiHi` | −0.1 | CI upper |
+| `\rqFourCueAhSfParietoOccipitalVsAllChannelsDiff` | 2.0 | visual-cue check, AH vs SF, parieto_occipital_5 minus all_40: difference (points) |
+| `\rqFourCueAhSfParietoOccipitalVsAllChannelsDiffCiLo` | −3.1 | CI lower |
+| `\rqFourCueAhSfParietoOccipitalVsAllChannelsDiffCiHi` | 7.6 | CI upper |
+| `\rqFourCueAhSfParietoOccipitalVsAllChannelsP` | 0.65 | two-sided Wilcoxon p |
+| `\rqFourCueAhSfParietoOccipitalVsAllChannelsN` | 22 | patients |
+| `\rqFourCueAhSfParietoOccipitalVsAllChannelsBetter` | 9 | patients better |
+| `\rqFourCueAhSfParietoOccipitalVsAllChannelsWorse` | 8 | patients worse |
+| `\rqFourCueAhSfParietoOccipitalVsAllChannelsTied` | 5 | patients tied |
+| `\rqFourCueAhSfParietoOccipitalVsAllChannelsDiffNoDev` | 2.5 | difference without sub-01, sub-03 |
+| `\rqFourCueAhSfParietoOccipitalVsAllChannelsDiffNoDevCiLo` | −3.1 | CI lower |
+| `\rqFourCueAhSfParietoOccipitalVsAllChannelsDiffNoDevCiHi` | 8.2 | CI upper |
+
+`summary/rq4_pattern_share_summary.csv`
+
+| Macro | Value | Meaning |
+|---|---|---|
+| `\rqFourPatternCspAhSfFrontalShare` | 11.3 | pattern weight, csp_T1_ah_vs_sf, mean over 22 maps: four frontal channels (%) |
+| `\rqFourPatternCspAhSfParietoOccipitalShare` | 14.0 | five parieto-occipital channels (%) |
+| `\rqFourPatternCspAhSfN` | 22 | maps averaged |
+| `\rqFourPatternCspSfRestFrontalShare` | 10.1 | pattern weight, csp_T3_sf_vs_rest, mean over 22 maps: four frontal channels (%) |
+| `\rqFourPatternCspSfRestParietoOccipitalShare` | 14.8 | five parieto-occipital channels (%) |
+| `\rqFourPatternCspSfRestN` | 22 | maps averaged |
+| `\rqFourPatternEegnetFrontalShare` | 7.6 | pattern weight, eegnet_pretrained, mean over 24 maps: four frontal channels (%) |
+| `\rqFourPatternEegnetParietoOccipitalShare` | 14.3 | five parieto-occipital channels (%) |
+| `\rqFourPatternEegnetN` | 24 | maps averaged |
+| `\rqFourPatternCspFrontalShareMin` | 10.1 | pattern weight on the frontal channels, both CSP tasks (%): smallest (range) |
+| `\rqFourPatternCspFrontalShareMax` | 11.3 | largest (range) |
+| `\rqFourPatternCspParietoOccipitalShareMin` | 14.0 | pattern weight on the parieto-occipital channels, both CSP tasks (%): smallest (range) |
+| `\rqFourPatternCspParietoOccipitalShareMax` | 14.8 | largest (range) |
+| `\rqFourPatternFrontalChannelShare` | 10.0 | the frontal channels' share of the 40 (%) |
+| `\rqFourPatternParietoOccipitalChannelShare` | 12.5 | the parieto-occipital channels' share of the 40 (%) |
 
 ## RQ5: depression datasets (`\rqFive`)
 
@@ -2855,6 +3548,13 @@ in the script's docstring.
 | `\rqFiveShuffledSubjectCvMax` | 59.7 | largest (range) |
 | `\rqFiveShuffles` | 20 | diagnoses shuffled: permutations (count) |
 
+`summary/rq5_null_summary.csv`
+
+| Macro | Value | Meaning |
+|---|---|---|
+| `\rqFiveShuffledSegmentCvMean` | 90.9 | Mumtaz ts_lr, diagnoses shuffled, segment_cv: mean over the permutations (%) |
+| `\rqFiveShuffledSubjectCvMean` | 48.7 | Mumtaz ts_lr, diagnoses shuffled, subject_cv: mean over the permutations (%) |
+
 `summary/rq5_years_mumtaz.csv`
 
 | Macro | Value | Meaning |
@@ -2879,6 +3579,26 @@ in the script's docstring.
 | `\rqFiveModmaPeople` | 52 | modma: people after the audit (count) |
 | `\rqFiveModmaHealthy` | 29 | modma: H people after the audit (count) |
 | `\rqFiveModmaDepressed` | 23 | modma: MDD people after the audit (count) |
+
+`summary/rq5_signals_mumtaz.csv`
+
+| Macro | Value | Meaning |
+|---|---|---|
+| `\rqFiveMumtazTwentyElevenHealthySignalsTwentyOne` | 1 | Mumtaz 2011, H: kept files whose EDF header has 21 signals |
+| `\rqFiveMumtazTwentyElevenHealthySignalsTwentyThree` | 8 | Mumtaz 2011, H: kept files whose EDF header has 23 signals |
+| `\rqFiveMumtazTwentyThirteenHealthySignalsTwentyOne` | 4 | Mumtaz 2013, H: kept files whose EDF header has 21 signals |
+| `\rqFiveMumtazTwentyThirteenHealthySignalsTwentyThree` | 14 | Mumtaz 2013, H: kept files whose EDF header has 23 signals |
+| `\rqFiveMumtazTwentyThirteenDepressedSignalsTwentyOne` | 28 | Mumtaz 2013, MDD: kept files whose EDF header has 21 signals |
+| `\rqFiveMumtazTwentyThirteenDepressedSignalsTwentyThree` | 1 | Mumtaz 2013, MDD: kept files whose EDF header has 23 signals |
+
+`summary/rq5_gad7_modma.csv`
+
+| Macro | Value | Meaning |
+|---|---|---|
+| `\rqFiveModmaAnxietyHighHealthy` | 0 | MODMA, GAD-7 of 10 or more, H: participants |
+| `\rqFiveModmaAnxietyHighDepressed` | 19 | MODMA, GAD-7 of 10 or more, MDD: participants |
+| `\rqFiveModmaAnxietyLowHealthy` | 29 | MODMA, GAD-7 below 10, H: participants |
+| `\rqFiveModmaAnxietyLowDepressed` | 4 | MODMA, GAD-7 below 10, MDD: participants |
 
 ## Follow-up 1: more data per decision for AH vs SF (`\exOne`)
 
@@ -3479,6 +4199,13 @@ in the script's docstring.
 | `\exTwoAlignShiftSamplesMax` | 952 | largest (range) |
 | `\exTwoAlignRenumberedRuns` | 3 | sub-20's published runs that are other raw runs (count) |
 
+`summary/ex2_slow_waves_alignment_shifts.csv`
+
+| Macro | Value | Meaning |
+|---|---|---|
+| `\exTwoAlignShiftSecondsMin` | 0.7 | raw alignment: seconds from cue to window, shifted windows: smallest (range) |
+| `\exTwoAlignShiftSecondsMax` | 3.8 | largest (range) |
+
 ## Follow-up 3: grasp pre-training and the healthy benchmark (`\exThree`)
 
 `summary/ex3_grasp_pretraining_paired.csv`
@@ -3709,6 +4436,16 @@ in the script's docstring.
 | `\exThreeGraspFiles` | 30 | grasp files converted |
 | `\exThreeEpochSecondsCpu` | 14.6 | one pre-training epoch on the Mac's cpu (s) |
 | `\exThreeEpochSecondsMps` | 8.5 | one pre-training epoch on the Mac's mps (s) |
+| `\exThreeArmPVsArmBSubOneDiff` | 0.0 | arm P minus arm B, sub-01, mean over seeds (points) |
+| `\exThreeArmPVsArmBSubTwoDiff` | 5.0 | arm P minus arm B, sub-02, mean over seeds (points) |
+| `\exThreeArmPVsArmBSubThreeDiff` | −2.5 | arm P minus arm B, sub-03, mean over seeds (points) |
+| `\exThreeArmGpVsArmBPatientSd` | 8.2 | arm GP minus arm B, per patient (points): SD |
+| `\exThreeArmGpVsArmBPatientMin` | −15.0 | lowest patient |
+| `\exThreeArmGpVsArmBPatientMax` | 10.8 | highest patient |
+| `\exThreeArmGpVsArmBPatientMovedTen` | 6 | patients moved 10 points or more |
+| `\exThreeArmGPretrainHours` | 0.3 | arm G: pre-training hours on the Mac's GPU, all its models |
+| `\exThreeArmGpPretrainHours` | 10.9 | arm GP: pre-training hours on the Mac's GPU, all its models |
+| `\exThreeArmPPretrainHours` | 1.1 | arm P: pre-training hours on the Mac's GPU, all its models |
 
 ## Follow-up 4: the sixth finger as its own command (`\exFour`)
 
@@ -4670,6 +5407,18 @@ in the script's docstring.
 | `\demoChoiceRctMdmMean` | 53.2 | demo method choice, S1 three classes, rct_mdm: balanced accuracy (%) |
 | `\demoChoiceRctMdmCiLo` | 49.6 | CI lower |
 | `\demoChoiceRctMdmCiHi` | 56.6 | CI upper |
+
+`summary/demo_page.json`
+
+| Macro | Value | Meaning |
+|---|---|---|
+| `\demoParameters` | 3195 | numbers in the ONNX model |
+| `\demoMoveRestAcc` | 87.5 | the demo's reading, move or rest, every held-out window: balanced accuracy (%) |
+| `\demoMoveRestRight` | 63 | windows read right |
+| `\demoMoveRestN` | 72 | windows |
+| `\demoHandFingerAcc` | 69.4 | the demo's reading, hand or sixth finger, the imagery windows: balanced accuracy (%) |
+| `\demoHandFingerRight` | 25 | windows read right |
+| `\demoHandFingerN` | 36 | windows |
 
 ## Fit times (`\runtime`)
 
