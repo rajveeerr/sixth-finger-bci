@@ -18,7 +18,10 @@ Pre-registration 3.4-3.5 and 5.1-5.3, protocol 6-7, deviation log 2026-10-11/12:
   SF recall, the S2 SF-vs-AH share; per method the mean ALC, who reaches 60 %/70 % and the
   change from k = 0 to k = 1 (calib_method_summary.csv), the pair's difference with the whole
   pool (calib_pair_whole_pool.csv) and each patient's ALC in every ALC test
-  (calib_alc_subject_values.csv).
+  (calib_alc_subject_values.csv);
+- the calibration minutes at the recorded trial length next to the nominal 14 s ones
+  (calib_minutes.csv, from results/audit/inventory.csv). `--minutes-only` writes this file
+  alone, from the patients in calib_subject_values.csv, without reading any scores.
 """
 
 from __future__ import annotations
@@ -265,6 +268,35 @@ def minutes(scenario: str, k: int, transfer: bool) -> float:
 
 
 TRANSFER = {"pooled_tslr", "rct_mdm", "rct_tslr", "eegnet_ea_ft"}
+
+
+def recorded_minutes(
+    inventory: pd.DataFrame, subjects: pd.DataFrame, pool_runs: list[str], k_grid: list[int]
+) -> pd.DataFrame:
+    """The minutes of `minutes()` at the trial and rest lengths the pool runs really have.
+
+    The nominal minutes use the dataset article's 14 s trial and 7 s of rest; a run's recorded
+    length over its trials and the median time from a rest marker to the cue are longer.
+    subjects: the (session, subject) pairs of the study.
+    """
+    runs = inventory.merge(subjects, on=["session", "subject"])
+    runs = runs[runs.run.astype(int).isin([int(r) for r in pool_runs])]
+    rows = []
+    for session, part in runs.groupby("session"):
+        trial_s = float((part.duration_s / (part.n_ah + part.n_sf)).median())
+        rest_s = float(part.cue_gap_median_s.median())
+        rest_min = 40 * rest_s / 60
+        for scenario in (S1, S2):
+            for k in k_grid:
+                trials = 2 * k if scenario == S1 else k
+                rows.append(dict(session=session, scenario=scenario, k=k,
+                                 n_runs=len(part), n_subjects=part.subject.nunique(),
+                                 trial_s=TRIAL_S, trial_s_recorded=trial_s,
+                                 rest_s_recorded=rest_s, minutes=minutes(scenario, k, False),
+                                 minutes_recorded=trials * trial_s / 60,
+                                 rest_set_minutes=REST_SET_MIN,
+                                 rest_set_minutes_recorded=rest_min))  # fmt: skip
+    return pd.DataFrame(rows)
 
 
 def curves(values: pd.DataFrame, dev: list[str]) -> pd.DataFrame:
@@ -605,12 +637,22 @@ def figure_heatmap(values: pd.DataFrame, figures: Path) -> None:
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--no-figures", action="store_true")
+    ap.add_argument("--minutes-only", action="store_true", help="write calib_minutes.csv only")
     args = ap.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
     logging.getLogger("fontTools").setLevel(logging.WARNING)
     use_style()
     paths, data_cfg, proto = get_paths(), load_data_config(), load_protocol_config()
     summary, figures = paths.results / "summary", paths.root / "docs" / "figures"
+    inventory = pd.read_csv(paths.audit / "inventory.csv")
+    calib = proto.calibration
+    if args.minutes_only:
+        studied = pd.read_csv(summary / "calib_subject_values.csv")
+        studied = studied[["session", "subject"]].drop_duplicates()
+        table = recorded_minutes(inventory, studied, calib.pool_runs, calib.k_grid)
+        table.to_csv(summary / "calib_minutes.csv", index=False, float_format="%.6g")
+        log.info("calibration minutes in %s", summary / "calib_minutes.csv")
+        return
     scores = load(paths.runs)
     values = subject_values(scores)
     sf = subject_curve(scores, "sf_recall")
@@ -641,6 +683,10 @@ def main() -> None:
     )
     alc_subject_values(values).to_csv(
         summary / "calib_alc_subject_values.csv", index=False, float_format="%.6g"
+    )
+    studied = values[["session", "subject"]].drop_duplicates()
+    recorded_minutes(inventory, studied, calib.pool_runs, calib.k_grid).to_csv(
+        summary / "calib_minutes.csv", index=False, float_format="%.6g"
     )
     fr = friedman_table(values, list(proto.stats.friedman_k))
     fr.to_csv(summary / "calib_friedman.csv", index=False, float_format="%.6g")

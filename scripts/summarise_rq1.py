@@ -3,10 +3,12 @@
 uv run python scripts/summarise_rq1.py
 
 Reads results/runs/rq1_benchmark (and rq1_context when present); writes
-results/summary/rq1_{subject_values,table,stats,replica_check,runtime}.csv and
+results/summary/rq1_{subject_values,table,stats,replica_check,runtime,runwise_gap}.csv and
 docs/figures/rq1_{leakage_paired,methods}.{pdf,png}. Each row of rq1_stats.csv also gives the
 smallest and largest per-patient difference and how many patients it was positive or negative
-for.
+for; each row of rq1_table.csv the lowest and highest patient and how many patients scored
+below the task's chance level (one over the number of classes). rq1_runwise_gap.csv sets the
+H1 protocol against the two run-wise splits as well, without a test.
 """
 
 from __future__ import annotations
@@ -88,7 +90,9 @@ def populations(values: pd.DataFrame, session: str, data_cfg, dev: list[str]):
         yield "all", values
 
 
-def group_table(sv: pd.DataFrame, data_cfg, dev: list[str]) -> pd.DataFrame:
+def group_table(
+    sv: pd.DataFrame, data_cfg, dev: list[str], n_classes: dict[str, int]
+) -> pd.DataFrame:
     rows = []
     for (task, method, feature, protocol, session), vals in sv.groupby(
         ["task", "method", "feature", "protocol", "session"]
@@ -106,6 +110,9 @@ def group_table(sv: pd.DataFrame, data_cfg, dev: list[str]) -> pd.DataFrame:
                     **describe(v.bal_acc),
                     mean_acc=float(v.acc.mean()),
                     n_above_chance=int(above.sum()) if above is not None else np.nan,
+                    min_bal_acc=float(v.bal_acc.min()),
+                    max_bal_acc=float(v.bal_acc.max()),
+                    n_below_chance_level=int((v.bal_acc < 1 / n_classes[task]).sum()),
                 )
             )
     table = pd.DataFrame(rows)
@@ -188,6 +195,22 @@ def stats_table(sv: pd.DataFrame, data_cfg, dev: list[str]) -> pd.DataFrame:
         rows += family
     out = pd.DataFrame(rows)
     return pd.concat([out, pd.DataFrame(spreads, index=out.index)], axis=1)
+
+
+def runwise_gap(sv: pd.DataFrame) -> pd.DataFrame:
+    """H1's published-protocol score minus each run-wise split, per patient, described only."""
+    t1 = sv[(sv.task == H1_TASK) & (sv.method == H1_METHOD) & (sv.feature == H1_FEATURE)]
+    rows = []
+    for session in SESSIONS:
+        wide = _wide(t1[t1.session == session])
+        for split in ("cv_leakfree", "loro", "chrono"):
+            both = wide.reindex(columns=["paper_replica", split]).dropna()
+            d = 100 * (both.paper_replica - both[split])
+            rows.append(dict(task=H1_TASK, method=H1_METHOD, feature=H1_FEATURE,
+                             session=session, population="all",
+                             comparison=f"paper_replica - {split}", **describe(d),
+                             **spread(wide, "paper_replica", split)))  # fmt: skip
+    return pd.DataFrame(rows)
 
 
 def replica_check(sv: pd.DataFrame, data_cfg) -> pd.DataFrame:
@@ -307,7 +330,7 @@ def main() -> None:
     out = paths.summary
     out.mkdir(parents=True, exist_ok=True)
     sv.sort_values(UNIT).to_csv(out / "rq1_subject_values.csv", index=False, float_format="%.6g")
-    table = group_table(sv, data_cfg, proto.dev_subjects)
+    table = group_table(sv, data_cfg, proto.dev_subjects, n_classes)
     table.to_csv(out / "rq1_table.csv", index=False, float_format="%.6g")
     stats = stats_table(sv, data_cfg, proto.dev_subjects)
     stats.to_csv(out / "rq1_stats.csv", index=False, float_format="%.6g")
@@ -315,6 +338,7 @@ def main() -> None:
         out / "rq1_replica_check.csv", index=False, float_format="%.6g"
     )
     runtime_table(scores).to_csv(out / "rq1_runtime.csv", index=False, float_format="%.6g")
+    runwise_gap(sv).to_csv(out / "rq1_runwise_gap.csv", index=False, float_format="%.6g")
     h1 = stats[stats.test_id == "H1"].iloc[0]
     log.info(
         "H1: n=%d, inflation %.2f points [%.2f, %.2f], W=%s, p=%.3g -> %s",

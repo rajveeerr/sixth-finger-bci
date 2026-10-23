@@ -68,9 +68,24 @@ def test_h1_rows_use_the_preregistered_populations(rq1, values):
 
 
 def test_group_table_counts_subjects_per_population(rq1, values):
-    table = rq1.group_table(values, load_data_config(), ["sub-01", "sub-03"])
+    table = rq1.group_table(values, load_data_config(), ["sub-01", "sub-03"], {"T1_ah_vs_sf": 2})
     cv = table[(table.method == "csp_lda") & (table.protocol == "cv_leakfree")]
     n = cv.set_index(["session", "population"]).n
     assert n[("pre", "all")] == 22 and n[("pre", "without_dev")] == 20
     assert n[("post", "all")] == 24 and n[("post", "linked_merged")] == 23
     assert n[("follow", "all")] == 18
+    pre = values[(values.method == "csp_lda") & (values.protocol == "cv_leakfree")]
+    pre = pre[pre.session == "pre"]
+    row = cv.set_index(["session", "population"]).loc[("pre", "all")]
+    assert row.n_below_chance_level == (pre.bal_acc < 0.5).sum()
+    assert row.min_bal_acc == pre.bal_acc.min() and row.max_bal_acc == pre.bal_acc.max()
+
+
+def test_runwise_gap_matches_h1_and_describes_the_splits(rq1, values):
+    gap = rq1.runwise_gap(values).set_index(["session", "comparison"])
+    stats = rq1.stats_table(values, load_data_config(), ["sub-01", "sub-03"])
+    h1 = stats[stats.test_id == "H1"].iloc[0]
+    same = gap.loc[("pre", "paper_replica - cv_leakfree")]
+    assert same["mean"] == pytest.approx(h1.mean_diff)
+    assert same.ci_lo == pytest.approx(h1.ci_lo) and same.ci_hi == pytest.approx(h1.ci_hi)
+    assert gap.loc[("pre", "paper_replica - chrono"), "mean"] > same["mean"]
