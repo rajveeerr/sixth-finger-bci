@@ -8,7 +8,7 @@ and rows with a short meaning belong to the last full one. Sources are under
 largest of the cells named, (count) is counted from audit rows. The naming scheme is
 in the script's docstring.
 
-4966 macros. Not generated yet, printed as TBD: `\repoURL` (P15), `\repoTag` (P15), `\codeDOI` (P15).
+5332 macros. Not generated yet, printed as TBD: `\repoURL` (P15), `\repoTag` (P15), `\codeDOI` (P15).
 
 ## Dataset counts (`\n`)
 
@@ -88,6 +88,12 @@ in the script's docstring.
 | `\nPreGroupB` | 14 | patients with a usable pre session, group B |
 | `\nPreGroupT` | 8 | patients with a usable pre session, group T |
 | `\nPre` | 22 | patients with a usable pre session, all patients |
+
+`../docs/preregistration/deviations.md`
+
+| Macro | Value | Meaning |
+|---|---|---|
+| `\nDeviations` | 33 | dated entries of the deviation log (count) |
 
 `audit/epoch_trials.csv`
 
@@ -242,418 +248,694 @@ in the script's docstring.
 | `\rqOneCspLdaPaperReplicaCiLo` | 77.5 | CI lower |
 | `\rqOneCspLdaPaperReplicaCiHi` | 84.5 | CI upper |
 | `\rqOneCspLdaPaperReplicaNAbove` | 22 | patients above chance |
+| `\rqOneCspLdaPaperReplicaMin` | 60.7 | lowest patient (%) |
+| `\rqOneCspLdaPaperReplicaMax` | 95.5 | highest patient (%) |
+| `\rqOneCspLdaPaperReplicaNBelowChance` | 0 | patients below the chance level |
 | `\rqOneNoDevCspLdaPaperReplicaMean` | 81.8 | AH vs SF, pre, without sub-01, sub-03, csp_lda, paper_replica: balanced accuracy (%) |
 | `\rqOneCspLdaCvLeakfreeMean` | 58.5 | AH vs SF, pre, all patients, csp_lda, cv_leakfree: balanced accuracy (%) |
 | `\rqOneCspLdaCvLeakfreeCiLo` | 54.2 | CI lower |
 | `\rqOneCspLdaCvLeakfreeCiHi` | 63.1 | CI upper |
 | `\rqOneCspLdaCvLeakfreeNAbove` | 8 | patients above chance |
+| `\rqOneCspLdaCvLeakfreeMin` | 43.2 | lowest patient (%) |
+| `\rqOneCspLdaCvLeakfreeMax` | 79.5 | highest patient (%) |
+| `\rqOneCspLdaCvLeakfreeNBelowChance` | 6 | patients below the chance level |
 | `\rqOneNoDevCspLdaCvLeakfreeMean` | 59.0 | AH vs SF, pre, without sub-01, sub-03, csp_lda, cv_leakfree: balanced accuracy (%) |
 | `\rqOneCspLdaLoroMean` | 61.5 | AH vs SF, pre, all patients, csp_lda, loro: balanced accuracy (%) |
 | `\rqOneCspLdaLoroCiLo` | 57.5 | CI lower |
 | `\rqOneCspLdaLoroCiHi` | 65.6 | CI upper |
 | `\rqOneCspLdaLoroNAbove` | 12 | patients above chance |
+| `\rqOneCspLdaLoroMin` | 43.0 | lowest patient (%) |
+| `\rqOneCspLdaLoroMax` | 80.5 | highest patient (%) |
+| `\rqOneCspLdaLoroNBelowChance` | 2 | patients below the chance level |
 | `\rqOneNoDevCspLdaLoroMean` | 62.3 | AH vs SF, pre, without sub-01, sub-03, csp_lda, loro: balanced accuracy (%) |
 | `\rqOneCspLdaChronoMean` | 58.8 | AH vs SF, pre, all patients, csp_lda, chrono: balanced accuracy (%) |
 | `\rqOneCspLdaChronoCiLo` | 54.2 | CI lower |
 | `\rqOneCspLdaChronoCiHi` | 63.7 | CI upper |
 | `\rqOneCspLdaChronoNAbove` | 9 | patients above chance |
+| `\rqOneCspLdaChronoMin` | 38.3 | lowest patient (%) |
+| `\rqOneCspLdaChronoMax` | 87.1 | highest patient (%) |
+| `\rqOneCspLdaChronoNBelowChance` | 5 | patients below the chance level |
 | `\rqOneNoDevCspLdaChronoMean` | 58.7 | AH vs SF, pre, without sub-01, sub-03, csp_lda, chrono: balanced accuracy (%) |
 | `\rqOneCspLdaReplicaPaperReplicaMean` | 95.8 | AH vs SF, pre, all patients, csp_lda_replica, paper_replica: balanced accuracy (%) |
 | `\rqOneCspLdaReplicaPaperReplicaCiLo` | 95.1 | CI lower |
 | `\rqOneCspLdaReplicaPaperReplicaCiHi` | 96.6 | CI upper |
 | `\rqOneCspLdaReplicaPaperReplicaNAbove` | 22 | patients above chance |
+| `\rqOneCspLdaReplicaPaperReplicaMin` | 92.2 | lowest patient (%) |
+| `\rqOneCspLdaReplicaPaperReplicaMax` | 99.9 | highest patient (%) |
+| `\rqOneCspLdaReplicaPaperReplicaNBelowChance` | 0 | patients below the chance level |
 | `\rqOneNoDevCspLdaReplicaPaperReplicaMean` | 96.0 | AH vs SF, pre, without sub-01, sub-03, csp_lda_replica, paper_replica: balanced accuracy (%) |
 | `\rqOneCspLdaReplicaCvLeakfreeMean` | 52.1 | AH vs SF, pre, all patients, csp_lda_replica, cv_leakfree: balanced accuracy (%) |
 | `\rqOneCspLdaReplicaCvLeakfreeCiLo` | 49.3 | CI lower |
 | `\rqOneCspLdaReplicaCvLeakfreeCiHi` | 55.0 | CI upper |
 | `\rqOneCspLdaReplicaCvLeakfreeNAbove` | 3 | patients above chance |
+| `\rqOneCspLdaReplicaCvLeakfreeMin` | 43.0 | lowest patient (%) |
+| `\rqOneCspLdaReplicaCvLeakfreeMax` | 69.2 | highest patient (%) |
+| `\rqOneCspLdaReplicaCvLeakfreeNBelowChance` | 9 | patients below the chance level |
 | `\rqOneNoDevCspLdaReplicaCvLeakfreeMean` | 52.4 | AH vs SF, pre, without sub-01, sub-03, csp_lda_replica, cv_leakfree: balanced accuracy (%) |
 | `\rqOneCspLdaReplicaLoroMean` | 50.7 | AH vs SF, pre, all patients, csp_lda_replica, loro: balanced accuracy (%) |
 | `\rqOneCspLdaReplicaLoroCiLo` | 47.5 | CI lower |
 | `\rqOneCspLdaReplicaLoroCiHi` | 54.1 | CI upper |
 | `\rqOneCspLdaReplicaLoroNAbove` | 2 | patients above chance |
+| `\rqOneCspLdaReplicaLoroMin` | 37.3 | lowest patient (%) |
+| `\rqOneCspLdaReplicaLoroMax` | 71.7 | highest patient (%) |
+| `\rqOneCspLdaReplicaLoroNBelowChance` | 12 | patients below the chance level |
 | `\rqOneNoDevCspLdaReplicaLoroMean` | 51.4 | AH vs SF, pre, without sub-01, sub-03, csp_lda_replica, loro: balanced accuracy (%) |
 | `\rqOneCspLdaReplicaChronoMean` | 51.8 | AH vs SF, pre, all patients, csp_lda_replica, chrono: balanced accuracy (%) |
 | `\rqOneCspLdaReplicaChronoCiLo` | 48.2 | CI lower |
 | `\rqOneCspLdaReplicaChronoCiHi` | 55.5 | CI upper |
 | `\rqOneCspLdaReplicaChronoNAbove` | 2 | patients above chance |
+| `\rqOneCspLdaReplicaChronoMin` | 39.5 | lowest patient (%) |
+| `\rqOneCspLdaReplicaChronoMax` | 71.1 | highest patient (%) |
+| `\rqOneCspLdaReplicaChronoNBelowChance` | 10 | patients below the chance level |
 | `\rqOneNoDevCspLdaReplicaChronoMean` | 52.1 | AH vs SF, pre, without sub-01, sub-03, csp_lda_replica, chrono: balanced accuracy (%) |
 | `\rqOneCspSvmPaperReplicaMean` | 80.1 | AH vs SF, pre, all patients, csp_svm, paper_replica: balanced accuracy (%) |
 | `\rqOneCspSvmPaperReplicaCiLo` | 75.6 | CI lower |
 | `\rqOneCspSvmPaperReplicaCiHi` | 83.9 | CI upper |
 | `\rqOneCspSvmPaperReplicaNAbove` | 21 | patients above chance |
+| `\rqOneCspSvmPaperReplicaMin` | 46.5 | lowest patient (%) |
+| `\rqOneCspSvmPaperReplicaMax` | 94.0 | highest patient (%) |
+| `\rqOneCspSvmPaperReplicaNBelowChance` | 1 | patients below the chance level |
 | `\rqOneNoDevCspSvmPaperReplicaMean` | 80.6 | AH vs SF, pre, without sub-01, sub-03, csp_svm, paper_replica: balanced accuracy (%) |
 | `\rqOneCspSvmCvLeakfreeMean` | 58.9 | AH vs SF, pre, all patients, csp_svm, cv_leakfree: balanced accuracy (%) |
 | `\rqOneCspSvmCvLeakfreeCiLo` | 54.9 | CI lower |
 | `\rqOneCspSvmCvLeakfreeCiHi` | 63.3 | CI upper |
 | `\rqOneCspSvmCvLeakfreeNAbove` | 8 | patients above chance |
+| `\rqOneCspSvmCvLeakfreeMin` | 46.0 | lowest patient (%) |
+| `\rqOneCspSvmCvLeakfreeMax` | 79.0 | highest patient (%) |
+| `\rqOneCspSvmCvLeakfreeNBelowChance` | 5 | patients below the chance level |
 | `\rqOneNoDevCspSvmCvLeakfreeMean` | 59.6 | AH vs SF, pre, without sub-01, sub-03, csp_svm, cv_leakfree: balanced accuracy (%) |
 | `\rqOneCspSvmLoroMean` | 60.8 | AH vs SF, pre, all patients, csp_svm, loro: balanced accuracy (%) |
 | `\rqOneCspSvmLoroCiLo` | 57.1 | CI lower |
 | `\rqOneCspSvmLoroCiHi` | 64.5 | CI upper |
 | `\rqOneCspSvmLoroNAbove` | 11 | patients above chance |
+| `\rqOneCspSvmLoroMin` | 42.0 | lowest patient (%) |
+| `\rqOneCspSvmLoroMax` | 78.0 | highest patient (%) |
+| `\rqOneCspSvmLoroNBelowChance` | 2 | patients below the chance level |
 | `\rqOneNoDevCspSvmLoroMean` | 61.3 | AH vs SF, pre, without sub-01, sub-03, csp_svm, loro: balanced accuracy (%) |
 | `\rqOneCspSvmChronoMean` | 57.0 | AH vs SF, pre, all patients, csp_svm, chrono: balanced accuracy (%) |
 | `\rqOneCspSvmChronoCiLo` | 52.9 | CI lower |
 | `\rqOneCspSvmChronoCiHi` | 61.5 | CI upper |
 | `\rqOneCspSvmChronoNAbove` | 6 | patients above chance |
+| `\rqOneCspSvmChronoMin` | 42.5 | lowest patient (%) |
+| `\rqOneCspSvmChronoMax` | 78.9 | highest patient (%) |
+| `\rqOneCspSvmChronoNBelowChance` | 6 | patients below the chance level |
 | `\rqOneNoDevCspSvmChronoMean` | 57.2 | AH vs SF, pre, without sub-01, sub-03, csp_svm, chrono: balanced accuracy (%) |
 | `\rqOneFbcspLdaPaperReplicaMean` | 95.9 | AH vs SF, pre, all patients, fbcsp_lda, paper_replica: balanced accuracy (%) |
 | `\rqOneFbcspLdaPaperReplicaCiLo` | 94.5 | CI lower |
 | `\rqOneFbcspLdaPaperReplicaCiHi` | 97.1 | CI upper |
 | `\rqOneFbcspLdaPaperReplicaNAbove` | 22 | patients above chance |
+| `\rqOneFbcspLdaPaperReplicaMin` | 88.4 | lowest patient (%) |
+| `\rqOneFbcspLdaPaperReplicaMax` | 100.0 | highest patient (%) |
+| `\rqOneFbcspLdaPaperReplicaNBelowChance` | 0 | patients below the chance level |
 | `\rqOneNoDevFbcspLdaPaperReplicaMean` | 96.0 | AH vs SF, pre, without sub-01, sub-03, fbcsp_lda, paper_replica: balanced accuracy (%) |
 | `\rqOneFbcspLdaCvLeakfreeMean` | 56.1 | AH vs SF, pre, all patients, fbcsp_lda, cv_leakfree: balanced accuracy (%) |
 | `\rqOneFbcspLdaCvLeakfreeCiLo` | 52.6 | CI lower |
 | `\rqOneFbcspLdaCvLeakfreeCiHi` | 59.8 | CI upper |
 | `\rqOneFbcspLdaCvLeakfreeNAbove` | 10 | patients above chance |
+| `\rqOneFbcspLdaCvLeakfreeMin` | 40.6 | lowest patient (%) |
+| `\rqOneFbcspLdaCvLeakfreeMax` | 71.1 | highest patient (%) |
+| `\rqOneFbcspLdaCvLeakfreeNBelowChance` | 6 | patients below the chance level |
 | `\rqOneNoDevFbcspLdaCvLeakfreeMean` | 57.0 | AH vs SF, pre, without sub-01, sub-03, fbcsp_lda, cv_leakfree: balanced accuracy (%) |
 | `\rqOneFbcspLdaLoroMean` | 58.6 | AH vs SF, pre, all patients, fbcsp_lda, loro: balanced accuracy (%) |
 | `\rqOneFbcspLdaLoroCiLo` | 55.5 | CI lower |
 | `\rqOneFbcspLdaLoroCiHi` | 61.8 | CI upper |
 | `\rqOneFbcspLdaLoroNAbove` | 10 | patients above chance |
+| `\rqOneFbcspLdaLoroMin` | 40.8 | lowest patient (%) |
+| `\rqOneFbcspLdaLoroMax` | 71.2 | highest patient (%) |
+| `\rqOneFbcspLdaLoroNBelowChance` | 3 | patients below the chance level |
 | `\rqOneNoDevFbcspLdaLoroMean` | 59.3 | AH vs SF, pre, without sub-01, sub-03, fbcsp_lda, loro: balanced accuracy (%) |
 | `\rqOneFbcspLdaChronoMean` | 55.8 | AH vs SF, pre, all patients, fbcsp_lda, chrono: balanced accuracy (%) |
 | `\rqOneFbcspLdaChronoCiLo` | 52.5 | CI lower |
 | `\rqOneFbcspLdaChronoCiHi` | 59.0 | CI upper |
 | `\rqOneFbcspLdaChronoNAbove` | 4 | patients above chance |
+| `\rqOneFbcspLdaChronoMin` | 38.7 | lowest patient (%) |
+| `\rqOneFbcspLdaChronoMax` | 68.3 | highest patient (%) |
+| `\rqOneFbcspLdaChronoNBelowChance` | 3 | patients below the chance level |
 | `\rqOneNoDevFbcspLdaChronoMean` | 56.0 | AH vs SF, pre, without sub-01, sub-03, fbcsp_lda, chrono: balanced accuracy (%) |
 | `\rqOneMdmPaperReplicaMean` | 46.7 | AH vs SF, pre, all patients, mdm, paper_replica: balanced accuracy (%) |
 | `\rqOneMdmPaperReplicaCiLo` | 43.7 | CI lower |
 | `\rqOneMdmPaperReplicaCiHi` | 49.9 | CI upper |
 | `\rqOneMdmPaperReplicaNAbove` | 2 | patients above chance |
+| `\rqOneMdmPaperReplicaMin` | 33.2 | lowest patient (%) |
+| `\rqOneMdmPaperReplicaMax` | 61.7 | highest patient (%) |
+| `\rqOneMdmPaperReplicaNBelowChance` | 14 | patients below the chance level |
 | `\rqOneNoDevMdmPaperReplicaMean` | 47.0 | AH vs SF, pre, without sub-01, sub-03, mdm, paper_replica: balanced accuracy (%) |
 | `\rqOneMdmCvLeakfreeMean` | 46.7 | AH vs SF, pre, all patients, mdm, cv_leakfree: balanced accuracy (%) |
 | `\rqOneMdmCvLeakfreeCiLo` | 43.7 | CI lower |
 | `\rqOneMdmCvLeakfreeCiHi` | 49.9 | CI upper |
 | `\rqOneMdmCvLeakfreeNAbove` | 2 | patients above chance |
+| `\rqOneMdmCvLeakfreeMin` | 33.2 | lowest patient (%) |
+| `\rqOneMdmCvLeakfreeMax` | 61.7 | highest patient (%) |
+| `\rqOneMdmCvLeakfreeNBelowChance` | 14 | patients below the chance level |
 | `\rqOneNoDevMdmCvLeakfreeMean` | 47.0 | AH vs SF, pre, without sub-01, sub-03, mdm, cv_leakfree: balanced accuracy (%) |
 | `\rqOneMdmLoroMean` | 58.5 | AH vs SF, pre, all patients, mdm, loro: balanced accuracy (%) |
 | `\rqOneMdmLoroCiLo` | 55.3 | CI lower |
 | `\rqOneMdmLoroCiHi` | 61.5 | CI upper |
 | `\rqOneMdmLoroNAbove` | 9 | patients above chance |
+| `\rqOneMdmLoroMin` | 41.1 | lowest patient (%) |
+| `\rqOneMdmLoroMax` | 71.2 | highest patient (%) |
+| `\rqOneMdmLoroNBelowChance` | 3 | patients below the chance level |
 | `\rqOneNoDevMdmLoroMean` | 58.7 | AH vs SF, pre, without sub-01, sub-03, mdm, loro: balanced accuracy (%) |
 | `\rqOneMdmChronoMean` | 56.4 | AH vs SF, pre, all patients, mdm, chrono: balanced accuracy (%) |
 | `\rqOneMdmChronoCiLo` | 53.5 | CI lower |
 | `\rqOneMdmChronoCiHi` | 59.3 | CI upper |
 | `\rqOneMdmChronoNAbove` | 3 | patients above chance |
+| `\rqOneMdmChronoMin` | 41.7 | lowest patient (%) |
+| `\rqOneMdmChronoMax` | 67.5 | highest patient (%) |
+| `\rqOneMdmChronoNBelowChance` | 4 | patients below the chance level |
 | `\rqOneNoDevMdmChronoMean` | 56.7 | AH vs SF, pre, without sub-01, sub-03, mdm, chrono: balanced accuracy (%) |
 | `\rqOneTsLrPaperReplicaMean` | 59.0 | AH vs SF, pre, all patients, ts_lr, paper_replica: balanced accuracy (%) |
 | `\rqOneTsLrPaperReplicaCiLo` | 54.6 | CI lower |
 | `\rqOneTsLrPaperReplicaCiHi` | 63.3 | CI upper |
 | `\rqOneTsLrPaperReplicaNAbove` | 10 | patients above chance |
+| `\rqOneTsLrPaperReplicaMin` | 37.0 | lowest patient (%) |
+| `\rqOneTsLrPaperReplicaMax` | 75.8 | highest patient (%) |
+| `\rqOneTsLrPaperReplicaNBelowChance` | 4 | patients below the chance level |
 | `\rqOneNoDevTsLrPaperReplicaMean` | 60.1 | AH vs SF, pre, without sub-01, sub-03, ts_lr, paper_replica: balanced accuracy (%) |
 | `\rqOneTsLrCvLeakfreeMean` | 59.0 | AH vs SF, pre, all patients, ts_lr, cv_leakfree: balanced accuracy (%) |
 | `\rqOneTsLrCvLeakfreeCiLo` | 54.6 | CI lower |
 | `\rqOneTsLrCvLeakfreeCiHi` | 63.4 | CI upper |
 | `\rqOneTsLrCvLeakfreeNAbove` | 10 | patients above chance |
+| `\rqOneTsLrCvLeakfreeMin` | 36.9 | lowest patient (%) |
+| `\rqOneTsLrCvLeakfreeMax` | 75.8 | highest patient (%) |
+| `\rqOneTsLrCvLeakfreeNBelowChance` | 4 | patients below the chance level |
 | `\rqOneNoDevTsLrCvLeakfreeMean` | 60.1 | AH vs SF, pre, without sub-01, sub-03, ts_lr, cv_leakfree: balanced accuracy (%) |
 | `\rqOneTsLrLoroMean` | 61.2 | AH vs SF, pre, all patients, ts_lr, loro: balanced accuracy (%) |
 | `\rqOneTsLrLoroCiLo` | 57.8 | CI lower |
 | `\rqOneTsLrLoroCiHi` | 64.9 | CI upper |
 | `\rqOneTsLrLoroNAbove` | 12 | patients above chance |
+| `\rqOneTsLrLoroMin` | 46.2 | lowest patient (%) |
+| `\rqOneTsLrLoroMax` | 80.6 | highest patient (%) |
+| `\rqOneTsLrLoroNBelowChance` | 2 | patients below the chance level |
 | `\rqOneNoDevTsLrLoroMean` | 61.7 | AH vs SF, pre, without sub-01, sub-03, ts_lr, loro: balanced accuracy (%) |
 | `\rqOneTsLrChronoMean` | 59.5 | AH vs SF, pre, all patients, ts_lr, chrono: balanced accuracy (%) |
 | `\rqOneTsLrChronoCiLo` | 56.8 | CI lower |
 | `\rqOneTsLrChronoCiHi` | 62.0 | CI upper |
 | `\rqOneTsLrChronoNAbove` | 7 | patients above chance |
+| `\rqOneTsLrChronoMin` | 45.0 | lowest patient (%) |
+| `\rqOneTsLrChronoMax` | 70.0 | highest patient (%) |
+| `\rqOneTsLrChronoNBelowChance` | 1 | patients below the chance level |
 | `\rqOneNoDevTsLrChronoMean` | 59.9 | AH vs SF, pre, without sub-01, sub-03, ts_lr, chrono: balanced accuracy (%) |
 | `\rqOnePostCspLdaPaperReplicaMean` | 74.4 | AH vs SF, post, all patients, csp_lda, paper_replica: balanced accuracy (%) |
 | `\rqOnePostCspLdaPaperReplicaCiLo` | 69.5 | CI lower |
 | `\rqOnePostCspLdaPaperReplicaCiHi` | 79.1 | CI upper |
 | `\rqOnePostCspLdaPaperReplicaNAbove` | 19 | patients above chance |
+| `\rqOnePostCspLdaPaperReplicaMin` | 51.5 | lowest patient (%) |
+| `\rqOnePostCspLdaPaperReplicaMax` | 92.8 | highest patient (%) |
+| `\rqOnePostCspLdaPaperReplicaNBelowChance` | 0 | patients below the chance level |
 | `\rqOnePostLinkedCspLdaPaperReplicaMean` | 75.1 | AH vs SF, post, sub-21/22 averaged, csp_lda, paper_replica: balanced accuracy (%) |
 | `\rqOnePostCspLdaCvLeakfreeMean` | 54.5 | AH vs SF, post, all patients, csp_lda, cv_leakfree: balanced accuracy (%) |
 | `\rqOnePostCspLdaCvLeakfreeCiLo` | 49.7 | CI lower |
 | `\rqOnePostCspLdaCvLeakfreeCiHi` | 59.8 | CI upper |
 | `\rqOnePostCspLdaCvLeakfreeNAbove` | 9 | patients above chance |
+| `\rqOnePostCspLdaCvLeakfreeMin` | 37.5 | lowest patient (%) |
+| `\rqOnePostCspLdaCvLeakfreeMax` | 85.7 | highest patient (%) |
+| `\rqOnePostCspLdaCvLeakfreeNBelowChance` | 11 | patients below the chance level |
 | `\rqOnePostLinkedCspLdaCvLeakfreeMean` | 55.2 | AH vs SF, post, sub-21/22 averaged, csp_lda, cv_leakfree: balanced accuracy (%) |
 | `\rqOnePostCspLdaLoroMean` | 59.0 | AH vs SF, post, all patients, csp_lda, loro: balanced accuracy (%) |
 | `\rqOnePostCspLdaLoroCiLo` | 54.9 | CI lower |
 | `\rqOnePostCspLdaLoroCiHi` | 63.5 | CI upper |
 | `\rqOnePostCspLdaLoroNAbove` | 12 | patients above chance |
+| `\rqOnePostCspLdaLoroMin` | 43.1 | lowest patient (%) |
+| `\rqOnePostCspLdaLoroMax` | 92.1 | highest patient (%) |
+| `\rqOnePostCspLdaLoroNBelowChance` | 5 | patients below the chance level |
 | `\rqOnePostLinkedCspLdaLoroMean` | 59.6 | AH vs SF, post, sub-21/22 averaged, csp_lda, loro: balanced accuracy (%) |
 | `\rqOnePostCspLdaChronoMean` | 56.6 | AH vs SF, post, all patients, csp_lda, chrono: balanced accuracy (%) |
 | `\rqOnePostCspLdaChronoCiLo` | 52.3 | CI lower |
 | `\rqOnePostCspLdaChronoCiHi` | 61.3 | CI upper |
 | `\rqOnePostCspLdaChronoNAbove` | 8 | patients above chance |
+| `\rqOnePostCspLdaChronoMin` | 41.2 | lowest patient (%) |
+| `\rqOnePostCspLdaChronoMax` | 81.6 | highest patient (%) |
+| `\rqOnePostCspLdaChronoNBelowChance` | 8 | patients below the chance level |
 | `\rqOnePostLinkedCspLdaChronoMean` | 57.1 | AH vs SF, post, sub-21/22 averaged, csp_lda, chrono: balanced accuracy (%) |
 | `\rqOnePostCspLdaReplicaPaperReplicaMean` | 96.8 | AH vs SF, post, all patients, csp_lda_replica, paper_replica: balanced accuracy (%) |
 | `\rqOnePostCspLdaReplicaPaperReplicaCiLo` | 95.6 | CI lower |
 | `\rqOnePostCspLdaReplicaPaperReplicaCiHi` | 97.9 | CI upper |
 | `\rqOnePostCspLdaReplicaPaperReplicaNAbove` | 24 | patients above chance |
+| `\rqOnePostCspLdaReplicaPaperReplicaMin` | 89.6 | lowest patient (%) |
+| `\rqOnePostCspLdaReplicaPaperReplicaMax` | 100.0 | highest patient (%) |
+| `\rqOnePostCspLdaReplicaPaperReplicaNBelowChance` | 0 | patients below the chance level |
 | `\rqOnePostLinkedCspLdaReplicaPaperReplicaMean` | 96.8 | AH vs SF, post, sub-21/22 averaged, csp_lda_replica, paper_replica: balanced accuracy (%) |
 | `\rqOnePostCspLdaReplicaCvLeakfreeMean` | 52.8 | AH vs SF, post, all patients, csp_lda_replica, cv_leakfree: balanced accuracy (%) |
 | `\rqOnePostCspLdaReplicaCvLeakfreeCiLo` | 50.0 | CI lower |
 | `\rqOnePostCspLdaReplicaCvLeakfreeCiHi` | 55.7 | CI upper |
 | `\rqOnePostCspLdaReplicaCvLeakfreeNAbove` | 5 | patients above chance |
+| `\rqOnePostCspLdaReplicaCvLeakfreeMin` | 43.0 | lowest patient (%) |
+| `\rqOnePostCspLdaReplicaCvLeakfreeMax` | 69.3 | highest patient (%) |
+| `\rqOnePostCspLdaReplicaCvLeakfreeNBelowChance` | 8 | patients below the chance level |
 | `\rqOnePostLinkedCspLdaReplicaCvLeakfreeMean` | 53.1 | AH vs SF, post, sub-21/22 averaged, csp_lda_replica, cv_leakfree: balanced accuracy (%) |
 | `\rqOnePostCspLdaReplicaLoroMean` | 54.2 | AH vs SF, post, all patients, csp_lda_replica, loro: balanced accuracy (%) |
 | `\rqOnePostCspLdaReplicaLoroCiLo` | 51.3 | CI lower |
 | `\rqOnePostCspLdaReplicaLoroCiHi` | 57.3 | CI upper |
 | `\rqOnePostCspLdaReplicaLoroNAbove` | 6 | patients above chance |
+| `\rqOnePostCspLdaReplicaLoroMin` | 39.5 | lowest patient (%) |
+| `\rqOnePostCspLdaReplicaLoroMax` | 69.8 | highest patient (%) |
+| `\rqOnePostCspLdaReplicaLoroNBelowChance` | 9 | patients below the chance level |
 | `\rqOnePostLinkedCspLdaReplicaLoroMean` | 54.7 | AH vs SF, post, sub-21/22 averaged, csp_lda_replica, loro: balanced accuracy (%) |
 | `\rqOnePostCspLdaReplicaChronoMean` | 54.8 | AH vs SF, post, all patients, csp_lda_replica, chrono: balanced accuracy (%) |
 | `\rqOnePostCspLdaReplicaChronoCiLo` | 51.7 | CI lower |
 | `\rqOnePostCspLdaReplicaChronoCiHi` | 57.9 | CI upper |
 | `\rqOnePostCspLdaReplicaChronoNAbove` | 3 | patients above chance |
+| `\rqOnePostCspLdaReplicaChronoMin` | 37.5 | lowest patient (%) |
+| `\rqOnePostCspLdaReplicaChronoMax` | 68.3 | highest patient (%) |
+| `\rqOnePostCspLdaReplicaChronoNBelowChance` | 6 | patients below the chance level |
 | `\rqOnePostLinkedCspLdaReplicaChronoMean` | 54.8 | AH vs SF, post, sub-21/22 averaged, csp_lda_replica, chrono: balanced accuracy (%) |
 | `\rqOnePostCspSvmPaperReplicaMean` | 71.9 | AH vs SF, post, all patients, csp_svm, paper_replica: balanced accuracy (%) |
 | `\rqOnePostCspSvmPaperReplicaCiLo` | 65.8 | CI lower |
 | `\rqOnePostCspSvmPaperReplicaCiHi` | 77.6 | CI upper |
 | `\rqOnePostCspSvmPaperReplicaNAbove` | 17 | patients above chance |
+| `\rqOnePostCspSvmPaperReplicaMin` | 39.1 | lowest patient (%) |
+| `\rqOnePostCspSvmPaperReplicaMax` | 92.2 | highest patient (%) |
+| `\rqOnePostCspSvmPaperReplicaNBelowChance` | 3 | patients below the chance level |
 | `\rqOnePostLinkedCspSvmPaperReplicaMean` | 72.6 | AH vs SF, post, sub-21/22 averaged, csp_svm, paper_replica: balanced accuracy (%) |
 | `\rqOnePostCspSvmCvLeakfreeMean` | 55.5 | AH vs SF, post, all patients, csp_svm, cv_leakfree: balanced accuracy (%) |
 | `\rqOnePostCspSvmCvLeakfreeCiLo` | 51.3 | CI lower |
 | `\rqOnePostCspSvmCvLeakfreeCiHi` | 60.2 | CI upper |
 | `\rqOnePostCspSvmCvLeakfreeNAbove` | 9 | patients above chance |
+| `\rqOnePostCspSvmCvLeakfreeMin` | 40.8 | lowest patient (%) |
+| `\rqOnePostCspSvmCvLeakfreeMax` | 84.3 | highest patient (%) |
+| `\rqOnePostCspSvmCvLeakfreeNBelowChance` | 8 | patients below the chance level |
 | `\rqOnePostLinkedCspSvmCvLeakfreeMean` | 55.8 | AH vs SF, post, sub-21/22 averaged, csp_svm, cv_leakfree: balanced accuracy (%) |
 | `\rqOnePostCspSvmLoroMean` | 58.6 | AH vs SF, post, all patients, csp_svm, loro: balanced accuracy (%) |
 | `\rqOnePostCspSvmLoroCiLo` | 54.9 | CI lower |
 | `\rqOnePostCspSvmLoroCiHi` | 62.8 | CI upper |
 | `\rqOnePostCspSvmLoroNAbove` | 10 | patients above chance |
+| `\rqOnePostCspSvmLoroMin` | 42.7 | lowest patient (%) |
+| `\rqOnePostCspSvmLoroMax` | 87.2 | highest patient (%) |
+| `\rqOnePostCspSvmLoroNBelowChance` | 4 | patients below the chance level |
 | `\rqOnePostLinkedCspSvmLoroMean` | 59.1 | AH vs SF, post, sub-21/22 averaged, csp_svm, loro: balanced accuracy (%) |
 | `\rqOnePostCspSvmChronoMean` | 59.7 | AH vs SF, post, all patients, csp_svm, chrono: balanced accuracy (%) |
 | `\rqOnePostCspSvmChronoCiLo` | 55.9 | CI lower |
 | `\rqOnePostCspSvmChronoCiHi` | 63.6 | CI upper |
 | `\rqOnePostCspSvmChronoNAbove` | 8 | patients above chance |
+| `\rqOnePostCspSvmChronoMin` | 44.4 | lowest patient (%) |
+| `\rqOnePostCspSvmChronoMax` | 76.3 | highest patient (%) |
+| `\rqOnePostCspSvmChronoNBelowChance` | 5 | patients below the chance level |
 | `\rqOnePostLinkedCspSvmChronoMean` | 59.9 | AH vs SF, post, sub-21/22 averaged, csp_svm, chrono: balanced accuracy (%) |
 | `\rqOnePostFbcspLdaPaperReplicaMean` | 93.4 | AH vs SF, post, all patients, fbcsp_lda, paper_replica: balanced accuracy (%) |
 | `\rqOnePostFbcspLdaPaperReplicaCiLo` | 89.9 | CI lower |
 | `\rqOnePostFbcspLdaPaperReplicaCiHi` | 96.4 | CI upper |
 | `\rqOnePostFbcspLdaPaperReplicaNAbove` | 24 | patients above chance |
+| `\rqOnePostFbcspLdaPaperReplicaMin` | 69.1 | lowest patient (%) |
+| `\rqOnePostFbcspLdaPaperReplicaMax` | 99.9 | highest patient (%) |
+| `\rqOnePostFbcspLdaPaperReplicaNBelowChance` | 0 | patients below the chance level |
 | `\rqOnePostLinkedFbcspLdaPaperReplicaMean` | 93.5 | AH vs SF, post, sub-21/22 averaged, fbcsp_lda, paper_replica: balanced accuracy (%) |
 | `\rqOnePostFbcspLdaCvLeakfreeMean` | 56.6 | AH vs SF, post, all patients, fbcsp_lda, cv_leakfree: balanced accuracy (%) |
 | `\rqOnePostFbcspLdaCvLeakfreeCiLo` | 51.7 | CI lower |
 | `\rqOnePostFbcspLdaCvLeakfreeCiHi` | 62.0 | CI upper |
 | `\rqOnePostFbcspLdaCvLeakfreeNAbove` | 7 | patients above chance |
+| `\rqOnePostFbcspLdaCvLeakfreeMin` | 38.4 | lowest patient (%) |
+| `\rqOnePostFbcspLdaCvLeakfreeMax` | 81.5 | highest patient (%) |
+| `\rqOnePostFbcspLdaCvLeakfreeNBelowChance` | 10 | patients below the chance level |
 | `\rqOnePostLinkedFbcspLdaCvLeakfreeMean` | 57.1 | AH vs SF, post, sub-21/22 averaged, fbcsp_lda, cv_leakfree: balanced accuracy (%) |
 | `\rqOnePostFbcspLdaLoroMean` | 59.2 | AH vs SF, post, all patients, fbcsp_lda, loro: balanced accuracy (%) |
 | `\rqOnePostFbcspLdaLoroCiLo` | 54.9 | CI lower |
 | `\rqOnePostFbcspLdaLoroCiHi` | 64.2 | CI upper |
 | `\rqOnePostFbcspLdaLoroNAbove` | 8 | patients above chance |
+| `\rqOnePostFbcspLdaLoroMin` | 42.9 | lowest patient (%) |
+| `\rqOnePostFbcspLdaLoroMax` | 86.2 | highest patient (%) |
+| `\rqOnePostFbcspLdaLoroNBelowChance` | 5 | patients below the chance level |
 | `\rqOnePostLinkedFbcspLdaLoroMean` | 59.3 | AH vs SF, post, sub-21/22 averaged, fbcsp_lda, loro: balanced accuracy (%) |
 | `\rqOnePostFbcspLdaChronoMean` | 57.1 | AH vs SF, post, all patients, fbcsp_lda, chrono: balanced accuracy (%) |
 | `\rqOnePostFbcspLdaChronoCiLo` | 53.3 | CI lower |
 | `\rqOnePostFbcspLdaChronoCiHi` | 61.1 | CI upper |
 | `\rqOnePostFbcspLdaChronoNAbove` | 6 | patients above chance |
+| `\rqOnePostFbcspLdaChronoMin` | 42.1 | lowest patient (%) |
+| `\rqOnePostFbcspLdaChronoMax` | 75.0 | highest patient (%) |
+| `\rqOnePostFbcspLdaChronoNBelowChance` | 5 | patients below the chance level |
 | `\rqOnePostLinkedFbcspLdaChronoMean` | 57.4 | AH vs SF, post, sub-21/22 averaged, fbcsp_lda, chrono: balanced accuracy (%) |
 | `\rqOnePostMdmPaperReplicaMean` | 45.0 | AH vs SF, post, all patients, mdm, paper_replica: balanced accuracy (%) |
 | `\rqOnePostMdmPaperReplicaCiLo` | 41.2 | CI lower |
 | `\rqOnePostMdmPaperReplicaCiHi` | 49.0 | CI upper |
 | `\rqOnePostMdmPaperReplicaNAbove` | 1 | patients above chance |
+| `\rqOnePostMdmPaperReplicaMin` | 29.4 | lowest patient (%) |
+| `\rqOnePostMdmPaperReplicaMax` | 65.7 | highest patient (%) |
+| `\rqOnePostMdmPaperReplicaNBelowChance` | 16 | patients below the chance level |
 | `\rqOnePostLinkedMdmPaperReplicaMean` | 45.2 | AH vs SF, post, sub-21/22 averaged, mdm, paper_replica: balanced accuracy (%) |
 | `\rqOnePostMdmCvLeakfreeMean` | 45.0 | AH vs SF, post, all patients, mdm, cv_leakfree: balanced accuracy (%) |
 | `\rqOnePostMdmCvLeakfreeCiLo` | 41.2 | CI lower |
 | `\rqOnePostMdmCvLeakfreeCiHi` | 49.0 | CI upper |
 | `\rqOnePostMdmCvLeakfreeNAbove` | 1 | patients above chance |
+| `\rqOnePostMdmCvLeakfreeMin` | 29.4 | lowest patient (%) |
+| `\rqOnePostMdmCvLeakfreeMax` | 65.7 | highest patient (%) |
+| `\rqOnePostMdmCvLeakfreeNBelowChance` | 16 | patients below the chance level |
 | `\rqOnePostLinkedMdmCvLeakfreeMean` | 45.2 | AH vs SF, post, sub-21/22 averaged, mdm, cv_leakfree: balanced accuracy (%) |
 | `\rqOnePostMdmLoroMean` | 57.9 | AH vs SF, post, all patients, mdm, loro: balanced accuracy (%) |
 | `\rqOnePostMdmLoroCiLo` | 54.7 | CI lower |
 | `\rqOnePostMdmLoroCiHi` | 61.3 | CI upper |
 | `\rqOnePostMdmLoroNAbove` | 9 | patients above chance |
+| `\rqOnePostMdmLoroMin` | 45.8 | lowest patient (%) |
+| `\rqOnePostMdmLoroMax` | 75.1 | highest patient (%) |
+| `\rqOnePostMdmLoroNBelowChance` | 3 | patients below the chance level |
 | `\rqOnePostLinkedMdmLoroMean` | 58.3 | AH vs SF, post, sub-21/22 averaged, mdm, loro: balanced accuracy (%) |
 | `\rqOnePostMdmChronoMean` | 55.8 | AH vs SF, post, all patients, mdm, chrono: balanced accuracy (%) |
 | `\rqOnePostMdmChronoCiLo` | 52.3 | CI lower |
 | `\rqOnePostMdmChronoCiHi` | 59.5 | CI upper |
 | `\rqOnePostMdmChronoNAbove` | 6 | patients above chance |
+| `\rqOnePostMdmChronoMin` | 37.4 | lowest patient (%) |
+| `\rqOnePostMdmChronoMax` | 76.3 | highest patient (%) |
+| `\rqOnePostMdmChronoNBelowChance` | 5 | patients below the chance level |
 | `\rqOnePostLinkedMdmChronoMean` | 56.3 | AH vs SF, post, sub-21/22 averaged, mdm, chrono: balanced accuracy (%) |
 | `\rqOnePostTsLrPaperReplicaMean` | 58.9 | AH vs SF, post, all patients, ts_lr, paper_replica: balanced accuracy (%) |
 | `\rqOnePostTsLrPaperReplicaCiLo` | 53.7 | CI lower |
 | `\rqOnePostTsLrPaperReplicaCiHi` | 64.1 | CI upper |
 | `\rqOnePostTsLrPaperReplicaNAbove` | 11 | patients above chance |
+| `\rqOnePostTsLrPaperReplicaMin` | 26.6 | lowest patient (%) |
+| `\rqOnePostTsLrPaperReplicaMax` | 85.1 | highest patient (%) |
+| `\rqOnePostTsLrPaperReplicaNBelowChance` | 7 | patients below the chance level |
 | `\rqOnePostLinkedTsLrPaperReplicaMean` | 59.4 | AH vs SF, post, sub-21/22 averaged, ts_lr, paper_replica: balanced accuracy (%) |
 | `\rqOnePostTsLrCvLeakfreeMean` | 58.8 | AH vs SF, post, all patients, ts_lr, cv_leakfree: balanced accuracy (%) |
 | `\rqOnePostTsLrCvLeakfreeCiLo` | 53.7 | CI lower |
 | `\rqOnePostTsLrCvLeakfreeCiHi` | 64.1 | CI upper |
 | `\rqOnePostTsLrCvLeakfreeNAbove` | 11 | patients above chance |
+| `\rqOnePostTsLrCvLeakfreeMin` | 26.3 | lowest patient (%) |
+| `\rqOnePostTsLrCvLeakfreeMax` | 85.2 | highest patient (%) |
+| `\rqOnePostTsLrCvLeakfreeNBelowChance` | 7 | patients below the chance level |
 | `\rqOnePostLinkedTsLrCvLeakfreeMean` | 59.3 | AH vs SF, post, sub-21/22 averaged, ts_lr, cv_leakfree: balanced accuracy (%) |
 | `\rqOnePostTsLrLoroMean` | 62.7 | AH vs SF, post, all patients, ts_lr, loro: balanced accuracy (%) |
 | `\rqOnePostTsLrLoroCiLo` | 58.9 | CI lower |
 | `\rqOnePostTsLrLoroCiHi` | 66.8 | CI upper |
 | `\rqOnePostTsLrLoroNAbove` | 12 | patients above chance |
+| `\rqOnePostTsLrLoroMin` | 48.8 | lowest patient (%) |
+| `\rqOnePostTsLrLoroMax` | 80.7 | highest patient (%) |
+| `\rqOnePostTsLrLoroNBelowChance` | 1 | patients below the chance level |
 | `\rqOnePostLinkedTsLrLoroMean` | 63.1 | AH vs SF, post, sub-21/22 averaged, ts_lr, loro: balanced accuracy (%) |
 | `\rqOnePostTsLrChronoMean` | 60.4 | AH vs SF, post, all patients, ts_lr, chrono: balanced accuracy (%) |
 | `\rqOnePostTsLrChronoCiLo` | 56.8 | CI lower |
 | `\rqOnePostTsLrChronoCiHi` | 64.3 | CI upper |
 | `\rqOnePostTsLrChronoNAbove` | 10 | patients above chance |
+| `\rqOnePostTsLrChronoMin` | 45.0 | lowest patient (%) |
+| `\rqOnePostTsLrChronoMax` | 80.0 | highest patient (%) |
+| `\rqOnePostTsLrChronoNBelowChance` | 3 | patients below the chance level |
 | `\rqOnePostLinkedTsLrChronoMean` | 60.8 | AH vs SF, post, sub-21/22 averaged, ts_lr, chrono: balanced accuracy (%) |
 | `\rqOneFollowCspLdaPaperReplicaMean` | 73.8 | AH vs SF, follow, all patients, csp_lda, paper_replica: balanced accuracy (%) |
 | `\rqOneFollowCspLdaPaperReplicaCiLo` | 69.1 | CI lower |
 | `\rqOneFollowCspLdaPaperReplicaCiHi` | 77.8 | CI upper |
 | `\rqOneFollowCspLdaPaperReplicaNAbove` | 16 | patients above chance |
+| `\rqOneFollowCspLdaPaperReplicaMin` | 50.7 | lowest patient (%) |
+| `\rqOneFollowCspLdaPaperReplicaMax` | 87.4 | highest patient (%) |
+| `\rqOneFollowCspLdaPaperReplicaNBelowChance` | 0 | patients below the chance level |
 | `\rqOneFollowCspLdaCvLeakfreeMean` | 52.2 | AH vs SF, follow, all patients, csp_lda, cv_leakfree: balanced accuracy (%) |
 | `\rqOneFollowCspLdaCvLeakfreeCiLo` | 47.2 | CI lower |
 | `\rqOneFollowCspLdaCvLeakfreeCiHi` | 57.3 | CI upper |
 | `\rqOneFollowCspLdaCvLeakfreeNAbove` | 5 | patients above chance |
+| `\rqOneFollowCspLdaCvLeakfreeMin` | 33.9 | lowest patient (%) |
+| `\rqOneFollowCspLdaCvLeakfreeMax` | 74.9 | highest patient (%) |
+| `\rqOneFollowCspLdaCvLeakfreeNBelowChance` | 10 | patients below the chance level |
 | `\rqOneFollowCspLdaLoroMean` | 57.8 | AH vs SF, follow, all patients, csp_lda, loro: balanced accuracy (%) |
 | `\rqOneFollowCspLdaLoroCiLo` | 54.4 | CI lower |
 | `\rqOneFollowCspLdaLoroCiHi` | 60.9 | CI upper |
 | `\rqOneFollowCspLdaLoroNAbove` | 8 | patients above chance |
+| `\rqOneFollowCspLdaLoroMin` | 43.8 | lowest patient (%) |
+| `\rqOneFollowCspLdaLoroMax` | 72.4 | highest patient (%) |
+| `\rqOneFollowCspLdaLoroNBelowChance` | 3 | patients below the chance level |
 | `\rqOneFollowCspLdaChronoMean` | 55.1 | AH vs SF, follow, all patients, csp_lda, chrono: balanced accuracy (%) |
 | `\rqOneFollowCspLdaChronoCiLo` | 51.5 | CI lower |
 | `\rqOneFollowCspLdaChronoCiHi` | 58.9 | CI upper |
 | `\rqOneFollowCspLdaChronoNAbove` | 4 | patients above chance |
+| `\rqOneFollowCspLdaChronoMin` | 42.5 | lowest patient (%) |
+| `\rqOneFollowCspLdaChronoMax` | 71.4 | highest patient (%) |
+| `\rqOneFollowCspLdaChronoNBelowChance` | 5 | patients below the chance level |
 | `\rqOneFollowCspLdaReplicaPaperReplicaMean` | 95.9 | AH vs SF, follow, all patients, csp_lda_replica, paper_replica: balanced accuracy (%) |
 | `\rqOneFollowCspLdaReplicaPaperReplicaCiLo` | 94.8 | CI lower |
 | `\rqOneFollowCspLdaReplicaPaperReplicaCiHi` | 96.8 | CI upper |
 | `\rqOneFollowCspLdaReplicaPaperReplicaNAbove` | 18 | patients above chance |
+| `\rqOneFollowCspLdaReplicaPaperReplicaMin` | 90.8 | lowest patient (%) |
+| `\rqOneFollowCspLdaReplicaPaperReplicaMax` | 99.5 | highest patient (%) |
+| `\rqOneFollowCspLdaReplicaPaperReplicaNBelowChance` | 0 | patients below the chance level |
 | `\rqOneFollowCspLdaReplicaCvLeakfreeMean` | 49.5 | AH vs SF, follow, all patients, csp_lda_replica, cv_leakfree: balanced accuracy (%) |
 | `\rqOneFollowCspLdaReplicaCvLeakfreeCiLo` | 47.0 | CI lower |
 | `\rqOneFollowCspLdaReplicaCvLeakfreeCiHi` | 52.1 | CI upper |
 | `\rqOneFollowCspLdaReplicaCvLeakfreeNAbove` | 2 | patients above chance |
+| `\rqOneFollowCspLdaReplicaCvLeakfreeMin` | 39.5 | lowest patient (%) |
+| `\rqOneFollowCspLdaReplicaCvLeakfreeMax` | 61.3 | highest patient (%) |
+| `\rqOneFollowCspLdaReplicaCvLeakfreeNBelowChance` | 9 | patients below the chance level |
 | `\rqOneFollowCspLdaReplicaLoroMean` | 50.0 | AH vs SF, follow, all patients, csp_lda_replica, loro: balanced accuracy (%) |
 | `\rqOneFollowCspLdaReplicaLoroCiLo` | 47.2 | CI lower |
 | `\rqOneFollowCspLdaReplicaLoroCiHi` | 52.8 | CI upper |
 | `\rqOneFollowCspLdaReplicaLoroNAbove` | 1 | patients above chance |
+| `\rqOneFollowCspLdaReplicaLoroMin` | 39.5 | lowest patient (%) |
+| `\rqOneFollowCspLdaReplicaLoroMax` | 60.0 | highest patient (%) |
+| `\rqOneFollowCspLdaReplicaLoroNBelowChance` | 10 | patients below the chance level |
 | `\rqOneFollowCspLdaReplicaChronoMean` | 48.5 | AH vs SF, follow, all patients, csp_lda_replica, chrono: balanced accuracy (%) |
 | `\rqOneFollowCspLdaReplicaChronoCiLo` | 44.7 | CI lower |
 | `\rqOneFollowCspLdaReplicaChronoCiHi` | 52.6 | CI upper |
 | `\rqOneFollowCspLdaReplicaChronoNAbove` | 1 | patients above chance |
+| `\rqOneFollowCspLdaReplicaChronoMin` | 34.4 | lowest patient (%) |
+| `\rqOneFollowCspLdaReplicaChronoMax` | 72.5 | highest patient (%) |
+| `\rqOneFollowCspLdaReplicaChronoNBelowChance` | 11 | patients below the chance level |
 | `\rqOneFollowCspSvmPaperReplicaMean` | 74.0 | AH vs SF, follow, all patients, csp_svm, paper_replica: balanced accuracy (%) |
 | `\rqOneFollowCspSvmPaperReplicaCiLo` | 69.3 | CI lower |
 | `\rqOneFollowCspSvmPaperReplicaCiHi` | 78.0 | CI upper |
 | `\rqOneFollowCspSvmPaperReplicaNAbove` | 16 | patients above chance |
+| `\rqOneFollowCspSvmPaperReplicaMin` | 48.5 | lowest patient (%) |
+| `\rqOneFollowCspSvmPaperReplicaMax` | 86.2 | highest patient (%) |
+| `\rqOneFollowCspSvmPaperReplicaNBelowChance` | 1 | patients below the chance level |
 | `\rqOneFollowCspSvmCvLeakfreeMean` | 54.0 | AH vs SF, follow, all patients, csp_svm, cv_leakfree: balanced accuracy (%) |
 | `\rqOneFollowCspSvmCvLeakfreeCiLo` | 49.4 | CI lower |
 | `\rqOneFollowCspSvmCvLeakfreeCiHi` | 58.5 | CI upper |
 | `\rqOneFollowCspSvmCvLeakfreeNAbove` | 6 | patients above chance |
+| `\rqOneFollowCspSvmCvLeakfreeMin` | 33.8 | lowest patient (%) |
+| `\rqOneFollowCspSvmCvLeakfreeMax` | 72.8 | highest patient (%) |
+| `\rqOneFollowCspSvmCvLeakfreeNBelowChance` | 7 | patients below the chance level |
 | `\rqOneFollowCspSvmLoroMean` | 56.7 | AH vs SF, follow, all patients, csp_svm, loro: balanced accuracy (%) |
 | `\rqOneFollowCspSvmLoroCiLo` | 52.9 | CI lower |
 | `\rqOneFollowCspSvmLoroCiHi` | 60.2 | CI upper |
 | `\rqOneFollowCspSvmLoroNAbove` | 8 | patients above chance |
+| `\rqOneFollowCspSvmLoroMin` | 38.0 | lowest patient (%) |
+| `\rqOneFollowCspSvmLoroMax` | 67.3 | highest patient (%) |
+| `\rqOneFollowCspSvmLoroNBelowChance` | 4 | patients below the chance level |
 | `\rqOneFollowCspSvmChronoMean` | 56.3 | AH vs SF, follow, all patients, csp_svm, chrono: balanced accuracy (%) |
 | `\rqOneFollowCspSvmChronoCiLo` | 53.1 | CI lower |
 | `\rqOneFollowCspSvmChronoCiHi` | 59.5 | CI upper |
 | `\rqOneFollowCspSvmChronoNAbove` | 4 | patients above chance |
+| `\rqOneFollowCspSvmChronoMin` | 40.0 | lowest patient (%) |
+| `\rqOneFollowCspSvmChronoMax` | 69.2 | highest patient (%) |
+| `\rqOneFollowCspSvmChronoNBelowChance` | 2 | patients below the chance level |
 | `\rqOneFollowFbcspLdaPaperReplicaMean` | 92.8 | AH vs SF, follow, all patients, fbcsp_lda, paper_replica: balanced accuracy (%) |
 | `\rqOneFollowFbcspLdaPaperReplicaCiLo` | 88.5 | CI lower |
 | `\rqOneFollowFbcspLdaPaperReplicaCiHi` | 96.1 | CI upper |
 | `\rqOneFollowFbcspLdaPaperReplicaNAbove` | 18 | patients above chance |
+| `\rqOneFollowFbcspLdaPaperReplicaMin` | 64.8 | lowest patient (%) |
+| `\rqOneFollowFbcspLdaPaperReplicaMax` | 100.0 | highest patient (%) |
+| `\rqOneFollowFbcspLdaPaperReplicaNBelowChance` | 0 | patients below the chance level |
 | `\rqOneFollowFbcspLdaCvLeakfreeMean` | 50.4 | AH vs SF, follow, all patients, fbcsp_lda, cv_leakfree: balanced accuracy (%) |
 | `\rqOneFollowFbcspLdaCvLeakfreeCiLo` | 47.0 | CI lower |
 | `\rqOneFollowFbcspLdaCvLeakfreeCiHi` | 54.2 | CI upper |
 | `\rqOneFollowFbcspLdaCvLeakfreeNAbove` | 3 | patients above chance |
+| `\rqOneFollowFbcspLdaCvLeakfreeMin` | 38.2 | lowest patient (%) |
+| `\rqOneFollowFbcspLdaCvLeakfreeMax` | 68.6 | highest patient (%) |
+| `\rqOneFollowFbcspLdaCvLeakfreeNBelowChance` | 9 | patients below the chance level |
 | `\rqOneFollowFbcspLdaLoroMean` | 55.0 | AH vs SF, follow, all patients, fbcsp_lda, loro: balanced accuracy (%) |
 | `\rqOneFollowFbcspLdaLoroCiLo` | 51.5 | CI lower |
 | `\rqOneFollowFbcspLdaLoroCiHi` | 59.2 | CI upper |
 | `\rqOneFollowFbcspLdaLoroNAbove` | 3 | patients above chance |
+| `\rqOneFollowFbcspLdaLoroMin` | 40.6 | lowest patient (%) |
+| `\rqOneFollowFbcspLdaLoroMax` | 81.2 | highest patient (%) |
+| `\rqOneFollowFbcspLdaLoroNBelowChance` | 3 | patients below the chance level |
 | `\rqOneFollowFbcspLdaChronoMean` | 50.3 | AH vs SF, follow, all patients, fbcsp_lda, chrono: balanced accuracy (%) |
 | `\rqOneFollowFbcspLdaChronoCiLo` | 47.1 | CI lower |
 | `\rqOneFollowFbcspLdaChronoCiHi` | 53.8 | CI upper |
 | `\rqOneFollowFbcspLdaChronoNAbove` | 1 | patients above chance |
+| `\rqOneFollowFbcspLdaChronoMin` | 36.9 | lowest patient (%) |
+| `\rqOneFollowFbcspLdaChronoMax` | 63.0 | highest patient (%) |
+| `\rqOneFollowFbcspLdaChronoNBelowChance` | 9 | patients below the chance level |
 | `\rqOneFollowMdmPaperReplicaMean` | 43.2 | AH vs SF, follow, all patients, mdm, paper_replica: balanced accuracy (%) |
 | `\rqOneFollowMdmPaperReplicaCiLo` | 39.7 | CI lower |
 | `\rqOneFollowMdmPaperReplicaCiHi` | 46.8 | CI upper |
 | `\rqOneFollowMdmPaperReplicaNAbove` | 1 | patients above chance |
+| `\rqOneFollowMdmPaperReplicaMin` | 30.4 | lowest patient (%) |
+| `\rqOneFollowMdmPaperReplicaMax` | 59.9 | highest patient (%) |
+| `\rqOneFollowMdmPaperReplicaNBelowChance` | 14 | patients below the chance level |
 | `\rqOneFollowMdmCvLeakfreeMean` | 43.2 | AH vs SF, follow, all patients, mdm, cv_leakfree: balanced accuracy (%) |
 | `\rqOneFollowMdmCvLeakfreeCiLo` | 39.7 | CI lower |
 | `\rqOneFollowMdmCvLeakfreeCiHi` | 46.8 | CI upper |
 | `\rqOneFollowMdmCvLeakfreeNAbove` | 1 | patients above chance |
+| `\rqOneFollowMdmCvLeakfreeMin` | 30.4 | lowest patient (%) |
+| `\rqOneFollowMdmCvLeakfreeMax` | 59.9 | highest patient (%) |
+| `\rqOneFollowMdmCvLeakfreeNBelowChance` | 14 | patients below the chance level |
 | `\rqOneFollowMdmLoroMean` | 55.0 | AH vs SF, follow, all patients, mdm, loro: balanced accuracy (%) |
 | `\rqOneFollowMdmLoroCiLo` | 53.4 | CI lower |
 | `\rqOneFollowMdmLoroCiHi` | 56.8 | CI upper |
 | `\rqOneFollowMdmLoroNAbove` | 3 | patients above chance |
+| `\rqOneFollowMdmLoroMin` | 51.2 | lowest patient (%) |
+| `\rqOneFollowMdmLoroMax` | 62.8 | highest patient (%) |
+| `\rqOneFollowMdmLoroNBelowChance` | 0 | patients below the chance level |
 | `\rqOneFollowMdmChronoMean` | 55.2 | AH vs SF, follow, all patients, mdm, chrono: balanced accuracy (%) |
 | `\rqOneFollowMdmChronoCiLo` | 52.3 | CI lower |
 | `\rqOneFollowMdmChronoCiHi` | 58.1 | CI upper |
 | `\rqOneFollowMdmChronoNAbove` | 2 | patients above chance |
+| `\rqOneFollowMdmChronoMin` | 42.5 | lowest patient (%) |
+| `\rqOneFollowMdmChronoMax` | 67.8 | highest patient (%) |
+| `\rqOneFollowMdmChronoNBelowChance` | 2 | patients below the chance level |
 | `\rqOneFollowTsLrPaperReplicaMean` | 55.5 | AH vs SF, follow, all patients, ts_lr, paper_replica: balanced accuracy (%) |
 | `\rqOneFollowTsLrPaperReplicaCiLo` | 51.3 | CI lower |
 | `\rqOneFollowTsLrPaperReplicaCiHi` | 59.5 | CI upper |
 | `\rqOneFollowTsLrPaperReplicaNAbove` | 8 | patients above chance |
+| `\rqOneFollowTsLrPaperReplicaMin` | 36.2 | lowest patient (%) |
+| `\rqOneFollowTsLrPaperReplicaMax` | 70.3 | highest patient (%) |
+| `\rqOneFollowTsLrPaperReplicaNBelowChance` | 5 | patients below the chance level |
 | `\rqOneFollowTsLrCvLeakfreeMean` | 55.5 | AH vs SF, follow, all patients, ts_lr, cv_leakfree: balanced accuracy (%) |
 | `\rqOneFollowTsLrCvLeakfreeCiLo` | 51.3 | CI lower |
 | `\rqOneFollowTsLrCvLeakfreeCiHi` | 59.5 | CI upper |
 | `\rqOneFollowTsLrCvLeakfreeNAbove` | 8 | patients above chance |
+| `\rqOneFollowTsLrCvLeakfreeMin` | 36.1 | lowest patient (%) |
+| `\rqOneFollowTsLrCvLeakfreeMax` | 70.4 | highest patient (%) |
+| `\rqOneFollowTsLrCvLeakfreeNBelowChance` | 5 | patients below the chance level |
 | `\rqOneFollowTsLrLoroMean` | 61.5 | AH vs SF, follow, all patients, ts_lr, loro: balanced accuracy (%) |
 | `\rqOneFollowTsLrLoroCiLo` | 58.4 | CI lower |
 | `\rqOneFollowTsLrLoroCiHi` | 64.6 | CI upper |
 | `\rqOneFollowTsLrLoroNAbove` | 10 | patients above chance |
+| `\rqOneFollowTsLrLoroMin` | 49.1 | lowest patient (%) |
+| `\rqOneFollowTsLrLoroMax` | 74.9 | highest patient (%) |
+| `\rqOneFollowTsLrLoroNBelowChance` | 1 | patients below the chance level |
 | `\rqOneFollowTsLrChronoMean` | 57.9 | AH vs SF, follow, all patients, ts_lr, chrono: balanced accuracy (%) |
 | `\rqOneFollowTsLrChronoCiLo` | 54.5 | CI lower |
 | `\rqOneFollowTsLrChronoCiHi` | 61.2 | CI upper |
 | `\rqOneFollowTsLrChronoNAbove` | 4 | patients above chance |
+| `\rqOneFollowTsLrChronoMin` | 43.2 | lowest patient (%) |
+| `\rqOneFollowTsLrChronoMax` | 69.9 | highest patient (%) |
+| `\rqOneFollowTsLrChronoNBelowChance` | 2 | patients below the chance level |
 | `\rqOneRestAhSfCspLdaLoroMean` | 62.9 | REST vs AH vs SF, pre, all patients, csp_lda, loro: balanced accuracy (%) |
 | `\rqOneRestAhSfCspLdaLoroCiLo` | 58.3 | CI lower |
 | `\rqOneRestAhSfCspLdaLoroCiHi` | 67.3 | CI upper |
 | `\rqOneRestAhSfCspLdaLoroNAbove` | 21 | patients above chance |
+| `\rqOneRestAhSfCspLdaLoroMin` | 34.8 | lowest patient (%) |
+| `\rqOneRestAhSfCspLdaLoroMax` | 80.2 | highest patient (%) |
+| `\rqOneRestAhSfCspLdaLoroNBelowChance` | 0 | patients below the chance level |
 | `\rqOneRestAhSfCspLdaChronoMean` | 60.6 | REST vs AH vs SF, pre, all patients, csp_lda, chrono: balanced accuracy (%) |
 | `\rqOneRestAhSfCspLdaChronoCiLo` | 55.8 | CI lower |
 | `\rqOneRestAhSfCspLdaChronoCiHi` | 65.2 | CI upper |
 | `\rqOneRestAhSfCspLdaChronoNAbove` | 21 | patients above chance |
+| `\rqOneRestAhSfCspLdaChronoMin` | 32.0 | lowest patient (%) |
+| `\rqOneRestAhSfCspLdaChronoMax` | 81.7 | highest patient (%) |
+| `\rqOneRestAhSfCspLdaChronoNBelowChance` | 1 | patients below the chance level |
 | `\rqOneRestAhSfCspSvmLoroMean` | 61.7 | REST vs AH vs SF, pre, all patients, csp_svm, loro: balanced accuracy (%) |
 | `\rqOneRestAhSfCspSvmLoroCiLo` | 56.9 | CI lower |
 | `\rqOneRestAhSfCspSvmLoroCiHi` | 66.2 | CI upper |
 | `\rqOneRestAhSfCspSvmLoroNAbove` | 21 | patients above chance |
+| `\rqOneRestAhSfCspSvmLoroMin` | 32.7 | lowest patient (%) |
+| `\rqOneRestAhSfCspSvmLoroMax` | 81.3 | highest patient (%) |
+| `\rqOneRestAhSfCspSvmLoroNBelowChance` | 1 | patients below the chance level |
 | `\rqOneRestAhSfCspSvmChronoMean` | 60.0 | REST vs AH vs SF, pre, all patients, csp_svm, chrono: balanced accuracy (%) |
 | `\rqOneRestAhSfCspSvmChronoCiLo` | 55.5 | CI lower |
 | `\rqOneRestAhSfCspSvmChronoCiHi` | 64.3 | CI upper |
 | `\rqOneRestAhSfCspSvmChronoNAbove` | 21 | patients above chance |
+| `\rqOneRestAhSfCspSvmChronoMin` | 37.0 | lowest patient (%) |
+| `\rqOneRestAhSfCspSvmChronoMax` | 80.1 | highest patient (%) |
+| `\rqOneRestAhSfCspSvmChronoNBelowChance` | 0 | patients below the chance level |
 | `\rqOneRestAhSfFbcspLdaLoroMean` | 63.9 | REST vs AH vs SF, pre, all patients, fbcsp_lda, loro: balanced accuracy (%) |
 | `\rqOneRestAhSfFbcspLdaLoroCiLo` | 59.8 | CI lower |
 | `\rqOneRestAhSfFbcspLdaLoroCiHi` | 67.5 | CI upper |
 | `\rqOneRestAhSfFbcspLdaLoroNAbove` | 21 | patients above chance |
+| `\rqOneRestAhSfFbcspLdaLoroMin` | 38.4 | lowest patient (%) |
+| `\rqOneRestAhSfFbcspLdaLoroMax` | 80.9 | highest patient (%) |
+| `\rqOneRestAhSfFbcspLdaLoroNBelowChance` | 0 | patients below the chance level |
 | `\rqOneRestAhSfFbcspLdaChronoMean` | 59.9 | REST vs AH vs SF, pre, all patients, fbcsp_lda, chrono: balanced accuracy (%) |
 | `\rqOneRestAhSfFbcspLdaChronoCiLo` | 55.2 | CI lower |
 | `\rqOneRestAhSfFbcspLdaChronoCiHi` | 64.1 | CI upper |
 | `\rqOneRestAhSfFbcspLdaChronoNAbove` | 20 | patients above chance |
+| `\rqOneRestAhSfFbcspLdaChronoMin` | 33.0 | lowest patient (%) |
+| `\rqOneRestAhSfFbcspLdaChronoMax` | 73.7 | highest patient (%) |
+| `\rqOneRestAhSfFbcspLdaChronoNBelowChance` | 1 | patients below the chance level |
 | `\rqOneRestAhSfMdmLoroMean` | 59.6 | REST vs AH vs SF, pre, all patients, mdm, loro: balanced accuracy (%) |
 | `\rqOneRestAhSfMdmLoroCiLo` | 54.7 | CI lower |
 | `\rqOneRestAhSfMdmLoroCiHi` | 63.8 | CI upper |
 | `\rqOneRestAhSfMdmLoroNAbove` | 19 | patients above chance |
+| `\rqOneRestAhSfMdmLoroMin` | 36.3 | lowest patient (%) |
+| `\rqOneRestAhSfMdmLoroMax` | 72.7 | highest patient (%) |
+| `\rqOneRestAhSfMdmLoroNBelowChance` | 0 | patients below the chance level |
 | `\rqOneRestAhSfMdmChronoMean` | 57.9 | REST vs AH vs SF, pre, all patients, mdm, chrono: balanced accuracy (%) |
 | `\rqOneRestAhSfMdmChronoCiLo` | 53.0 | CI lower |
 | `\rqOneRestAhSfMdmChronoCiHi` | 62.3 | CI upper |
 | `\rqOneRestAhSfMdmChronoNAbove` | 19 | patients above chance |
+| `\rqOneRestAhSfMdmChronoMin` | 28.0 | lowest patient (%) |
+| `\rqOneRestAhSfMdmChronoMax` | 70.8 | highest patient (%) |
+| `\rqOneRestAhSfMdmChronoNBelowChance` | 1 | patients below the chance level |
 | `\rqOneRestAhSfTsLrLoroMean` | 64.6 | REST vs AH vs SF, pre, all patients, ts_lr, loro: balanced accuracy (%) |
 | `\rqOneRestAhSfTsLrLoroCiLo` | 60.6 | CI lower |
 | `\rqOneRestAhSfTsLrLoroCiHi` | 68.5 | CI upper |
 | `\rqOneRestAhSfTsLrLoroNAbove` | 22 | patients above chance |
+| `\rqOneRestAhSfTsLrLoroMin` | 46.4 | lowest patient (%) |
+| `\rqOneRestAhSfTsLrLoroMax` | 82.0 | highest patient (%) |
+| `\rqOneRestAhSfTsLrLoroNBelowChance` | 0 | patients below the chance level |
 | `\rqOneRestAhSfTsLrChronoMean` | 61.3 | REST vs AH vs SF, pre, all patients, ts_lr, chrono: balanced accuracy (%) |
 | `\rqOneRestAhSfTsLrChronoCiLo` | 56.6 | CI lower |
 | `\rqOneRestAhSfTsLrChronoCiHi` | 65.5 | CI upper |
 | `\rqOneRestAhSfTsLrChronoNAbove` | 19 | patients above chance |
+| `\rqOneRestAhSfTsLrChronoMin` | 38.2 | lowest patient (%) |
+| `\rqOneRestAhSfTsLrChronoMax` | 76.7 | highest patient (%) |
+| `\rqOneRestAhSfTsLrChronoNBelowChance` | 0 | patients below the chance level |
 | `\rqOneSfRestCspLdaLoroMean` | 86.5 | SF vs REST, pre, all patients, csp_lda, loro: balanced accuracy (%) |
 | `\rqOneSfRestCspLdaLoroCiLo` | 81.3 | CI lower |
 | `\rqOneSfRestCspLdaLoroCiHi` | 91.0 | CI upper |
 | `\rqOneSfRestCspLdaLoroNAbove` | 22 | patients above chance |
+| `\rqOneSfRestCspLdaLoroMin` | 58.9 | lowest patient (%) |
+| `\rqOneSfRestCspLdaLoroMax` | 100.0 | highest patient (%) |
+| `\rqOneSfRestCspLdaLoroNBelowChance` | 0 | patients below the chance level |
 | `\rqOneSfRestCspLdaChronoMean` | 82.7 | SF vs REST, pre, all patients, csp_lda, chrono: balanced accuracy (%) |
 | `\rqOneSfRestCspLdaChronoCiLo` | 77.0 | CI lower |
 | `\rqOneSfRestCspLdaChronoCiHi` | 87.9 | CI upper |
 | `\rqOneSfRestCspLdaChronoNAbove` | 19 | patients above chance |
+| `\rqOneSfRestCspLdaChronoMin` | 55.0 | lowest patient (%) |
+| `\rqOneSfRestCspLdaChronoMax` | 100.0 | highest patient (%) |
+| `\rqOneSfRestCspLdaChronoNBelowChance` | 0 | patients below the chance level |
 | `\rqOneSfRestCspSvmLoroMean` | 84.7 | SF vs REST, pre, all patients, csp_svm, loro: balanced accuracy (%) |
 | `\rqOneSfRestCspSvmLoroCiLo` | 79.6 | CI lower |
 | `\rqOneSfRestCspSvmLoroCiHi` | 89.2 | CI upper |
 | `\rqOneSfRestCspSvmLoroNAbove` | 22 | patients above chance |
+| `\rqOneSfRestCspSvmLoroMin` | 58.3 | lowest patient (%) |
+| `\rqOneSfRestCspSvmLoroMax` | 98.6 | highest patient (%) |
+| `\rqOneSfRestCspSvmLoroNBelowChance` | 0 | patients below the chance level |
 | `\rqOneSfRestCspSvmChronoMean` | 81.0 | SF vs REST, pre, all patients, csp_svm, chrono: balanced accuracy (%) |
 | `\rqOneSfRestCspSvmChronoCiLo` | 75.5 | CI lower |
 | `\rqOneSfRestCspSvmChronoCiHi` | 86.3 | CI upper |
 | `\rqOneSfRestCspSvmChronoNAbove` | 18 | patients above chance |
+| `\rqOneSfRestCspSvmChronoMin` | 56.5 | lowest patient (%) |
+| `\rqOneSfRestCspSvmChronoMax` | 100.0 | highest patient (%) |
+| `\rqOneSfRestCspSvmChronoNBelowChance` | 0 | patients below the chance level |
 | `\rqOneSfRestFbcspLdaLoroMean` | 86.5 | SF vs REST, pre, all patients, fbcsp_lda, loro: balanced accuracy (%) |
 | `\rqOneSfRestFbcspLdaLoroCiLo` | 82.4 | CI lower |
 | `\rqOneSfRestFbcspLdaLoroCiHi` | 90.3 | CI upper |
 | `\rqOneSfRestFbcspLdaLoroNAbove` | 22 | patients above chance |
+| `\rqOneSfRestFbcspLdaLoroMin` | 63.3 | lowest patient (%) |
+| `\rqOneSfRestFbcspLdaLoroMax` | 100.0 | highest patient (%) |
+| `\rqOneSfRestFbcspLdaLoroNBelowChance` | 0 | patients below the chance level |
 | `\rqOneSfRestFbcspLdaChronoMean` | 79.8 | SF vs REST, pre, all patients, fbcsp_lda, chrono: balanced accuracy (%) |
 | `\rqOneSfRestFbcspLdaChronoCiLo` | 73.2 | CI lower |
 | `\rqOneSfRestFbcspLdaChronoCiHi` | 85.9 | CI upper |
 | `\rqOneSfRestFbcspLdaChronoNAbove` | 18 | patients above chance |
+| `\rqOneSfRestFbcspLdaChronoMin` | 51.0 | lowest patient (%) |
+| `\rqOneSfRestFbcspLdaChronoMax` | 100.0 | highest patient (%) |
+| `\rqOneSfRestFbcspLdaChronoNBelowChance` | 0 | patients below the chance level |
 | `\rqOneSfRestMdmLoroMean` | 82.7 | SF vs REST, pre, all patients, mdm, loro: balanced accuracy (%) |
 | `\rqOneSfRestMdmLoroCiLo` | 77.9 | CI lower |
 | `\rqOneSfRestMdmLoroCiHi` | 86.9 | CI upper |
 | `\rqOneSfRestMdmLoroNAbove` | 22 | patients above chance |
+| `\rqOneSfRestMdmLoroMin` | 60.5 | lowest patient (%) |
+| `\rqOneSfRestMdmLoroMax` | 93.1 | highest patient (%) |
+| `\rqOneSfRestMdmLoroNBelowChance` | 0 | patients below the chance level |
 | `\rqOneSfRestMdmChronoMean` | 82.1 | SF vs REST, pre, all patients, mdm, chrono: balanced accuracy (%) |
 | `\rqOneSfRestMdmChronoCiLo` | 76.5 | CI lower |
 | `\rqOneSfRestMdmChronoCiHi` | 87.1 | CI upper |
 | `\rqOneSfRestMdmChronoNAbove` | 20 | patients above chance |
+| `\rqOneSfRestMdmChronoMin` | 52.5 | lowest patient (%) |
+| `\rqOneSfRestMdmChronoMax` | 98.7 | highest patient (%) |
+| `\rqOneSfRestMdmChronoNBelowChance` | 0 | patients below the chance level |
 | `\rqOneSfRestTsLrLoroMean` | 85.7 | SF vs REST, pre, all patients, ts_lr, loro: balanced accuracy (%) |
 | `\rqOneSfRestTsLrLoroCiLo` | 81.4 | CI lower |
 | `\rqOneSfRestTsLrLoroCiHi` | 89.7 | CI upper |
 | `\rqOneSfRestTsLrLoroNAbove` | 22 | patients above chance |
+| `\rqOneSfRestTsLrLoroMin` | 61.9 | lowest patient (%) |
+| `\rqOneSfRestTsLrLoroMax` | 97.2 | highest patient (%) |
+| `\rqOneSfRestTsLrLoroNBelowChance` | 0 | patients below the chance level |
 | `\rqOneSfRestTsLrChronoMean` | 82.2 | SF vs REST, pre, all patients, ts_lr, chrono: balanced accuracy (%) |
 | `\rqOneSfRestTsLrChronoCiLo` | 76.8 | CI lower |
 | `\rqOneSfRestTsLrChronoCiHi` | 87.3 | CI upper |
 | `\rqOneSfRestTsLrChronoNAbove` | 19 | patients above chance |
+| `\rqOneSfRestTsLrChronoMin` | 56.2 | lowest patient (%) |
+| `\rqOneSfRestTsLrChronoMax` | 100.0 | highest patient (%) |
+| `\rqOneSfRestTsLrChronoNBelowChance` | 0 | patients below the chance level |
 | `\rqOneFollowN` | 18 | AH vs SF, follow, all patients: patients |
 | `\rqOnePostN` | 24 | AH vs SF, post, all patients: patients |
 | `\rqOnePostLinkedN` | 23 | AH vs SF, post, sub-21/22 averaged: patients |
@@ -873,6 +1155,19 @@ in the script's docstring.
 | `\rqOneTsLrLoroMinusChronoDiffCiHi` | 4.6 | CI upper |
 | `\rqOneTsLrLoroMinusChronoP` | 0.27 | p |
 | `\rqOneTsLrLoroMinusChronoPHolm` | 1.0 | Holm-adjusted p |
+
+`summary/rq1_runwise_gap.csv`
+
+| Macro | Value | Meaning |
+|---|---|---|
+| `\rqOneCspLdaPaperReplicaMinusLoroDiff` | 19.6 | csp_lda, AH vs SF, pre, paper_replica minus loro (descriptive, no test): mean difference (points) |
+| `\rqOneCspLdaPaperReplicaMinusLoroDiffCiLo` | 15.6 | CI lower |
+| `\rqOneCspLdaPaperReplicaMinusLoroDiffCiHi` | 23.7 | CI upper |
+| `\rqOneCspLdaPaperReplicaMinusLoroNegative` | 0 | patients with a negative difference |
+| `\rqOneCspLdaPaperReplicaMinusChronoDiff` | 22.3 | csp_lda, AH vs SF, pre, paper_replica minus chrono (descriptive, no test): mean difference (points) |
+| `\rqOneCspLdaPaperReplicaMinusChronoDiffCiLo` | 16.6 | CI lower |
+| `\rqOneCspLdaPaperReplicaMinusChronoDiffCiHi` | 28.0 | CI upper |
+| `\rqOneCspLdaPaperReplicaMinusChronoNegative` | 1 | patients with a negative difference |
 | `\rqOneLeakCspPHolmMin` | 4.3 × 10^-6 | leak of the four CSP methods: Holm p: smallest (range) |
 | `\rqOneLeakCspPHolmMax` | 7.2 × 10^-6 | largest (range) |
 
@@ -1684,6 +1979,20 @@ in the script's docstring.
 | `\rqTwoMinutesKAll` | 9.3 | S1_new_user: labelled calibration at k = all (minutes) |
 | `\rqTwoRestMinutes` | 4.7 | unlabelled rest the transfer methods use at k = 0 (minutes) |
 
+`summary/calib_minutes.csv`
+
+| Macro | Value | Meaning |
+|---|---|---|
+| `\rqTwoMinutesRecordedKOne` | 0.5 | S1_new_user: labelled calibration at k = 1, recorded length (minutes) |
+| `\rqTwoMinutesRecordedKTwo` | 1.1 | S1_new_user: labelled calibration at k = 2, recorded length (minutes) |
+| `\rqTwoMinutesRecordedKThree` | 1.6 | S1_new_user: labelled calibration at k = 3, recorded length (minutes) |
+| `\rqTwoMinutesRecordedKFive` | 2.7 | S1_new_user: labelled calibration at k = 5, recorded length (minutes) |
+| `\rqTwoMinutesRecordedKTen` | 5.4 | S1_new_user: labelled calibration at k = 10, recorded length (minutes) |
+| `\rqTwoMinutesRecordedKAll` | 10.8 | S1_new_user: labelled calibration at k = all, recorded length (minutes) |
+| `\rqTwoTrialSecondsRecorded` | 16.2 | pre, runs 01-02: a run's recorded length over its trials, median (s) |
+| `\rqTwoRestSecondsRecorded` | 8.6 | pre, runs 01-02: rest marker to the cue, median of the runs' medians (s) |
+| `\rqTwoRestMinutesRecorded` | 5.7 | unlabelled rest at k = 0 at the recorded rest length (minutes) |
+
 `summary/calib_confirmatory.csv`
 
 | Macro | Value | Meaning |
@@ -1708,6 +2017,10 @@ in the script's docstring.
 | `\rqTwoHTwoBR` | 0.96 | rank-biserial r |
 | `\rqTwoHTwoBN` | 22 | patients |
 | `\rqTwoHTwoBNNonzero` | 22 | patients with a non-zero difference |
+| `\rqTwoHTwoBPointsDiff` | 8.2 | mean difference (points) |
+| `\rqTwoHTwoBPointsDiffCiLo` | 6.1 | CI lower (points) |
+| `\rqTwoHTwoBPointsDiffCiHi` | 10.3 | CI upper (points) |
+| `\rqTwoHTwoBPointsMedianDiff` | 9.0 | median difference (points) |
 | `\rqTwoEegnetHTwoADiff` | 0.256 | H2a (secondary), eegnet_ea_ft minus eegnet_scratch, ALC, pre, all patients, random draw: mean difference (ALC) |
 | `\rqTwoEegnetHTwoADiffCiLo` | 0.192 | CI lower |
 | `\rqTwoEegnetHTwoADiffCiHi` | 0.319 | CI upper |
@@ -1728,6 +2041,10 @@ in the script's docstring.
 | `\rqTwoEegnetHTwoBR` | 0.99 | rank-biserial r |
 | `\rqTwoEegnetHTwoBN` | 22 | patients |
 | `\rqTwoEegnetHTwoBNNonzero` | 22 | patients with a non-zero difference |
+| `\rqTwoEegnetHTwoBPointsDiff` | 17.7 | mean difference (points) |
+| `\rqTwoEegnetHTwoBPointsDiffCiLo` | 13.8 | CI lower (points) |
+| `\rqTwoEegnetHTwoBPointsDiffCiHi` | 21.5 | CI upper (points) |
+| `\rqTwoEegnetHTwoBPointsMedianDiff` | 19.5 | median difference (points) |
 | `\rqTwoHTwoAPostDiff` | 0.072 | H2a (confirmatory), rct_tslr minus ts_lr, ALC, post, all patients, random draw: mean difference (ALC) |
 | `\rqTwoHTwoAPostDiffCiLo` | 0.023 | CI lower |
 | `\rqTwoHTwoAPostDiffCiHi` | 0.117 | CI upper |
@@ -1740,6 +2057,10 @@ in the script's docstring.
 | `\rqTwoHTwoBPostP` | 2.5 × 10^-4 | p |
 | `\rqTwoHTwoBPostCategory` | supported | category |
 | `\rqTwoHTwoBPostMedianDiff` | 0.066 | median difference (balanced accuracy, fraction) |
+| `\rqTwoHTwoBPostPointsDiff` | 6.9 | mean difference (points) |
+| `\rqTwoHTwoBPostPointsDiffCiLo` | 3.9 | CI lower (points) |
+| `\rqTwoHTwoBPostPointsDiffCiHi` | 9.9 | CI upper (points) |
+| `\rqTwoHTwoBPostPointsMedianDiff` | 6.6 | median difference (points) |
 | `\rqTwoHTwoAPostLinkedDiff` | 0.073 | H2a (confirmatory), rct_tslr minus ts_lr, ALC, post, sub-21/22 averaged, random draw: mean difference (ALC) |
 | `\rqTwoHTwoAPostLinkedDiffCiLo` | 0.021 | CI lower |
 | `\rqTwoHTwoAPostLinkedDiffCiHi` | 0.119 | CI upper |
@@ -1752,6 +2073,10 @@ in the script's docstring.
 | `\rqTwoHTwoBPostLinkedP` | 1.3 × 10^-4 | p |
 | `\rqTwoHTwoBPostLinkedCategory` | supported | category |
 | `\rqTwoHTwoBPostLinkedMedianDiff` | 0.074 | median difference (balanced accuracy, fraction) |
+| `\rqTwoHTwoBPostLinkedPointsDiff` | 7.3 | mean difference (points) |
+| `\rqTwoHTwoBPostLinkedPointsDiffCiLo` | 4.5 | CI lower (points) |
+| `\rqTwoHTwoBPostLinkedPointsDiffCiHi` | 10.3 | CI upper (points) |
+| `\rqTwoHTwoBPostLinkedPointsMedianDiff` | 7.4 | median difference (points) |
 | `\rqTwoHTwoAChronoDiff` | 0.139 | H2a (confirmatory), rct_tslr minus ts_lr, ALC, pre, all patients, chrono draw: mean difference (ALC) |
 | `\rqTwoHTwoAChronoDiffCiLo` | 0.071 | CI lower |
 | `\rqTwoHTwoAChronoDiffCiHi` | 0.210 | CI upper |
@@ -1764,6 +2089,10 @@ in the script's docstring.
 | `\rqTwoHTwoBChronoP` | 6.0 × 10^-5 | p |
 | `\rqTwoHTwoBChronoCategory` | supported | category |
 | `\rqTwoHTwoBChronoMedianDiff` | 0.131 | median difference (balanced accuracy, fraction) |
+| `\rqTwoHTwoBChronoPointsDiff` | 11.8 | mean difference (points) |
+| `\rqTwoHTwoBChronoPointsDiffCiLo` | 7.4 | CI lower (points) |
+| `\rqTwoHTwoBChronoPointsDiffCiHi` | 15.8 | CI upper (points) |
+| `\rqTwoHTwoBChronoPointsMedianDiff` | 13.1 | median difference (points) |
 | `\rqTwoHTwoANoDevDiff` | 0.125 | H2a (confirmatory), rct_tslr minus ts_lr, ALC, pre, without sub-01, sub-03, random draw: mean difference (ALC) |
 | `\rqTwoHTwoANoDevDiffCiLo` | 0.073 | CI lower |
 | `\rqTwoHTwoANoDevDiffCiHi` | 0.179 | CI upper |
@@ -1776,6 +2105,10 @@ in the script's docstring.
 | `\rqTwoHTwoBNoDevP` | 9.5 × 10^-6 | p |
 | `\rqTwoHTwoBNoDevCategory` | supported | category |
 | `\rqTwoHTwoBNoDevMedianDiff` | 0.090 | median difference (balanced accuracy, fraction) |
+| `\rqTwoHTwoBNoDevPointsDiff` | 8.3 | mean difference (points) |
+| `\rqTwoHTwoBNoDevPointsDiffCiLo` | 6.0 | CI lower (points) |
+| `\rqTwoHTwoBNoDevPointsDiffCiHi` | 10.6 | CI upper (points) |
+| `\rqTwoHTwoBNoDevPointsMedianDiff` | 9.0 | median difference (points) |
 
 `summary/calib_h2a_per_k.csv`
 
@@ -2373,6 +2706,19 @@ in the script's docstring.
 | `\rqThreeMinutesKFive` | 1.2 | S2_new_command: labelled calibration at k = 5 (minutes) |
 | `\rqThreeMinutesKTen` | 2.3 | S2_new_command: labelled calibration at k = 10 (minutes) |
 | `\rqThreeMinutesKAll` | 4.7 | S2_new_command: labelled calibration at k = all (minutes) |
+| `\rqThreeRestAhSfTsLrSfRecallMin` | 0.1 | S2_new_command, REST vs AH vs SF, pre, ts_lr, k = 1 to 5: SF recall (%): smallest (range) |
+| `\rqThreeRestAhSfTsLrSfRecallMax` | 1.4 | largest (range) |
+
+`summary/calib_minutes.csv`
+
+| Macro | Value | Meaning |
+|---|---|---|
+| `\rqThreeMinutesRecordedKOne` | 0.3 | S2_new_command: labelled calibration at k = 1, recorded length (minutes) |
+| `\rqThreeMinutesRecordedKTwo` | 0.5 | S2_new_command: labelled calibration at k = 2, recorded length (minutes) |
+| `\rqThreeMinutesRecordedKThree` | 0.8 | S2_new_command: labelled calibration at k = 3, recorded length (minutes) |
+| `\rqThreeMinutesRecordedKFive` | 1.4 | S2_new_command: labelled calibration at k = 5, recorded length (minutes) |
+| `\rqThreeMinutesRecordedKTen` | 2.7 | S2_new_command: labelled calibration at k = 10, recorded length (minutes) |
+| `\rqThreeMinutesRecordedKAll` | 5.4 | S2_new_command: labelled calibration at k = all, recorded length (minutes) |
 
 `summary/calib_confirmatory.csv`
 
@@ -2411,6 +2757,10 @@ in the script's docstring.
 | `\rqThreeHThreeCKTwoR` | −0.57 | rank-biserial r |
 | `\rqThreeHThreeCKTwoN` | 22 | patients |
 | `\rqThreeHThreeCKTwoNNonzero` | 22 | patients with a non-zero difference |
+| `\rqThreeHThreeCKTwoPointsDiff` | −4.8 | mean difference (points) |
+| `\rqThreeHThreeCKTwoPointsDiffCiLo` | −8.9 | CI lower (points) |
+| `\rqThreeHThreeCKTwoPointsDiffCiHi` | −0.5 | CI upper (points) |
+| `\rqThreeHThreeCKTwoPointsMedianDiff` | −3.2 | median difference (points) |
 | `\rqThreeHThreeCKFiveDiff` | −0.041 | H3c_k5 (confirmatory), rct_tslr minus ah_proxy, BA at k=5, pre, all patients, random draw: mean difference (balanced accuracy, fraction) |
 | `\rqThreeHThreeCKFiveDiffCiLo` | −0.080 | CI lower |
 | `\rqThreeHThreeCKFiveDiffCiHi` | −0.003 | CI upper |
@@ -2422,6 +2772,10 @@ in the script's docstring.
 | `\rqThreeHThreeCKFiveR` | −0.45 | rank-biserial r |
 | `\rqThreeHThreeCKFiveN` | 22 | patients |
 | `\rqThreeHThreeCKFiveNNonzero` | 22 | patients with a non-zero difference |
+| `\rqThreeHThreeCKFivePointsDiff` | −4.1 | mean difference (points) |
+| `\rqThreeHThreeCKFivePointsDiffCiLo` | −8.0 | CI lower (points) |
+| `\rqThreeHThreeCKFivePointsDiffCiHi` | −0.3 | CI upper (points) |
+| `\rqThreeHThreeCKFivePointsMedianDiff` | −1.2 | median difference (points) |
 | `\rqThreeEegnetHThreeADiff` | 0.388 | H3a (secondary), eegnet_ea_ft minus eegnet_scratch, ALC, pre, all patients, random draw: mean difference (ALC) |
 | `\rqThreeEegnetHThreeADiffCiLo` | 0.296 | CI lower |
 | `\rqThreeEegnetHThreeADiffCiHi` | 0.482 | CI upper |
@@ -2465,6 +2819,10 @@ in the script's docstring.
 | `\rqThreeHThreeCKTwoPostPHolm` | 1.0 | Holm-adjusted p |
 | `\rqThreeHThreeCKTwoPostCategory` | inconclusive | category |
 | `\rqThreeHThreeCKTwoPostMedianDiff` | −0.021 | median difference (balanced accuracy, fraction) |
+| `\rqThreeHThreeCKTwoPostPointsDiff` | −3.9 | mean difference (points) |
+| `\rqThreeHThreeCKTwoPostPointsDiffCiLo` | −7.1 | CI lower (points) |
+| `\rqThreeHThreeCKTwoPostPointsDiffCiHi` | −0.8 | CI upper (points) |
+| `\rqThreeHThreeCKTwoPostPointsMedianDiff` | −2.1 | median difference (points) |
 | `\rqThreeHThreeCKFivePostDiff` | −0.031 | H3c_k5 (confirmatory), rct_tslr minus ah_proxy, BA at k=5, post, all patients, random draw: mean difference (balanced accuracy, fraction) |
 | `\rqThreeHThreeCKFivePostDiffCiLo` | −0.071 | CI lower |
 | `\rqThreeHThreeCKFivePostDiffCiHi` | 0.006 | CI upper |
@@ -2472,6 +2830,10 @@ in the script's docstring.
 | `\rqThreeHThreeCKFivePostPHolm` | 1.0 | Holm-adjusted p |
 | `\rqThreeHThreeCKFivePostCategory` | inconclusive | category |
 | `\rqThreeHThreeCKFivePostMedianDiff` | −0.011 | median difference (balanced accuracy, fraction) |
+| `\rqThreeHThreeCKFivePostPointsDiff` | −3.1 | mean difference (points) |
+| `\rqThreeHThreeCKFivePostPointsDiffCiLo` | −7.1 | CI lower (points) |
+| `\rqThreeHThreeCKFivePostPointsDiffCiHi` | 0.6 | CI upper (points) |
+| `\rqThreeHThreeCKFivePostPointsMedianDiff` | −1.1 | median difference (points) |
 | `\rqThreeHThreeAPostLinkedDiff` | 0.099 | H3a (confirmatory), rct_tslr minus ts_lr, ALC, post, sub-21/22 averaged, random draw: mean difference (ALC) |
 | `\rqThreeHThreeAPostLinkedDiffCiLo` | 0.044 | CI lower |
 | `\rqThreeHThreeAPostLinkedDiffCiHi` | 0.151 | CI upper |
@@ -2493,6 +2855,10 @@ in the script's docstring.
 | `\rqThreeHThreeCKTwoPostLinkedPHolm` | 1.0 | Holm-adjusted p |
 | `\rqThreeHThreeCKTwoPostLinkedCategory` | inconclusive | category |
 | `\rqThreeHThreeCKTwoPostLinkedMedianDiff` | −0.012 | median difference (balanced accuracy, fraction) |
+| `\rqThreeHThreeCKTwoPostLinkedPointsDiff` | −4.0 | mean difference (points) |
+| `\rqThreeHThreeCKTwoPostLinkedPointsDiffCiLo` | −7.4 | CI lower (points) |
+| `\rqThreeHThreeCKTwoPostLinkedPointsDiffCiHi` | −0.7 | CI upper (points) |
+| `\rqThreeHThreeCKTwoPostLinkedPointsMedianDiff` | −1.2 | median difference (points) |
 | `\rqThreeHThreeCKFivePostLinkedDiff` | −0.032 | H3c_k5 (confirmatory), rct_tslr minus ah_proxy, BA at k=5, post, sub-21/22 averaged, random draw: mean difference (balanced accuracy, fraction) |
 | `\rqThreeHThreeCKFivePostLinkedDiffCiLo` | −0.074 | CI lower |
 | `\rqThreeHThreeCKFivePostLinkedDiffCiHi` | 0.007 | CI upper |
@@ -2500,6 +2866,10 @@ in the script's docstring.
 | `\rqThreeHThreeCKFivePostLinkedPHolm` | 1.0 | Holm-adjusted p |
 | `\rqThreeHThreeCKFivePostLinkedCategory` | inconclusive | category |
 | `\rqThreeHThreeCKFivePostLinkedMedianDiff` | −0.004 | median difference (balanced accuracy, fraction) |
+| `\rqThreeHThreeCKFivePostLinkedPointsDiff` | −3.2 | mean difference (points) |
+| `\rqThreeHThreeCKFivePostLinkedPointsDiffCiLo` | −7.4 | CI lower (points) |
+| `\rqThreeHThreeCKFivePostLinkedPointsDiffCiHi` | 0.7 | CI upper (points) |
+| `\rqThreeHThreeCKFivePostLinkedPointsMedianDiff` | −0.4 | median difference (points) |
 | `\rqThreeHThreeAChronoDiff` | 0.077 | H3a (confirmatory), rct_tslr minus ts_lr, ALC, pre, all patients, chrono draw: mean difference (ALC) |
 | `\rqThreeHThreeAChronoDiffCiLo` | −0.023 | CI lower |
 | `\rqThreeHThreeAChronoDiffCiHi` | 0.173 | CI upper |
@@ -2521,6 +2891,10 @@ in the script's docstring.
 | `\rqThreeHThreeCKTwoChronoPHolm` | 1.0 | Holm-adjusted p |
 | `\rqThreeHThreeCKTwoChronoCategory` | inconclusive | category |
 | `\rqThreeHThreeCKTwoChronoMedianDiff` | −0.062 | median difference (balanced accuracy, fraction) |
+| `\rqThreeHThreeCKTwoChronoPointsDiff` | −7.5 | mean difference (points) |
+| `\rqThreeHThreeCKTwoChronoPointsDiffCiLo` | −12.7 | CI lower (points) |
+| `\rqThreeHThreeCKTwoChronoPointsDiffCiHi` | −2.5 | CI upper (points) |
+| `\rqThreeHThreeCKTwoChronoPointsMedianDiff` | −6.2 | median difference (points) |
 | `\rqThreeHThreeCKFiveChronoDiff` | −0.046 | H3c_k5 (confirmatory), rct_tslr minus ah_proxy, BA at k=5, pre, all patients, chrono draw: mean difference (balanced accuracy, fraction) |
 | `\rqThreeHThreeCKFiveChronoDiffCiLo` | −0.092 | CI lower |
 | `\rqThreeHThreeCKFiveChronoDiffCiHi` | 0.001 | CI upper |
@@ -2528,6 +2902,10 @@ in the script's docstring.
 | `\rqThreeHThreeCKFiveChronoPHolm` | 1.0 | Holm-adjusted p |
 | `\rqThreeHThreeCKFiveChronoCategory` | inconclusive | category |
 | `\rqThreeHThreeCKFiveChronoMedianDiff` | −0.030 | median difference (balanced accuracy, fraction) |
+| `\rqThreeHThreeCKFiveChronoPointsDiff` | −4.6 | mean difference (points) |
+| `\rqThreeHThreeCKFiveChronoPointsDiffCiLo` | −9.2 | CI lower (points) |
+| `\rqThreeHThreeCKFiveChronoPointsDiffCiHi` | 0.1 | CI upper (points) |
+| `\rqThreeHThreeCKFiveChronoPointsMedianDiff` | −3.0 | median difference (points) |
 | `\rqThreeHThreeANoDevDiff` | 0.049 | H3a (confirmatory), rct_tslr minus ts_lr, ALC, pre, without sub-01, sub-03, random draw: mean difference (ALC) |
 | `\rqThreeHThreeANoDevDiffCiLo` | −0.019 | CI lower |
 | `\rqThreeHThreeANoDevDiffCiHi` | 0.113 | CI upper |
@@ -2549,6 +2927,10 @@ in the script's docstring.
 | `\rqThreeHThreeCKTwoNoDevPHolm` | 1.0 | Holm-adjusted p |
 | `\rqThreeHThreeCKTwoNoDevCategory` | inconclusive | category |
 | `\rqThreeHThreeCKTwoNoDevMedianDiff` | −0.032 | median difference (balanced accuracy, fraction) |
+| `\rqThreeHThreeCKTwoNoDevPointsDiff` | −4.5 | mean difference (points) |
+| `\rqThreeHThreeCKTwoNoDevPointsDiffCiLo` | −9.0 | CI lower (points) |
+| `\rqThreeHThreeCKTwoNoDevPointsDiffCiHi` | −0.0 | CI upper (points) |
+| `\rqThreeHThreeCKTwoNoDevPointsMedianDiff` | −3.2 | median difference (points) |
 | `\rqThreeHThreeCKFiveNoDevDiff` | −0.039 | H3c_k5 (confirmatory), rct_tslr minus ah_proxy, BA at k=5, pre, without sub-01, sub-03, random draw: mean difference (balanced accuracy, fraction) |
 | `\rqThreeHThreeCKFiveNoDevDiffCiLo` | −0.083 | CI lower |
 | `\rqThreeHThreeCKFiveNoDevDiffCiHi` | 0.002 | CI upper |
@@ -2556,6 +2938,10 @@ in the script's docstring.
 | `\rqThreeHThreeCKFiveNoDevPHolm` | 1.0 | Holm-adjusted p |
 | `\rqThreeHThreeCKFiveNoDevCategory` | inconclusive | category |
 | `\rqThreeHThreeCKFiveNoDevMedianDiff` | −0.012 | median difference (balanced accuracy, fraction) |
+| `\rqThreeHThreeCKFiveNoDevPointsDiff` | −3.9 | mean difference (points) |
+| `\rqThreeHThreeCKFiveNoDevPointsDiffCiLo` | −8.3 | CI lower (points) |
+| `\rqThreeHThreeCKFiveNoDevPointsDiffCiHi` | 0.2 | CI upper (points) |
+| `\rqThreeHThreeCKFiveNoDevPointsMedianDiff` | −1.2 | median difference (points) |
 
 `summary/calib_trials_saved.csv`
 

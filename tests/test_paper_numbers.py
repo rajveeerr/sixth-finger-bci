@@ -153,6 +153,39 @@ def test_group_numbers_are_the_summaries_values(nums):
     assert nums.entries["nTrials"].kind == "count"
 
 
+def test_review_numbers_are_the_summaries_values(nums):
+    """The numbers added in answer to the paper's review, copied from their summaries."""
+    leakfree = row(
+        summary("rq1_table.csv"),
+        task="T1_ah_vs_sf",
+        method="csp_lda",
+        protocol="cv_leakfree",
+        session="pre",
+        population="all",
+    )
+    gap = row(summary("rq1_runwise_gap.csv"), session="pre", comparison="paper_replica - loro")
+    minutes = row(summary("calib_minutes.csv"), session="pre", scenario="S1_new_user", k=20)
+    h2b = row(
+        summary("calib_confirmatory.csv"),
+        hypothesis="H2b",
+        role="confirmatory",
+        session="pre",
+        population="all",
+        draw_basis="random",
+    )
+    expected = {
+        "rqOneCspLdaCvLeakfreeMin": 100 * leakfree.min_bal_acc,
+        "rqOneCspLdaPaperReplicaMinusLoroDiff": gap["mean"],
+        "rqTwoMinutesRecordedKAll": minutes.minutes_recorded,
+        "rqTwoTrialSecondsRecorded": minutes.trial_s_recorded,
+        "rqTwoHTwoBPointsDiff": 100 * h2b.mean_diff,
+    }
+    for name, value in expected.items():
+        assert nums.entries[name].plain == f"{value:.1f}", name
+    below = str(leakfree.n_below_chance_level)
+    assert nums.entries["rqOneCspLdaCvLeakfreeNBelowChance"].plain == below
+
+
 def test_demo_timing_and_weights_are_the_files_values(nums):
     import json
 

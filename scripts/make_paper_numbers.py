@@ -35,7 +35,10 @@ the band and channel (Mu, Beta; CThree, Cz, CFour); one patient's value carries 
 (SubOne), and Patient marks the extreme over patients. Statistics: Mean, Median, CiLo and CiHi
 (95 % bootstrap CI), N, Diff (points unless the index says otherwise), P (two significant
 digits), PHolm, W, R (rank-biserial), Better, Worse, Tied (patients), Min and Max (ranges, or
-one cell where the results file states the extreme itself).
+one cell where the results file states the extreme itself), NBelowChance (patients whose mean
+is under the task's chance level). A test its file states as a fraction of balanced accuracy
+also gets its difference in points, with Points before the statistic (\rqTwoHTwoBPointsDiff);
+minutes at the recorded trial length carry Recorded (\rqTwoMinutesRecordedKAll).
 
 Percentages print without the sign: write \\rqOneCspLdaCvLeakfreeMean\\,\\% for 58.5 %.
 paper/generated/numbers-index.md lists every macro with its value, meaning and source. Macros
@@ -438,6 +441,12 @@ def dataset(nums: Numbers) -> None:
     if nums.entries["nPre"].plain != str(pre):
         raise SystemExit("the audit report and the RQ1 analyses disagree on the pre patients")
 
+    # The public copy of the deviation log, whose dated rows the paper counts.
+    src = "../docs/preregistration/deviations.md"
+    log = (nums.root / "docs" / "preregistration" / "deviations.md").read_text().splitlines()
+    rows = integer(sum(re.match(r"\| \d{4}-\d{2}-\d{2} \|", line) is not None for line in log))
+    nums.add("nDeviations", rows, src, "dated entries of the deviation log", "count")
+
     src = "audit/epoch_trials.csv"
     trials = nums.csv(src)
     if int(trials.trials.sum()) != int(per_file.sum()) - int(
@@ -580,6 +589,11 @@ def rq_one(nums: Numbers) -> None:
         nums.mean_ci(stem, row, src, what, ci=main)
         above = integer(row.n_above_chance)
         nums.add(stem + "NAbove", above, src, "patients above chance", optional=True)
+        if main:
+            nums.add(stem + "Min", pct(row.min_bal_acc), src, "lowest patient (%)")
+            nums.add(stem + "Max", pct(row.max_bal_acc), src, "highest patient (%)")
+            below = integer(row.n_below_chance_level)
+            nums.add(stem + "NBelowChance", below, src, "patients below the chance level")
     for (task, session, population), part in table.groupby(["task", "session", "population"]):
         name = "rqOne" + task_tok[task] + SESSION[session] + POP[population] + "N"
         what = f"{TASK_LABEL[task]}, {session}, {POP_LABEL[population]}: patients"
@@ -628,6 +642,20 @@ def rq_one(nums: Numbers) -> None:
         shown = row.comparison if sign > 0 else "loro - cv_leakfree"
         what = f"{row.method}, AH vs SF, pre, {shown} (descriptive, Holm over 18)"
         nums.test("rqOne" + METHOD[row.method] + token, row, src, what, sign=sign, full=False)
+    src = "summary/rq1_runwise_gap.csv"
+    gaps = nums.csv(src)
+    for _, row in gaps[
+        (gaps.session == "pre") & (gaps.comparison != "paper_replica - cv_leakfree")
+    ].iterrows():
+        split = row.comparison.split(" - ")[1]
+        stem = f"rqOneCspLdaPaperReplicaMinus{PROTOCOL[split]}"
+        what = f"csp_lda, AH vs SF, pre, paper_replica minus {split} (descriptive, no test)"
+        nums.add(stem + "Diff", fixed(row["mean"]), src, f"{what}: mean difference (points)")
+        nums.add(stem + "DiffCiLo", fixed(row.ci_lo), src, "CI lower")
+        nums.add(stem + "DiffCiHi", fixed(row.ci_hi), src, "CI upper")
+        nums.add(
+            stem + "Negative", integer(row.n_negative), src, "patients with a negative difference"
+        )
     csp = ["csp_lda", "csp_lda_replica", "csp_svm", "fbcsp_lda"]
     leak = descriptive[
         descriptive.method.isin(csp) & (descriptive.comparison.str.startswith("paper"))
@@ -844,6 +872,32 @@ def calibration(nums: Numbers) -> None:
     rest = rows[(rows.k == 0) & rows.method.isin(["rct_tslr", "rct_mdm", "eegnet_ea_ft"])]
     what = "unlabelled rest the transfer methods use at k = 0 (minutes)"
     nums.add("rqTwoRestMinutes", fixed(single(rest.minutes)), src, what)
+    scratch = rows[
+        (rows.scenario == "S2_new_command") & (rows.task == "T2_rest_ah_sf")
+        & (rows.session == "pre") & (rows.method == "ts_lr") & rows.k.isin([1, 2, 3, 5])
+    ]  # fmt: skip
+    what = "S2_new_command, REST vs AH vs SF, pre, ts_lr, k = 1 to 5: SF recall (%)"
+    nums.span("rqThreeRestAhSfTsLrSfRecall", scratch.sf_recall, src, what)
+
+    src = "summary/calib_minutes.csv"
+    recorded = nums.csv(src)
+    recorded = recorded[recorded.session == "pre"]
+    for scenario, prefix in SCENARIO.items():
+        for _, row in recorded[(recorded.scenario == scenario) & (recorded.k > 0)].iterrows():
+            nominal = nums.entries.get(f"{prefix}Minutes{K[row.k]}")
+            if nominal is not None and nominal.plain != fixed(row.minutes).plain:
+                raise SystemExit(f"{src} and calib_curves.csv disagree on the nominal minutes")
+            what = (
+                f"{scenario}: labelled calibration at {K_LABEL[row.k]}, recorded length (minutes)"
+            )
+            nums.add(f"{prefix}MinutesRecorded{K[row.k]}", fixed(row.minutes_recorded), src, what)
+    what = "pre, runs 01-02: a run's recorded length over its trials, median (s)"
+    nums.add("rqTwoTrialSecondsRecorded", fixed(single(recorded.trial_s_recorded)), src, what)
+    what = "pre, runs 01-02: rest marker to the cue, median of the runs' medians (s)"
+    nums.add("rqTwoRestSecondsRecorded", fixed(single(recorded.rest_s_recorded)), src, what)
+    what = "unlabelled rest at k = 0 at the recorded rest length (minutes)"
+    rest_min = fixed(single(recorded.rest_set_minutes_recorded))
+    nums.add("rqTwoRestMinutesRecorded", rest_min, src, what)
 
     src = "summary/calib_confirmatory.csv"
     hypotheses = {
@@ -876,6 +930,14 @@ def calibration(nums: Numbers) -> None:
         if not is_main:
             median = fixed3(row.median_diff)
             nums.add(stem + "MedianDiff", median, src, f"median difference ({units})")
+        if row.quantity != "ALC":
+            for token, column, label in (
+                ("PointsDiff", "mean_diff", "mean difference (points)"),
+                ("PointsDiffCiLo", "ci_lo", "CI lower (points)"),
+                ("PointsDiffCiHi", "ci_hi", "CI upper (points)"),
+                ("PointsMedianDiff", "median_diff", "median difference (points)"),
+            ):
+                nums.add(stem + token, pct(row[column]), src, label)
 
     src = "summary/calib_h2a_per_k.csv"
     for _, row in nums.csv(src).iterrows():
