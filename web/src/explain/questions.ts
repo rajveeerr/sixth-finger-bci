@@ -2,7 +2,7 @@
 // its title from here, and the list under the opening shows every answer in a few words.
 
 import { data, pct } from "./data";
-import { about, AGAIN_MIN, PRACTICE_S } from "./findings";
+import { PRACTICE_S } from "./findings";
 
 export interface Question {
   id: string;
@@ -27,13 +27,8 @@ export const QUESTIONS: Question[] = [
   },
   {
     id: "use",
-    ask: "How would a patient use it?",
-    short: `About ${PRACTICE_S} s of practice to start, ${about(AGAIN_MIN).replace("about ", "")} on later visits`,
-  },
-  {
-    id: "built",
-    ask: "What is built, and what is not?",
-    short: "The model, its server and this page; not the headset link or the finger",
+    ask: "How would a patient use it, and which parts are built?",
+    short: `About ${PRACTICE_S} s of practice to start; the model is built, the headset link and finger are not`,
   },
   {
     id: "added",

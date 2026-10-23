@@ -3,7 +3,7 @@ import { data, pct } from "../data";
 import { LaterBars, LiveFigures, SetupCurves } from "../figures/Evidence";
 import { Journey } from "../figures/Journey";
 import { LearnTest } from "../figures/LearnTest";
-import { about, AGAIN_K, AGAIN_MIN, FIRST, PRACTICE_S, SCRATCH_MIN, SPLITS, timesWord } from "../findings";
+import { about, AGAIN_K, AGAIN_MIN, FIRST, PRACTICE_S, SPLITS, timesWord } from "../findings";
 
 const C = data.calibration;
 const L = data.later;
@@ -18,7 +18,7 @@ export function PatientUse() {
       answer={
         <>
           About {PRACTICE_S} seconds of practice gets a new patient started, if the model has already learned from other
-          patients; starting from nothing takes about {SCRATCH_MIN} minutes.
+          patients; the model, its server and this page are built, but not the live headset, its bridge or the finger.
         </>
       }
       dial={{

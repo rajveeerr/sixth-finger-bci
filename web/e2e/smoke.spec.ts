@@ -6,3 +6,27 @@ test("the demo page loads with its main panels", async ({ page }) => {
   await expect(page.getByTestId("hand")).toBeVisible();
   await expect(page.getByTestId("mode-badge")).toBeVisible();
 });
+
+test("one chapter for the patient's path and what is built, each part drawn once", async ({ page }) => {
+  await page.goto("/?server=http://127.0.0.1:9");
+  await expect(page.locator(".index li")).toHaveCount(7);
+  const use = page.locator("#use");
+  await expect(use.locator(".q-num")).toHaveText("6");
+  await expect(use.locator("h2")).toHaveText("How would a patient use it, and which parts are built?");
+  await expect(page.locator("#added .q-num")).toHaveText("7");
+  await expect(page.locator("#built")).toHaveCount(0);
+
+  const path = page.locator("#journey");
+  await expect(path.locator(".jy-step")).toHaveCount(4);
+  await expect(path.locator("[data-cap]")).toHaveCount(1);
+  await expect(path.locator(".screen-glass")).toHaveCount(1);
+  await expect(path.locator(".finger")).toHaveCount(1);
+  const parts = path.locator(".jy-parts li");
+  await expect(parts.filter({ hasText: "Bridge" })).toHaveText("Bridge: needed");
+  await expect(parts.filter({ hasText: "Bridge" })).not.toHaveAttribute("data-built");
+  await expect(parts.filter({ hasText: "Server and model" })).toHaveAttribute("data-built", "");
+  await expect(path.locator(".jy-link")).toHaveText([
+    "brain signal, every 80 ms",
+    "a command every half second, from the last 4 s",
+  ]);
+});

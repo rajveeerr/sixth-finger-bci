@@ -2230,7 +2230,7 @@ code {
   }
 }
 
-/* A real system, part by part: four stations in a row on wide screens, stacked below. */
+/* The bridge program's window on the laptop's screen, not built. */
 .screen-window {
   fill: #3e3e42;
   stroke: #8a8a8f;
@@ -2240,145 +2240,6 @@ code {
   fill: none;
   stroke: #8a8a8f;
   stroke-width: 0.8;
-}
-.pipe-station {
-  min-width: 0;
-}
-.pipe-say {
-  font-size: 14px;
-  line-height: 1.5;
-  color: var(--ink-2);
-}
-.pipe-say p {
-  margin: 0;
-}
-.pipe-say b {
-  color: var(--ink);
-  font-weight: 560;
-}
-.pipe-say .pipe-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 2px 14px;
-  margin-top: 6px;
-  font-size: 13px;
-  color: var(--ink-3);
-}
-.pipe-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  white-space: nowrap;
-}
-.pipe-tag[data-built] {
-  color: var(--ink-2);
-}
-.pipe-link {
-  margin: 0;
-  display: grid;
-  gap: 4px;
-  text-align: center;
-  font-size: 13px;
-  line-height: 1.3;
-  color: var(--ink-3);
-}
-.pipe-link span {
-  text-wrap: balance;
-}
-.pipe-link svg {
-  overflow: visible;
-}
-.pipe-link path {
-  fill: none;
-  stroke: var(--ink-2);
-  stroke-width: 1.4;
-  vector-effect: non-scaling-stroke;
-}
-.pipe-across {
-  width: 100%;
-  height: 12px;
-}
-.pipe-down {
-  display: none;
-  width: 12px;
-  height: 36px;
-}
-@media (min-width: 1101px) {
-  .pipe {
-    display: grid;
-    grid-template-columns: var(--pipe-cols);
-    grid-template-rows: auto auto;
-    column-gap: 12px;
-    row-gap: 12px;
-    --pipe-link: 118px;
-  }
-  .pipe-station {
-    grid-row: 1 / span 2;
-    display: grid;
-    grid-template-rows: subgrid;
-    row-gap: 12px;
-  }
-  .pipe-station .iso-svg {
-    align-self: end;
-  }
-  /* every arrow at the same height, at the plates' level, its label above it */
-  .pipe-link {
-    grid-row: 1;
-    align-self: end;
-    margin-bottom: 64px;
-  }
-}
-@media (max-width: 1100px) {
-  .pipe {
-    display: grid;
-  }
-  .pipe-station {
-    display: grid;
-    grid-template-columns: 280px minmax(0, 1fr);
-    align-items: center;
-    gap: 24px;
-  }
-  .pipe-station .iso-svg {
-    width: calc(var(--w) * 0.72px);
-    max-width: 100%;
-    justify-self: center;
-  }
-  .pipe-link {
-    grid-template-columns: 280px minmax(0, 1fr);
-    column-gap: 24px;
-    align-items: center;
-    padding: 14px 0;
-    text-align: left;
-  }
-  .pipe-across {
-    display: none;
-  }
-  .pipe-down {
-    display: block;
-    grid-column: 1;
-    grid-row: 1;
-    justify-self: center;
-  }
-  .pipe-link span {
-    grid-column: 2;
-    grid-row: 1;
-  }
-}
-@media (max-width: 700px) {
-  .pipe-station {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 10px;
-  }
-  .pipe-link {
-    grid-template-columns: minmax(0, 1fr) 12px minmax(0, 1fr);
-    column-gap: 14px;
-  }
-  .pipe-down {
-    grid-column: 2;
-  }
-  .pipe-link span {
-    grid-column: 3;
-  }
 }
 
 /* The demo alone on one screen (/live). */
@@ -2895,7 +2756,7 @@ code {
   gap: 8px;
 }
 .built-key li::before,
-.pipe-tag::before {
+.jy-parts li::before {
   content: "";
   flex: none;
   width: 14px;
@@ -2905,7 +2766,7 @@ code {
   background: var(--page);
 }
 .built-key li[data-built]::before,
-.pipe-tag[data-built]::before {
+.jy-parts li[data-built]::before {
   border: 1.3px solid var(--ink-2);
   background: linear-gradient(to bottom, #fff 0 45%, #e5e5e2 45%);
 }
@@ -2981,8 +2842,9 @@ code {
   stroke-width: 1.3;
 }
 
-/* A patient's visits. Narrower than a projector, each step is a row: its drawing, then what
-   happens and, for the practice, both ways the model can start. */
+/* A patient's visits and the system they meet. Narrower than a projector, each step is a row:
+   its drawing, then what happens, its parts and, for the practice, both ways the model can
+   start; between steps, an arrow says what passes from one part to the next. */
 .journey {
   margin-top: 0;
   margin-bottom: 36px;
@@ -3005,6 +2867,9 @@ code {
   padding: 16px 0;
   border-bottom: 1px solid var(--rule);
 }
+.jy-step:has(+ .jy-link) {
+  border-bottom: 0;
+}
 .jy-step > svg {
   grid-row: 1 / span 3;
   align-self: center;
@@ -3012,8 +2877,7 @@ code {
   width: calc(var(--k) * 100%);
 }
 .jy-words,
-.jy-lanes,
-.jy-across {
+.jy-lanes {
   grid-column: 2;
 }
 .jy-name,
@@ -3030,6 +2894,59 @@ code {
   line-height: 1.5;
   color: var(--ink-2);
   text-wrap: pretty;
+}
+.jy-parts {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px 14px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--ink-3);
+}
+.jy-parts li {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.jy-parts li[data-built] {
+  color: var(--ink-2);
+}
+.jy-link {
+  margin: 0;
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  column-gap: 28px;
+  align-items: center;
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--ink-3);
+}
+.jy-link span {
+  grid-column: 2;
+  grid-row: 1;
+  text-wrap: balance;
+}
+.jy-link svg {
+  overflow: visible;
+}
+.jy-link path {
+  fill: none;
+  stroke: var(--ink-2);
+  stroke-width: 1.4;
+  vector-effect: non-scaling-stroke;
+}
+.jy-arrow-right {
+  display: none;
+}
+.jy-arrow-down {
+  grid-column: 1;
+  grid-row: 1;
+  justify-self: center;
+  width: 12px;
+  height: 36px;
 }
 .jy-lanes {
   margin: 12px 0 0;
@@ -3076,15 +2993,12 @@ code {
 .jy-before {
   display: block;
 }
-.jy-across {
-  margin: 12px 0 0;
+.jy-note {
+  margin: 10px 0 0;
   font-size: 13.5px;
   line-height: 1.5;
   color: var(--ink-2);
-}
-.jy-across b {
-  font-weight: 600;
-  color: var(--ink);
+  text-wrap: pretty;
 }
 .jy-lane,
 .jy-track {
@@ -3093,13 +3007,14 @@ code {
 .journey > .figure-note {
   margin-top: 14px;
 }
-/* On a projector the steps stand in a row, left to right, and the two ways the model can start
-   run under them as two lanes, so the difference is seen without reading. */
+/* On a projector the steps stand in a row, left to right, with the arrows between them, and
+   the two ways the model can start run under them as two lanes, so the difference is seen
+   without reading. */
 @media (min-width: 1101px) {
   .jy {
     display: grid;
     grid-template-columns: 132px repeat(4, minmax(0, 1fr));
-    grid-template-rows: repeat(5, auto);
+    grid-template-rows: repeat(6, auto);
     column-gap: 30px;
   }
   .jy .built-key {
@@ -3127,7 +3042,7 @@ code {
   .jy-step {
     position: relative;
     z-index: 1;
-    grid-row: 2 / 6;
+    grid-row: 2 / 7;
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: subgrid;
@@ -3152,13 +3067,46 @@ code {
     margin-top: 14px;
   }
   .jy-words,
-  .jy-lanes,
-  .jy-across {
+  .jy-lanes {
     grid-column: 1;
   }
   .jy-words {
-    grid-row: 2;
-    padding: 10px 0 16px;
+    grid-row: 3;
+    padding: 12px 0 16px;
+  }
+  .jy-parts {
+    flex-direction: column;
+    margin-top: 10px;
+  }
+  /* each arrow sits under the gap between its two steps, its words above it */
+  .jy-link {
+    position: relative;
+    z-index: 2;
+    grid-row: 3;
+    align-self: end;
+    justify-self: center;
+    width: min(100%, 196px);
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 4px;
+    padding-top: 10px;
+    text-align: center;
+  }
+  .jy-link[data-to="practice"] {
+    grid-column: 2 / 4;
+  }
+  .jy-link[data-to="therapy"] {
+    grid-column: 3 / 5;
+  }
+  .jy-link span {
+    grid-column: 1;
+  }
+  .jy-arrow-right {
+    display: block;
+    width: 100%;
+    height: 12px;
+  }
+  .jy-arrow-down {
+    display: none;
   }
   .jy-lanes {
     display: contents;
@@ -3167,10 +3115,10 @@ code {
     padding: 11px 0 14px;
   }
   .jy-lanes > div[data-lane="scratch"] {
-    grid-row: 3;
+    grid-row: 4;
   }
   .jy-lanes > div[data-lane="transfer"] {
-    grid-row: 4;
+    grid-row: 5;
   }
   .jy-lanes dt {
     position: absolute;
@@ -3183,13 +3131,6 @@ code {
   .jy-lanes dd {
     margin: 0;
   }
-  .jy-across {
-    grid-row: 3 / 5;
-    align-self: start;
-    margin: 0;
-    padding: 11px 0;
-    background: var(--page);
-  }
   .jy-lane {
     display: block;
     grid-column: 1;
@@ -3201,10 +3142,10 @@ code {
     color: var(--ink-2);
   }
   .jy-lane[data-lane="scratch"] {
-    grid-row: 4;
+    grid-row: 5;
   }
   .jy-lane[data-lane="transfer"] {
-    grid-row: 5;
+    grid-row: 6;
   }
   .jy-track {
     display: block;
@@ -3213,10 +3154,10 @@ code {
     border-top: 1px solid var(--rule);
   }
   .jy-track[data-lane="scratch"] {
-    grid-row: 4;
+    grid-row: 5;
   }
   .jy-track[data-lane="transfer"] {
-    grid-row: 5;
+    grid-row: 6;
   }
 }
 @media (max-width: 700px) {
@@ -3231,31 +3172,14 @@ code {
     max-width: 100%;
   }
   .jy-words,
-  .jy-lanes,
-  .jy-across {
+  .jy-lanes {
     grid-column: 1;
   }
-}
-
-/* A real system, part by part, and what comes after it. */
-.real {
-  margin-top: 0;
-  margin-bottom: 30px;
-}
-.real > .built-key {
-  margin: 0 0 22px;
-}
-.q-next {
-  max-width: var(--text);
-  margin: 0;
-  font-size: 15.5px;
-  line-height: 1.6;
-  color: var(--ink-2);
-}
-.q-next b {
-  margin-right: 4px;
-  font-weight: 560;
-  color: var(--ink);
+  .jy-link {
+    grid-template-columns: 12px minmax(0, 1fr);
+    column-gap: 14px;
+    padding-left: 20px;
+  }
 }
 
 /* The demo's two ways of reading, each with its line, as a choice of two. */
