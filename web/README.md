@@ -30,6 +30,12 @@ figures live in `src/explain/`: isometric drawings on the drawing core in
 charts in `explain/charts.tsx`, the numbers the chapters say in words in
 `explain/findings.ts`.
 
+Two more pages share that work. `/live` (`Live.tsx`) is the demo alone, for
+presenting. `/classic` (`src/classic/`) tells the same project as numbered
+chapters, from the idea to the reading list, with the five answers as dials used
+as tabs; it draws the same demo, figures and chapter parts, so a fix reaches
+both pages, and it loads on its own, so the main page carries none of its code.
+
 The numbers in those figures come from the results summaries. After any of them
 changes, regenerate the page's copy (a Python test fails until you do):
 
