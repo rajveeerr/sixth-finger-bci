@@ -91,9 +91,10 @@ could not hold alone~\cite{prattichizzo2021,tong2021}.
 
 The finger must move when the wearer wants it to. A button is not always possible: the
 hand that would press it may be the weak one. Reading the wish to move from the brain is
-one answer. Wang and colleagues trained stroke patients to imagine moving such a finger.
-They reported that this \emph{sixth-finger imagery} produced a clear ERD, in some respects
-stronger than imagining a movement of the patient's own hand~\cite{wang2024jbhi,wang2024tnsre}.
+one answer. Wang and colleagues had healthy people~\cite{wang2024jbhi} and then stroke
+patients~\cite{wang2024tnsre} imagine moving such a finger. They reported that this
+\emph{sixth-finger imagery} produced a clear ERD, in some respects stronger than imagining a
+movement of one's own hand.
 Healthy people can also learn to use an extra robotic thumb, and the brain's map of the
 hand changes as they do~\cite{kieliba2021,eden2022}.
 
@@ -140,15 +141,15 @@ with an accuracy of \pct{\rqOnePublishedGroupBCspLda} and \pct{\rqOnePublishedGr
 in its two patient groups before therapy~\cite{wang2026dataset}; guessing would score
 50\,\%. When we read the authors' code, we found that its first step, a filter that
 learns from the labels, was fitted on all trials, including the ones later used to test
-it. A test that the model has already seen is not a fair test. This mistake is called
+it. A model tested on trials that shaped it is not tested on new data. This mistake is called
 \emph{data leakage}, and it is a known cause of results that later fail to
 hold~\cite{kapoor2023,brookshire2024}. Before any calibration study could be trusted, we
-had to know what this data supports when it is tested fairly.
+had to know what this data supports when every step learns from training trials only.
 
 \subsection{Problem statement}
 \begin{quote}
 \emph{Using a public EEG recording of stroke patients, find out how well imagined movements
-of the affected hand and of a robotic sixth finger can be told apart when tested fairly;
+of the affected hand and of a robotic sixth finger can be told apart without leakage;
 measure how much practice a new patient must give a model before it is useful, with and
 without learning from other patients; and show the result working in a demonstrator that
 anyone can open.}
@@ -161,7 +162,7 @@ first three were written down and frozen before the main experiments, a practice
 \emph{pre-registration} (Appendix~\ref{app:prereg}).
 
 \begin{description}[leftmargin=1.1cm,style=nextline]
-  \item[RQ1] \textbf{Is the published accuracy right?} What accuracy does a fair test give
+  \item[RQ1] \textbf{Is the published accuracy right?} What accuracy does a leakage-free test give
   for telling affected-hand imagery from sixth-finger imagery, compared with the published
   value? As a check, does the same mistake raise accuracy on two public recordings of
   healthy people (RQ1b)?
@@ -187,7 +188,7 @@ The objectives that follow from these questions were to:
   with an audit of the data's integrity;
   \item build an evaluation framework that cannot leak test data, with automatic checks
   before every model is fitted;
-  \item test the published method fairly and measure the size of the leak (RQ1);
+  \item test the published method without leakage and measure the size of the leak (RQ1);
   \item measure calibration curves for a new patient and a new command, with and without
   transfer (RQ2, RQ3);
   \item run the planned exploratory analyses (RQ4);
@@ -218,27 +219,35 @@ The project makes four contributions. Their evidence is in Chapter~\ref{ch:resul
 
 \begin{enumerate}
   \item \textbf{An honest benchmark of the sixth-finger dataset.} An integrity audit found
-  recordings that appear twice in the release. Rebuilt the published way, the standard
-  method told hand from sixth finger \pct{\rqOneCspLdaPaperReplicaMean} of the time;
-  tested fairly, \pct{\rqOneCspLdaCvLeakfreeMean}, where guessing gives 50\,\%. The same
+  recordings that appear twice in the release. Our rebuild of the authors' own recipe
+  told hand from sixth finger \pct{\rqOneCspLdaReplicaPaperReplicaMean} of the time the
+  published way (the dataset paper reports 85--86\,\%) and
+  \pct{\rqOneCspLdaReplicaCvLeakfreeMean} without leakage; a standard pipeline scored
+  \pct{\rqOneCspLdaPaperReplicaMean} and \pct{\rqOneCspLdaCvLeakfreeMean}, where guessing
+  gives 50\,\%. The same
   mistake also inflated two public datasets of healthy people, by \rqOneBnciHOneBDiff{}
   and \rqOneChoHOneBDiff{} percentage points.
   \item \textbf{A pre-registered calibration study, the main research contribution.} For a
-  new patient, a model that had first learned from the other patients reached
-  \pct{\rqTwoRestAhSfRctTslrKOneMean} on three choices (rest, hand, sixth finger) after one
-  practice trial of each, about \rqTwoMinutesKOne{} minutes of practice. A model starting
-  from nothing scored \pct{\rqTwoRestAhSfTsLrKOneMean} at that point and needed about
-  \rqTwoMinutesKTen{} minutes to catch up. Learning from others is therefore a usable start
-  almost at once, but it then levels off, and with the whole practice set the model that
-  started from nothing ends ahead (\pct{\rqTwoRestAhSfTsLrKAllMean} against
-  \pct{\rqTwoRestAhSfRctTslrKAllMean}).
-  \item \textbf{What the sixth finger can and cannot be.} As a ``move now'' switch against
-  rest, it was recognised \pct{\exFourTsLrCentralMean} of the time. But the same switch
-  also turned on for \pct{\exFourTsLrCentralFiresAhMean} of imagined hand movements, so the
-  data do not show a sixth-finger command that is distinct from the hand. These two
+  new patient, a model that had first learned from the other patients, in one
+  configuration that weighs each of the patient's windows like one of the others'
+  thousands, reached \pct{\rqTwoRestAhSfRctTslrKOneMean} on three choices (rest, hand,
+  sixth finger) after one practice trial of each, about \rqTwoMinutesKOne{} minutes of
+  practice. The same model trained from scratch scored \pct{\rqTwoRestAhSfTsLrKOneMean} from
+  those four windows and needed about \rqTwoMinutesKTen{} minutes (nominal;
+  \rqTwoMinutesRecordedKTen{} as recorded) to catch up. This configuration therefore gives
+  a fast start, but it then stays nearly flat, and with the whole practice set the model
+  trained from scratch ended numerically higher (\pct{\rqTwoRestAhSfTsLrKAllMean} against
+  \pct{\rqTwoRestAhSfRctTslrKAllMean}), a difference that was not tested.
+  \item \textbf{What the sixth finger can and cannot be.} As a candidate ``move now''
+  switch against rest, it was recognised \pct{\exFourTsLrCentralMean} of the time, window
+  by window. But the same switch also turned on for \pct{\exFourTsLrCentralFiresAhMean} of
+  imagined hand movements, so the data do not show a sixth-finger command that is
+  distinct from the hand, and played continuously it caught only
+  \pct{\exFiveFingerFingerOnMean} of the sixth-finger periods, with
+  \exFiveFingerFalsePerMinMean{} false switch-ons a minute; it never ran in a closed loop. These
   numbers come from follow-up analyses added after the planned study, and they are
   labelled exploratory throughout.
-  \item \textbf{An open demonstrator and website.} The trained model runs in any web
+  \item \textbf{A live demonstrator and website.} The trained model runs in any web
   browser on the held-out recording of one patient and moves a drawn hand with a robotic
   sixth finger. The page explains the project in figures, and every number on it is
   written from the results files.
@@ -253,7 +262,7 @@ clinical benefit, and live control.
 Chapter~\ref{ch:lit} reviews earlier work on motor-imagery BCIs, the methods used to
 decode them, ways to shorten calibration, extra robotic fingers, BCIs after stroke and
 the pitfalls of testing these systems. Chapter~\ref{ch:method} describes the data, how
-we checked it, the models, the fair test, the statistics, and the design of the
+we checked it, the models, the leakage-free evaluation, the statistics, and the design of the
 demonstrator and website. Chapter~\ref{ch:results} answers each research question in
 turn, then discusses what the answers mean and where they stop.
 Chapter~\ref{ch:conclusion} concludes and lists future work. The appendices hold the
@@ -262,7 +271,7 @@ and its deviations, code listings and a user guide to the demonstrator.
 
 \section{Chapter Summary}
 A sixth finger could help a weak hand grip, if brain signals can tell it when to move.
-Testing that idea on a public recording raised two practical questions, how fair the
-published accuracy is and how much practice a new patient needs, and one methodological
-one, how to test such a system fairly. The next chapter reviews what earlier work says
+Testing that idea on a public recording raised two practical questions, whether the
+published accuracy holds without leakage and how much practice a new patient needs, and
+one methodological one, how to test such a system without leakage. The next chapter reviews what earlier work says
 about each of them.
