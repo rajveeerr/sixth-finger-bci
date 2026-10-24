@@ -29,7 +29,8 @@ import { chapterName } from "./chapters";
 import "./classic.css";
 
 const S = data.sixth;
-// Hand or sixth finger, tested fairly: from the published method to the best we found.
+const R = data.leak.recipe;
+// Hand or sixth finger, tested leakage-free: from a standard CSP+LDA to the best we tried.
 const TENTHS = [...new Set([data.leak.mean_leakfree, S.which.mean].map((v) => Math.round(v * 10)))].join(" to ");
 
 /** What each research question asks for, under the question itself. */
@@ -165,10 +166,11 @@ export function Classic() {
           <details className="aside">
             <summary>How we kept the answers honest</summary>
             <p>
-              We wrote these questions down, with how we would test each and what would count as a yes, before running
-              the tests on all the patients, so the results could not bend the questions. Every test is on trials the
-              model never saw while learning, and we checked the data first (<a href="#data">{chapterName("data")}</a>
-              ).
+              We wrote the main tests down, with how we would run each and what would count as a yes, before running
+              them on all the patients, so the results could not bend them. The plan is kept in the project&apos;s own
+              history, not with an outside registry, and is available from us on request. Answer 3&apos;s switch and
+              answer 4&apos;s one-switch reading were added afterwards. Every test is on trials the model never saw
+              while learning, and we checked the data first (<a href="#data">{chapterName("data")}</a>).
             </p>
           </details>
         </Chapter>
@@ -179,8 +181,8 @@ export function Classic() {
             <p>
               Before any test, we went through the recordings and the published analysis, looking for anything that
               could make a result look better than it is. We found four problems: three in the shared recordings and one
-              in how the paper tested its method. None was in our model; the fourth is why the paper&apos;s{" "}
-              {pct(data.leak.published[0])} is too high.
+              in how the paper tested its method. None was in our model; the fourth inflates the paper&apos;s{" "}
+              {pct(data.leak.published[0])}.
             </p>
           }
         >
@@ -194,7 +196,7 @@ export function Classic() {
               The demo runs <EegnetRef />, a small neural network built for EEG. It is one model that chooses between
               three things at once: resting, imagining the hand, or imagining the sixth finger. For some questions we
               also trained simpler two-way versions, such as sixth finger or rest, and compared EEGNet with older
-              methods such as <CspTerm />: tested fairly, EEGNet scored a little higher at telling the movements apart,
+              methods such as <CspTerm />: tested leakage-free, EEGNet scored a little higher at telling the movements apart,
               but lower at telling imagining from rest, where a simpler method does best (
               <a href="#numbers">{chapterName("numbers")}</a>). In the demo, its two movements are added together into
               one switch: move or rest.
@@ -247,20 +249,21 @@ export function Classic() {
           id="new"
           lede={
             <p>
-              Telling the hand from the sixth finger did not get much better: tested fairly, it is right {TENTHS} times
-              in 10, not 8 or 9. What we added is a fair measure of what these recordings can do, the reason the
-              published number was higher, how quickly a new patient could start, and what the sixth finger can be used
+              Telling the hand from the sixth finger did not get much better: tested leakage-free, it is right {TENTHS}{" "}
+              times in 10, not 8 or 9. What we added is a leakage-free measure of what these recordings can do, a step that
+              inflates the published number, how quickly a new patient could start, and what the sixth finger can be used
               as today.
             </p>
           }
         >
           <ol className="adds">
             <li>
-              <h3>A fair test of a published result</h3>
+              <h3>A leakage-free test of a published result</h3>
               <p>
                 We found a step in the published analysis that inflates its {pct(data.leak.published[0])}, and measured
-                it: {pct(data.leak.mean_leakfree)} tested fairly, lower for every one of the{" "}
-                {data.leak.subjects.length} patients (<a href="#answer-1">question 1</a>).
+                it: rebuilt, the authors&apos; recipe scores {pct(R.paper_way)} with that step and {pct(R.leakfree)}{" "}
+                without, and a standard version {pct(data.leak.mean_replica)} and {pct(data.leak.mean_leakfree)}, lower
+                for every one of the {data.leak.subjects.length} patients (<a href="#answer-1">question 1</a>).
               </p>
             </li>
             <li>
@@ -283,16 +286,18 @@ export function Classic() {
             <li>
               <h3>How fast a new patient can start, for a movement the body never had</h3>
               <p>
-                {PRACTICE_S} seconds of practice with help from other patients, against {SCRATCH_MIN} minutes alone (
+                {PRACTICE_S} seconds of practice with help from other patients, the one way we tried, against{" "}
+                {SCRATCH_MIN} minutes alone (
                 <a href="#answer-2">question 2</a>).
               </p>
             </li>
             <li>
               <h3>What the sixth finger can be used as today</h3>
               <p>
-                A switch that says &quot;move now&quot;, right {pct(S.rest.mean)} of the time and {pct(S.sure.acc)} when
-                it acts only when sure, but not yet a command apart from the hand; also tested as if live, and weeks
-                later (<a href="#answer-3">questions 3 to 5</a>).
+                A candidate switch that says &quot;move now&quot;, tested offline: right {pct(S.rest.mean)} of the time
+                on 4 s pieces and {pct(S.sure.acc)} when it acts only when sure, but catching{" "}
+                {pct(S.continuous.finger_on)} of sixth-finger periods played continuously; not yet a command apart from
+                the hand (<a href="#answer-3">questions 3 to 5</a>).
               </p>
             </li>
             <li>
@@ -304,7 +309,7 @@ export function Classic() {
               </p>
             </li>
             <li>
-              <h3>An open demo</h3>
+              <h3>A demo anyone can run in the browser</h3>
               <p>
                 The model runs on trials it never saw, on our server or, if that cannot be reached, in your browser (
                 <a href="#demo">{chapterName("demo")}</a>); the paper, the slides and the report are in{" "}
