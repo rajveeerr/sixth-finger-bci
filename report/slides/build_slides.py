@@ -273,6 +273,10 @@ _PUBLISHED = (
     ("rqOnePublishedGroupBCspLda", "leak.published.0", 100),
     ("rqOnePublishedGroupTCspLda", "leak.published.1", 100),
 )
+_RECIPE = (
+    ("rqOneCspLdaReplicaPaperReplicaMean", "leak.recipe.paper_way", 100),
+    ("rqOneCspLdaReplicaCvLeakfreeMean", "leak.recipe.leakfree", 100),
+)
 _CURVE = tuple(
     (f"rqTwoRestAhSf{method}K{k}Mean", f"calibration.{key}.{i}.mean", 100)
     for method, key in (("RctTslr", "transfer"), ("TsLr", "scratch"))
@@ -313,23 +317,23 @@ FIGS: dict[str, Fig] = {
     ),
     "leak": Fig(
         "web/leak.png",
-        "the paper's way and the fair test on one round of trials; only what the first step "
-        "learns from differs",
+        "the paper's way and the leakage-free test on one round of trials; only what the first "
+        "step learns from differs",
         small=13,
-        checks=_LEAK + _PUBLISHED,
+        checks=_LEAK + _PUBLISHED + _RECIPE,
     ),
     "leak-slope": Fig(
         "web/leak-slope.png",
-        "each patient scored the published way and fairly, one grey line each, the average in "
-        "black",
-        (0, 0, 1125, 650),
+        "each patient scored the published way and leakage-free with a standard CSP+LDA, one "
+        "grey line each, the average in black",
+        (0, 0, 1095, 650),
         small=12.5,
-        checks=(*_LEAK, *_PUBLISHED, ("rqOneHOnePositive", "leak.n_positive", 1)),
+        checks=(*_LEAK, ("rqOneHOnePositive", "leak.n_positive", 1)),
     ),
     "dial-published": Fig(
         "web/dial-published.png",
-        "a dial: the fair score (black needle) against the paper's way rebuilt (grey); the "
-        "hatched arc is guessing",
+        "a dial: a standard CSP+LDA leakage-free (black needle) against the published way (grey); "
+        "the hatched arc is guessing",
         (0, 0, 783, 425),
         checks=_LEAK,
     ),
@@ -1173,13 +1177,16 @@ def meaning_slide(d: Deck) -> None:
 def leak_slide(d: Deck) -> None:
     d.slide(
         "4 The paper reports {rqOnePublishedGroupBCspLda:int}%. Is that right?",
-        "Too high: the method's first step studied the test trials too, an exam seen in advance",
+        "Inflated: the method's first step studied the test trials too, an exam seen in advance",
         60,
         "The method has two steps, CSP then LDA. In the published code the first step learned "
         "from every trial, the test trials included, before it was tested on them. We rebuilt the "
-        "method from the authors' code and changed only that: the first step learns from the "
-        "learning trials alone. Our rebuild of the published way gives "
-        "{rqOneCspLdaPaperReplicaMean}%, close to the paper's figure.",
+        "authors' recipe from their code and changed only that: the first step learns from the "
+        "learning trials alone. Rebuilt, their recipe scores {rqOneCspLdaReplicaPaperReplicaMean}% "
+        "the published way, higher than their figure, and {rqOneCspLdaReplicaCvLeakfreeMean}% "
+        "leakage-free; our standard version, the pre-registered test, gives "
+        "{rqOneCspLdaPaperReplicaMean}% and {rqOneCspLdaCvLeakfreeMean}%. We reproduce the leak, "
+        "not the published value.",
         tag="Pre-registered test",
     )
     d.picture("leak", (LEFT, BODY_Y, BODY_W, BODY_H))
@@ -1188,14 +1195,17 @@ def leak_slide(d: Deck) -> None:
 def fair_slide(d: Deck) -> None:
     d.slide(
         "4 The paper reports {rqOnePublishedGroupBCspLda:int}%. Is that right?",
-        "Tested fairly, the same method scores {rqOneCspLdaCvLeakfreeMean}%: barely better than "
-        "guessing, and lower for all {rqOneHOnePositive} patients",
+        "Tested leakage-free, the method scores {rqOneCspLdaReplicaCvLeakfreeMean} to "
+        "{rqOneCspLdaCvLeakfreeMean}%: barely better than guessing, lower for all "
+        "{rqOneHOnePositive} patients",
         45,
-        "Tested fairly, the same method is right {rqOneCspLdaCvLeakfreeMean}% of the time against "
-        "{rqOneCspLdaPaperReplicaMean}% the published way, a drop of {rqOneHOneDiff} points (95% "
-        "interval {rqOneHOneDiffCiLo} to {rqOneHOneDiffCiHi}), lower for all {rqOneHOnePositive} "
-        "of {rqOneHOneN} patients, p = {rqOneHOneP}. This was our pre-registered hypothesis H1, "
-        "and it held. We do not say the authors were dishonest; it is a common and subtle mistake.",
+        "Without the leak, our standard version, the dial, is right {rqOneCspLdaCvLeakfreeMean}% "
+        "of the time against {rqOneCspLdaPaperReplicaMean}% the published way, a drop of "
+        "{rqOneHOneDiff} points (95% interval {rqOneHOneDiffCiLo} to {rqOneHOneDiffCiHi}), lower "
+        "for all {rqOneHOnePositive} of {rqOneHOneN} patients, p = {rqOneHOneP}. This was our "
+        "pre-registered hypothesis H1, and it held. The authors' own recipe, rebuilt, falls from "
+        "{rqOneCspLdaReplicaPaperReplicaMean}% to {rqOneCspLdaReplicaCvLeakfreeMean}%. We do not "
+        "say the authors were dishonest; it is a common and subtle mistake.",
         tag="Pre-registered test",
     )
     x, y, w, h = d.picture("dial-published", (LEFT, BODY_Y, 470, BODY_H - 90), valign="t")
@@ -1204,13 +1214,16 @@ def fair_slide(d: Deck) -> None:
         y + h + 14,
         w - 40,
         [
-            ("ink", "{rqOneCspLdaCvLeakfreeMean}%", " tested fairly"),
-            ("ink-4", "{rqOneCspLdaPaperReplicaMean}%", " the paper's way, rebuilt"),
+            ("ink", "{rqOneCspLdaCvLeakfreeMean}%", " leakage-free"),
+            ("ink-4", "{rqOneCspLdaPaperReplicaMean}%", " the published way"),
         ],
     )
     rows = [
         ("At {rqOnePublishedGroupBCspLda:int}%", "a usable two-command device"),
-        ("At {rqOneCspLdaCvLeakfreeMean}%", "barely above guessing"),
+        (
+            "At {rqOneCspLdaReplicaCvLeakfreeMean} to {rqOneCspLdaCvLeakfreeMean}%",
+            "barely above guessing, their recipe and a standard one",
+        ),
     ]
     for i, (big, small) in enumerate(rows):
         y = BODY_Y + 80 + i * 120
@@ -1280,16 +1293,21 @@ def methods_slide(d: Deck) -> None:
 def headstart_slide(d: Deck) -> None:
     d.slide(
         "6 How much practice does a new patient need?",
-        "Learning from other patients, a new patient starts at {rqTwoRestAhSfRctTslrKOneMean}% "
-        "after {rqTwoMinutesKOne:sec} s of practice; from nothing, {rqTwoRestAhSfTsLrKOneMean}%",
+        "With one way of learning from other patients, a new patient starts at "
+        "{rqTwoRestAhSfRctTslrKOneMean}% after {rqTwoMinutesKOne:sec} s; from nothing, "
+        "{rqTwoRestAhSfTsLrKOneMean}%",
         50,
         "Every brain is a little different, so the model needs a few practice trials from each "
         "new patient, here choosing among rest, hand and sixth finger, where guessing gets a "
         "third. With one trial of each, about {rqTwoMinutesKOne:sec} seconds, a model that "
         "already learned from the other patients is right {rqTwoRestAhSfRctTslrKOneMean}% of the "
         "time, against {rqTwoRestAhSfTsLrKOneMean}% starting from nothing; from nothing it needs "
-        "{rqTwoMinutesKTen} minutes to reach the same {rqTwoRestAhSfTsLrKTenMean}%. This was "
-        "hypothesis H2a, pre-registered, p = {rqTwoHTwoAP}, and it held again after therapy.",
+        "{rqTwoMinutesKTen} minutes, nominal ({rqTwoMinutesRecordedKTen} as recorded), to reach "
+        "the same {rqTwoRestAhSfTsLrKTenMean}%. This was hypothesis H2a, pre-registered, p = "
+        "{rqTwoHTwoAP}, and it held again after therapy. It is one transfer setup: each of the "
+        "patient's windows weighed like one of the other patients' thousands, a weight chosen "
+        "among candidates that all scored near chance. Part of the lead is how little a model "
+        "learns from four windows.",
         tag="Pre-registered test",
     )
     x, y, w, h = d.picture("dial-use", (LEFT, BODY_Y, 470, BODY_H - 90), valign="t")
@@ -1319,15 +1337,22 @@ def headstart_slide(d: Deck) -> None:
 def curve_slide(d: Deck) -> None:
     d.slide(
         "6 How much practice does a new patient need?",
-        "Then it levels off, and starting from nothing overtakes it: {rqTwoRestAhSfTsLrKAllMean}% "
-        "against {rqTwoRestAhSfRctTslrKAllMean}% after {rqTwoMinutesKAll} min",
+        "Then it levels off; from nothing ends higher, {rqTwoRestAhSfTsLrKAllMean}% against "
+        "{rqTwoRestAhSfRctTslrKAllMean}% after {rqTwoMinutesKAll} min, a gap not tested",
         60,
-        "Learning from other patients is a head start, not a better model. It stays near "
-        "{rqTwoRestAhSfRctTslrKAllMean}% however much the patient practises, while the patient's "
-        "own model keeps learning and passes it: {rqTwoRestAhSfTsLrKAllMean}% after "
-        "{rqTwoMinutesKAll} minutes. That the advantage shrinks with practice was hypothesis H2b, "
-        "pre-registered, p = {rqTwoHTwoBP}. The shaded bands show where the true average very "
-        "likely lies with only {rqTwoHTwoAN} patients.",
+        "In the one setup we tried, learning from other patients is a head start that levels "
+        "off. It stays near {rqTwoRestAhSfRctTslrKAllMean}% however much the patient practises, "
+        "while the patient's own model keeps learning and ends "
+        "{rqTwoRestAhSfTsLrMinusRctTslrKAllDiff} points higher, {rqTwoRestAhSfTsLrKAllMean}% after "
+        "{rqTwoMinutesKAll} minutes, nominal ({rqTwoMinutesRecordedKAll} as recorded). We did not "
+        "test that gap: its 95% interval runs from {rqTwoRestAhSfTsLrMinusRctTslrKAllDiffCiLo} to "
+        "{rqTwoRestAhSfTsLrMinusRctTslrKAllDiffCiHi} points, with "
+        "{rqTwoRestAhSfTsLrMinusRctTslrKAllBetter} patients higher from nothing and "
+        "{rqTwoRestAhSfTsLrMinusRctTslrKAllWorse} with transfer. That the advantage shrinks with "
+        "practice was hypothesis H2b, pre-registered, p = {rqTwoHTwoBP}. Each of the patient's "
+        "windows weighed like one of the other patients' thousands; a weight that grows with "
+        "practice might keep learning, and we did not try it. The shaded bands show where the "
+        "true average very likely lies with only {rqTwoHTwoAN} patients.",
         tag="Pre-registered test",
     )
     d.picture("setup", (LEFT, BODY_Y, BODY_W, BODY_H))
@@ -1336,18 +1361,36 @@ def curve_slide(d: Deck) -> None:
 def switch_slide(d: Deck) -> None:
     d.slide(
         "7 Can the sixth finger be a command of its own?",
-        "As a “move now” switch it works: told from rest {exFourTsLrCentralMean:int}% of the "
-        "time, but from the hand only {exFourAhSfEegnetEaFtMean}%",
+        "As a “move now” switch, a candidate: told from rest {exFourTsLrCentralMean:int}% of the "
+        "time per window, from the hand only {exFourAhSfEegnetEaFtMean}%",
         50,
         "Each dot is one patient. Told apart from resting, imagining the sixth finger is "
-        "recognised {exFourTsLrCentralMean}% of the time by a simple model reading the sensors "
-        "over the movement strip; {exFourTsLrCentralNAtLeastEighty} of {rqOneHOneN} patients "
-        "reach eighty percent or more. Told apart from imagining the hand it is right only "
-        "{exFourAhSfEegnetEaFtMean}%, even with a network pre-trained on the other patients. "
-        "These are exploratory follow-ups, run after the main results.",
+        "recognised {exFourTsLrCentralMean}% of the time, window by window, by a simple model "
+        "reading the sensors over the movement strip; {exFourTsLrCentralNAtLeastEighty} of "
+        "{rqOneHOneN} patients reach eighty percent or more. Played continuously it caught only "
+        "{exFiveFingerFingerOnMean}% of sixth-finger periods, {exFiveFingerLatencyMean} seconds "
+        "after the cue, with {exFiveFingerFalsePerMinMean} false switch-ons a minute of rest, and "
+        "no patient has used it in closed loop. Told apart from imagining the hand it is right "
+        "only {exFourAhSfEegnetEaFtMean}%, the best of the models we tried on the test runs, so "
+        "optimistic. These are exploratory follow-ups, run after the main results. The switch "
+        "was chosen by its score on runs 1 and 2, but its score on runs 3 and 4 was already known "
+        "from an earlier check of which sensors carry the signal.",
         tag="Exploratory",
     )
-    d.picture("switch-patients", (LEFT, BODY_Y, BODY_W, BODY_H))
+    x, _, w, h = d.picture("switch-patients", (LEFT, BODY_Y, 616, BODY_H), align="l")
+    d.text(
+        (x + w + 24, BODY_Y + 40, RIGHT - x - w - 24, h - 40),
+        [
+            [Span("Played continuously", bold=True)],
+            "{exFiveFingerFingerOnMean}% of sixth-finger periods caught",
+            "{exFiveFingerFalsePerMinMean} false switch-ons a minute of rest",
+            "{exFiveFingerLatencyMean:1} s after the cue",
+            "Never tried in closed loop",
+        ],
+        size=20,
+        color="ink-2",
+        gap=10,
+    )
 
 
 def sure_slide(d: Deck) -> None:
@@ -1373,9 +1416,18 @@ def hand_too_slide(d: Deck) -> None:
         45,
         "The switch never learned from an imagined hand movement, yet those switch it on "
         "{exFourTsLrCentralFiresAhMean}% of the time, nearly as often as the sixth finger, "
-        "{exFourTsLrCentralFiresSfMean}%. So it detects that a movement is being imagined, not "
-        "which one. Two movements of one hand are hard to tell apart even in healthy people; the "
-        "backup slides have that benchmark.",
+        "{exFourTsLrCentralFiresSfMean}%; played continuously, it turned on in "
+        "{exFiveFingerHandOnMean}% of hand periods. So it detects that a movement is being "
+        "imagined, not which one. Our pre-registered test of adding the sixth finger to a hand "
+        "decoder, H3c, agrees: a decoder trained only on rest and the hand detected sixth-finger "
+        "imagery {rqThreeSfRestAhProxyMean}% of the time, at least as well as transfer, and the "
+        "test was {rqThreeHThreeCKTwoCategory}. Rest was always a cross and imagining a picture: "
+        "the central sensors beat the parieto-occipital ones for sixth finger or rest, "
+        "{rqFourCueSfRestCentralMean} against {rqFourCueSfRestParietoOccipitalMean}%, but for hand "
+        "or sixth finger the parieto-occipital ones did better, "
+        "{rqFourCueAhSfParietoOccipitalMean} against {rqFourCueAhSfCentralMean}%, so what little "
+        "tells hand from finger may be the pictures. Two movements of one hand are hard to tell "
+        "apart even in healthy people; the backup slides have that benchmark.",
         tag="Exploratory",
     )
     d.picture("switch-on", (LEFT, BODY_Y + 40, BODY_W, 200))
@@ -1385,6 +1437,13 @@ def hand_too_slide(d: Deck) -> None:
         "sixth finger.",
         size=20,
         color="ink-3",
+        align="c",
+    )
+    d.text(
+        (LEFT, 494, BODY_W, 28),
+        "Pre-registered: a hand-only decoder detected the sixth finger "
+        "{rqThreeSfRestAhProxyMean}% of the time.",
+        size=18,
         align="c",
     )
 
@@ -1463,12 +1522,17 @@ def later_slide(d: Deck) -> None:
 def live_slide(d: Deck) -> None:
     rec = d.slide(
         "8 Does it work on another day, and live?",
-        "Played as if live, it catches {rqFourSwitchEegnetScratchDetectMean}% of imagined "
-        "movements but switches on by mistake {rqFourSwitchEegnetScratchFalsePerMinMean} times a "
-        "minute at rest",
+        "As if live, the pre-registered sixth-finger command came in "
+        "{rqFourReplayFingerDetectMin} to {rqFourReplayFingerDetectMax}% of its periods; any "
+        "imagining, {rqFourSwitchEegnetScratchDetectMean}%",
         45,
         "Here each patient's test runs were played start to end as if live: every half second the "
-        "model reads the newest four seconds, and nobody tells it when the instruction came. It "
+        "model reads the newest four seconds, and nobody tells it when the instruction came. Our "
+        "pre-registered replay, H4, expected the sixth-finger command in most sixth-finger "
+        "periods; the three-choice models gave it in only {rqFourReplayFingerDetectMin} to "
+        "{rqFourReplayFingerDetectMax}%, with {rqFourReplayFalsePerMinMin} to "
+        "{rqFourReplayFalsePerMinMax} false activations a minute, so it was not met. Read "
+        "afterwards as one switch for any movement, the demo's model "
         "catches {rqFourSwitchEegnetScratchDetectMean}% of imagined movements, about "
         "{rqFourSwitchEegnetScratchLatencyMean:1} seconds after imagining starts, but switches on "
         "by mistake {rqFourSwitchEegnetScratchFalsePerMinMean} times a minute of rest: too often "
@@ -1502,8 +1566,9 @@ def live_slide(d: Deck) -> None:
         )
     d.text(
         (LEFT, 440, BODY_W, 60),
-        "Nobody tells the model when the instruction came; it reads the newest stretch of signal "
-        "again and again. Average of {rqFourSwitchN} patients.",
+        "Pre-registered: the sixth-finger command in only {rqFourReplayFingerDetectMin} to "
+        "{rqFourReplayFingerDetectMax}% of sixth-finger periods. The one-switch view above came "
+        "after. Average of {rqFourSwitchN} patients.",
         size=20,
         color="ink-3",
         align="c",
@@ -1603,19 +1668,23 @@ def built_slide(d: Deck) -> None:
 def added_slide(d: Deck) -> None:
     d.slide(
         "10 What did we add?",
-        "What is new is a fair test of what was already there, fixed in advance and open to check",
+        "What is new is a leakage-free test of what was already there, its main tests fixed in "
+        "advance",
         50,
-        "The recordings, the paper's method and the models already existed. What we add is a fair "
-        "test of them: the published score measured fairly, the same mistake measured in other "
-        "datasets, a check of the shared recordings, how fast a new patient can start, and what "
-        "the sixth finger can be used as today. Every main test was written down before it was "
-        "run, and the code, the results and the data audit are open.",
+        "The recordings, the paper's method and the models already existed. What we add is a "
+        "leakage-free test of them: the published score measured without the leak, the same "
+        "mistake measured in other datasets, a check of the shared recordings, how fast a new "
+        "patient can start with one way of learning from others, and what the sixth finger can "
+        "be used as today. The main tests were written down before they were run, in the "
+        "project's git history rather than with an outside registry; the switch and the healthy "
+        "benchmark came after. The code, the plan and the data audit are available from us on "
+        "request.",
     )
     g = d.group()
     tiles = [
         (
-            "{rqOnePublishedGroupBCspLda:int}% to {rqOneCspLdaCvLeakfreeMean}%",
-            "the paper's score, tested fairly",
+            "{rqOneCspLdaReplicaPaperReplicaMean:int}% to {rqOneCspLdaReplicaCvLeakfreeMean:int}%",
+            "the authors' recipe, rebuilt, then without the leak",
         ),
         (
             "+{rqOneBnciHOneBDiff} to +{rqFiveModmaTsLrInflation}",
@@ -1624,9 +1693,12 @@ def added_slide(d: Deck) -> None:
         ("{auditPairsScreened} pairs", "of runs compared to check the shared recordings"),
         (
             "{rqTwoMinutesKOne:sec} s vs {rqTwoMinutesKTen} min",
-            "of practice for a new patient, with and without other patients",
+            "a new patient's practice, with one transfer setup and without",
         ),
-        ("{exFourTsLrCentralMean:int}%", "the sixth finger as a “move now” switch, exploratory"),
+        (
+            "{exFourTsLrCentralMean:int}% / {exFiveFingerFingerOnMean:int}%",
+            "a “move now” switch per window, and played continuously",
+        ),
         (
             "{exThreeBenchPairsMin} to {exThreeBenchPairsMax}%",
             "two grasps of one hand in healthy people, a week apart, exploratory",
@@ -1702,20 +1774,20 @@ def close_slide(d: Deck) -> None:
 def backup_leak(d: Deck) -> None:
     d.slide(
         "Backup  The leak, patient by patient",
-        "Patient by patient, the fair score is lower for all {rqOneHOnePositive}, by "
+        "Patient by patient, the leakage-free score is lower for all {rqOneHOnePositive}, by "
         "{rqOneHOneDiffMin} to {rqOneHOneDiffMax} points",
         0,
-        "Each grey line is one patient, scored the published way on the left and fairly on the "
-        "right; the black line is the average, {rqOneCspLdaPaperReplicaMean}% falling to "
-        "{rqOneCspLdaCvLeakfreeMean}%. The mean drop is {rqOneHOneDiff} points, 95% interval "
-        "{rqOneHOneDiffCiLo} to {rqOneHOneDiffCiHi}, Wilcoxon p = {rqOneHOneP}; without the two "
-        "patients used to set up the pipeline it is {rqOneHOneNoDevDiff} points, and after "
-        "therapy {rqOneHOnePostDiff}.",
+        "Each grey line is one patient, our standard version scored the published way on the left "
+        "and leakage-free on the right; the black line is the average, "
+        "{rqOneCspLdaPaperReplicaMean}% falling to {rqOneCspLdaCvLeakfreeMean}%. The mean drop is "
+        "{rqOneHOneDiff} points, 95% interval {rqOneHOneDiffCiLo} to {rqOneHOneDiffCiHi}, "
+        "Wilcoxon p = {rqOneHOneP}; without the two patients used to set up the pipeline it is "
+        "{rqOneHOneNoDevDiff} points, and after therapy {rqOneHOnePostDiff}.",
         tag="Pre-registered test",
         part="backup",
     )
     x, y, w, h = d.picture("leak-slope", (LEFT, BODY_Y, 560, 330))
-    k = w / 375
+    k = w / 365
     d.text(
         (x, y + h + 6, 150 * k, 56),
         [[Span("The published way", bold=True)], "test trials also used"],
@@ -1724,7 +1796,7 @@ def backup_leak(d: Deck) -> None:
     )
     d.text(
         (x + w - 170 * k, y + h + 6, 150 * k, 56),
-        [[Span("Tested fairly", bold=True)], "test trials kept apart"],
+        [[Span("Leakage-free", bold=True)], "test trials kept apart"],
         size=18,
         align="c",
     )
@@ -1749,12 +1821,15 @@ def backup_elsewhere(d: Deck) -> None:
         0,
         "We repeated the check on two public datasets of imagined hand movements in healthy "
         "people: {rqOneBnciHOneBDiff} points on BNCI 2014-001 and {rqOneChoHOneBDiff} on Cho "
-        "2017, both pre-registered as H1b. As a side check on the same kind of mistake in another "
-        "field, depression from resting EEG: when one person's segments sit on both sides of the "
-        "split, the score rises by {rqFiveMumtazBpLrInflation} to {rqFiveMumtazTsLrInflation} "
-        "points on Mumtaz and {rqFiveModmaBpLrInflation} to {rqFiveModmaTsLrInflation} on MODMA; "
-        "with the diagnoses shuffled it still scores {rqFiveShuffledSegmentCvMean}%, so the model "
-        "recognises people, not depression.",
+        "2017, both pre-registered as H1b. The first row is our standard CSP+LDA on these "
+        "patients; the authors' own recipe, rebuilt, falls from "
+        "{rqOneCspLdaReplicaPaperReplicaMean}% to {rqOneCspLdaReplicaCvLeakfreeMean}%. As a side "
+        "check on the same kind of mistake in another field, depression from resting EEG: when "
+        "one person's segments sit on both sides of the split, the score rises by "
+        "{rqFiveMumtazBpLrInflation} to {rqFiveMumtazTsLrInflation} points on Mumtaz and "
+        "{rqFiveModmaBpLrInflation} to {rqFiveModmaTsLrInflation} on MODMA; with the diagnoses "
+        "shuffled it still scores {rqFiveShuffledSegmentCvMean}%, so the model recognises people, "
+        "not depression.",
         tag="Pre-registered tests",
         part="backup",
     )
@@ -1812,7 +1887,7 @@ def backup_elsewhere(d: Deck) -> None:
         return x0 + (v - lo) / (hi - lo) * (x1 - x0)
 
     y = BODY_Y
-    for label, leaky, fair, values in rows:
+    for label, leaky, clean, values in rows:
         if leaky is None:
             d.text((LEFT, y + 6, 370, 28), label, size=18, bold=True, color="ink-3", into=g)
             y += 34
@@ -1820,7 +1895,7 @@ def backup_elsewhere(d: Deck) -> None:
         d.text((LEFT, y, 370, 30), label, size=20, into=g)
         cy = y + 15
         d.line(x0, cy, x1, cy, "rule", 1, into=g)
-        a, b = float(value_of(d.m[leaky])), float(value_of(d.m[fair]))
+        a, b = float(value_of(d.m[leaky])), float(value_of(d.m[clean]))
         d.line(px(b), cy, px(a), cy, "ink-3", 2.5, into=g)
         d.dot(px(a), cy, 7, "page", "ink-4", 2.5, into=g)
         d.dot(px(b), cy, 7, "ink", into=g)
@@ -1838,7 +1913,7 @@ def backup_elsewhere(d: Deck) -> None:
     d.dot(LEFT + 6, y + 15, 7, "page", "ink-4", 2.5, into=g)
     d.text((LEFT + 20, y + 2, 150, 26), "leaky", size=18, color="ink-3", into=g)
     d.dot(LEFT + 106, y + 15, 7, "ink", into=g)
-    d.text((LEFT + 120, y + 2, 200, 26), "fair", size=18, color="ink-3", into=g)
+    d.text((LEFT + 120, y + 2, 200, 26), "leakage-free", size=18, color="ink-3", into=g)
     rec.drawn.append(
         "Dumbbells drawn on the slide from the macros above, as docs/figures/web/elsewhere.png "
         "draws them."
@@ -1856,7 +1931,9 @@ def backup_methods(d: Deck) -> None:
         "best with no practice at all, {rqTwoRestAhSfEegnetEaFtKZeroMean}%, and the re-centred "
         "transfer is the pre-registered pair with the patient-only TS+LR. With all the practice, "
         "EEGNet from scratch reaches {rqTwoRestAhSfEegnetScratchKAllMean}%, CSP+LDA "
-        "{rqTwoRestAhSfCspLdaKAllMean}%, the re-centred transfer {rqTwoRestAhSfRctTslrKAllMean}%.",
+        "{rqTwoRestAhSfCspLdaKAllMean}%, the re-centred transfer {rqTwoRestAhSfRctTslrKAllMean}%. "
+        "Both transfer methods ran at their least adaptive settings, so these curves describe "
+        "those settings, not transfer in general.",
         tag="Pre-registered pair",
         part="backup",
     )
@@ -1990,17 +2067,22 @@ def backup_healthy(d: Deck) -> None:
 def backup_replay(d: Deck) -> None:
     rec = d.slide(
         "Backup  The replay as if live",
-        "As if live, the methods catch {rqFourSwitchDetectMin} to {rqFourSwitchDetectMax}% of "
-        "imagining, at {rqFourSwitchFalsePerMinMin} to {rqFourSwitchFalsePerMinMax} false starts "
-        "a minute",
+        "As one switch the methods catch {rqFourSwitchDetectMin} to {rqFourSwitchDetectMax}% of "
+        "imagining; the pre-registered sixth-finger command, {rqFourReplayFingerDetectMin} to "
+        "{rqFourReplayFingerDetectMax}%",
         0,
         "Runs 3 and 4 of each patient were played as one continuous signal; every half second the "
         "model read the newest four seconds, and a gate turned the finger on when the chance of a "
         "movement stayed above sixty percent twice in a row, off below forty-five percent "
         "(settings in configs/experiments/ex5_live_switch.yaml). A period counts as caught if the "
         "finger switches on during it. {rqFourReplayPeriods} periods were scored over "
-        "{rqFourReplayRuns} runs. The demo's EEGNet catches the most but also makes the most "
-        "mistakes; the central TS+LR switch, exploratory, makes about half as many.",
+        "{rqFourReplayRuns} runs. The pre-registered replay, H4, asked the three-choice models for "
+        "the sixth-finger command and expected it in most sixth-finger periods; it came in only "
+        "{rqFourReplayFingerDetectMin} to {rqFourReplayFingerDetectMax}%, at "
+        "{rqFourReplayFalsePerMinMin} to {rqFourReplayFalsePerMinMax} false activations a minute, "
+        "so it was not met. The one-switch view drawn here was added after: the demo's EEGNet "
+        "catches the most but also makes the most mistakes; the central TS+LR switch, "
+        "exploratory, makes about half as many.",
         tag="Exploratory",
         part="backup",
     )
@@ -2144,8 +2226,8 @@ def backup_audit(d: Deck) -> None:
         "{auditPairsScreened} pairs. Patient 2's after-therapy and follow-up sessions are the "
         "same files; patients 21 and 22 share one recording with different labels; one of patient "
         "15's runs lasts {auditDegenerateSeconds} seconds with no instruction in it. Every choice "
-        "about the data was made before any accuracy was looked at; the full record is the data "
-        "audit report in the repository.",
+        "about the data was made before any accuracy was looked at; the full record is the "
+        "report's integrity audit.",
         part="backup",
     )
     g = d.group()
