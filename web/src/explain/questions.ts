@@ -1,7 +1,7 @@
 // The page is a list of questions, in the order an examiner would ask them. Each chapter takes
 // its title from here, and the list under the opening shows every answer in a few words.
 
-import { benchRow, data, pct } from "./data";
+import { benchRow, data, pct, pctRange } from "./data";
 import { PRACTICE_S } from "./findings";
 
 const SWITCH = benchRow("T3_sf_vs_rest");
@@ -26,12 +26,12 @@ export const QUESTIONS: Question[] = [
   {
     id: "published",
     ask: `The paper reports ${pct(data.leak.published[0])}. Is that right?`,
-    short: `No: tested fairly, the same method gets ${pct(data.leak.mean_leakfree)}`,
+    short: `No: tested leakage-free, the method gets ${pctRange([data.leak.recipe.leakfree, data.leak.mean_leakfree])}`,
   },
   {
     id: "command",
     ask: "Can the sixth finger be a command of its own?",
-    short: "As a switch, yes; apart from the hand, not yet",
+    short: "Only as a candidate switch, offline; apart from the hand, not yet",
   },
   {
     id: "use",
@@ -46,7 +46,7 @@ export const QUESTIONS: Question[] = [
   {
     id: "added",
     ask: "What did you add?",
-    short: "A fair test of what was already there, and what it shows",
+    short: "A leakage-free test of what was already there, and what it shows",
   },
 ];
 

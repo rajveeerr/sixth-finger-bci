@@ -145,7 +145,6 @@ export function Slope({
   b,
   labels,
   guess,
-  band,
   label,
   names,
 }: {
@@ -153,7 +152,6 @@ export function Slope({
   b: number[];
   labels: [ReactNode, ReactNode];
   guess: number;
-  band?: { from: number; to: number; text: string };
   label: string;
   /** Who each line is, named in the readout when the reader points at it. */
   names?: string[];
@@ -184,20 +182,6 @@ export function Slope({
         <text x={(xa + xb) / 2} y={y(guess) + 18} textAnchor="middle" className="chart-italic">
           guessing
         </text>
-        {band && (
-          <g>
-            <line
-              x1={xa - 14}
-              x2={xa - 4}
-              y1={y((band.from + band.to) / 2)}
-              y2={y((band.from + band.to) / 2)}
-              className="chart-mean"
-            />
-            <text x={xa - 18} y={y((band.from + band.to) / 2) + 4} textAnchor="end" className="chart-italic">
-              {band.text}
-            </text>
-          </g>
-        )}
         {a.map((v, i) => (
           <line
             key={i}
@@ -252,7 +236,7 @@ export function Slope({
       <p className="chart-say" aria-live="polite">
         {hover === null
           ? "Point at or tap a line to see one patient."
-          : `${names?.[hover] ?? "One patient"}: ${pct(a[hover])} the published way, ${pct(b[hover])} tested fairly.`}
+          : `${names?.[hover] ?? "One patient"}: ${pct(a[hover])} the published way, ${pct(b[hover])} leakage-free.`}
       </p>
     </div>
   );

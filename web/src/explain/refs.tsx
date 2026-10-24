@@ -192,7 +192,8 @@ export function StripTerm({ children = "the 14 sensors over the movement strip" 
         <>
           <b>The movement strip</b> The band of brain across the top of the head that moves the body. The 14 sensors
           over it are C1 to C6, Cz, CP1 to CP6 and CPz: the cap&apos;s middle row and the row just behind it. Those at
-          the back of the head, over the parts that handle sight, are left out.
+          the back of the head, over the parts that handle sight, are left out: they do worse at sixth finger or rest,
+          but better at hand or sixth finger, perhaps because the two pictures on the screen differ.
         </>
       }
     >

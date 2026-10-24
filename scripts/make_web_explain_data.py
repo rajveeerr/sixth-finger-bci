@@ -223,6 +223,139 @@ def central_switch(summary: Path) -> dict:
     }
 
 
+def switch_continuous(summary: Path) -> dict:
+    """EX5's S14: question 3's headline switch (sixth finger or rest, `ts_lr` on the 14 central
+    channels) played continuously like answer 4: the sixth-finger and hand periods it turned on
+    in, false switch-ons a minute of rest, and seconds after the cue (mean of patients' medians)."""
+    t = pd.read_csv(summary / "ex5_live_switch_table.csv")
+    t = t[(t.arm == "S14") & (t.population == "all")].set_index("metric")
+    return {
+        "finger_on": r(t.loc["sf_on_rate", "mean"], 6),
+        "hand_on": r(t.loc["ah_on_rate", "mean"], 6),
+        "false_per_minute": r(t.loc["false_per_minute", "mean"], 2),
+        "latency_s": r(t.loc["latency_s", "mean"], 2),
+        "n": int(t.loc["sf_on_rate", "n"]),
+    }
+
+
+def visual_check(summary: Path) -> dict:
+    """The visual-cue check: `ts_lr` learned on runs 1 and 2 and tested on 3 and 4, reading the 14
+    central channels or the 5 parieto-occipital ones, for both two-way tasks. The page says the
+    central ones win on sixth finger or rest and lose on hand or sixth finger, so another outcome
+    stops the build."""
+    t = pd.read_csv(summary / "rq4_visual_cue_table.csv").set_index(["task", "channels"])
+    out = {
+        name: {
+            "movement": r(t.loc[(task, "central_14"), "mean"], 6),
+            "vision": r(t.loc[(task, "parieto_occipital_5"), "mean"], 6),
+        }
+        for name, task in (("rest", "T3_sf_vs_rest"), ("which", "T1_ah_vs_sf"))
+    }
+    rest, which = out["rest"], out["which"]
+    if not (rest["movement"] > rest["vision"] and which["vision"] > which["movement"]):
+        raise ValueError("the visual-cue check changed sides: the page's copy must be rewritten")
+    return out
+
+
+def own_hand(summary: Path) -> dict:
+    """H3c's control, pre-registered: a decoder that learned only rest and the hand (`ah_proxy`)
+    telling sixth finger from rest, and the test's category, for which the copy is written."""
+    curves = pd.read_csv(summary / "calib_curves.csv")
+    row = curves[
+        (curves.scenario == "S2_new_command")
+        & (curves.task == "T3_sf_vs_rest")
+        & (curves.session == "pre")
+        & (curves.method == "ah_proxy")
+        & (curves.population == "all")
+        & (curves.k == 0)
+    ].iloc[0]
+    tests = pd.read_csv(summary / "calib_confirmatory.csv")
+    h3c = tests[
+        tests.hypothesis.str.startswith("H3c")
+        & (tests.role == "confirmatory")
+        & (tests.session == "pre")
+        & (tests.population == "all")
+        & (tests.draw_basis == "random")
+    ]
+    if set(h3c.category) != {"inconclusive"}:
+        raise ValueError(f"H3c is now {set(h3c.category)}: the page's copy must be rewritten")
+    return {"mean": r(row["mean"], 6), "n": int(row.n), "h3c": "inconclusive"}
+
+
+def prereg_replay(summary: Path) -> dict:
+    """H4's pseudo-online replay, defined before any replay: the share of sixth-finger periods in
+    which the three-class decoders gave the sixth-finger command, and their false activations a
+    minute of rest, lowest and highest over the four decoders. The page says the expectation
+    (most periods) was not met, so a replay that meets it stops the build."""
+    t = pd.read_csv(summary / "rq4_pseudo_online_table.csv")
+    t = t[t.population == "all"]
+    finger = t[t.metric == "sf_detection_rate"]["mean"]
+    false = t[t.metric == "false_per_minute"]["mean"]
+    if finger.max() >= 0.5:
+        raise ValueError("H4's replay now meets its expectation: rewrite the page's copy")
+    return {
+        "finger_detect": [r(finger.min(), 6), r(finger.max(), 6)],
+        "false_per_minute": [r(false.min(), 2), r(false.max(), 2)],
+        "methods": len(finger),
+    }
+
+
+def recipe_leak(summary: Path) -> dict:
+    """The authors' own recipe rebuilt (`csp_lda_replica`), hand or sixth finger on the first
+    session, scored the published way and leakage-free, and how many patients scored lower
+    leakage-free."""
+    table = pd.read_csv(summary / "rq1_table.csv")
+    table = table[
+        (table.task == "T1_ah_vs_sf")
+        & (table.method == "csp_lda_replica")
+        & (table.session == "pre")
+        & (table.population == "all")
+    ].set_index("protocol")
+    values = pd.read_csv(summary / "rq1_subject_values.csv")
+    values = values[
+        (values.task == "T1_ah_vs_sf")
+        & (values.method == "csp_lda_replica")
+        & (values.session == "pre")
+    ]
+    wide = values.pivot_table(index="subject", columns="protocol", values="bal_acc")
+    return {
+        "paper_way": r(table.loc["paper_replica", "mean"], 6),
+        "leakfree": r(table.loc["cv_leakfree", "mean"], 6),
+        "n_positive": int((wide.paper_replica > wide.cv_leakfree).sum()),
+        "n": int(table.loc["cv_leakfree", "n"]),
+    }
+
+
+def whole_pool(summary: Path) -> dict:
+    """Rest, hand or sixth finger for a new patient after every practice trial: from nothing minus
+    the transfer the study tried, in points (described, not tested), with the patients on each
+    side; that transfer's target weight, for which the copy is written; and the whole pool's
+    minutes at the recorded trial length."""
+    pair = pd.read_csv(summary / "calib_pair_whole_pool.csv")
+    row = pair[
+        (pair.scenario == "S1_new_user") & (pair.task == "T2_rest_ah_sf") & (pair.session == "pre")
+    ].iloc[0]
+    if row.pair != "rct_tslr - ts_lr":
+        raise ValueError(f"calib_pair_whole_pool.csv now pairs {row.pair}")
+    hparams = pd.read_csv(summary / "transfer_hparams.csv")
+    chosen = hparams[(hparams.method == "rct_tslr") & hparams.chosen]
+    weight = float(chosen.target_weight.iloc[0])
+    if weight != 1:
+        raise ValueError(f"the transfer's target weight is now {weight}: rewrite the page's copy")
+    minutes = pd.read_csv(summary / "calib_minutes.csv")
+    m = minutes[
+        (minutes.session == "pre") & (minutes.scenario == "S1_new_user") & (minutes.k == row.k)
+    ].iloc[0]
+    return {
+        "diff_points": r(-row.mean_diff_points),
+        "ci": [r(-row.ci_hi_points), r(-row.ci_lo_points)],
+        "n_scratch_higher": int(row.n_second_higher),
+        "n_transfer_higher": int(row.n_first_higher),
+        "target_weight": int(weight),
+        "minutes_recorded": r(m.minutes_recorded, 3),
+    }
+
+
 def healthy_benchmark(summary: Path) -> dict:
     """EX3's benchmark: healthy people's grasps of one hand, learned on day 1 and tested on day
     2, with `ts_lr` and `csp_lda` on all day-1 trials; the lowest and highest mean over the
@@ -313,34 +446,45 @@ def benchmark(summary: Path) -> dict:
     live = pd.read_csv(summary / "rq4_pseudo_online_switch_table.csv")
     live = live[live.method == "eegnet_scratch"].set_index("metric")
     ex5 = pd.read_csv(summary / "ex5_live_switch_table.csv")
-    ex5 = ex5[(ex5.arm == "M14") & (ex5.population == "all")].set_index("metric")
+    ex5 = ex5[(ex5.arm == "S14") & (ex5.population == "all")].set_index("metric")
     demo = json.loads((summary / "demo_model.json").read_text())
+    last = int(curves.loc["ts_lr"].index.max())
     return {
         "n": 22,
         "tasks": rows,
         "setup": {
             "from_others": point("rct_tslr", 1),
             "from_nothing": point("ts_lr", 1),
-            "from_nothing_end": point("ts_lr", int(curves.loc["ts_lr"].index.max())),
+            "from_nothing_end": point("ts_lr", last),
+            "from_others_end": point("rct_tslr", last),
         },
         "later": {
             "as_is": r(lon.loc[("pre_unchanged", 0), "mean"], 6),
             "re_setup": r(lon.loc[("recentred", 5), "mean"], 6),
             "k": 5,
         },
+        # Played as if live: the demo's model read as one switch for any movement (post hoc),
+        # the headline switch's sixth-finger periods, and the pre-registered replay's range.
         "live": {
             "demo": {
                 "detection": r(live.loc["imagery_detection_rate", "mean"], 6),
                 "false_per_minute": r(live.loc["false_per_minute", "mean"], 3),
             },
             "switch": {
-                "detection": r(ex5.loc["imagery_detection_rate", "mean"], 6),
+                "finger_on": r(ex5.loc["sf_on_rate", "mean"], 6),
                 "false_per_minute": r(ex5.loc["false_per_minute", "mean"], 3),
             },
+            "prereg": prereg_replay(summary)["finger_detect"],
         },
         "leak": {
             "paper_way": r(rq1.loc[("T1_ah_vs_sf", "csp_lda", "paper_replica"), "mean"], 6),
-            "fair": r(rq1.loc[("T1_ah_vs_sf", "csp_lda", "cv_leakfree"), "mean"], 6),
+            "leakfree": r(rq1.loc[("T1_ah_vs_sf", "csp_lda", "cv_leakfree"), "mean"], 6),
+            "recipe_paper_way": r(
+                rq1.loc[("T1_ah_vs_sf", "csp_lda_replica", "paper_replica"), "mean"], 6
+            ),
+            "recipe_leakfree": r(
+                rq1.loc[("T1_ah_vs_sf", "csp_lda_replica", "cv_leakfree"), "mean"], 6
+            ),
         },
         "model": {"parameters": model_parameters(), "bytes": demo["parity"]["bytes"]},
     }
@@ -515,6 +659,12 @@ def build() -> dict:
             "results/summary/ex5_live_switch_checks.json",
             "results/summary/rq1_table.csv",
             "results/summary/ex1_transfer_ah_sf_paired.csv",
+            "results/summary/calib_pair_whole_pool.csv",
+            "results/summary/calib_minutes.csv",
+            "results/summary/calib_confirmatory.csv",
+            "results/summary/transfer_hparams.csv",
+            "results/summary/rq4_visual_cue_table.csv",
+            "results/summary/rq4_pseudo_online_table.csv",
             "web/public/demo/model.onnx",
             "web/public/demo/predictions.json",
             "mne colin27_1005 template",
@@ -522,8 +672,9 @@ def build() -> dict:
         "electrodes": electrodes(),
         "erd": erd_out,
         "tasks": tasks,
-        "leak": leak,
+        "leak": {**leak, "recipe": recipe_leak(summary)},
         "calibration": {"scratch": curve("ts_lr"), "transfer": curve("rct_tslr")},
+        "whole_pool": whole_pool(summary),
         "switch": {
             "detection": r(sw.loc["imagery_detection_rate", "mean"]),
             "detection_ci": [
@@ -534,6 +685,7 @@ def build() -> dict:
             "latency_s": r(sw.loc["latency_s", "mean"], 2),
             "n": int(sw.loc["imagery_detection_rate", "n"]),
             "central": central_switch(summary),
+            "prereg": prereg_replay(summary),
         },
         "later": {
             "same_session": r(within.iloc[-1]["mean"]),
@@ -570,7 +722,13 @@ def build() -> dict:
             "parameters": model_parameters(),
             **demo_readings(),
         },
-        "sixth": {**sixth_command(summary), "healthy": healthy_benchmark(summary)},
+        "sixth": {
+            **sixth_command(summary),
+            "continuous": switch_continuous(summary),
+            "visual": visual_check(summary),
+            "own_hand": own_hand(summary),
+            "healthy": healthy_benchmark(summary),
+        },
         "benchmark": benchmark(summary),
     }
     return data

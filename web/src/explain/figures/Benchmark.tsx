@@ -1,7 +1,7 @@
-// Every headline score in one table, tested the same fair way, then one line for each result
+// Every headline score in one table, tested the same leakage-free way, then one line for each result
 // that was tested its own way. The best of each row is the one marked; on a phone each task
 // becomes a card.
-import { benchRow, data, pct, pct1, type BenchRow } from "../data";
+import { benchRow, data, pct, pct1, pctRange, type BenchRow } from "../data";
 import { about, AGAIN_MIN } from "../findings";
 
 const B = data.benchmark;
@@ -83,7 +83,7 @@ const LIVE = B.live;
 const LINES = [
   {
     label: "Setting up",
-    text: `Rest, hand or sixth finger: ${pct(S.from_others.mean)} after ${aboutTime(S.from_others.minutes)} of practice if the model learned from other patients first, ${pct(S.from_nothing.mean)} from nothing; from nothing, ${pct(S.from_nothing_end.mean)} after ${aboutTime(S.from_nothing_end.minutes)}.`,
+    text: `Rest, hand or sixth finger: ${pct(S.from_others.mean)} after ${aboutTime(S.from_others.minutes)} of practice if the model learned from other patients first, the one way we tried, ${pct(S.from_nothing.mean)} from nothing; after ${aboutTime(S.from_nothing_end.minutes)}, ${pct(S.from_nothing_end.mean)} from nothing and ${pct(S.from_others_end.mean)} with help, a gap we did not test.`,
   },
   {
     label: "Another day",
@@ -91,11 +91,11 @@ const LINES = [
   },
   {
     label: "Live",
-    text: `Played as if live, the demo's model catches ${pct(LIVE.demo.detection)} of imagined movements with ${LIVE.demo.false_per_minute.toFixed(1)} mistakes a minute of rest; the movement-area switch ${pct(LIVE.switch.detection)} with ${LIVE.switch.false_per_minute.toFixed(1)}.`,
+    text: `Played as if live, the replay fixed in advance gave the sixth-finger command in ${pctRange(LIVE.prereg)} of sixth-finger periods. Read afterwards as switches, the demo's model catches ${pct(LIVE.demo.detection)} of imagined movements with ${LIVE.demo.false_per_minute.toFixed(1)} mistakes a minute of rest, and the movement-area switch ${pct(LIVE.switch.finger_on)} of sixth-finger periods with ${LIVE.switch.false_per_minute.toFixed(1)}.`,
   },
   {
     label: "The leak",
-    text: `Hand or sixth finger with the paper's method: ${pct1(B.leak.paper_way)} tested the paper's way, ${pct1(B.leak.fair)} tested fairly.`,
+    text: `Hand or sixth finger, the authors' recipe rebuilt: ${pct1(B.leak.recipe_paper_way)} tested the paper's way, ${pct1(B.leak.recipe_leakfree)} leakage-free; a standard CSP+LDA, ${pct1(B.leak.paper_way)} and ${pct1(B.leak.leakfree)}.`,
   },
   {
     label: "Model size",

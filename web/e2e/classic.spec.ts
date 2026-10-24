@@ -77,8 +77,8 @@ test("the five answers are dials used as tabs, and the first says what the publi
   const panel = page.locator("#answer-panel");
   await expect(panel.locator(".finding-lines dt")).toHaveText([
     /^What \d+% means$/,
-    "Why it is too high",
-    "The fair score",
+    "What inflates it",
+    "Without the leak",
     "Why it matters",
   ]);
   await expect(panel.locator(".leak")).toHaveCount(1);

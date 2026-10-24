@@ -2,9 +2,9 @@ import { useState } from "react";
 import { Plate } from "../../components/Plate";
 import { data, pct } from "../data";
 
-// The mistake behind the published 85%, measured in other data: two public datasets of
+// The leak in the published protocol, measured in other data: two public datasets of
 // imagined hand movements (healthy volunteers) and two of depression detection from
-// resting EEG. Each row is one dataset and method, scored the leaky way and fairly.
+// resting EEG. Each row is one dataset and method, scored the leaky way and leakage-free.
 
 const E = data.elsewhere;
 const NAMES: Record<string, string> = {
@@ -25,9 +25,9 @@ interface Row {
 }
 
 const MOTOR_WHY =
-  "Leaky: the method's first step learned from every trial and its label, test trials included, before the test. Fair: it learned from the learning trials only.";
+  "Leaky: the method's first step learned from every trial and its label, test trials included, before the test. Leakage-free: it learned from the learning trials only.";
 const DEPRESSION_WHY =
-  "Each person's recording is cut into 4 s pieces. Leaky: pieces of the same person go into both learning and testing, so the model can recognise the person instead of depression. Fair: all of a person's pieces stay on one side.";
+  "Each person's recording is cut into 4 s pieces. Leaky: pieces of the same person go into both learning and testing, so the model can recognise the person instead of depression. Leakage-free: all of a person's pieces stay on one side.";
 
 const GROUPS: { title: string; about?: string; rows: Row[] }[] = [
   {
@@ -36,7 +36,7 @@ const GROUPS: { title: string; about?: string; rows: Row[] }[] = [
       {
         key: "ours",
         name: "These recordings",
-        about: `${data.leak.subjects.length} stroke patients, hand or sixth finger`,
+        about: `${data.leak.subjects.length} stroke patients, a standard CSP+LDA`,
         leaky: data.leak.mean_replica,
         fair: data.leak.mean_leakfree,
         why: MOTOR_WHY,
@@ -70,7 +70,7 @@ const X0 = 0.4;
 const X1 = 1;
 const at = (v: number) => `${((v - X0) / (X1 - X0)) * 100}%`;
 
-/** Leaky and fair scores side by side for every dataset we checked. */
+/** Leaky and leakage-free scores side by side for every dataset we checked. */
 export function Elsewhere() {
   const [on, setOn] = useState<string | null>(null);
   const all = GROUPS.flatMap((g) => g.rows);
@@ -78,7 +78,7 @@ export function Elsewhere() {
   return (
     <Plate
       title="The same mistake in other data"
-      hint={`Each row is one dataset: grey is the score tested the leaky way, black tested fairly. The further apart, the more the leak flattered the result. As a check, with the diagnoses shuffled among the Mumtaz volunteers so that they mean nothing, the leaky test still scored ${pct(E.depression_shuffled.leaky)} and the fair one ${pct(E.depression_shuffled.fair)} (${E.depression_shuffled.shuffles} shuffles): the leaky test recognises the person, not the illness.`}
+      hint={`Each row is one dataset: grey is the score tested the leaky way, black tested leakage-free. The further apart, the more the leak flattered the result. As a check, with the diagnoses shuffled among the Mumtaz volunteers so that they mean nothing, the leaky test still scored ${pct(E.depression_shuffled.leaky)} and the leakage-free one ${pct(E.depression_shuffled.fair)} (${E.depression_shuffled.shuffles} shuffles): the leaky test recognises the person, not the illness.`}
       readout={
         picked ? (
           <>
@@ -89,7 +89,7 @@ export function Elsewhere() {
         )
       }
       className="plate-elsewhere"
-      label="Leaky and fair scores for seven dataset and method pairs"
+      label="Leaky and leakage-free scores for seven dataset and method pairs"
     >
       <div className="dumbbells" id="elsewhere">
         {GROUPS.map((g) => (

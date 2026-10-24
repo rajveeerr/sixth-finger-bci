@@ -3,6 +3,10 @@
 // one line each until the reader opens one. Source: results/audit/audit_report.md and the
 // dataset card. Every decision about the data was taken before any accuracy was looked at.
 
+import { data, pct } from "../data";
+
+const R = data.leak.recipe;
+
 const ROWS = [
   {
     what: "Two sessions that are one recording",
@@ -29,7 +33,7 @@ const ROWS = [
     found:
       "In the published analysis, the method's first step (CSP, which learns how best to combine the sensors) learned from every trial, including the ones later used to test it. So the test was not on unseen data.",
     how: "Reading the authors' analysis code, then rebuilding their method both ways on the same data.",
-    did: "Measured it: the published 85% came from this",
+    did: `Measured it: rebuilt, it lifts ${pct(R.leakfree)} to ${pct(R.paper_way)}`,
     leak: true,
   },
 ];

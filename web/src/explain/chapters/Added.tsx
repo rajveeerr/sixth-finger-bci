@@ -3,11 +3,12 @@ import { data, pct, pctRange } from "../data";
 import { LEAK_RANGE, PRACTICE_S, SCRATCH_MIN } from "../findings";
 
 const S = data.sixth;
+const R = data.leak.recipe;
 
 const ADDS = [
   {
-    title: "A fair score for a published result",
-    text: `The paper's ${pct(data.leak.published[0])} is ${pct(data.leak.mean_leakfree)} tested fairly, lower for all ${data.leak.subjects.length} patients, and we found why.`,
+    title: "A leakage-free score for a published result",
+    text: `The paper's ${pct(data.leak.published[0])} was tested with a leak. Rebuilt, its recipe scores ${pct(R.paper_way)} that way and ${pct(R.leakfree)} leakage-free, lower for all ${R.n} patients.`,
     href: "#published",
   },
   {
@@ -22,12 +23,12 @@ const ADDS = [
   },
   {
     title: "How fast a new patient can start",
-    text: `${PRACTICE_S} s of practice with help from other patients, against ${SCRATCH_MIN} min alone, for a movement the body never had.`,
+    text: `${PRACTICE_S} s of practice with help from other patients, the one way we tried, against ${SCRATCH_MIN} min alone, for a movement the body never had.`,
     href: "#use",
   },
   {
     title: "What the sixth finger can be used as today",
-    text: `A switch that says "move now", right ${pct(S.rest.mean)} of the time, not yet a command apart from the hand; also played as if live, and weeks later.`,
+    text: `A candidate switch that says "move now", tested offline: right ${pct(S.rest.mean)} of the time on 4 s pieces, but catching ${pct(S.continuous.finger_on)} of sixth-finger periods played continuously; not yet a command apart from the hand.`,
     href: "#command",
   },
   {
@@ -36,7 +37,7 @@ const ADDS = [
     href: "#command",
   },
   {
-    title: "An open demo",
+    title: "A demo anyone can run in the browser",
     text: "The model runs on trials it never saw, on our server or in your browser.",
     href: "#demo",
   },
@@ -48,8 +49,8 @@ export function Added() {
       q="added"
       answer={
         <>
-          The recordings, the paper&apos;s method and the models were already out there; what is new is a fair test of
-          them, and what it shows.
+          The recordings, the paper&apos;s method and the models were already out there; what is new is a leakage-free
+          test of them, and what it shows.
         </>
       }
     >

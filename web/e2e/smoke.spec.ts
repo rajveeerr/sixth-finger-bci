@@ -49,13 +49,13 @@ test("the page opens with the problem: a hand a stroke left weak, and what the s
   ]);
 });
 
-test("the chapter on the published 85% says what it means and why it is too high before its fold", async ({ page }) => {
+test("the chapter on the published 85% says what it means and what inflates it before its fold", async ({ page }) => {
   await page.goto("/?server=http://127.0.0.1:9");
   const published = page.locator("#published");
   await expect(published.locator(".q-points dt")).toHaveText([
     "What 85% means",
-    "Why it is too high",
-    "The fair score",
+    "What inflates it",
+    "Without the leak",
     "Why it matters",
   ]);
   await expect(published.locator(".q-points")).toBeVisible();

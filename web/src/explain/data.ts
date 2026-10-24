@@ -87,9 +87,22 @@ export interface ExplainData {
     mean_diff_points: number;
     n_positive: number;
     published: [number, number];
+    /** The authors' own recipe rebuilt: the published way and leakage-free (the arrays above are a standard CSP+LDA). */
+    recipe: { paper_way: number; leakfree: number; n_positive: number; n: number };
   };
   calibration: { scratch: CurvePoint[]; transfer: CurvePoint[] };
-  /** The demo's network played as if live (answer 4). */
+  /** With every practice trial: from nothing minus the one transfer tried, in points, not tested. */
+  whole_pool: {
+    diff_points: number;
+    ci: [number, number];
+    n_scratch_higher: number;
+    n_transfer_higher: number;
+    /** Each of the patient's windows counted this many times one of the other patients'. */
+    target_weight: number;
+    /** The whole pool's minutes at the recorded trial length (the curves use the paper's 14 s). */
+    minutes_recorded: number;
+  };
+  /** The demo's network played as if live (answer 4), read as one switch for any movement (post hoc). */
   switch: {
     detection: number;
     detection_ci: [number, number];
@@ -98,6 +111,8 @@ export interface ExplainData {
     n: number;
     /** Question 3's simpler model played the same way, learned as rest or any movement. */
     central: { detection: number; false_per_minute: number; latency_s: number; n: number };
+    /** The replay fixed in advance (H4): the four three-class decoders' sixth-finger command, lowest and highest. */
+    prereg: { finger_detect: [number, number]; false_per_minute: [number, number]; methods: number };
   };
   later: {
     same_session: number;
@@ -139,6 +154,12 @@ export interface ExplainData {
     fires: Record<"rest" | "hand" | "finger", { all: number; sure: number }>;
     /** Hand or sixth finger with the best method, acting only when sure. */
     which_sure: { acc: number; share: number; n: number; no_decision: number };
+    /** The switch played continuously: sixth-finger and hand periods it turned on in, false switch-ons a minute of rest. */
+    continuous: { finger_on: number; hand_on: number; false_per_minute: number; latency_s: number; n: number };
+    /** The visual-cue check: the 14 sensors over the movement strip against the 5 over the back of the head. */
+    visual: Record<"rest" | "which", { movement: number; vision: number }>;
+    /** The pre-registered own-hand control (H3c): a model that learned only rest and the hand, on sixth finger or rest. */
+    own_hand: { mean: number; n: number; h3c: string };
     /** Healthy people, two or three grasps of one hand, learned one day and tested a week later. */
     healthy: { people: number; pairs: [number, number]; three: [number, number] };
   };
@@ -147,13 +168,21 @@ export interface ExplainData {
     n: number;
     tasks: BenchRow[];
     /** Rest, hand or sixth finger for a new patient, after one practice trial of each, and after twenty. */
-    setup: Record<"from_others" | "from_nothing" | "from_nothing_end", Practised>;
+    setup: Record<"from_others" | "from_nothing" | "from_nothing_end" | "from_others_end", Practised>;
     /** Two weeks later, the first session's model unchanged, and after k practice trials of each movement. */
     later: { as_is: number; re_setup: number; k: number };
-    /** Played as if live: share of imagined movements caught, and mistakes a minute of rest. */
-    live: Record<"demo" | "switch", { detection: number; false_per_minute: number }>;
-    /** Hand or sixth finger with the paper's method, tested the paper's way and fairly. */
-    leak: { paper_way: number; fair: number };
+    /**
+     * Played as if live: the demo's model as one switch (imagined movements caught), the headline
+     * switch (sixth-finger periods), each with mistakes a minute of rest, and the replay fixed in
+     * advance (sixth-finger periods given the sixth-finger command, lowest and highest).
+     */
+    live: {
+      demo: { detection: number; false_per_minute: number };
+      switch: { finger_on: number; false_per_minute: number };
+      prereg: [number, number];
+    };
+    /** Hand or sixth finger, the paper's way and leakage-free: a standard CSP+LDA, and the authors' recipe rebuilt. */
+    leak: { paper_way: number; leakfree: number; recipe_paper_way: number; recipe_leakfree: number };
     model: { parameters: number; bytes: number };
   };
 }

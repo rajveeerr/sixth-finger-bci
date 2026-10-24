@@ -1,4 +1,4 @@
-// How the paper tested its method against how we did, on one round of the test: twenty
+// How the paper tested its method against a leakage-free test, on one round of it: twenty
 // squares are trials, the orange ones the trials that round is scored on, and the bracket
 // what the method's first step (CSP) learned from. The test repeats ten times so that every
 // trial is scored once; only where the bracket ends differs.
@@ -6,6 +6,7 @@
 import { data, pct } from "../data";
 
 const L = data.leak;
+const R = L.recipe;
 
 const N = 20;
 const TEST = new Set([6, 15]);
@@ -50,10 +51,10 @@ function Row({ title, note, learnsFromTest }: { title: string; note: string; lea
   );
 }
 
-/** The one step that differs between the paper's test and a fair one. */
+/** The one step that differs between the paper's test and a leakage-free one. */
 export function LeakDiagram() {
   return (
-    <figure className="leak" aria-label="The paper's test against a fair test, on one round of twenty trials">
+    <figure className="leak" aria-label="The paper's test against a leakage-free test, on one round of twenty trials">
       {/* The figure exporter keeps only the names in the key, for print. */}
       <p className="leak-key">
         <span>
@@ -75,10 +76,14 @@ export function LeakDiagram() {
       </p>
       <Row
         title="The paper's way"
-        note={`${pct(L.published[0])} to ${pct(L.published[1])} reported; ${pct(L.mean_replica)} in our rebuild`}
+        note={`${pct(L.published[0])} to ${pct(L.published[1])} reported; rebuilt, ${pct(R.paper_way)} their recipe, ${pct(L.mean_replica)} standard`}
         learnsFromTest
       />
-      <Row title="Fair" note={`${pct(L.mean_leakfree)}, where guessing gets 50%`} learnsFromTest={false} />
+      <Row
+        title="Leakage-free"
+        note={`${pct(R.leakfree)} their recipe, ${pct(L.mean_leakfree)} standard; guessing gets 50%`}
+        learnsFromTest={false}
+      />
       <figcaption>
         Each square is one trial: one round of resting, then imagining a movement. The test repeats ten times, with
         different test trials each time, so every trial is tested once. The first step (CSP) works out how to combine

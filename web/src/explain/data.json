@@ -24,6 +24,12 @@
   "results/summary/ex5_live_switch_checks.json",
   "results/summary/rq1_table.csv",
   "results/summary/ex1_transfer_ah_sf_paired.csv",
+  "results/summary/calib_pair_whole_pool.csv",
+  "results/summary/calib_minutes.csv",
+  "results/summary/calib_confirmatory.csv",
+  "results/summary/transfer_hparams.csv",
+  "results/summary/rq4_visual_cue_table.csv",
+  "results/summary/rq4_pseudo_online_table.csv",
   "web/public/demo/model.onnx",
   "web/public/demo/predictions.json",
   "mne colin27_1005 template"
@@ -550,7 +556,13 @@
   "published": [
    0.8509,
    0.8602
-  ]
+  ],
+  "recipe": {
+   "paper_way": 0.958375,
+   "leakfree": 0.520636,
+   "n_positive": 22,
+   "n": 22
+  }
  },
  "calibration": {
   "scratch": [
@@ -666,6 +678,17 @@
    }
   ]
  },
+ "whole_pool": {
+  "diff_points": 3.3766,
+  "ci": [
+   -0.6312,
+   7.4206
+  ],
+  "n_scratch_higher": 12,
+  "n_transfer_higher": 10,
+  "target_weight": 1,
+  "minutes_recorded": 10.829
+ },
  "switch": {
   "detection": 0.6489,
   "detection_ci": [
@@ -680,6 +703,17 @@
    "false_per_minute": 0.58,
    "latency_s": 4.13,
    "n": 22
+  },
+  "prereg": {
+   "finger_detect": [
+    0.104625,
+    0.224163
+   ],
+   "false_per_minute": [
+    0.37,
+    1.62
+   ],
+   "methods": 4
   }
  },
  "later": {
@@ -988,6 +1022,28 @@
    "n": 19,
    "no_decision": 3
   },
+  "continuous": {
+   "finger_on": 0.453495,
+   "hand_on": 0.345375,
+   "false_per_minute": 0.47,
+   "latency_s": 4.61,
+   "n": 22
+  },
+  "visual": {
+   "rest": {
+    "movement": 0.840451,
+    "vision": 0.732378
+   },
+   "which": {
+    "movement": 0.563907,
+    "vision": 0.614949
+   }
+  },
+  "own_hand": {
+   "mean": 0.836568,
+   "n": 22,
+   "h3c": "inconclusive"
+  },
   "healthy": {
    "people": 15,
    "pairs": [
@@ -1052,6 +1108,10 @@
    "from_nothing_end": {
     "mean": 0.612182,
     "minutes": 9.333
+   },
+   "from_others_end": {
+    "mean": 0.578416,
+    "minutes": 9.333
    }
   },
   "later": {
@@ -1065,13 +1125,19 @@
     "false_per_minute": 1.239
    },
    "switch": {
-    "detection": 0.604998,
-    "false_per_minute": 0.583
-   }
+    "finger_on": 0.453495,
+    "false_per_minute": 0.473
+   },
+   "prereg": [
+    0.104625,
+    0.224163
+   ]
   },
   "leak": {
    "paper_way": 0.810951,
-   "fair": 0.584693
+   "leakfree": 0.584693,
+   "recipe_paper_way": 0.958375,
+   "recipe_leakfree": 0.520636
   },
   "model": {
    "parameters": 3195,

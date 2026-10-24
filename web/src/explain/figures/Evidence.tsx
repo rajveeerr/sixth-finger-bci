@@ -11,7 +11,10 @@ const minutes = (m: number) => (m < 1 ? `${Math.round(m * 60)} s` : `${m.toFixed
 
 const Say = ({ said }: { said: Said }) => <>{said.map((s, i) => (typeof s === "string" ? s : <b key={i}>{s.b}</b>))}</>;
 
-/** Each patient scored the published way and fairly, one line between the two. */
+/**
+ * Each patient scored the published way and leakage-free with a standard CSP+LDA, one line
+ * between the two. The published score is not drawn beside it: it came from another recipe.
+ */
 export function LeakSlope() {
   const L = data.leak;
   return (
@@ -19,17 +22,16 @@ export function LeakSlope() {
       a={L.replica}
       b={L.leakfree}
       guess={0.5}
-      band={{ from: L.published[0], to: L.published[1], text: "published" }}
       names={L.subjects.map((s) => `Patient ${Number(s.replace("sub-", ""))}`)}
       labels={[
         <>
           <b>The published way</b> test trials also used to build the method
         </>,
         <>
-          <b>Tested fairly</b> test trials kept apart
+          <b>Leakage-free</b> test trials kept apart
         </>,
       ]}
-      label="Accuracy of each patient tested the old way and tested fairly"
+      label="Accuracy of each patient tested the paper's way and leakage-free"
     />
   );
 }
@@ -51,8 +53,8 @@ export function EachPatient() {
       />
       <figcaption className="figure-note">
         One dot per patient; point at or tap one for its score. Sixth finger or resting: a simple model reading{" "}
-        <StripTerm />. Hand or sixth finger: the best model we found, a network that first learned from the other
-        patients.
+        <StripTerm />. Hand or sixth finger: the best of the models we tried on these runs, so a little optimistic, a
+        network that first learned from the other patients.
       </figcaption>
     </figure>
   );

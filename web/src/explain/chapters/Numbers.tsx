@@ -23,8 +23,9 @@ const SURE = (() => {
 export function NumbersAnswer() {
   return (
     <>
-      Tested fairly on {B.n} patients, the best models are right {pct1(SWITCH.best.mean)} of the time on sixth finger or
-      rest and {pct1(WHICH.best.mean)} on hand or sixth finger, where guessing gets {pct(SWITCH.chance)}.
+      Tested leakage-free on {B.n} patients, on single 4 s pieces, the best models are right {pct1(SWITCH.best.mean)}{" "}
+      of the time on sixth finger or rest and {pct1(WHICH.best.mean)} on hand or sixth finger, where guessing gets{" "}
+      {pct(SWITCH.chance)}.
     </>
   );
 }
@@ -43,7 +44,7 @@ export function HowEachTested() {
         The lines under the table were each tested their own way. Setting up: a new patient&apos;s model learned from 1
         to {MOST_PRACTICE} practice trials of each movement in runs 1 and 2. Another day: the model learned from all of
         the first session and was tested on runs 3 and 4 two weeks later. Live: runs 3 and 4 were played start to end.
-        The leak: the paper&apos;s own random split of all the trials, which is why its fair score is not the
+        The leak: the paper&apos;s own random split of all the trials, which is why its leakage-free score is not the
         table&apos;s {pct1(WHICH.csp_lda)}.
       </p>
     </>
@@ -53,12 +54,14 @@ export function HowEachTested() {
 export function HowBestChosen() {
   return (
     <p>
-      For sixth finger or rest, the switch was chosen over the other models on runs 1 and 2 alone, before runs 3 and 4
-      were scored. A network that first learned from other patients scored a little higher on runs 3 and 4,{" "}
+      For sixth finger or rest, the switch was chosen over the other models by their scores on runs 1 and 2. Its score
+      on runs 3 and 4 was not new, though: an earlier check of which sensors carry the signal had already measured the
+      same model there. A network that first learned from other patients scored a little higher on runs 3 and 4,{" "}
       {pct1(SURE.notChosen)}, but lower on runs 1 and 2, so it was not the one chosen. Acting only when sure, with how
       sure set for each patient on runs 1 and 2, the switch acts on {pct(SURE.share)} of the windows and is right on{" "}
       {pct1(SURE.acc)} of them. For hand or sixth finger, the best is the network that first learned from every
-      recording of the other patients; for all three, the demo&apos;s own model.
+      recording of the other patients, the best on runs 3 and 4 of those we tried and so a little optimistic, though
+      runs 1 and 2 chose it too; for all three, the demo&apos;s own model.
     </p>
   );
 }

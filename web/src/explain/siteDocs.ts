@@ -20,7 +20,7 @@ const ABOUT: Record<string, About> = {
   paper: {
     name: "Paper",
     tag: "Preprint draft",
-    text: "Teaching a Brain-Computer Interface a New Finger: Calibrating Sixth-Finger Motor Imagery Decoders in Stroke Patients.",
+    text: "Can a Brain-Computer Interface Learn a New Finger? Calibrating Sixth-Finger Motor Imagery Decoders in Stroke Patients.",
   },
   slides: {
     name: "Slides",
