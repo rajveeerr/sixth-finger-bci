@@ -4,14 +4,14 @@
 This chapter explains how the study was done and how the demonstrator was built. It
 answers, in order, the questions an examiner would ask about the method: where the data
 came from and whether it can be trusted, how it was cut into examples, which models were
-used, how the test was kept fair, how the results were judged, and how the trained model
+used, how test data were kept out of every fit, how the results were judged, and how the trained model
 reaches a screen. Figure~\ref{fig:approach} shows the whole approach in eight stages.
 
 \begin{figure}[tbp]
   \centering
   \input{figures/approach}
   \caption[The approach]{The approach. Blue boxes prepare the data (stages 1 to 4). The green box is the
-  framework that keeps every test fair (5). The studies (6) answer the research
+  framework that keeps test data out of every fit (5). The studies (6) answer the research
   questions; the dashed box holds the exploratory work, including the follow-ups added
   after the planned study. Statistics (7) feed the demonstrator, the website and the
   written reports (8).}
@@ -23,7 +23,7 @@ reaches a screen. Figure~\ref{fig:approach} shows the whole approach in eight st
   \item \textbf{Integrity audit}: find broken files and duplicates; fix the exclusions first.
   \item \textbf{Four-second pieces}: cut one window per rest period and imagined movement.
   \item \textbf{Signal check}: confirm that the mu rhythm falls during imagery.
-  \item \textbf{Fair-test framework}: automatic leak checks, and an analysis plan frozen in advance.
+  \item \textbf{Leakage-free framework}: automatic leak checks, and an analysis plan frozen in advance.
   \item \textbf{Studies}: the published method (RQ1), calibration (RQ2, RQ3), exploration (RQ4).
   \item \textbf{Statistics}: paired per patient, with confidence intervals and corrections.
   \item \textbf{Outputs}: the demonstrator and website, and every reported number from the results files.
@@ -49,19 +49,24 @@ approved the study, and the patients agreed to public sharing of their anonymise
 data~\cite{wang2026dataset}. We collected no new data.
 
 \subsection{What each patient did}
-Each trial lasted 14 seconds (Figure~\ref{fig:trial}). A cross on the screen asked the
-patient to rest for 7 seconds. A grey circle for 1 second said ``get ready''. A picture
-then asked the patient to imagine, for 6 seconds, either grasping with the affected hand
-(called AH below) or bending the robotic sixth finger worn on the affected wrist
-(called SF).
+The dataset article describes a 14-second trial (Figure~\ref{fig:trial}). A cross on the
+screen asked the patient to rest for 7 seconds. A grey circle for 1 second said ``get
+ready''. A picture then asked the patient to imagine, for 6 seconds, either grasping with
+the affected hand (called AH below) or bending the robotic sixth finger worn on the
+affected wrist (called SF). The recordings are a little longer: in runs 1 and 2 of the
+pre-therapy sessions, a run's length divided by its trials has a median of
+\rqTwoTrialSecondsRecorded{} seconds, and the rest marker comes a median of
+\rqTwoRestSecondsRecorded{} seconds before the cue.
 
 \begin{figure}[tbp]
   \centering
   \includegraphics[width=\textwidth]{web/trial.pdf}
   \caption[One trial as the patient saw it]{One trial as the patient saw it: rest while a cross is shown (7\,s), get ready
   at a grey circle (1\,s), then imagine moving the hand or the sixth finger as the picture
-  asks (6\,s). The coloured marks on the time strip are the two 4-second pieces that the
-  models read: one from the rest period and one from the imagery period.}
+  asks (6\,s). These are the dataset article's nominal timings; the recorded trials are
+  longer (a median of \rqTwoTrialSecondsRecorded\,s). The coloured marks on the time strip
+  are the two 4-second pieces that the models read: one from the rest period and one from
+  the imagery period.}
   \label{fig:trial}
 \end{figure}
 
@@ -280,9 +285,19 @@ transform every matrix so that this average becomes the identity, a neutral cent
 is the same for everyone~\cite{zanini2018}. The other patients' re-centred windows and
 the new patient's re-centred practice windows are then pooled to train TS+LR or MDM. The
 new patient's windows count with a \emph{target weight}. The weight, \rqTwoHparamRctTslrWeight{}
-for TS+LR, was chosen by a fixed rule on two development patients (sub-01 and sub-03),
-never on test data. The candidate weights scored within one point of each other there
-(\pct{\rqTwoHparamRctTslrMeanMin} to \pct{\rqTwoHparamRctTslrMeanMax}).
+for TS+LR, was chosen from 1, 5 and 20 by a fixed rule on two development patients
+(sub-01 and sub-03), never on their test runs. The candidate weights scored within one
+point of each other there (\pct{\rqTwoHparamRctTslrMeanMin} to
+\pct{\rqTwoHparamRctTslrMeanMax}), all near the 33.3\,\% of guessing, and the
+highest-scoring was the smallest. With a weight of \rqTwoHparamRctTslrWeight{}, each of the
+new patient's at most 80 practice windows counts as much as one window of the other
+patients, who give thousands (all their sessions; the dataset has \nWindows{} windows), so
+this transfer model depends little on the new patient's labels. The rule used the other
+patients as sources exactly as the main study does, all their runs included, so their
+runs 3 and 4 took part in choosing a value later tested on those runs: a weak breach of
+nesting, which with candidates this close should matter little. Riemannian Procrustes
+analysis also matches each person's spread and rotation~\cite{rodrigues2019}; we used
+re-centring only.
 
 \textbf{Euclidean alignment.} The same idea applied to the raw windows~\cite{he2020}. For
 one person with windows $X_i$ (channels by samples), the reference matrix is the average
@@ -308,8 +323,9 @@ held-out source patients stopped improving. All \dlPretrainModels{} models took
 \dlPretrainMinutes{} minutes on a \dlPretrainDevice{} graphics card in Kaggle's free cloud.
 For a new patient the network is aligned with the patient's practice windows (with no
 practice, with the patient's rest windows only) and then fine-tuned on them for
-\rqTwoHparamEegnetEpochs{} steps at a learning rate of \rqTwoHparamEegnetLr{}. Used
-without any fine-tuning, it is called \emph{zero-shot}.
+\rqTwoHparamEegnetEpochs{} steps at a learning rate of \rqTwoHparamEegnetLr{}, the
+highest-scoring of four candidate pairs on the development patients and also the least
+adaptive one. Used without any fine-tuning, it is called \emph{zero-shot}.
 
 \section{Evaluation Protocol and Safeguards}\label{sec:protocol}
 
@@ -319,7 +335,7 @@ To answer RQ1 we scored every method in four ways on the same windows:
   \item \textbf{The paper's way} (\code{paper\_replica}): every step before the classifier,
   such as CSP, is fitted once on all windows of the session; only the classifier is then
   trained and tested in 10 folds, repeated 10 times. This copies the published code.
-  \item \textbf{Fair cross-validation} (\code{cv\_leakfree}): the same 100 folds, but the
+  \item \textbf{Leakage-free cross-validation} (\code{cv\_leakfree}): the same 100 folds, but the
   whole pipeline is fitted inside each training fold.
   \item \textbf{Leave one run out} (\code{loro}): train on three runs, test on the fourth,
   four times.
@@ -337,12 +353,11 @@ al.~\cite{cho2017}, loaded through MOABB~\cite{jayaram2018moabb}.
 
 \begin{figure}[tbp]
   \centering
-  \includegraphics[width=0.78\textwidth]{web/leak.pdf}
-  \caption[The leak on one round of 20 trials]{The leak on one round of 20 trials. Dark squares are learning trials, orange
-  squares are test trials. In the paper's way (top), the first step studies all 20 trials,
-  the two test trials included. In the fair test (bottom), it studies only the 18 learning
-  trials. Nothing else differs. The scores printed are this study's results
-  (Section~\ref{sec:res-leak}).}
+  \includegraphics[width=0.8\textwidth]{fig-leakage-schematic.pdf}
+  \caption[The leak]{The leak. Left: the dataset's script fits the CSP filters on all
+  trials of a session, the test trials included, and only then splits the trials into
+  folds. Right: in the leakage-free protocol every step that learns from labels is fitted
+  on the training folds only. Nothing else differs.}
   \label{fig:leak}
 \end{figure}
 
@@ -350,9 +365,12 @@ al.~\cite{cho2017}, loaded through MOABB~\cite{jayaram2018moabb}.
 RQ2 and RQ3 simulate a new patient. Practice trials are drawn from runs 1 and 2 of the
 patient's session, and the model is always tested on runs 3 and 4 (Figure~\ref{fig:session}).
 The amount of practice, $k$, is the number of trials of each imagined movement: 0, 1, 2,
-3, 5, 10, or the whole pool of runs 1 and 2. Each trial takes 14 seconds, so one trial of
-each movement is about \rqTwoMinutesKOne{} minutes of practice and ten of each about
-\rqTwoMinutesKTen{} minutes. For every patient and budget we drew ten random sets of
+3, 5, 10, or the whole pool of runs 1 and 2. Practice minutes in this report use the
+dataset article's nominal 14 seconds per trial: one trial of each movement is about
+\rqTwoMinutesKOne{} minutes of practice, ten of each about \rqTwoMinutesKTen{} minutes and
+the whole pool \rqTwoMinutesKAll{} minutes. At the recorded trial length they are
+\rqTwoMinutesRecordedKOne{}, \rqTwoMinutesRecordedKTen{} and \rqTwoMinutesRecordedKAll{}
+minutes. For every patient and budget we drew ten random sets of
 practice trials (five for the networks) plus the chronological first trials, and averaged
 the scores. All methods saw the same draws, so every comparison is paired. Two scenarios
 were studied:
@@ -362,6 +380,15 @@ were studied:
   \item \textbf{S2, a new command}: the patient already has all hand trials of runs 1 and
   2 and adds $k$ sixth-finger trials (RQ3).
 \end{itemize}
+In S2 the three-class models learn from every hand trial and the $k$ new ones. Its
+sixth-finger-against-rest models, as pre-registered, learn only from the $k$ new
+sixth-finger trials and their rest windows and use no hand trial, so for that task S2 adds
+nothing to a hand model: it is the S1 curve with other random draws. Whether the sixth
+finger adds anything to a hand model is the question of the own-hand control (H3c). Two
+consequences of the design matter when reading the results. With one trial of each
+movement, a model trained from scratch learns from four windows, two of them rest. In S2
+its classes are unbalanced by design (up to 20 hand trials against $k$ sixth-finger
+trials), and its logistic regression, as pre-registered, has no class weights.
 Transfer methods at $k = 0$ may use the patient's unlabelled rest windows from runs 1 and
 2, about \rqTwoRestMinutes{} minutes of recording, to compute their alignment. No method
 ever saw a window of runs 3 and 4 before it was tested.
@@ -373,16 +400,25 @@ test trial in the unlabelled set; no test trial in the other patients' data; non
 target patient's windows in the other patients' data; and none of the linked partner's
 windows either. The rules are checked by trial number, so the rest window of a test trial
 cannot slip into training. Automated tests on random data confirmed that with shuffled
-labels a fair pipeline stays at chance, while the paper's way climbs far above it.
+labels a leakage-free pipeline stays at chance, while the paper's way climbs far above it.
 
 \lstinputlisting[firstline=27,lastline=45,caption={The leak check run before every fit
 (\code{src/sixthfinger/evaluation/leakage.py}).},label=lst:leak,float=tbp]{../src/sixthfinger/evaluation/leakage.py}
 
-The analysis plan, with its hypotheses and tests, was frozen in version control (git tag
-\code{prereg-v1}) before the main experiments. Every later change is recorded as a
-deviation with its date and reason (Appendix~\ref{app:prereg}). Analyses added after the
-results were known are called \emph{exploratory} in this report, and no conclusion rests
-on them alone.
+The analysis plan, with its hypotheses and tests, was frozen in the project's git
+repository under the tag \code{prereg-v1}, on a commit dated 3 October 2026, before the
+main experiments; the tag itself was made on 8 October. These are git's own dates, written
+by whoever makes the commit and the tag: the plan was not registered with an independent
+registry. The plan and its deviation log are available from the authors on request. The
+log has \nDeviations{} dated entries, each with its reason and with what results were
+known at the time; Appendix~\ref{app:prereg} lists every one. Analyses added after the
+results were known are called \emph{exploratory} or \emph{post hoc} in this report, and no
+conclusion rests on them alone. Some data had been seen before the plan was frozen: a
+labelled exploratory analysis of every patient and session (Section~\ref{sec:res-erd}),
+and decoding on the development patients, which already showed the direction of H1.
+Before the calibration study, the whole-pool values of the methods trained from scratch,
+which enter H2b, and the pre-trained EEGNet's accuracy without calibration were known
+from the benchmark.
 
 \section{Metrics and Statistical Analysis}\label{sec:stats}
 
@@ -398,13 +434,27 @@ the differences lean consistently one way without assuming a bell curve, and rep
 effect size, the rank-biserial correlation~\cite{kerby2014}, which runs from $-1$ to $1$.
 When several tests answer one question, Holm's method corrects the p-values. A 95\,\%
 confidence interval (CI) of a mean comes from resampling the patients 10\,000 times
-(bootstrap).
+(bootstrap). Differences in accuracy are given in percentage points. As pre-registered,
+H1, H1b, H2b and H3c are one-sided tests and H2a and H3 two-sided; the Wilcoxon statistic
+$W$ is the sum of positive ranks for a one-sided test and the smaller rank sum for a
+two-sided one. Each test ends in a category fixed in advance: \emph{supported};
+\emph{contrary}, possible only for a two-sided test whose effect is significant in the
+other direction; \emph{partial}; or \emph{inconclusive}. A one-sided test whose effect
+points the other way is therefore inconclusive, never contrary. Exploratory tests are
+uncorrected, except the mirroring comparison, which was Holm-adjusted across budgets as
+planned.
 
 \textbf{Calibration curves.} To compare two learning curves with one number we use the
-\emph{area under the learning curve} (ALC). Accuracy is first rescaled so that chance is
+\emph{area under the learning curve} (ALC), a normalised area in the spirit of the
+active learning challenge~\cite{guyon2011}. Accuracy is first rescaled so that chance is
 0 and perfect is 1, and the area under the curve is measured over the budgets on a
-logarithmic axis, so that early trials count more. A curve stuck at chance has an ALC of
-0. The frozen hypotheses and their tests are listed in Appendix~\ref{app:prereg}; Chapter~\ref{ch:results}
+logarithmic axis, so that early trials count more:
+\begin{equation}
+  \mathrm{ALC} = \frac{1}{x_{\max} - x_{\min}} \int_{x_{\min}}^{x_{\max}}
+  \frac{\mathrm{BA}(x) - c}{1 - c}\, dx, \qquad x = \ln(1 + k),
+\end{equation}
+with chance level $c$ and the trapezoid rule over the budgets of the test. A curve stuck
+at chance has an ALC of 0. The frozen hypotheses and their tests are listed in Appendix~\ref{app:prereg}; Chapter~\ref{ch:results}
 states each one where it is tested.
 
 
@@ -578,14 +628,14 @@ The web page is a static site on Vercel at \url{\siteURL} (also
 \url{https://sixth-finger-bci.vercel.app}); the demonstrator alone is at \code{/live}. A streaming server for the same bundle runs on Render, a small
 function on the same site can decide one window per request, and the browser decodes by
 itself whenever neither answers. The browser uses the WebAssembly-only build of ONNX
-Runtime Web, half the size of the default build. The code is public at
-\url{https://github.com/rajveeerr/sixth-finger-bci}. Appendix~\ref{app:guide} is a user
-guide with the link as a QR code.
+Runtime Web, half the size of the default build. The code is kept in a private
+repository and is available from the authors on request. Appendix~\ref{app:guide} is a
+user guide with the site's link as a QR code.
 
 \section{Chapter Summary}
 The data were checked before use, and the doubtful recordings were excluded before any
 result existed. Every model was tested on data it had never seen, with checks that stop
-the code if a test trial leaks into training, and the plan was frozen before the main
-experiments. The same trained model runs on a server, in a browser or from stored
+the code if a test trial leaks into training, and the plan was frozen in a git tag before
+the main experiments. The same trained model runs on a server, in a browser or from stored
 answers, and moves a drawn hand that stands in for the physical finger. The next chapter
 reports what these tests found.

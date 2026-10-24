@@ -12,11 +12,12 @@
 
 This appendix says how to run the whole study again, from an empty folder to the PDFs.
 
-The code, the settings, the results summaries and this report are in one public repository,
-\url{https://github.com/rajveeerr/sixth-finger-bci}. The EEG data are downloaded from
-figshare~\cite{wang2026figshare}, where Wang et al.\ published them under the CC~BY~4.0 licence.
-Table~\ref{tab:repro-commands} lists the steps, run from the top folder of the repository; its
-runbook (\code{docs/RUNBOOK.md}) says what each one should print.
+The code, the settings, the results summaries, the frozen pre-registration, its deviation log
+and this report are kept in one private repository, available from the authors on request. The
+EEG data are public: they are downloaded from figshare~\cite{wang2026figshare}, where Wang et
+al.\ published them under the CC~BY~4.0 licence. Table~\ref{tab:repro-commands} lists the
+steps, run from the top folder of the repository; its runbook (\code{docs/RUNBOOK.md}) says
+what each one should print.
 
 \begin{table}[!htbp]
 \centering
@@ -46,7 +47,8 @@ cache} has a manifest (channels, sampling rate, window, exclusions, code version
 file) that every later step checks before it runs. \textbf{Every result row} stores the git commit
 that made it and hashes of its settings and of the data manifest. \textbf{Git tags} mark fixed
 points: \code{setup-v1}, \code{prereg-v1} and \code{prereg-rq5-v1} (plans frozen before the main
-results) and \code{results-v1}; \code{demo-v1} and \code{submission-v1} will follow. No result in
+results) and \code{results-v1}; \code{demo-v1} and \code{submission-v1} will follow. Their dates
+are git's own, not those of an independent registry (Appendix~\ref{app:prereg}). No result in
 this report is typed by hand: a script writes each one as a LaTeX macro from the results
 summaries. Classical methods give identical numbers on a re-run; networks trained on a GPU can
 differ slightly. The classical work ran on an Apple M1 laptop with 8\,GB of memory, and every
@@ -63,7 +65,7 @@ three.
 
 Table~\ref{tab:app-rq1-post} repeats the main re-benchmark for the session recorded after
 therapy (\code{post}). The pattern is the same as before therapy: the published way of testing
-(\emph{replica}) scores far above the three fair ways.
+(\emph{replica}) scores far above the three leakage-free ways.
 
 \begin{table}[!htbp]
 \centering
@@ -159,10 +161,11 @@ EEGNet, pre-trained & \rqTwoSfRestEegnetEaFtKZeroMean & \rqTwoSfRestEegnetEaFtKO
 
 \begin{table}[!htbp]
 \centering
-\caption[Scenario S2, adding the sixth finger to a hand decoder, \code{pre} session, \nPre{} patients]{Scenario S2, adding the sixth finger to a hand decoder, \code{pre} session, \nPre{}
+\caption[Scenario S2, a new command, \code{pre} session, \nPre{} patients]{Scenario S2, a new command, \code{pre} session, \nPre{}
 patients. The patient has already given every hand trial of runs 1 and 2 and adds $k$
-sixth-finger trials. The own-hand control never sees a sixth-finger trial, so it has one value
-for every $k$.}
+sixth-finger trials. The three-class models use the hand trials; the sixth-finger-or-rest
+models, as pre-registered, use only the new sixth-finger trials and their rest windows. The
+own-hand control never sees a sixth-finger trial, so it has one value for every $k$.}
 \label{tab:app-s2}
 \footnotesize
 \setlength{\tabcolsep}{4.5pt}
@@ -202,7 +205,8 @@ Own-hand control & \multicolumn{7}{c}{\rqThreeSfRestAhProxyMean{} at every $k$} 
 This appendix lists every setting of every model. All of them were fixed in the
 pre-registration before the main results, except the transfer settings, which were chosen once,
 by a rule written in advance, on two development patients (\code{sub-01} and \code{sub-03}) and
-never on test runs. The settings live in \code{configs/models/} and \code{configs/protocol.yaml}.
+never on their test runs; the other patients served as sources as in the main study, their
+test runs included. The settings live in \code{configs/models/} and \code{configs/protocol.yaml}.
 
 \begin{table}[!htbp]
 \centering
@@ -229,8 +233,10 @@ Re-centred TS+LR & the same re-centring, then TS+LR; the patient's windows weigh
 
 The target weight says how much one of the new patient's windows counts against one window of
 another patient. On the development patients the three candidate weights for re-centred TS+LR
-scored between \pct{\rqTwoHparamRctTslrMeanMin} and \pct{\rqTwoHparamRctTslrMeanMax}, so the
-choice made little difference there.
+scored between \pct{\rqTwoHparamRctTslrMeanMin} and \pct{\rqTwoHparamRctTslrMeanMax}, all near
+the 33.3\,\% of guessing, so the choice made little difference there. The highest-scoring
+weight, one, is also the least adaptive: each of the new patient's windows then counts as much
+as one of the other patients' thousands of windows.
 
 \begin{table}[!htbp]
 \centering
@@ -245,7 +251,7 @@ EEGNet architecture & library defaults: 8 temporal filters of 64 samples, depth 
 Training recipe & AdamW, learning rate $10^{-3}$, weight decay $10^{-3}$, batch size 32, cosine decay of the learning rate to zero \\
 EEGNet from scratch & a fixed 150 epochs and no early stopping, so no training window is set aside; seeds 0, 1 and 2, and the result is their mean \\
 Pre-training & one network per target patient, trained on every other patient (all sessions, three classes), each source patient aligned by Euclidean alignment; 3 source patients held out (seed 0) to stop after 20 epochs without improvement, at most 150; the best epoch's weights kept \\
-Fine-tuning & every layer, learning rate $10^{-4}$ for 20 epochs, chosen from $\{10^{-4}, 3\times10^{-4}\} \times \{20, 50\}$ on the development patients \\
+Fine-tuning & every layer, learning rate $10^{-4}$ for 20 epochs, chosen from $\{10^{-4}, 3\times10^{-4}\} \times \{20, 50\}$ on the development patients: the highest-scoring pair, and the least adaptive \\
 Euclidean alignment & reference matrix computed in double precision; eigenvalues floored at $10^{-6}$ of the largest \\
 ShallowConvNet & optional second network, never in a confirmatory test: AdamW, learning rate $6.25\times10^{-4}$, no weight decay, 150 epochs \\
 \bottomrule
@@ -265,7 +271,7 @@ Windows & 1 to 5\,s after each rest marker and each cue (1000 samples at 250\,Hz
 Cross-validation & 10 folds, 10 repeats, stratified by the imagery class of each trial, seed 0; fewer folds when a class has fewer than ten trials \\
 Run-wise protocols & leave-one-run-out (four folds); chronological: learn on runs 1--2, test on runs 3--4 \\
 Calibration budgets & $k \in \{0, 1, 2, 3, 5, 10, \text{all}\}$ trials per class from runs 1--2; 10 random draws for classical methods, 5 for networks, plus the first $k$ trials in time order \\
-Practice time & 14\,s per trial (one rest and one imagery period) \\
+Practice time & 14\,s per trial (one rest and one imagery period), the dataset article's nominal length; the recorded runs give a median of \rqTwoTrialSecondsRecorded\,s per trial \\
 Statistics & Wilcoxon signed-rank tests, Holm correction, $\alpha = 0.05$; 95\,\% bootstrap confidence intervals from 10\,000 resamples of patients, seed 12345; Friedman test with the Nemenyi critical difference \\
 Command gate & a reading every 0.5\,s from the last 4\,s; probabilities smoothed with weight 0.3 on the newest; switches on when a movement class stays at or above 0.6 for 2 readings in a row; switches off below 0.45; rest by default \\
 \bottomrule
@@ -282,10 +288,17 @@ every change made to the plan after it was frozen.
 
 A pre-registration is a plan written and frozen before the data are analysed. It fixes the
 questions, the methods and the tests, so that the results cannot steer the analysis. Ours was
-frozen as the git tag \code{prereg-v1}; the separate depression study was frozen as
-\code{prereg-rq5-v1} before any of its data were downloaded. Table~\ref{tab:app-hypotheses}
-lists the hypotheses. ``Supported'' means the test passed its pre-set bar. ``Inconclusive''
-means it did not, which is not evidence that the opposite is true.
+frozen in the project's git repository under the tag \code{prereg-v1}, on a commit dated
+3 October 2026; the tag itself was made on 8 October. These are git's own dates, written by
+whoever makes the commit and the tag: the plan was not registered with an independent registry,
+and it is available, with its deviation log, from the authors on request. The separate
+depression study was frozen as \code{prereg-rq5-v1} before any of its data were downloaded. Table~\ref{tab:app-hypotheses}
+lists the hypotheses. ``Supported'' means the test passed its pre-set bar. ``Contrary'' is
+possible only for a two-sided test whose effect is significant in the other direction.
+``Inconclusive'' means neither, which is not evidence that the opposite is true; a one-sided
+test whose effect points the other way is inconclusive. $W$ is the sum of positive ranks for a
+one-sided test and the smaller rank sum for a two-sided one, and $r$ the rank-biserial
+correlation.
 
 \begin{table}[!htbp]
 \centering
@@ -296,50 +309,91 @@ means it did not, which is not evidence that the opposite is true.
 \toprule
 & What it says & Outcome \\
 \midrule
-H1 & Fitting CSP on all trials before the test split (the published way) gives higher accuracy for hand versus sixth finger than fitting it inside the folds. One-sided Wilcoxon test. & \rqOneHOneCategory: \rqOneHOneDiff{} points higher, $p = \rqOneHOneP$ \\
-H1b & The same happens on two public datasets of healthy people imagining the left or the right hand (BNCI2014\_001, Cho2017), Holm-corrected over the two. & supported on both: \rqOneBnciHOneBDiff{} and \rqOneChoHOneBDiff{} points, Holm $p = \rqOneBnciHOneBPHolm$ and $\rqOneChoHOneBPHolm$ \\
-H2a & For a new patient (three classes), re-centred transfer and learning from scratch differ in the area under the learning curve over $k$ = 1 to 10 (expected: transfer higher). Two-sided. & \rqTwoHTwoACategory, $p = \rqTwoHTwoAP$ \\
-H2b & The advantage of transfer is smaller with all trials than at $k = 5$: the curves meet. One-sided. & \rqTwoHTwoBCategory, $p = \rqTwoHTwoBP$ \\
-H3 & When a sixth-finger command is added to a hand decoder, re-centred transfer beats learning from scratch on (a) sixth finger versus rest or (b) the three-class task, over $k$ = 1 to 5. Holm over (a) and (b). & (a) \rqThreeHThreeACategory; (b) \rqThreeHThreeBCategory \\
-H3c & At $k = 2$ and $k = 5$, the transfer decoder detects the sixth finger against rest better than the patient's own hand decoder does. This asks whether the sixth finger adds anything over detecting any imagined movement. & $k = 2$: \rqThreeHThreeCKTwoCategory; $k = 5$: \rqThreeHThreeCKFiveCategory \\
-H4 & Exploratory, no test: mirroring helps transfer; decoders lose accuracy on later visits; 8 electrodes keep most of the accuracy of 40; in a continuous replay the sixth-finger command fires in most sixth-finger periods. & mirroring did not help; accuracy fell on later visits; electrodes not studied; the command fired in only \pct{\rqFourReplayFingerDetectMin} to \pct{\rqFourReplayFingerDetectMax} of the periods \\
+H1 & Fitting CSP on all trials before the test split (the published way) gives higher accuracy for hand versus sixth finger than fitting it inside the folds. One-sided Wilcoxon test. & \rqOneHOneCategory: \rqOneHOneDiff{} points higher, $W = \rqOneHOneW$, $r = \rqOneHOneR$, $p = \rqOneHOneP$ \\
+H1b & The same happens on two public datasets of healthy people imagining the left or the right hand (BNCI2014\_001, Cho2017), Holm-corrected over the two. & supported on both: \rqOneBnciHOneBDiff{} and \rqOneChoHOneBDiff{} points ($W = \rqOneBnciHOneBW$ and \rqOneChoHOneBW, $r = \rqOneBnciHOneBR$ and \rqOneChoHOneBR), Holm $p = \rqOneBnciHOneBPHolm$ and $\rqOneChoHOneBPHolm$ \\
+H2a & For a new patient (three classes), re-centred transfer and learning from scratch differ in the area under the learning curve over $k$ = 1 to 10 (expected: transfer higher). Two-sided. & \rqTwoHTwoACategory: ALC difference \rqTwoHTwoADiff, $W = \rqTwoHTwoAW$, $r = \rqTwoHTwoAR$, $p = \rqTwoHTwoAP$ \\
+H2b & The advantage of transfer is smaller with all trials than at $k = 5$: the curves meet. One-sided. & \rqTwoHTwoBCategory: \rqTwoHTwoBPointsDiff{} points, $W = \rqTwoHTwoBW$, $r = \rqTwoHTwoBR$, $p = \rqTwoHTwoBP$ \\
+H3 & In the new-command scenario (hand trials already recorded, $k$ sixth-finger trials added), re-centred transfer beats learning from scratch on (a) sixth finger versus rest, which as pre-registered uses only the new trials, or (b) the three-class task, which uses the hand trials too, over $k$ = 1 to 5. Two-sided, Holm over (a) and (b). & (a) \rqThreeHThreeACategory: \rqThreeHThreeADiff, $W = \rqThreeHThreeAW$, $r = \rqThreeHThreeAR$, Holm $p = \rqThreeHThreeAPHolm$; (b) \rqThreeHThreeBCategory: \rqThreeHThreeBDiff, $W = \rqThreeHThreeBW$, $r = \rqThreeHThreeBR$, $p = \rqThreeHThreeBPHolm$ \\
+H3c & At $k = 2$ and $k = 5$, the transfer decoder detects the sixth finger against rest better than the patient's own hand decoder does. This asks whether the sixth finger adds anything over detecting any imagined movement. One-sided, Holm over the two. & $k = 2$: \rqThreeHThreeCKTwoCategory, \rqThreeHThreeCKTwoPointsDiff{} points, $W = \rqThreeHThreeCKTwoW$, $r = \rqThreeHThreeCKTwoR$; $k = 5$: \rqThreeHThreeCKFiveCategory, \rqThreeHThreeCKFivePointsDiff{} points, $W = \rqThreeHThreeCKFiveW$, $r = \rqThreeHThreeCKFiveR$; both against transfer, Holm $p = \rqThreeHThreeCKTwoPHolm$ \\
+Sec. & Secondary pair: the tests of H2a, H2b and H3 for EEGNet pre-trained and fine-tuned against EEGNet from scratch, reported as secondary. & all four supported: H2a \rqTwoEegnetHTwoADiff{} ($p = \rqTwoEegnetHTwoAP$); H2b \rqTwoEegnetHTwoBPointsDiff{} points ($p = \rqTwoEegnetHTwoBP$); H3 (a) \rqThreeEegnetHThreeADiff{} and (b) \rqThreeEegnetHThreeBDiff{} (Holm $p = \rqThreeEegnetHThreeAPHolm$ and $\rqThreeEegnetHThreeBPHolm$) \\
+H4 & Exploratory, no test: mirroring helps transfer; decoders lose accuracy on later visits; 8 electrodes keep most of the accuracy of 40; in a continuous replay the sixth-finger command fires in most sixth-finger periods. & mirroring did not help; accuracy fell on later visits; electrodes not studied; the command fired in only \pct{\rqFourReplayFingerDetectMin} to \pct{\rqFourReplayFingerDetectMax} of the periods, with \rqFourReplayFalsePerMinMin{} to \rqFourReplayFalsePerMinMax{} false activations per minute and \rqFourReplayItrMin{} to \rqFourReplayItrMax{} bits per minute \\
 H5 & In public depression EEG (Mumtaz), splitting by segment rather than by person inflates accuracy, for both pipelines, Holm-corrected. & band power: \rqFiveMumtazBpLrCategory; tangent space: \rqFiveMumtazTsLrCategory \\
 H5b & The same on a second depression dataset (MODMA). & band power: \rqFiveModmaBpLrCategory; tangent space: \rqFiveModmaTsLrCategory \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
-On the session after therapy, H1, H2a and H2b had the same outcome as before therapy. H3 did not
-replicate: its outcome (a) was \rqThreeHThreeAPostCategory{} after therapy but
-\rqThreeHThreeACategory{} before it.
+On the session after therapy, H1, H2a, H2b and H3c had the same outcome as before therapy, also
+with sub-21 and sub-22 averaged into one value. H3 did not replicate: its outcome (a) was
+\rqThreeHThreeAPostCategory{} after therapy but \rqThreeHThreeACategory{} before it.
 
 \section{Changes after the plan was frozen}
 
 Some details only became clear once the code met the data. Every such change went into a
-deviation log with its date and reason, and with what results were known at the time.
-Table~\ref{tab:app-deviations} summarises the log (\code{03-EVALUATION-PROTOCOL.md}, section 12).
-No change altered a confirmatory outcome.
+deviation log with its date and reason, and with what results were known at the time. The log
+has \nDeviations{} dated entries; Tables~\ref{tab:app-deviations} and~\ref{tab:app-deviations-2}
+list every one, in our own words. Most clarify a rule before any calibration result. Before the confirmatory results the
+networks were re-run, after we found that they had skipped the last incomplete batch of each
+epoch. After them, the planned electrode-count study was dropped, a sanity check whose premise
+proved wrong was recorded as failed, and the analyses marked post hoc were added. The full text
+of each entry is in the deviation log, available from the authors on request. No change altered
+a confirmatory outcome.
 
 \begin{table}[!htbp]
 \centering
-\caption{Deviations from the pre-registration, in order.}
+\caption{Every deviation from the pre-registration, in order, one line each: up to the calibration study.}
 \label{tab:app-deviations}
 \footnotesize
-\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{1.75cm}>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}p{3.4cm}}
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{1.65cm}>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}p{4.1cm}}
 \toprule
-Date & Change and reason & Known when decided \\
+Date & Entry & Known when decided \\
 \midrule
-2026-10-09 & Cho2017, first set aside for disk space, was run as planned. With one run per person its run-wise protocols are impossible, so H1b uses cross-validation only. & no public data scored \\
-2026-10-09 & Authors' recipe: a window whose baseline crosses a cut is dropped for this method only. FBCSP's feature selection gets a fixed seed. & no RQ1 result \\
-2026-10-10 & Authors' recipe: a fold where unregularised CSP has no solution is recorded as missing (one session after therapy). & H1 unaffected \\
-2026-10-11 & Calibration details the plan left open: ``all'' means every trial; alignment uses the draw's own unlabelled windows; the pre-trained EEGNet keeps three outputs; the scope of the \code{post} replication; how ``trials saved'' is counted; the no-signal check. & no calibration result \\
-2026-10-12 & Draws below ``all'' pick only trials that kept both their windows, so every training set holds every class. & no result on runs 3--4 \\
-2026-10-12 & EEGNet had dropped the last incomplete batch of each epoch; all networks were trained again. & EEGNet baselines (descriptive); no calibration result \\
-2026-10-12 & A check against the RQ1 values failed: its premise was off by \auditOrphanRestMin{} to \auditOrphanRestMax{} rest windows per session. Refits reproduced both in \auditRefitReproduced{} of \auditRefitCases{} cases. & calibration results; nothing changed \\
-2026-10-12 & RQ4 reduced: no electrode study; mirroring with classical transfer only. & calibration results; no RQ4 result \\
-2026-10-12 & Two post hoc checks added: the visual cue (central against back-of-head channels), and how often hand imagery fires the sixth-finger command in the replay. & calibration results \\
-2026-10-12 & The demo-patient rule tied two patients; the share of uncut held-out trials broke the tie. & all results; before the demo \\
-2026-10-23 & Five exploratory follow-ups added (Section~\ref{app:prereg-followups}). & every confirmatory result \\
+2026-10-09 & RQ1b to run on BNCI2014\_001 alone, for lack of disk space (superseded the same day) & before any public data or RQ1b result \\
+2026-10-09 & Input of the rebuilt authors' recipe: windows whose wider span crosses a cut are dropped & before any RQ1 result \\
+2026-10-09 & FBCSP's feature selection gets a fixed random seed (a clarification) & before any RQ1 result \\
+2026-10-09 & Cho2017 run as pre-registered; the row above is superseded & before any Cho2017 data \\
+2026-10-10 & Rebuilt recipe: a fold where unregularised CSP has no solution is recorded as missing & during RQ1; H1 unaffected \\
+2026-10-11 & $k = \text{all}$ takes every trial of the pool & before any calibration result \\
+2026-10-11 & The fine-tuned EEGNet keeps its three-output network for every task & before any calibration result \\
+2026-10-11 & Choosing the transfer values: what ``no runs 3--4 are touched'' means, and the tie order & before any calibration result \\
+2026-10-11 & The target's reference for re-centring and alignment is the draw's unlabelled set & before any calibration result \\
+2026-10-11 & Re-centred methods computed with our own re-centring (same operations as pyRiemann) & before any calibration result \\
+2026-10-11 & Scope of the post-therapy replication and of the chronological draw & before any calibration result \\
+2026-10-11 & Secondary EEGNet pair: the tests of H2a, H2b and H3 on the pre-therapy session & before any calibration result \\
+2026-10-11 & $k^*$, trials saved and their units & before any calibration result \\
+2026-10-11 & Descriptive summaries outside the pairs & before any calibration result \\
+2026-10-11 & The no-signal check with permuted labels & before any calibration result \\
+2026-10-11 & When the compute contingency for EEGNet triggers & before any calibration result \\
+2026-10-11 & A sanity check of the calibration study against the benchmark & before any calibration result \\
+2026-10-11 & Disclosure of the results already known before the calibration study & before any calibration result \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{table}[!htbp]
+\centering
+\caption{Every deviation from the pre-registration, continued: from the calibration study on.}
+\label{tab:app-deviations-2}
+\footnotesize
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{1.65cm}>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}p{4.1cm}}
+\toprule
+Date & Entry & Known when decided \\
+\midrule
+2026-10-11 & ``Exact $p$'' means the numeric $p$-value & after RQ1 results; no category changes \\
+2026-10-11 & The log is also copied into the pre-registration (bookkeeping) & after the tag \\
+2026-10-12 & Draws below all pick only trials that kept both windows & before any calibration result \\
+2026-10-12 & EEGNet baselines and pre-training re-run: the last incomplete batch had been skipped & before any calibration result \\
+2026-10-12 & The configuration hash ignores settings left at their default & before any calibration result \\
+2026-10-12 & Compute contingency not triggered & before the full EEGNet runs \\
+2026-10-12 & The sanity check of 2026-10-11 failed as defined; its premise was wrong & after the calibration results; no confirmatory value changes \\
+2026-10-12 & Exploratory study reduced: no electrode-count study; mirroring with classical methods only & after the calibration results, before any exploratory result \\
+2026-10-12 & Two descriptive analyses added, labelled post hoc: the channel-group check and replay details & after the calibration results \\
+2026-10-12 & The demonstrator's patient: breaking a tie in the rule & before the demonstrator's bundle \\
+2026-10-23 & Exploratory: more data per decision for hand against sixth finger & after every confirmatory result \\
+2026-10-23 & Exploratory: the raw recordings for hand against sixth finger & after every confirmatory result \\
+2026-10-23 & Exploratory: pre-training with healthy grasp imagery & after every confirmatory result \\
+2026-10-23 & Exploratory: the sixth finger as its own command (the switch) & after every confirmatory result \\
+2026-10-23 & Exploratory: the switch played as if live & after every confirmatory result \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -347,8 +401,11 @@ Date & Change and reason & Known when decided \\
 \section{Follow-ups added after the results}\label{app:prereg-followups}
 
 Five exploratory analyses were added on 2026-10-23, after every confirmatory result was known
-(Chapter~4). None was pre-registered; each had its settings fixed before any score on runs 3
-and 4. They change no confirmatory outcome and are labelled exploratory wherever they appear.
+(Chapter~4). None was pre-registered, and each had its settings fixed before it was run. The
+fourth, the sixth finger as a switch, reuses a configuration that the post hoc channel check had
+already scored on runs 3 and 4 on 2026-10-12, so its test score was known before its candidates
+were listed. They change no confirmatory outcome and are labelled exploratory wherever they
+appear.
 
 % ---------------------------------------------------------------------------------------
 \chapter{Selected Code Listings}\label{app:code}
