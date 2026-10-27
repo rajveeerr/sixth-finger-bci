@@ -12,9 +12,15 @@
   "bytes": 1920432
  },
  {
+  "doc": "slides",
+  "file": "sixth-finger-bci-slides.pdf",
+  "format": "PDF",
+  "bytes": 1292273
+ },
+ {
   "doc": "report",
   "file": "sixth-finger-bci-report.pdf",
   "format": "PDF",
-  "bytes": 2454676
+  "bytes": 2454679
  }
 ]
