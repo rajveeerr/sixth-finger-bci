@@ -15,7 +15,7 @@ A person imagines a movement. Their EEG is recorded. A decoder recognises which
 movement was imagined, and a drawn hand on screen performs it, including an extra
 robotic "sixth finger" that does not exist on the human body.
 
-Live demo: https://sixthfinger.rajveers.com (the demo alone at `/live`). The inference server
+Live demo: https://sixth-finger-bci.vercel.app (the demo alone at `/live`). The inference server
 (`server/`) streams the held-out trials of one patient and decodes them, from Render
 (https://sixth-finger-bci-server.onrender.com); the page decodes in the browser while the
 server wakes, or when the reader chooses.

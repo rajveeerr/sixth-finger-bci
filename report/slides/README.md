@@ -2,7 +2,7 @@
 
 `sixth-finger-bci.pptx` is the deck for the final evaluation: a 15-minute talk, a 3-minute live
 demo, then questions, with backup slides after the closing slide. It follows the order of the
-questions on the project page (sixthfinger.rajveers.com). `outline.md` lists every slide with its
+questions on the project page (sixth-finger-bci.vercel.app). `outline.md` lists every slide with its
 headline, figure and time.
 
 ## Build it
@@ -40,7 +40,7 @@ change made in PowerPoint is lost at the next build. The look is the page's: col
 
 - Install Inter (free, rsms.me/inter) on the presenting laptop. Without it PowerPoint substitutes
   another font and some lines wrap differently.
-- The demo slide (17) names the page to open, `sixthfinger.rajveers.com/live`; the backup video
+- The demo slide (17) names the page to open, `sixth-finger-bci.vercel.app/live`; the backup video
   is in `docs/RUNBOOK.md`.
 - Backup slides 22 to 29: the leak patient by patient, the same mistake in other datasets, the
   calibration curves of every method, the healthy grasp benchmark, the replay as if live, the

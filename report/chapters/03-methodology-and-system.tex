@@ -624,8 +624,7 @@ them on every push.
 
 \section{Deployment}\label{sec:deploy}
 
-The web page is a static site on Vercel at \url{\siteURL} (also
-\url{https://sixth-finger-bci.vercel.app}); the demonstrator alone is at \code{/live}. A streaming server for the same bundle runs on Render, a small
+The web page is a static site on Vercel at \url{\siteURL}; the demonstrator alone is at \code{/live}. A streaming server for the same bundle runs on Render, a small
 function on the same site can decide one window per request, and the browser decodes by
 itself whenever neither answers. The browser uses the WebAssembly-only build of ONNX
 Runtime Web, half the size of the default build. The code is kept in a private

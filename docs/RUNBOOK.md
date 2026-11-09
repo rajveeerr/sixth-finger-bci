@@ -229,8 +229,8 @@ results within small run-to-run differences (GPU arithmetic is not bit-exact).
 
 ## 9. Live URLs
 
-- Web demo: https://sixthfinger.rajveers.com (CNAME `sixthfinger` at the rajveers.com DNS
-  host), also https://sixth-finger-bci.vercel.app; the demo alone, for presenting, at `/live`
+- Web demo: https://sixth-finger-bci.vercel.app, the address used in the paper, report and
+  slides; the demo alone, for presenting, at `/live`
 - Streaming server: https://sixth-finger-bci-server.onrender.com (Render, free plan, Singapore);
   the site's `VITE_SERVER_URL` (Production) points at it. To set it up again: New > Blueprint in Render, pick this repository
   (`render.yaml`: Python, root directory `server`, build `uv sync --frozen --no-dev`, start

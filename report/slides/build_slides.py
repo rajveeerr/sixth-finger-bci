@@ -67,7 +67,7 @@ MAX_BYTES = 5_000_000
 FONT = "Inter"
 SERIF = "Georgia"
 AUTHORS = "Rajveer Singh, Vivek Yadav, Ansh Dahiya"
-SITE = "sixthfinger.rajveers.com"
+SITE = "sixth-finger-bci.vercel.app"
 # Fixed so that an unchanged deck is the same file byte for byte.
 STAMP = (2026, 10, 23, 0, 0, 0)
 
