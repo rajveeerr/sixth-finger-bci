@@ -15,7 +15,13 @@ drawings) from the web font into the temp folder.
   adapted (rq4_longitudinal_table.csv, rq4_longitudinal.csv, rq4_longitudinal_reference.csv);
 - paper_switch: the central sixth-finger switch and hand vs finger per patient, and how often
   the switch turns on (ex4_sf_command_table.csv, ex4_sf_command_per_patient.csv,
-  ex5_live_switch_table.csv, ex5_live_switch_values.csv).
+  ex5_live_switch_table.csv, ex5_live_switch_values.csv);
+- paper_networks: EEGNet trained on each patient against CSP+LDA and TS+LR (leave one run out),
+  and the pre-trained EEGNet with no labelled trial, for the three tasks (dl_baselines_table.csv,
+  dl_baselines_subject_values.csv, rq1_subject_values.csv, dl_zeroshot_table.csv,
+  dl_zeroshot_subject_values.csv).
+
+uv run --with brotli==1.2.1 python scripts/make_paper_figures.py paper_networks   # only some
 
 Writes docs/figures/paper_<name>.{pdf,png}, each at most one IEEE column wide (3.5 in) with no
 text under 7 pt, and copies the PDFs to paper/figures/.
@@ -24,6 +30,7 @@ text under 7 pt, and copies the PDFs to paper/figures/.
 from __future__ import annotations
 
 import shutil
+import sys
 
 import matplotlib
 
@@ -271,12 +278,78 @@ def switch(summary) -> plt.Figure:
     return fig
 
 
+def networks(summary) -> plt.Figure:
+    tasks = [
+        (T1, "Hand or sixth finger", 50),
+        (T2, "Rest, hand or finger", 100 / 3),
+        ("T3_sf_vs_rest", "Sixth finger or rest", 50),
+    ]
+    methods = [
+        ("eegnet_scratch", "EEGNet, own data"),
+        ("csp_lda", "CSP+LDA"),
+        ("ts_lr", "TS+LR"),
+        ("zero_shot", "EEGNet, others only\n(no labelled trial)"),
+    ]
+    table = pd.read_csv(summary / "dl_baselines_table.csv")
+    table = table[table.protocol == "loro"].set_index(["task", "method"])
+    own = pd.read_csv(summary / "dl_baselines_subject_values.csv")
+    own = own[(own.protocol == "loro") & (own.session == PRE)]
+    classical = pd.read_csv(summary / "rq1_subject_values.csv")
+    classical = classical[(classical.protocol == "loro") & (classical.session == PRE)
+                          & (classical.feature == "bandpower")]  # fmt: skip
+    zero = pd.read_csv(summary / "dl_zeroshot_table.csv").set_index("task")
+    zero_values = pd.read_csv(summary / "dl_zeroshot_subject_values.csv")
+    zero_values = zero_values[zero_values.session == PRE]
+    rng = np.random.default_rng(0)  # vertical jitter of the dots only
+
+    fig, axes = plt.subplots(3, 1, figsize=(3.3, 3.5), sharex=True)
+    for ax, (task, title, level) in zip(axes, tasks, strict=True):
+        for i, (method, _) in enumerate(methods):
+            if method == "zero_shot":
+                row = zero.loc[task]
+                mine = zero_values[zero_values.task == task].bal_acc
+            else:
+                row = table.loc[(task, method)]
+                source = own if method == "eegnet_scratch" else classical
+                mine = source[(source.task == task) & (source.method == method)].bal_acc
+            agree(f"networks {task} {method}", mine, row["mean"], int(row.n))
+            dots(ax, i, mine, rng, vertical=False, spread=0.16)
+            mean_ci(ax, i, row, vertical=False)
+        ax.axvline(level, color=CHANCE_GREY, lw=0.7, ls=(0, (3, 2)), zorder=1)
+        ax.set_title(title, loc="left", fontweight="semibold")
+        ax.set_yticks(range(len(methods)), [label for _, label in methods])
+        ax.set_ylim(len(methods) - 0.45, -0.55)
+        grid(ax, "x")
+    axes[-1].annotate("chance", (50, 0), xycoords=("data", "axes fraction"), xytext=(-2, 2),
+                     textcoords="offset points", ha="right", va="bottom",
+                     color=CHANCE_GREY)  # fmt: skip
+    axes[-1].set_xlim(20, 101)
+    axes[-1].set_xticks([20, 40, 60, 80, 100])
+    axes[-1].set_xlabel("Balanced accuracy (%)")
+    fig.tight_layout(pad=0.2, h_pad=0.6)
+    return fig
+
+
+FIGURES = {
+    "paper_leak": leak,
+    "paper_calibration": calibration,
+    "paper_later": later,
+    "paper_switch": switch,
+    "paper_networks": networks,
+}
+
+
 def main() -> None:
     paths = get_paths()
     summary = paths.root / "results" / "summary"
     use_paper_style(paths.root)
-    for name, draw in (("paper_leak", leak), ("paper_calibration", calibration),
-                       ("paper_later", later), ("paper_switch", switch)):  # fmt: skip
+    only = sys.argv[1:]
+    unknown = sorted(set(only) - set(FIGURES))
+    if unknown:
+        raise SystemExit(f"unknown figure: {', '.join(unknown)}")
+    for name, draw in FIGURES.items():
+        if only and name not in only:
+            continue
         fig = draw(summary)
         check_print(fig)
         save(fig, paths.figures, name)
