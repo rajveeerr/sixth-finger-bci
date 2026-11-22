@@ -56,6 +56,7 @@ FONT_DIR = Path("/System/Library/Fonts/Supplemental")
 CORRESPONDING = "Suman Lata"
 EMAILS = {
     "Rajveer Singh": "rajveer_ece_27@msit.in",
+    "Vivek Yadav": "vivek_ece_27@msit.in",
     "Ansh Dahiya": "ansh_ece_27@msit.in",
     "Suman Lata": "suman@msit.in",
 }
