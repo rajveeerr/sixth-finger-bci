@@ -54,8 +54,13 @@ SOFFICE = "/Applications/LibreOffice.app/Contents/MacOS/soffice"
 FONT_DIR = Path("/System/Library/Fonts/Supplemental")
 
 CORRESPONDING = "Suman Lata"
-EMAILS = {"Suman Lata": "suman@msit.in"}
+EMAILS = {
+    "Rajveer Singh": "rajveer_ece_27@msit.in",
+    "Ansh Dahiya": "ansh_ece_27@msit.in",
+    "Suman Lata": "suman@msit.in",
+}
 EMAIL_PLACEHOLDER = "e-mail to be added"
+RUNNING_AUTHOR = "Singh"
 
 W_NS = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
 M_NS = "http://schemas.openxmlformats.org/officeDocument/2006/math"
@@ -1366,6 +1371,14 @@ CUSTOM_XML = (
 )
 
 
+def running_head(xml: str) -> str:
+    """Put the first author's surname where the template says "1st author"."""
+    for old, new in (("1", RUNNING_AUTHOR), ("st", ""), (" author", "")):
+        pattern = re.compile(r"(<w:t(?: [^>]*)?>)" + re.escape(old) + r"(</w:t>)")
+        xml = pattern.sub(lambda m, new=new: m.group(1) + new + m.group(2), xml, count=1)
+    return xml
+
+
 def scrub(path: Path) -> None:
     """Drop the template's document statistics, links and review metadata."""
     tmp = path.with_suffix(".tmp")
@@ -1374,6 +1387,8 @@ def scrub(path: Path) -> None:
             data = src.read(item.filename)
             if item.filename == "docProps/app.xml":
                 data = APP_XML.encode()
+            elif item.filename.startswith("word/header") and item.filename.endswith(".xml"):
+                data = running_head(data.decode()).encode()
             elif item.filename == "docProps/custom.xml":
                 data = CUSTOM_XML.encode()
             dst.writestr(item, data)
