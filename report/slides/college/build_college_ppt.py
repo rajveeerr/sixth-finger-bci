@@ -73,8 +73,8 @@ STUDENTS = [
 ]
 GUIDE = ["Dr. Suman Lata", "Assistant Professor", "Department of ECE, MSIT"]
 TOPIC = "EEG-Based Adaptive Brain–Computer Interface for Novel Artificial Limb Control"
-SITE = "sixthfinger.rajveers.com"
-SITE_COPY = "sixth-finger-bci.vercel.app"
+SITE = "sixth-finger-bci.vercel.app"
+SITE_COPY = "sixthfinger.rajveers.com"
 STAMP = (2026, 11, 22, 0, 0, 0)
 
 # Digits a slide may carry without a macro: years, run, session and hypothesis names, patient
