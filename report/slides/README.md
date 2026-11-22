@@ -68,7 +68,7 @@ laptop, or run `--pdf` where LibreOffice is installed.
 
 `college/Sixth-Finger-BCI-Final-PPT.pptx` (and its PDF) is the same talk in the college's own
 template for the final presentation of 25 November 2026: its title slide with the MSIT logo, its
-background and Times New Roman titles, and its order (title, contents, introduction, proposed
+background, arrow and title placement (set in Georgia titles and Arial text), and its order (title, contents, introduction, proposed
 solution, dataset, experimental details, results and analysis, conclusion, questions, thank you),
 with the live demo just before questions. Talk 15:00, demo 3:00; the speaker notes give the time,
 what to say and every number's macro and results file, as above.
@@ -83,7 +83,7 @@ layout, so its master, layouts, logo and background stay as they are. Numbers co
 macros of `build_slides.py`, and the build fails on text under 16 pt, text that would not fit
 its box, a figure whose smallest text would print under 16 pt, or a digit typed by hand.
 `--pdf` exports through LibreOffice with a private profile that holds the template's fonts and
-fails unless the PDF embeds only Times New Roman and Wingdings 3; `--previews` draws its pages
+fails unless the PDF embeds only Arial, Georgia and Wingdings 3; `--previews` draws its pages
 into `college/previews/` (not committed).
 
 This deck carries the students' enrolment numbers. It is not one of the documents
