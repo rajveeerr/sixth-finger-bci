@@ -1,0 +1,67 @@
+\section{Introduction}
+\label{sec:intro}
+
+\IEEEPARstart{A}{} brain--computer interface (BCI) reads activity from the brain and turns it
+into an instruction for a machine, without passing through the nerves and muscles that
+normally carry a movement~\cite{wolpaw2002}. The most common non-invasive form records the
+electroencephalogram (EEG) from the scalp. In a motor-imagery (MI) BCI the user only
+imagines a movement. Imagining a movement weakens the mu and beta rhythms over the motor
+cortex, an effect called event-related desynchronisation
+(ERD)~\cite{pfurtscheller1999,pfurtscheller2001}, and a decoder is trained to recognise
+that change. Two lines of research use such interfaces. In stroke rehabilitation the BCI
+closes the loop between a patient's intention and a movement made by a device, and
+controlled trials suggest that this aids recovery of the arm~\cite{cervera2018,biasiucci2018}.
+In motor augmentation, healthy people learn to operate an extra robotic digit worn on the
+hand~\cite{kieliba2021,eden2022}.
+
+Wang et al.\ brought the two lines together. They asked healthy
+volunteers~\cite{wang2024jbhi} and later stroke patients~\cite{wang2024tnsre} to imagine
+flexing a robotic sixth finger strapped to the wrist, and they released a dataset of
+\nSubjects{} patients who imagined either this sixth finger or a grasp of the affected hand
+over three sessions~\cite{wang2026dataset}. Because the dataset is public, the paradigm can
+now be studied by groups who did not record it, and that is what we do here.
+
+Every MI-BCI needs a calibration step before it can be used: the user performs a series of
+labelled trials from which the decoder learns that person's pattern~\cite{lotte2015}. For
+a stroke patient, each minute spent on calibration is effort taken away from therapy, and
+the step is usually repeated every day because the EEG drifts. Transfer learning reuses
+recordings of other people and is known to shorten calibration for healthy users who
+imagine familiar movements~\cite{zanini2018,he2020,wu2022review}. Whether it helps when the
+users are stroke patients and the command is one that no person has ever performed, a sixth
+finger, has not been tested.
+
+A study of calibration first needs an evaluation that does not leak. The dataset paper
+reports accuracies of \rqOnePublishedGroupBCspLda\,\% and \rqOnePublishedGroupTCspLda\,\%
+for telling imagined hand from imagined sixth-finger movements before therapy, in its two
+therapy groups~\cite{wang2026dataset}. Its released analysis script fits the common spatial
+pattern (CSP) filters on all the trials of a session and only afterwards splits the trials
+for cross-validation. Letting test trials shape a supervised step in this way is a known
+cause of optimistic estimates~\cite{kapoor2023,brookshire2024}. We therefore re-evaluated
+the dataset with every fitted step kept inside the training data, and every later result
+in this paper rests on that evaluation.
+
+The study asks four research questions (RQs). RQ1 measures how much the published protocol
+inflates accuracy on these recordings, and whether the same code inflates accuracy on two
+healthy datasets. RQ2 asks how much calibration a new patient needs before a decoder can
+tell rest, the affected hand and the sixth finger apart, and whether other patients' data
+reduce it. RQ3 asks the same when the patient's hand trials already exist and only the
+sixth finger has to be added. RQ4 gathers exploratory questions: continuous use of the
+decoder, the side of the lesion, and use on later days. The hypotheses for RQ1 to RQ3 were
+written down and frozen before the main study. The contributions are:
+\begin{enumerate}
+  \item a benchmark of this sixth-finger stroke dataset that keeps every fitted step away from
+        the test data, preceded by an audit that uncovered duplicated recordings;
+  \item what we believe is the first study of how much calibration a supernumerary, novel
+        motor command needs in stroke patients, with hypotheses fixed in advance for two
+        cases: a new user, and a new command added once the hand trials exist;
+  \item Riemannian and deep transfer compared in this population, with analyses specific to
+        stroke (mirroring the lesioned hemisphere, later sessions) kept exploratory;
+  \item an ablation study that collects every component comparison the project had run,
+        each tied to its results file and labelled as pre-registered or exploratory; and
+  \item a demonstrator that streams held-out recordings through a decoder, on a server or in
+        the browser, and animates a virtual hand wearing a sixth finger.
+\end{enumerate}
+
+Sections~\ref{sec:lit} to~\ref{sec:conclusion} cover, in turn, the earlier work, the
+methodology, the architecture, the pre-registered experiments, the ablation study, the
+discussion with its limitations and future scope, and the conclusion.

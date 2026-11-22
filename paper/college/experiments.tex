@@ -1,0 +1,236 @@
+\section{Experiments}
+\label{sec:exp}
+
+\subsection{Setup}
+All analyses use Python with MNE~\cite{gramfort2013}, pyRiemann~\cite{pyriemann},
+scikit-learn~\cite{pedregosa2011}, braindecode~\cite{braindecode} and
+PyTorch~\cite{paszke2019}; MOABB~\cite{jayaram2018moabb} supplied the healthy datasets.
+Classical methods ran on an \demoInferenceMachine{} laptop and every EEGNet of the main study
+on a \dlPretrainDevice{} GPU in Kaggle notebooks (pre-training the \dlPretrainModels{} models
+took \dlPretrainMinutes{} GPU minutes). Table~\ref{tab:tests} gathers the pre-registered
+tests.
+
+\subsection{RQ1: leakage in the published protocol (H1, H1b)}
+\label{sec:leak}
+Rebuilt as the authors' script does it, with CSP fitted on every trial, their recipe scored
+\rqOneCspLdaReplicaPaperReplicaMean\,\% on hand against sixth finger; the dataset paper gives
+\rqOnePublishedGroupBCspLda--\rqOnePublishedGroupTCspLda\,\%~\cite{wang2026dataset}. Under
+leakage-free cross-validation the same recipe fell to
+\rqOneCspLdaReplicaCvLeakfreeMean\,\%. What we reproduce is therefore the direction of the
+leak, not the published number.
+
+For the pre-registered test we used our own CSP+LDA pipeline (Fig.~\ref{fig:leak}). It
+reached \rqOneCspLdaPaperReplicaMean\,\% (95\,\% CI
+\rqOneCspLdaPaperReplicaCiLo--\rqOneCspLdaPaperReplicaCiHi) when the filters saw all trials
+and \rqOneCspLdaCvLeakfreeMean\,\% (\rqOneCspLdaCvLeakfreeCiLo--\rqOneCspLdaCvLeakfreeCiHi)
+when every step stayed inside the training folds. No patient escaped the inflation, which
+averaged \rqOneHOneDiff{} points (CI \rqOneHOneDiffCiLo--\rqOneHOneDiffCiHi; per patient
+\rqOneHOneDiffMin{} to \rqOneHOneDiffMax; $W = \rqOneHOneW$, $p = \rqOneHOneP$,
+$r = \rqOneHOneR$, $n = \rqOneHOneN$): H1 is \rqOneHOneCategory. With so little signal, even
+the leakage-free estimate can drop below chance, as it did for
+\rqOneCspLdaCvLeakfreeNBelowChance{} of \rqOneHOneN{} patients (lowest
+\rqOneCspLdaCvLeakfreeMin\,\%); MDM averaged \rqOneMdmCvLeakfreeMean\,\%. Compared with the
+splits that keep whole runs apart, the leaky score was higher by
+\rqOneCspLdaPaperReplicaMinusLoroDiff{} points than leave one run out (CI
+\rqOneCspLdaPaperReplicaMinusLoroDiffCiLo--\rqOneCspLdaPaperReplicaMinusLoroDiffCiHi) and by
+\rqOneCspLdaPaperReplicaMinusChronoDiff{} points than the chronological split
+(\rqOneCspLdaPaperReplicaMinusChronoDiffCiLo--\rqOneCspLdaPaperReplicaMinusChronoDiffCiHi),
+both descriptive. TS+LR and MDM, which fit nothing with labels before the classifier, were
+unaffected (\rqOneTsLrLeakDiff{} and \rqOneMdmLeakDiff{} points). On healthy volunteers the
+same code added \rqOneBnciHOneBDiff{} points on BNCI2014\_001 ($n = \rqOneBnciHOneBN$) and
+\rqOneChoHOneBDiff{} on Cho2017 ($n = \rqOneChoHOneBN$), so H1b is supported and the leak
+lies in the procedure rather than in these recordings. With runs kept apart, five classical
+methods managed only \rqOneHeldOutRunsMeanMin--\rqOneHeldOutRunsMeanMax\,\% on hand against
+sixth finger, against \rqOneSfRestHeldOutRunsMeanMin--\rqOneSfRestHeldOutRunsMeanMax\,\% on
+sixth finger against rest.
+
+\begin{figure}[!t]
+  \centering
+  \begin{minipage}[t]{0.485\textwidth}
+  \vspace{0pt}\centering
+  \includegraphics[width=0.9\linewidth]{paper_leak.pdf}
+  \caption{RQ1: hand against sixth finger, CSP+LDA, pre-therapy session ($n = \rqOneN$), one
+  grey line per patient across four protocols: the dataset script's order (filters fitted
+  on all trials, then cross-validation), leakage-free cross-validation, leave one run out
+  and the chronological split. Black: mean and 95\,\% bootstrap CI; dashed: chance. Every
+  line drops once the test trials no longer shape the filters.}
+  \label{fig:leak}
+  \end{minipage}\hfill
+  \begin{minipage}[t]{0.485\textwidth}
+  \vspace{0pt}\centering
+  \includegraphics[width=0.9\linewidth]{paper_calibration.pdf}
+  \caption{RQ2: a new patient's calibration curve on three classes, pre-therapy session
+  ($n = \rqTwoHTwoAN$). Solid line: RCT-TS+LR, transfer from the other patients at target
+  weight \rqTwoHparamRctTslrWeight; dashed: TS+LR on the patient alone. Points sit at the
+  nominal minutes of labelled recording for $k = 0$ (transfer re-centred on rest only), 1, 2,
+  3, 5, 10 and all trials; bands are 95\,\% bootstrap CIs. Transfer starts high and stays
+  almost flat; at the far right the patient-only decoder ends numerically above it, a gap
+  that was not tested.}
+  \label{fig:setup}
+  \end{minipage}
+\end{figure}
+
+\subsection{RQ2: calibration for a new patient (H2a, H2b)}
+\label{sec:newuser}
+Re-centred transfer at weight \rqTwoHparamRctTslrWeight{} started a new patient well and then
+hardly changed (Fig.~\ref{fig:setup}). After one trial of each movement it scored
+\rqTwoRestAhSfRctTslrKOneMean\,\% on three classes (CI
+\rqTwoRestAhSfRctTslrKOneCiLo--\rqTwoRestAhSfRctTslrKOneCiHi), and even with no labelled
+trial, re-centred on rest alone, \rqTwoRestAhSfRctTslrKZeroMean\,\%. Without transfer, TS+LR
+learned \rqTwoRestAhSfTsLrKOneMean\,\% (\rqTwoRestAhSfTsLrKOneCiLo--\rqTwoRestAhSfTsLrKOneCiHi)
+from the four windows available at $k = 1$, \rqTwoRestAhSfTsLrKFiveMean\,\% at $k = 5$, and
+needed $k = 10$ to reach the \rqTwoRestAhSfTsLrKTenMean\,\% that transfer offered after one
+trial. Transfer then held near its starting level, \rqTwoRestAhSfRctTslrKFiveMean\,\% at $k =
+5$ and \rqTwoRestAhSfRctTslrKAllMean\,\% with every trial, while the patient-only decoder
+reached \rqTwoRestAhSfTsLrKAllMean\,\%. We did not test this final gap of
+\rqTwoRestAhSfTsLrMinusRctTslrKAllDiff{} points (\rqTwoRestAhSfTsLrMinusRctTslrKAllDiffCiLo{}
+to \rqTwoRestAhSfTsLrMinusRctTslrKAllDiffCiHi), with
+\rqTwoRestAhSfTsLrMinusRctTslrKAllBetter{} patients better off without transfer and
+\rqTwoRestAhSfTsLrMinusRctTslrKAllWorse{} with it. In the secondary per-budget comparisons
+(Holm-adjusted), transfer led by \rqTwoAdvantageKOneDiff{} points at $k = 1$
+($p = \rqTwoAdvantageKOnePHolm$), \rqTwoAdvantageKFiveDiff{} at $k = 5$
+($p = \rqTwoAdvantageKFivePHolm$) and \rqTwoAdvantageKTenDiff{} at $k = 10$
+($p = \rqTwoAdvantageKTenPHolm$).
+
+Both confirmatory tests point the same way (Table~\ref{tab:tests}). Transfer had the larger
+ALC (mean difference \rqTwoHTwoADiff, CI \rqTwoHTwoADiffCiLo--\rqTwoHTwoADiffCiHi, median
+\rqTwoHTwoAMedianDiff, $W = \rqTwoHTwoAW$, $p = \rqTwoHTwoAP$, $r = \rqTwoHTwoAR$), so H2a is
+supported, though much of this comes from budgets at which the patient-only decoder has
+almost nothing to learn from: transfer without a single labelled trial already equalled it
+at $k = 5$. The lead at $k = 5$ was \rqTwoHTwoBPointsDiff{} points larger than the lead with
+the whole pool ($p = \rqTwoHTwoBP$), which supports H2b. Both held when the development
+patients were left out, under the chronological draw, and after therapy.
+
+Of the \rqTwoHTwoAN{} patients, \rqTwoReachRestAhSfSixtyBoth{} reached 60\,\% with both
+methods, transfer getting there a median of \rqTwoReachRestAhSfSixtyMedianSaved{} trials per
+movement earlier; \rqTwoReachRestAhSfSixtyOnlyScratch{} got there only without transfer
+(transfer never did), \rqTwoReachRestAhSfSixtyOnlyTransfer{} only with it and
+\rqTwoReachRestAhSfSixtyNeither{} not at all. For 70\,\% the counts were
+\rqTwoReachRestAhSfSeventyBoth, \rqTwoReachRestAhSfSeventyOnlyScratch,
+\rqTwoReachRestAhSfSeventyOnlyTransfer{} and \rqTwoReachRestAhSfSeventyNeither. The secondary
+EEGNet pair supported H2a and H2b as well: pre-trained, the network gave
+\rqTwoRestAhSfEegnetEaFtKZeroMean\,\% before any labelled trial and
+\rqTwoRestAhSfEegnetEaFtKAllMean\,\% with all of them, while the network trained only on the
+patient rose from \rqTwoRestAhSfEegnetScratchKOneMean\,\% to
+\rqTwoRestAhSfEegnetScratchKAllMean\,\%.
+
+\begin{table*}[!t]
+  \centering
+  \caption{Results of the pre-registered tests on the pre-therapy session. Each effect is the
+  mean paired difference with its 95\,\% bootstrap CI: in points of balanced accuracy, apart
+  from H2a and H3, which use the ALC scale (0 for chance, 1 for a perfect decoder). Tests of
+  H1, H1b, H2b and H3c are one-sided, those of H2a and H3 two-sided. $W$ is the sum of positive
+  ranks (one-sided) or the smaller rank sum (two-sided); $^\dagger$ marks $p$-values
+  Holm-adjusted within a family of two. Unless a row says otherwise, the comparison is transfer
+  minus no transfer, over $n = \rqTwoHTwoAN$ patients. The final column gives the category when
+  the test is repeated after therapy ($n = \nPost$; unchanged when sub-21 and sub-22 are
+  averaged, $n = \rqOneHOnePostLinkedN$).}
+  \label{tab:tests}
+  \footnotesize
+  \setlength{\tabcolsep}{2.4pt}
+  \begin{tabular}{@{}llccccll@{}}
+    \toprule
+    & Comparison, per patient & Mean diff.\ [95\,\% CI] & $W$ & $r$ & $p$ & Outcome & After therapy \\
+    \midrule
+    H1 & CSP+LDA, hand vs finger: leaky $-$ leakage-free & \rqOneHOneDiff{} [\rqOneHOneDiffCiLo, \rqOneHOneDiffCiHi] & \rqOneHOneW & \rqOneHOneR & \rqOneHOneP & \rqOneHOneCategory & \rqOneHOnePostCategory \\
+    H1b & The same, BNCI2014\_001, healthy ($n = \rqOneBnciHOneBN$) & \rqOneBnciHOneBDiff{} [\rqOneBnciHOneBDiffCiLo, \rqOneBnciHOneBDiffCiHi] & \rqOneBnciHOneBW & \rqOneBnciHOneBR & \rqOneBnciHOneBPHolm$^\dagger$ & supported & -- \\
+     & The same, Cho2017, healthy ($n = \rqOneChoHOneBN$) & \rqOneChoHOneBDiff{} [\rqOneChoHOneBDiffCiLo, \rqOneChoHOneBDiffCiHi] & \rqOneChoHOneBW & \rqOneChoHOneBR & \rqOneChoHOneBPHolm$^\dagger$ & supported & -- \\
+    H2a & New user, three classes, ALC & \rqTwoHTwoADiff{} [\rqTwoHTwoADiffCiLo, \rqTwoHTwoADiffCiHi] & \rqTwoHTwoAW & \rqTwoHTwoAR & \rqTwoHTwoAP & \rqTwoHTwoACategory & \rqTwoHTwoAPostCategory \\
+    H2b & New user: lead at $k = 5$ $-$ lead with all & \rqTwoHTwoBPointsDiff{} [\rqTwoHTwoBPointsDiffCiLo, \rqTwoHTwoBPointsDiffCiHi] & \rqTwoHTwoBW & \rqTwoHTwoBR & \rqTwoHTwoBP & \rqTwoHTwoBCategory & \rqTwoHTwoBPostCategory \\
+    H3 (a) & New command, finger vs rest, ALC & \rqThreeHThreeADiff{} [\rqThreeHThreeADiffCiLo, \rqThreeHThreeADiffCiHi] & \rqThreeHThreeAW & \rqThreeHThreeAR & \rqThreeHThreeAPHolm$^\dagger$ & \rqThreeHThreeACategory & \rqThreeHThreeAPostCategory \\
+    H3 (b) & New command, three classes, ALC & \rqThreeHThreeBDiff{} [\rqThreeHThreeBDiffCiLo, \rqThreeHThreeBDiffCiHi] & \rqThreeHThreeBW & \rqThreeHThreeBR & \rqThreeHThreeBPHolm$^\dagger$ & \rqThreeHThreeBCategory & \rqThreeHThreeBPostCategory \\
+    H3c & Finger vs rest, $k = 2$: $-$ own-hand decoder & \rqThreeHThreeCKTwoPointsDiff{} [\rqThreeHThreeCKTwoPointsDiffCiLo, \rqThreeHThreeCKTwoPointsDiffCiHi] & \rqThreeHThreeCKTwoW & \rqThreeHThreeCKTwoR & \rqThreeHThreeCKTwoPHolm$^\dagger$ & \rqThreeHThreeCKTwoCategory & \rqThreeHThreeCKTwoPostCategory \\
+     & The same, $k = 5$ & \rqThreeHThreeCKFivePointsDiff{} [\rqThreeHThreeCKFivePointsDiffCiLo, \rqThreeHThreeCKFivePointsDiffCiHi] & \rqThreeHThreeCKFiveW & \rqThreeHThreeCKFiveR & \rqThreeHThreeCKFivePHolm$^\dagger$ & \rqThreeHThreeCKFiveCategory & \rqThreeHThreeCKFivePostCategory \\
+    \midrule
+    \multicolumn{8}{@{}l}{\emph{Secondary pair: EEGNet pre-trained and fine-tuned $-$ EEGNet from scratch}} \\
+    H2a & New user, three classes, ALC & \rqTwoEegnetHTwoADiff{} [\rqTwoEegnetHTwoADiffCiLo, \rqTwoEegnetHTwoADiffCiHi] & \rqTwoEegnetHTwoAW & \rqTwoEegnetHTwoAR & \rqTwoEegnetHTwoAP & \rqTwoEegnetHTwoACategory & -- \\
+    H2b & New user: lead at $k = 5$ $-$ lead with all & \rqTwoEegnetHTwoBPointsDiff{} [\rqTwoEegnetHTwoBPointsDiffCiLo, \rqTwoEegnetHTwoBPointsDiffCiHi] & \rqTwoEegnetHTwoBW & \rqTwoEegnetHTwoBR & \rqTwoEegnetHTwoBP & \rqTwoEegnetHTwoBCategory & -- \\
+    H3 (a) & New command, finger vs rest, ALC & \rqThreeEegnetHThreeADiff{} [\rqThreeEegnetHThreeADiffCiLo, \rqThreeEegnetHThreeADiffCiHi] & \rqThreeEegnetHThreeAW & \rqThreeEegnetHThreeAR & \rqThreeEegnetHThreeAPHolm$^\dagger$ & \rqThreeEegnetHThreeACategory & -- \\
+    H3 (b) & New command, three classes, ALC & \rqThreeEegnetHThreeBDiff{} [\rqThreeEegnetHThreeBDiffCiLo, \rqThreeEegnetHThreeBDiffCiHi] & \rqThreeEegnetHThreeBW & \rqThreeEegnetHThreeBR & \rqThreeEegnetHThreeBPHolm$^\dagger$ & \rqThreeEegnetHThreeBCategory & -- \\
+    \bottomrule
+  \end{tabular}
+\end{table*}
+
+\subsection{RQ3: a new command (H3, H3c)}
+\label{sec:newcommand}
+Before therapy, the confirmatory pair found no clear gain from transfer for the new command
+(Fig.~\ref{fig:rqthree}). Outcome (a), sixth finger against rest, involves no hand trial
+(Section~\ref{sec:scenarios}) and so traces how a command is learned from nothing. With one
+sixth-finger trial, transfer scored \rqThreeSfRestRctTslrKOneMean\,\% and the patient-only
+decoder \rqThreeSfRestTsLrKOneMean\,\%; with five, \rqThreeSfRestRctTslrKFiveMean\,\% and
+\rqThreeSfRestTsLrKFiveMean\,\%. The ALC difference leaned towards transfer, but its CI
+crossed zero (median \rqThreeHThreeAMedianDiff, Holm $p = \rqThreeHThreeAPHolm$) and several
+patients sat far below it. Outcome (b), three classes, does use the hand trials. Here the
+patient-only decoder, fitted on unbalanced classes without class weights as the plan
+required, hardly ever said ``sixth finger'' (recall
+\rqThreeRestAhSfTsLrSfRecallMin--\rqThreeRestAhSfTsLrSfRecallMax\,\% for $k \leq 5$), whereas
+transfer recalled \rqThreeRestAhSfRctTslrKFiveSfRecall\,\% at $k = 5$; still, the ALC gap was
+small (median \rqThreeHThreeBMedianDiff, $p = \rqThreeHThreeBPHolm$). H3 is thus
+inconclusive. After therapy outcome (a) reached significance (Holm
+$p = \rqThreeHThreeAPostPHolm$), so H3 was supported in that session; because the category
+differed between sessions, the result did not replicate. The secondary EEGNet pair preferred
+transfer on both outcomes (finger against rest: ALC difference \rqThreeEegnetHThreeADiff, CI
+\rqThreeEegnetHThreeADiffCiLo--\rqThreeEegnetHThreeADiffCiHi, Holm
+$p = \rqThreeEegnetHThreeAPHolm$), but a network trained only on the patient is weak at these
+budgets (\rqThreeSfRestEegnetScratchKOneMean\,\% on finger against rest after one trial), so
+this tells us more about EEGNet than about the new command.
+
+\begin{figure}[!t]
+  \centering
+  \begin{minipage}[t]{0.485\textwidth}
+  \vspace{0pt}\centering
+  \includegraphics[width=0.9\linewidth]{rq3_patients.pdf}
+  \caption{RQ3, the new command, pre-therapy session ($n = \rqThreeHThreeAN$), one grey point
+  per patient. Left: ALC over $k = 1, 2, 3, 5$ of RCT-TS+LR minus TS+LR, for finger against
+  rest (H3a) and for three classes (H3b). Right: RCT-TS+LR minus the own-hand decoder on
+  finger against rest, in points (H3c). Black: mean and 95\,\% CI; positive values favour
+  transfer. On the right both CIs are below zero: the decoder that never saw a sixth-finger
+  trial did better.}
+  \label{fig:rqthree}
+  \end{minipage}\hfill
+  \begin{minipage}[t]{0.485\textwidth}
+  \vspace{0pt}\centering
+  \includegraphics[width=0.9\linewidth]{paper_later.pdf}
+  \caption{RQ4, later sessions (exploratory; three classes, runs 3--4). The TS+LR decoder of
+  the first session is applied as it is, re-centred on the new day's rest, replaced by one
+  trained on five new trials per movement, or retrained on the old session plus five new
+  trials, either pooled or re-centred. Grey: patients; black: mean and 95\,\% CI; solid grey
+  line: the same method inside the first session; dashed: chance. Used as it is, the old
+  decoder sinks towards chance.}
+  \label{fig:later}
+  \end{minipage}
+\end{figure}
+
+The planned own-hand control asks whether the sixth finger adds anything a hand decoder lacks.
+Trained without any sixth-finger trial, it detected sixth-finger windows at
+\rqThreeSfRestAhProxyMean\,\% (CI \rqThreeSfRestAhProxyCiLo--\rqThreeSfRestAhProxyCiHi),
+above transfer at $k = 2$ (\rqThreeSfRestRctTslrKTwoMean\,\%) and at $k = 5$
+(\rqThreeSfRestRctTslrKFiveMean\,\%). Both one-sided tests failed (Holm
+$p = \rqThreeHThreeCKTwoPHolm$ in each case) with CIs entirely below zero, so H3c is
+inconclusive and the hand decoder came out ahead. Most hand-imagery windows were also flagged as ``sixth finger'' by these detectors (own-hand decoder \rqThreeHandAsFingerAhProxy\,\%,
+transfer \rqThreeHandAsFingerRctTslrKAll--\rqThreeHandAsFingerRctTslrKOne\,\% for
+$k \geq 1$). Following the plan, we make no claim of a separate sixth-finger command: what is
+detected may simply be imagined movement of any kind.
+
+\subsection{RQ4: continuous replay and later days (exploratory)}
+\label{sec:later}
+\emph{Continuous replay (H4, pre-registered).} H4 predicted that, with runs 3--4 streamed as
+one continuous signal (a 4\,s window every 0.5\,s) through the command gate as fixed before
+any replay, the sixth-finger command would appear in most sixth-finger imagery periods. The
+prediction failed. Trained on the whole pool, the three-class decoders (CSP+LDA, TS+LR,
+RCT-TS+LR and EEGNet without transfer) produced the command in just
+\rqFourReplayFingerDetectMin--\rqFourReplayFingerDetectMax\,\% of those periods, made
+\rqFourReplayFalsePerMinMin--\rqFourReplayFalsePerMinMax{} false activations per minute of
+rest, and transferred \rqFourReplayItrMin--\rqFourReplayItrMax{} bit/min, no more than the
+\rqFourReplaySilentItr{} bit/min of a gate that never fires.
+
+\emph{Other days.} Decoders did not survive the move to a later session
+(Fig.~\ref{fig:later}). TS+LR trained on the first session scored
+\rqFourLaterPostWithinPreMean\,\% inside it, \rqFourLaterPostUnchangedMean\,\% two weeks
+later ($n = \rqFourLaterPostUnchangedN$), similarly after BCI training
+(\rqFourLaterPostUnchangedGroupBMean\,\%) and conventional therapy
+(\rqFourLaterPostUnchangedGroupTMean\,\%), and \rqFourLaterFollowUnchangedMean\,\% another
+month on ($n = \rqFourLaterFollowUnchangedN$). Re-centring on the new day's rest, which needs
+no labels, won back part of the loss (\rqFourLaterPostRecentredKZeroMean\,\% and
+\rqFourLaterFollowRecentredKZeroMean\,\%); Section~\ref{sec:ablation} compares ways of adding
+new trials.

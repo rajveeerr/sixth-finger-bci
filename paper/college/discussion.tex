@@ -1,0 +1,79 @@
+\section{Discussion and Future Scope}
+\label{sec:discussion}
+
+\subsection{A fast start from one transfer configuration}
+One trial of each movement (\rqTwoMinutesKOne\,min) was enough for re-centred transfer, with
+the target weight at \rqTwoHparamRctTslrWeight, to match the three-class accuracy that the
+identical classifier without transfer reached only after ten trials of each movement
+(\rqTwoMinutesKTen\,min nominal, \rqTwoMinutesRecordedKTen\,min as recorded). Beyond that the
+transfer curve barely rose, and once the whole pool was available the patient-only decoder
+finished numerically ahead, by a margin we left untested. Earlier work found transfer to cut
+calibration for healthy users~\cite{zanini2018,he2020,wu2022review} and, across a patient's
+own sessions, after stroke~\cite{giles2022,cao2021}; in our data, transfer between patients
+paid off during the first few trials. These curves belong to one configuration and are no
+verdict on transfer as such. The weight let a single target window count no more than a
+single window from the thousands contributed by other patients; it won a selection in which
+every candidate scored close to chance, and the deep pair, too, ended up with its least
+adaptive settings. The ablation adds that the early lead came from re-centring rather than
+from pooling alone, and part of it reflects how little any decoder learns from four windows.
+Letting the weight grow with $k$, handing over to the patient's own decoder when
+cross-validation inside the calibration data prefers it, or Procrustes
+alignment~\cite{rodrigues2019} might keep transfer improving; we tried none of them.
+
+\subsection{Leakage}
+The inflated figure comes from the order of the steps, not from the data: the identical code
+inflated accuracy on two healthy datasets, and the check was only possible because the
+authors released both data and code. Our rebuild did not reach the published figure, yet
+every one of the three leakage-free estimates sat well below the leaky one. Anyone reusing
+these recordings should keep each supervised step inside the training folds, separate the
+data by run, and quote the leakage-free number next to the published one. Measured in that
+way, the two imagined movements differ only weakly in this EEG, and some of the difference
+may be visual.
+
+\subsection{Imagery against rest, not yet a sixth finger}
+The study neither showed nor excluded a separate sixth-finger command. In the planned control,
+a decoder trained without a single sixth-finger trial recognised sixth-finger imagery at
+least as well, and every detector also responded to imagined hand movements. The mu rhythm
+at C3 fell a little further for the sixth finger (\edaErdMuCThreeSfMean\,\% against
+\edaErdMuCThreeAhMean\,\%, $p = \edaErdMuCThreeSfMinusAhP$, $n = \edaErdMuCThreeN$), but this
+was seen before the freeze and the plan ruled out testing it again; besides, a difference in
+depth would not by itself make the movements distinguishable. Offline, the data support only
+one contrast, imagery against rest, which could serve as a ``move now'' switch. In the
+continuous replay it fired in under half of the sixth-finger periods, on average \exFiveFingerLatencyMean\,s after the cue, and it fired for the hand too, so only a closed-loop study can say whether a patient
+could operate it. It would need recalibrating every day; reusing the earlier session plus
+five new trials per movement is how the fast start would look in practice.
+
+\subsection{Limitations}
+All \nSubjects{} patients were treated at one centre, so the findings may not generalise, and
+between sessions they underwent one of two different therapies. Every evaluation was offline
+or replayed (pseudo-online); no patient used the decoder in closed loop. The sixth finger was
+worn during imagery but was never moved by a decoder. Results are shown per patient as well as
+on average (Figs.~\ref{fig:leak}, \ref{fig:rqthree}, \ref{fig:later} and~\ref{fig:switch},
+and the $k^*$ counts). The patient-only baselines are handicapped at small budgets by design:
+four windows at $k = 1$ and, for the new command, unbalanced classes with no class weights; a
+regularised or class-weighted baseline could shrink transfer's early advantage. The plan
+itself declared two limitations. Rest windows can include the beta rebound that follows
+imagery, which makes any accuracy involving rest an upper bound for self-paced rest. And the
+sixth finger's extra desynchronisation is spread widely over the scalp, so it may track how
+intensely the patient imagined rather than a separate motor map. Rest always came with a
+cross on screen and imagery with a picture: the switch relies mainly on central channels, yet
+a visual share cannot be excluded, and the hand-against-finger information is at least as
+strong at the back of the head. Some of the authors' cleaning was done by hand and cannot be
+repeated exactly, and aligning the published windows with the raw files left a few windows and
+one patient's run order unresolved. The plan was frozen in git rather than with an independent
+registry, and the code is shared on request, not openly. Finally, \nPre{} patients give power
+only for medium or large effects; the inconclusive H3 and H3c do not show that no effect
+exists.
+
+\subsection{Future scope}
+The decisive next step is a closed-loop study in which the decoder moves the finger. For
+calibration, the untested options above (a growing target weight, a data-driven hand-over to
+the patient's own decoder, Procrustes alignment) and a class-weighted or shrinkage baseline
+would show how much of the plateau and the early lead is due to the configuration. A check
+resolved in time, comparing the first second after the cue with the later ones, and a
+paradigm that keeps the same screen for rest and imagery would tackle the visual confound.
+Further stroke datasets~\cite{liu2024acute,lu2026chronic} would test the results beyond one
+hospital, and EEG foundation models~\cite{jiang2024labram,wang2025cbramod} might lift the
+plateau, which pre-training on healthy grasp imagery failed to do in a first exploratory try.
+Registering the plan independently and publishing the code would let others verify this
+work.

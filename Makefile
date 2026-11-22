@@ -18,7 +18,7 @@ HAS_REPORT := $(wildcard report/Makefile)
 HAS_BOOT   := $(wildcard _workspace/tools/bootstrap.sh)
 
 .PHONY: help setup data verify-data audit epochs demo-bundle test test-real lint format check \
-        server web demo e2e figures web-figures paper paper-supplement site-docs report doctor health clean
+        server web demo e2e figures web-figures paper paper-supplement paper-college site-docs report doctor health clean
 
 help: ## List targets
 	@grep -hE '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  \033[36m%-12s\033[0m %s\n", $$1, $$2}'
@@ -154,6 +154,12 @@ paper-supplement: ## Build the paper's reproducibility supplement (paper/build/s
 	@command -v tectonic >/dev/null || { echo "Tectonic not installed: see phase P00"; exit 1; }
 	mkdir -p paper/build
 	tectonic -X compile paper/supplement.tex --outdir paper/build
+
+paper-college: ## Build the paper in the college's IEEE format (paper/build/college.pdf)
+	@command -v tectonic >/dev/null || { echo "Tectonic not installed: see phase P00"; exit 1; }
+	mkdir -p paper/build/college
+	tectonic -X compile paper/college/main.tex --outdir paper/build/college
+	cp paper/build/college/main.pdf paper/build/college.pdf
 
 site-docs: paper ## Copy the paper, the slides and the report's public edition into web/public/docs
 	$(MAKE) -C report public

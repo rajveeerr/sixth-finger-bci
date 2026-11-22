@@ -1,0 +1,105 @@
+% The research paper in the college's IEEE format: one column, 15 to 20 pages, eight sections.
+% make paper-college writes paper/build/college.pdf. Numbers come from ../generated/numbers.tex,
+% references from ../references.bib; the eight-page paper (../main.tex) is unchanged.
+\documentclass[journal,onecolumn,11pt]{IEEEtran}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{multirow}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,calc,decorations.pathreplacing}
+\usepackage[hidelinks,pdftitle={Can a Brain-Computer Interface Learn a New Finger? Calibrating
+Sixth-Finger Motor Imagery Decoders in Stroke Patients},pdfauthor={Rajveer Singh, Vivek Yadav,
+Ansh Dahiya, Suman Lata},pdfcreator={},pdfsubject={},pdfkeywords={}]{hyperref}
+\usepackage{cite}
+\usepackage{multicol}
+\usepackage{etoolbox}
+% References one size smaller than IEEEtran's default, as in IEEE's printed journals.
+\patchcmd{\thebibliography}{\footnotesize}{\scriptsize}{}{}
+
+% Colour-blind-safe palette (Okabe-Ito), the same as the paper's and the report's drawings.
+\definecolor{rblue}{HTML}{0072B2}
+\definecolor{rorange}{HTML}{E69F00}
+\definecolor{rgreen}{HTML}{009E73}
+\definecolor{rred}{HTML}{D55E00}
+\definecolor{rgrey}{HTML}{6B7280}
+
+\graphicspath{{../figures/}{../../docs/figures/}}
+\renewcommand{\topfraction}{0.92}
+\renewcommand{\bottomfraction}{0.6}
+\renewcommand{\textfraction}{0.06}
+\renewcommand{\floatpagefraction}{0.85}
+\renewcommand{\dbltopfraction}{0.92}
+\renewcommand{\dblfloatpagefraction}{0.85}
+\setcounter{topnumber}{3}
+\setcounter{totalnumber}{4}
+\setlength{\textfloatsep}{10pt plus 2pt minus 3pt}
+\setlength{\floatsep}{8pt plus 2pt minus 2pt}
+\newcolumntype{L}{>{\raggedright\arraybackslash}X}
+\newcommand{\src}[1]{{\scriptsize\texttt{#1}}}
+
+\input{../generated/numbers}
+
+\begin{document}
+\bstctlcite{college:BSTcontrol}
+
+\title{Can a Brain--Computer Interface Learn a New Finger? Calibrating Sixth-Finger Motor
+Imagery Decoders in Stroke Patients}
+
+\author{Rajveer~Singh, Vivek~Yadav, Ansh~Dahiya and Suman~Lata%
+\thanks{The authors are with the Department of Electronics and Communication Engineering,
+Maharaja Surajmal Institute of Technology, New Delhi, India.}}
+
+\markboth{Sixth-finger motor imagery decoders in stroke patients}{Singh \MakeLowercase{\textit{et al.}}}
+
+\maketitle
+
+\begin{abstract}
+\input{abstract}
+\end{abstract}
+
+\begin{IEEEkeywords}
+brain--computer interface, motor imagery, EEG, stroke, supernumerary finger, transfer
+learning, calibration, data leakage, ablation
+\end{IEEEkeywords}
+
+\input{introduction}
+\input{literature}
+\input{methodology}
+\input{architecture}
+\input{experiments}
+\input{ablation}
+\input{discussion}
+\input{conclusion}
+
+\section*{Acknowledgment}
+We are grateful to Wang et al.\ for publishing their recordings and analysis code; without
+them this study could not have been carried out.
+
+\section*{Funding and Conflicts of Interest}
+This work received no external funding. The authors declare no conflicts of interest.
+
+\section*{Ethics Statement}
+No new data were recorded for this work, which re-analyses public, de-identified
+recordings. Tianjin Huanhu Hospital's Medical Ethics Committee approved the original
+study (IEC-B-003-V3.0), and its participants agreed to the sharing of their
+data~\cite{wang2026dataset}.
+
+\section*{Data and Code Availability}
+{\raggedright
+The EEG recordings are public under CC~BY~4.0: Wang et al.~\cite{wang2026dataset}, deposited
+on figshare~\cite{wang2026figshare}. The code, the settings files, the frozen
+pre-registration and its deviation log are kept in a private repository and are available
+from the authors on request; the eight-page paper's supplementary material lists every
+setting and command. The demonstrator runs at \texttt{sixth-finger-bci.vercel.app}.\par}
+
+\bibliographystyle{IEEEtran}
+\begin{multicols}{2}
+\bibliography{bstcontrol,../references}
+\end{multicols}
+
+\end{document}
