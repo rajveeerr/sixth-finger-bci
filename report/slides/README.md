@@ -63,3 +63,28 @@ first), so it works without LibreOffice, and lists any text that runs past its b
 built on, LibreOffice is not installed and Keynote's import of the `.pptx` did not return, so no
 PDF is committed; export one from PowerPoint or Keynote (File, Export, PDF) on the presenting
 laptop, or run `--pdf` where LibreOffice is installed.
+
+## The college version
+
+`college/Sixth-Finger-BCI-Final-PPT.pptx` (and its PDF) is the same talk in the college's own
+template for the final presentation of 25 November 2026: its title slide with the MSIT logo, its
+background and Times New Roman titles, and its order (title, contents, introduction, proposed
+solution, dataset, experimental details, results and analysis, conclusion, questions, thank you),
+with the live demo just before questions. Talk 15:00, demo 3:00; the speaker notes give the time,
+what to say and every number's macro and results file, as above.
+
+```sh
+uv run --with python-pptx==1.0.2 python report/slides/college/build_college_ppt.py --pdf --previews
+```
+
+`college/build_college_ppt.py` starts from a copy of the template (`~/Downloads/Final PPT.pptx`,
+or `--template <path>`), reuses its ten slides and adds the rest from its "Title and Content"
+layout, so its master, layouts, logo and background stay as they are. Numbers come through the
+macros of `build_slides.py`, and the build fails on text under 16 pt, text that would not fit
+its box, a figure whose smallest text would print under 16 pt, or a digit typed by hand.
+`--pdf` exports through LibreOffice with a private profile that holds the template's fonts and
+fails unless the PDF embeds only Times New Roman and Wingdings 3; `--previews` draws its pages
+into `college/previews/` (not committed).
+
+This deck carries the students' enrolment numbers. It is not one of the documents
+`scripts/copy_site_docs.py` copies to the site, and it must never be put there.
