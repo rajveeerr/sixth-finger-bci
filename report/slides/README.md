@@ -66,25 +66,43 @@ laptop, or run `--pdf` where LibreOffice is installed.
 
 ## The college version
 
-`college/Sixth-Finger-BCI-Final-PPT.pptx` (and its PDF) is the same talk in the college's own
-template for the final presentation of 25 November 2026: its title slide with the MSIT logo, its
-background, arrow and title placement (set in Georgia titles and Arial text), and its order (title, contents, introduction, proposed
-solution, dataset, experimental details, results and analysis, conclusion, questions, thank you),
-with the live demo just before questions. Talk 15:00, demo 3:00; the speaker notes give the time,
-what to say and every number's macro and results file, as above.
+`college/Sixth-Finger-BCI-Final-PPT.pptx` (and its PDF) is the same talk in the college's format
+for the final presentation of 25 November 2026: the template's slide order and section titles
+(title, contents, introduction, proposed solution, dataset, experimental details, results and
+analysis, conclusion, questions, thank you), with the live demo just before questions. Talk
+15:00, demo 3:00; the speaker notes give the time, what to say and every number's macro and
+results file, as above.
 
 ```sh
-uv run --with python-pptx==1.0.2 python report/slides/college/build_college_ppt.py --pdf --previews
+uv run --with python-pptx==1.0.2 --with fonttools \
+    python report/slides/college/build_college_ppt.py --pdf --previews
 ```
 
 `college/build_college_ppt.py` starts from a copy of the template (`~/Downloads/Final PPT.pptx`,
 or `--template <path>`), reuses its ten slides and adds the rest from its "Title and Content"
-layout, so its master, layouts, logo and background stay as they are. Numbers come through the
-macros of `build_slides.py`, and the build fails on text under 16 pt, text that would not fit
-its box, a figure whose smallest text would print under 16 pt, or a digit typed by hand.
-`--pdf` exports through LibreOffice with a private profile that holds the template's fonts and
-fails unless the PDF embeds only Arial, Georgia and Wingdings 3; `--previews` draws its pages
-into `college/previews/` (not committed).
+layout. It redraws the master: the template's curves, arrow and blue gradient are removed from the
+master and every layout, and in their place are a warm near-white field, a navy band along the
+top and a footer with "Sixth-Finger BCI", "MSIT" and the slide number. The title slide and the
+two closing slides carry the MSIT logo on a navy panel. The palette is the template's navy and
+blue with the logo's red and gold, and every text colour keeps at least 4.5:1 contrast.
+
+All text is Inter (Regular, SemiBold, Bold) from `college/fonts/`, under the SIL Open Font
+License in `college/fonts/OFL.txt`. The fonts are embedded in the `.pptx` the way PowerPoint
+embeds them (`embeddedFontLst`, Embedded OpenType `.fntdata` parts), so the deck shows Inter on a
+PC that does not have it. Numbers come through the macros of `build_slides.py`, and the build
+fails on any of these:
+
+- text under 16 pt, or text that would not fit its box;
+- a figure whose smallest text would print under 16 pt;
+- a digit typed by hand.
+
+`--pdf` first checks the embedding. It renames every typeface and embedded font in a copy of the
+deck to a family no computer has, converts that copy with LibreOffice and a fresh profile, and
+fails unless the PDF draws everything in it. It then exports the real PDF and fails unless it
+embeds only Inter. `--previews` draws the pages into `college/previews/` (not committed).
+
+If a PowerPoint ever ignores the embedded fonts, it falls back to a similar sans serif and some
+lines may wrap differently. The PDF, which embeds Inter, is then the safe file to present from.
 
 This deck carries the students' enrolment numbers. It is not one of the documents
 `scripts/copy_site_docs.py` copies to the site, and it must never be put there.
