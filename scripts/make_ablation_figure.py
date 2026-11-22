@@ -144,7 +144,7 @@ def groups(summary: Path) -> list[tuple[str, list[Row]]]:
         ("EEGNet pre-trained on other patients: hand vs finger", [
             paired(ex1, "fine-tuned vs not fine-tuned",
                    comparison="B_vs_pretrained_same_alignment"),
-            paired(ex1, "fine-tuned vs pre-trained, no target data",
+            paired(ex1, "fine-tuned vs pre-trained, no labelled target data",
                    comparison="B_vs_zeroshot_rest"),
             paired(ex1, "fine-tuned vs EEGNet from scratch", comparison="B"),
             paired(ex1, "fine-tuned vs TS+LR", comparison="B_vs_ts_lr"),
@@ -161,7 +161,7 @@ def groups(summary: Path) -> list[tuple[str, list[Row]]]:
         ]),
         ("Raw recordings and slow waves: hand vs finger", slow_rows(summary)),
         ("Another day and acting only when sure", [
-            paired(ex1, "old session added to new pool, hand vs finger", comparison="C"),
+            paired(ex1, "pre session added, re-centred (post), hand vs finger", comparison="C"),
             paired(ex4, "acting when sure vs every window, finger vs rest",
                    comparison="R (ts_lr_c14) acting vs ts_lr_c14 all windows"),
         ]),
