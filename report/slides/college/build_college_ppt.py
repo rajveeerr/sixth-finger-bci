@@ -4,12 +4,14 @@ uv run --with python-pptx==1.0.2 python report/slides/college/build_college_ppt.
 uv run --with python-pptx==1.0.2 python report/slides/college/build_college_ppt.py --pdf --previews
 
 The deck starts from a copy of the college's "Final PPT.pptx", so its master, layouts, logo,
-background, Times New Roman and blue titles are the template's own, and keeps its order: title,
+background, arrow and title placement are the template's own, and keeps its order: title,
 contents, introduction, proposed solution, dataset, experimental details, results, conclusion,
-questions, thank you. Numbers come from paper/generated/numbers.tex through the macros of
-../build_slides.py, written in the slide text as {macroName}; the speaker notes give each one with
-its results file. The build fails on text under 16 pt, text that does not fit its box, a figure
-whose smallest text would print under 16 pt, a digit typed by hand, or a talk that is not 15:00.
+questions, thank you. Type is Georgia for titles and Arial for the rest, both on every Windows
+PC; colour is the template's blue and navy with the MSIT logo's red and gold. Numbers come from
+paper/generated/numbers.tex through the macros of ../build_slides.py, written in the slide text
+as {macroName}; the speaker notes give each one with its results file. The build fails on text
+under 16 pt, text that does not fit its box, a figure whose smallest text would print under
+16 pt, a digit typed by hand, or a talk that is not 15:00.
 
 The deck carries the students' enrolment numbers: it is not copied to the website.
 """
@@ -36,9 +38,11 @@ import numpy as np
 from lxml import etree
 from PIL import Image, ImageFont
 from pptx import Presentation
-from pptx.enum.dml import MSO_LINE_DASH_STYLE, MSO_THEME_COLOR
+from pptx.dml.color import RGBColor
+from pptx.enum.dml import MSO_LINE_DASH_STYLE
 from pptx.enum.shapes import MSO_CONNECTOR, MSO_SHAPE
 from pptx.enum.text import MSO_ANCHOR, MSO_AUTO_SIZE, PP_ALIGN
+from pptx.opc.constants import RELATIONSHIP_TYPE as RT
 from pptx.oxml.ns import qn
 from pptx.util import Pt
 
@@ -53,19 +57,43 @@ TEMPLATE = Path.home() / "Downloads" / "Final PPT.pptx"
 SOFFICE = Path("/Applications/LibreOffice.app/Contents/MacOS/soffice")
 SUPPLEMENTAL = Path("/System/Library/Fonts/Supplemental")
 
-# The template's slide in points and the frame its "Title and Content" layout leaves free of the
-# curves on the left.
+# The template's slide in points. Content starts where the title's text starts and keeps clear
+# of the curves on the left.
 W, H = 960.0, 540.0
-LEFT, RIGHT = 200.0, 922.0
-BODY_W = RIGHT - LEFT
-TOP, BOTTOM = 116.0, 526.0
+CL, CR = 212.0, 924.0
+CW = CR - CL
+CT = 120.0
 TITLE_BOX = (204.2, 40.0, 701.7, 62.0)
-TITLE_PT = 36.0
 MIN_PT = 16.0
 TALK_SECONDS = 15 * 60
 DEMO_SECONDS = 3 * 60
 MAX_BYTES = 5_000_000
-FONT = "Times New Roman"
+
+# Type: Georgia for titles, Arial for everything else; both ship with Windows and macOS.
+SERIF, SANS = "Georgia", "Arial"
+TITLE_PT = 32.0
+LEAD_PT = 22.0
+BODY_PT = 20.0
+SMALL_PT = 18.0
+CAPTION_PT = 16.0
+STAT_PT = 36.0
+PDF_FONTS = ("ArialMT", "Arial-Bold", "Arial-Italic", "Georgia", "Wingdings3")
+
+# Colour: the template's navy (its dk2) and a deeper cut of its title blue, the MSIT logo's red
+# and gold, on calm inks. Every text colour keeps 4.5:1 on the darkest part of the background.
+PALETTE = {
+    "ink": "1D2A33",
+    "navy": "2E5369",
+    "blue": "105C82",
+    "red": "A93220",
+    "gold": "E9B520",
+    "cream": "FFF6DA",
+    "muted": "4A5D68",
+    "line": "B9CDD6",
+    "pale": "EAF3F6",
+    "white": "FFFFFF",
+}
+
 STUDENTS = [
     ("Rajveer Singh", "05096302823"),
     ("Vivek Yadav", "05196302823"),
@@ -86,52 +114,60 @@ FREE_DIGITS = re.compile(
 # Words the revised paper dropped, so the deck may not bring them back.
 BANNED = re.compile(r"\bfair(?:ly)?\b|overtak|works best", re.IGNORECASE)
 
-# Theme colours of the template: (theme colour, brightness), as the master writes them.
-THEME = {
-    "title": (MSO_THEME_COLOR.ACCENT_2, -0.25),
-    "body": (MSO_THEME_COLOR.TEXT_1, 0.25),
-    "dark": (MSO_THEME_COLOR.TEXT_2, 0.0),
-    "muted": (MSO_THEME_COLOR.TEXT_1, 0.45),
-    "white": (MSO_THEME_COLOR.BACKGROUND_1, 0.0),
-    "pale": (MSO_THEME_COLOR.BACKGROUND_2, 0.0),
+
+def rgb(name: str) -> RGBColor:
+    return RGBColor.from_string(PALETTE[name])
+
+
+# Text measurement with the deck's own fonts
+
+
+FONT_FILES = {
+    SANS: ("Arial", "Arial Bold", "Arial Italic", "Arial Bold Italic"),
+    SERIF: ("Georgia", "Georgia Bold", "Georgia Italic", "Georgia Bold Italic"),
 }
 
 
-# Text measurement with the template's own font
-
-
 class Measure:
-    """Widths and line height of Times New Roman, read from the font files."""
+    """Widths and line height of Arial and Georgia, read from the font files."""
 
     def __init__(self) -> None:
-        names = {
-            (False, False): "Times New Roman.ttf",
-            (True, False): "Times New Roman Bold.ttf",
-            (False, True): "Times New Roman Italic.ttf",
-            (True, True): "Times New Roman Bold Italic.ttf",
-        }
-        self.fonts = {k: ImageFont.truetype(str(SUPPLEMENTAL / v), 1000) for k, v in names.items()}
-        ascent, descent = self.fonts[(False, False)].getmetrics()
-        # PowerPoint and LibreOffice both set single spacing a little above ascent + descent.
-        self.line = (ascent + descent) / 1000 * 1.04
+        self.fonts = {}
+        heights = []
+        for family, files in FONT_FILES.items():
+            for (bold, italic), name in zip(
+                [(False, False), (True, False), (False, True), (True, True)], files, strict=True
+            ):
+                font = ImageFont.truetype(str(SUPPLEMENTAL / f"{name}.ttf"), 1000)
+                self.fonts[(family == SERIF, bold, italic)] = font
+            ascent, descent = self.fonts[(family == SERIF, False, False)].getmetrics()
+            heights.append((ascent + descent) / 1000)
+        # PowerPoint sets single spacing at about 1.2 of the size for these fonts, a little more
+        # than LibreOffice; the larger keeps both inside their boxes.
+        self.line = max(1.2, max(heights) * 1.04)
 
-    def width(self, text: str, size: float, bold: bool, italic: bool = False) -> float:
-        return self.fonts[(bold, italic)].getlength(text) * size / 1000
+    def width(self, text: str, size: float, bold: bool, italic: bool = False, serif=False) -> float:
+        return self.fonts[(serif, bold, italic)].getlength(text) * size / 1000
 
     def lines(self, spans: list[bs.Span], width: float, size: float) -> int:
-        words: list[tuple[str, float, bool, bool]] = []
+        words: list[tuple[str, float, bool, bool, bool]] = []
         for sp in spans:
             sz = (sp.size or size) * (0.6 if sp.sup else 1)
             for word in re.split(r"(\s+)", sp.text):
                 if word:
-                    words.append((word, sz, bool(sp.bold), sp.italic))
+                    words.append((word, sz, bool(sp.bold), sp.italic, sp.serif))
         lines, used = 1, 0.0
-        for word, sz, b, i in words:
-            w = self.width(word, sz, b, i)
+        # A point of slack for kerning and hinting differences between renderers.
+        room = width - 1
+        for word, sz, b, i, s in words:
+            w = self.width(word, sz, b, i, s)
             if word.isspace():
                 used += w
                 continue
-            if used and used + w > width + 0.5:
+            if w > room:
+                # A word wider than the box breaks inside itself; count it as never fitting.
+                lines += 99
+            if used and used + w > room:
                 lines += 1
                 used = w
             else:
@@ -184,7 +220,7 @@ FIGS["model"] = Fig(
 
 
 def figure_png(fig: Fig) -> tuple[bytes, int, int]:
-    """The figure cropped, with its white taken out so the template's background shows."""
+    """The figure cropped, with its paper taken out so it sits on any frame."""
     im = Image.open(bs.FIGURES / fig.file)
     if im.mode == "RGBA":
         white = Image.new("RGBA", im.size, (255, 255, 255, 255))
@@ -192,11 +228,11 @@ def figure_png(fig: Fig) -> tuple[bytes, int, int]:
     im = im.convert("RGB")
     if fig.crop:
         im = im.crop(fig.crop)
-    rgb = np.clip(np.asarray(im).astype(np.float64) / fig.paper, 0, 1)
+    rgb_ = np.clip(np.asarray(im).astype(np.float64) / fig.paper, 0, 1)
     # Undo "drawn over white": the least alpha that explains each pixel, and its colour.
-    alpha = 1 - rgb.min(axis=2)
+    alpha = 1 - rgb_.min(axis=2)
     safe = np.where(alpha > 0, alpha, 1)[..., None]
-    colour = np.clip((rgb - (1 - alpha[..., None])) / safe, 0, 1)
+    colour = np.clip((rgb_ - (1 - alpha[..., None])) / safe, 0, 1)
     rgba = np.dstack([colour, alpha])
     out = Image.fromarray((rgba * 255 + 0.5).astype(np.uint8), "RGBA")
     buf = io.BytesIO()
@@ -246,6 +282,19 @@ class Deck:
         self.rec: Record | None = None
         self.template = list(self.prs.slides)
         self.layout = self.prs.slide_layouts.get_by_name("Title and Content")
+        self.theme_fonts()
+
+    def theme_fonts(self) -> None:
+        """The theme's heading and body fonts, for anything that falls back to them."""
+        part = self.prs.slide_master.part.part_related_by(RT.THEME)
+        xml = part.blob.decode("utf-8")
+        for kind, face in (("majorFont", SERIF), ("minorFont", SANS)):
+            xml = re.sub(
+                rf"(<a:{kind}><a:latin typeface=\")[^\"]*(\")[^/]*/>",
+                rf"\g<1>{face}\g<2>/>",
+                xml,
+            )
+        part._blob = xml.encode("utf-8")
 
     # Text templates: {macro} or {macro:fmt} is a number, **...** bold, <<...>> a setting.
 
@@ -285,45 +334,64 @@ class Deck:
         spans = self.rich(template, record)
         return "".join(f"^{sp.text}" if sp.sup else sp.text for sp in spans)
 
-    @staticmethod
-    def _colour(font: Any, name: str) -> None:
-        theme, brightness = THEME[name]
-        font.color.theme_color = theme
-        if brightness:
-            font.color.brightness = brightness
-
-    def _runs(self, p: Any, spans: list[bs.Span], size: float, color: str) -> None:
+    def _runs(
+        self, p: Any, spans: list[bs.Span], size: float, color: str, nums: str | None = None
+    ) -> None:
+        if nums:
+            # A per cent sign right after a number takes the number's colour.
+            split: list[bs.Span] = []
+            for sp in spans:
+                if split and split[-1].macro and not sp.macro and sp.text.startswith("%"):
+                    split.append(replace(sp, text="%", macro=split[-1].macro, free=True))
+                    sp = replace(sp, text=sp.text[1:])
+                if sp.text:
+                    split.append(sp)
+            spans = split
         for sp in spans:
             r = p.add_run()
             r.text = sp.text
             f = r.font
-            f.name = FONT
+            f.name = SERIF if sp.serif else SANS
             f.size = Pt(sp.size or size)
-            f.bold = bool(sp.bold)
+            f.bold = bool(sp.bold) or bool(nums and sp.macro)
             f.italic = sp.italic
-            self._colour(f, sp.color or color)
+            f.color.rgb = rgb(sp.color or (nums if nums and sp.macro else color))
             if sp.sup:
                 f._rPr.set("baseline", "30000")
 
     def _paras(self, paras: list[str | list[bs.Span]], bold: bool, **style: Any) -> list:
         return [p if isinstance(p, list) else self.rich(p, bold=bold, **style) for p in paras]
 
+    def height(self, paras: list[list[bs.Span]], width: float, size: float, gap: float) -> float:
+        total = 0.0
+        for i, p in enumerate(paras):
+            if not p:
+                continue
+            biggest = max(sp.size or size for sp in p)
+            total += self.measure.lines(p, width, size) * biggest * self.measure.line
+            if i:
+                total += gap
+        return total
+
     def text(
         self,
         box: tuple[float, float, float, float],
         paras: str | list[str | list[bs.Span]],
-        size: float = 20,
+        size: float = BODY_PT,
         bold: bool = False,
-        color: str = "body",
+        color: str = "ink",
         align: str = "l",
         anchor: str = "t",
         gap: float = 0,
         italic: bool = False,
+        serif: bool = False,
+        nums: str | None = None,
     ) -> Any:
+        """A text box without insets; nums colours (and bolds) the macro numbers in it."""
         x, y, w, h = box
         if isinstance(paras, str):
             paras = [paras]
-        resolved = self._paras(paras, bold, italic=italic)
+        resolved = self._paras(paras, bold, italic=italic, serif=serif)
         shape = self.rec.slide.shapes.add_textbox(Pt(x), Pt(y), Pt(w), Pt(h))
         tf = shape.text_frame
         tf.word_wrap = True
@@ -339,7 +407,7 @@ class Deck:
             p.line_spacing = 1.0
             p.space_before = Pt(gap if i else 0)
             p.space_after = Pt(0)
-            self._runs(p, spans, size, color)
+            self._runs(p, spans, size, color, nums)
         self.boxes.append(TextBox(self.rec.no, resolved, size, w, h, gap))
         return shape
 
@@ -347,14 +415,24 @@ class Deck:
         self,
         box: tuple[float, float, float, float],
         items: list[str],
-        size: float = 20,
+        size: float = BODY_PT,
         gap: float = 10,
-        color: str = "body",
+        color: str = "ink",
+        nums: str | None = "blue",
+        mark: str = "blue",
     ) -> Any:
-        """Bullets in the template's own body placeholder, with its arrow bullets."""
+        """Bullets in the template's own body placeholder, with its arrow bullets.
+
+        The box is where the bullet arrow starts; the text hangs 27 pt to its right.
+        """
         x, y, w, h = box
         ph = self._body()
-        ph.left, ph.top, ph.width, ph.height = Pt(x), Pt(y), Pt(w), Pt(h)
+        # Above any card already on the slide.
+        tree = ph._element.getparent()
+        tree.remove(ph._element)
+        tree.append(ph._element)
+        # Placeholder insets: 7.2 pt a side, 3.6 top and bottom.
+        ph.left, ph.top, ph.width, ph.height = Pt(x - 7.2), Pt(y - 3.6), Pt(w + 7.2), Pt(h + 3.6)
         tf = ph.text_frame
         tf.word_wrap = True
         tf.auto_size = MSO_AUTO_SIZE.NONE
@@ -364,9 +442,12 @@ class Deck:
             p = tf.paragraphs[0] if i == 0 else tf.add_paragraph()
             p.space_before = Pt(gap if i else 0)
             p.line_spacing = 1.0
-            self._runs(p, spans, size, color)
-        # Placeholder insets (7.2 pt a side, 3.6 top and bottom) and the bullet's 27 pt indent.
-        self.boxes.append(TextBox(self.rec.no, resolved, size, w - 14.4 - 27, h - 7.2, gap))
+            self._runs(p, spans, size, color, nums)
+            ppr = p._p.get_or_add_pPr()
+            clr = etree.SubElement(ppr, qn("a:buClr"))
+            etree.SubElement(clr, qn("a:srgbClr"), val=PALETTE[mark])
+            etree.SubElement(ppr, qn("a:buSzPct"), val="85000")
+        self.boxes.append(TextBox(self.rec.no, resolved, size, w - 7.2 - 27, h - 3.6, gap))
         return ph
 
     def _body(self) -> Any:
@@ -413,12 +494,12 @@ class Deck:
             tf = t.text_frame
             tf.auto_size = MSO_AUTO_SIZE.NONE
             tf.text = ""
-            spans = self.rich(title, bold=True)
+            spans = self.rich(title, bold=True, serif=True)
             p = tf.paragraphs[0]
             for sp in spans:
                 r = p.add_run()
                 r.text = sp.text
-                r.font.name = FONT
+                r.font.name = SERIF
                 r.font.bold = True
                 r.font.size = Pt(TITLE_PT)
             self.boxes.append(TextBox(rec.no, [spans], TITLE_PT, w - 14.4, h - 7.2, 0))
@@ -447,10 +528,10 @@ class Deck:
         w: float,
         h: float,
         fill: str | None = "white",
-        line: str | None = "dark",
-        lw: float = 1.25,
+        line: str | None = "line",
+        lw: float = 0.75,
         dash: bool = False,
-        radius: float = 8,
+        radius: float = 6,
         oval: bool = False,
     ) -> Any:
         kind = (
@@ -464,17 +545,11 @@ class Deck:
             shape.adjustments[0] = min(0.5, radius / min(w, h))
         if fill:
             shape.fill.solid()
-            theme, brightness = THEME[fill]
-            shape.fill.fore_color.theme_color = theme
-            if brightness:
-                shape.fill.fore_color.brightness = brightness
+            shape.fill.fore_color.rgb = rgb(fill)
         else:
             shape.fill.background()
         if line:
-            theme, brightness = THEME[line]
-            shape.line.color.theme_color = theme
-            if brightness:
-                shape.line.color.brightness = brightness
+            shape.line.color.rgb = rgb(line)
             shape.line.width = Pt(lw)
             if dash:
                 shape.line.dash_style = MSO_LINE_DASH_STYLE.DASH
@@ -488,7 +563,7 @@ class Deck:
         y1: float,
         x2: float,
         y2: float,
-        color: str = "dark",
+        color: str = "navy",
         lw: float = 1.5,
         arrow: bool = False,
         dash: bool = False,
@@ -497,10 +572,7 @@ class Deck:
             MSO_CONNECTOR.STRAIGHT, Pt(x1), Pt(y1), Pt(x2), Pt(y2)
         )
         self._plain(c)
-        theme, brightness = THEME[color]
-        c.line.color.theme_color = theme
-        if brightness:
-            c.line.color.brightness = brightness
+        c.line.color.rgb = rgb(color)
         c.line.width = Pt(lw)
         if dash:
             c.line.dash_style = MSO_LINE_DASH_STYLE.DASH
@@ -508,6 +580,32 @@ class Deck:
             ln = c.line._get_or_add_ln()
             etree.SubElement(ln, qn("a:tailEnd"), type="triangle", w="med", len="med")
         return c
+
+    def badge(self, cx: float, cy: float, label: str, r: float = 12, fill: str = "navy") -> None:
+        """A numbered circle, as the flowchart and the lists use."""
+        self.box(cx - r, cy - r, 2 * r, 2 * r, fill=fill, line=None, oval=True)
+        self.text(
+            (cx - r, cy - r, 2 * r, 2 * r),
+            [[bs.Span(label, bold=True, free=True)]],
+            size=CAPTION_PT,
+            color="white",
+            align="c",
+            anchor="m",
+        )
+
+    def band(
+        self,
+        box: tuple[float, float, float, float],
+        paras: str | list[str | list[bs.Span]],
+        size: float = SMALL_PT,
+        nums: str | None = "blue",
+        gap: float = 4,
+    ) -> None:
+        """The takeaway: a cream band with a gold edge, from the logo's yellow."""
+        x, y, w, h = box
+        self.box(x, y, w, h, fill="cream", line=None, radius=4)
+        self.box(x, y, 5, h, fill="gold", line=None, radius=0)
+        self.text((x + 18, y + 6, w - 30, h - 12), paras, size=size, anchor="m", nums=nums, gap=gap)
 
     def picture(
         self, key: str, box: tuple[float, float, float, float], align: str = "c", valign: str = "m"
@@ -529,6 +627,68 @@ class Deck:
             self.rec.figures.append(key)
         return dx, dy, dw, dh
 
+    def framed(
+        self,
+        key: str,
+        box: tuple[float, float, float, float],
+        pad: float = 8,
+        below: float = 0,
+        align: str = "l",
+        valign: str = "t",
+        line: str = "line",
+        lw: float = 0.75,
+        dash: bool = False,
+        wide: bool = False,
+    ) -> tuple[tuple[float, float, float, float], tuple[float, float, float, float]]:
+        """A figure on a white card, the card fitted to it (or as wide as the box, if wide);
+        below leaves room for a caption.
+
+        Returns the picture's box and the card's box.
+        """
+        x, y, w, h = box
+        fig = FIGS[key]
+        _, pw, ph = figure_png(fig)
+        scale = min((w - 2 * pad) / pw, (h - 2 * pad - below) / ph)
+        cw, ch = pw * scale + 2 * pad, ph * scale + 2 * pad + below
+        if wide:
+            cw = w
+        cx = x + {"l": 0, "c": (w - cw) / 2, "r": w - cw}[align]
+        cy = y + {"t": 0, "m": (h - ch) / 2, "b": h - ch}[valign]
+        self.box(cx, cy, cw, ch, fill="white", line=line, lw=lw, dash=dash)
+        pic = self.picture(key, (cx + pad, cy + pad, cw - 2 * pad, ch - 2 * pad - below))
+        return pic, (cx, cy, cw, ch)
+
+    def number_slide(self, rec: Record) -> None:
+        """The slide number in the template's own place, on the dark arrow."""
+        ns = "http://schemas.openxmlformats.org/presentationml/2006/main"
+        a = "http://schemas.openxmlformats.org/drawingml/2006/main"
+        tree = rec.slide.shapes._spTree
+        new_id = max(int(e.get("id")) for e in tree.iter(qn("p:cNvPr"))) + 1
+        sp = etree.fromstring(
+            f'<p:sp xmlns:p="{ns}" xmlns:a="{a}"><p:nvSpPr>'
+            f'<p:cNvPr id="{new_id}" name="Slide Number"/><p:cNvSpPr>'
+            '<a:spLocks noGrp="1"/></p:cNvSpPr><p:nvPr><p:ph type="sldNum" sz="quarter" '
+            'idx="12"/></p:nvPr></p:nvSpPr><p:spPr/><p:txBody><a:bodyPr/><a:lstStyle/><a:p>'
+            '<a:fld id="{69E57DC2-970A-4B3E-BB1C-7A09969E49DF}" type="slidenum">'
+            f'<a:rPr lang="en-US" sz="1800" b="1"><a:latin typeface="{SANS}"/></a:rPr>'
+            f"<a:t>{rec.no}</a:t></a:fld></a:p></p:txBody></p:sp>"
+        )
+        tree.append(sp)
+
+    def retype(self) -> None:
+        """The template's own runs in the deck's fonts: Georgia in titles, Arial elsewhere."""
+        old = {"Times New Roman", "Franklin Gothic Book"}
+        for rec in self.records:
+            for shape in rec.slide.shapes:
+                if not shape.has_text_frame:
+                    continue
+                is_title = shape.is_placeholder and shape.placeholder_format.type in (1, 3)
+                face = SERIF if is_title else SANS
+                for tag in ("a:latin", "a:ea", "a:cs", "a:buFont"):
+                    for el in shape._element.iter(qn(tag)):
+                        if el.get("typeface") in old:
+                            el.set("typeface", face)
+
     # Checks
 
     def check_text(self) -> list[str]:
@@ -537,14 +697,7 @@ class Deck:
             sizes = [sp.size or b.size for p in b.paras for sp in p if not sp.sup]
             if sizes and min(sizes) < MIN_PT:
                 problems.append(f"slide {b.slide}: text at {min(sizes)} pt")
-            height = 0.0
-            for i, p in enumerate(b.paras):
-                if not p:
-                    continue
-                size = max(sp.size or b.size for sp in p)
-                height += self.measure.lines(p, b.w, b.size) * size * self.measure.line
-                if i:
-                    height += b.gap
+            height = self.height(b.paras, b.w, b.size, b.gap)
             if height > b.h + 1:
                 text = "".join(sp.text for p in b.paras for sp in p)[:60]
                 problems.append(f"slide {b.slide}: '{text}' needs {height:.0f} pt, has {b.h:.0f}")
@@ -667,11 +820,9 @@ def title_slide(d: Deck) -> None:
     )
     s = rec.slide
     shapes = list(s.shapes)
-    by_hand = shapes[1]
-    topic = shapes[2]
-    guide = shapes[3]
+    heading, by_hand, topic, guide = shapes[0], shapes[1], shapes[2], shapes[3]
 
-    def refill(shape: Any, paras: list[list[bs.Span]], size: float, box_w: float) -> None:
+    def refill(shape: Any, paras: list[list[bs.Span]], gap: float = 0) -> None:
         tf = shape.text_frame
         tf.auto_size = MSO_AUTO_SIZE.NONE
         body = tf._txBody.find(qn("a:bodyPr"))
@@ -680,46 +831,71 @@ def title_slide(d: Deck) -> None:
         tf.text = ""
         for i, spans in enumerate(paras):
             p = tf.paragraphs[0] if i == 0 else tf.add_paragraph()
+            p.space_before = Pt(gap if i else 0)
+            p.line_spacing = 1.0
             for sp in spans:
                 r = p.add_run()
                 r.text = sp.text
-                r.font.name = FONT
-                r.font.bold = True
-                r.font.size = Pt(size)
-        h = shape.height / 12700
-        d.boxes.append(TextBox(rec.no, paras, size, box_w - 14.4, h - 7.2, size * 0.3))
+                r.font.name = SERIF if sp.serif else SANS
+                r.font.bold = bool(sp.bold)
+                r.font.size = Pt(sp.size)
+                r.font.color.rgb = rgb(sp.color)
+        w, h = shape.width / 12700, shape.height / 12700
+        d.boxes.append(TextBox(rec.no, paras, paras[-1][0].size, w - 14.4, h - 7.2, gap))
 
-    names = [[bs.Span("By:", bold=True)]] + [
-        [bs.Span(f"{name} ({number})", bold=True, free=True)] for name, number in STUDENTS
-    ]
-    refill(by_hand, names, 18, by_hand.width / 12700)
-    for p in by_hand.text_frame.paragraphs:
-        p.alignment = PP_ALIGN.LEFT
-        p.space_before = Pt(4)
+    refill(
+        heading,
+        [[bs.Span("Minor Project presentation", bold=True, serif=True, size=30, color="blue")]],
+    )
+    heading.text_frame.paragraphs[0].alignment = PP_ALIGN.CENTER
 
-    refill(topic, [[bs.Span(TOPIC, bold=True)]], 26, topic.width / 12700)
+    refill(topic, [[bs.Span(TOPIC, bold=True, serif=True, size=28, color="navy")]])
     topic.text_frame.paragraphs[0].alignment = PP_ALIGN.CENTER
     topic.text_frame.vertical_anchor = MSO_ANCHOR.MIDDLE
 
-    guide.width = Pt(W - 20 - guide.left / 12700)
-    paras = [[bs.Span("Under the guidance of:", bold=True)]]
-    paras += [[bs.Span(line, bold=True)] for line in GUIDE]
-    refill(guide, paras, 18, guide.width / 12700)
-    for p in guide.text_frame.paragraphs:
-        p.alignment = PP_ALIGN.LEFT
+    # A short gold rule between the topic and the people, from the logo's yellow.
+    mid = topic.left / 12700 + topic.width / 12700 / 2
+    rule_y = topic.top / 12700 + topic.height / 12700 + 8
+    d.box(mid - 40, rule_y, 80, 3.5, fill="gold", line=None, radius=0)
+
+    top = rule_y + 22
+    for shape in (by_hand, guide):
+        shape.top = Pt(top)
+        shape.height = Pt(150)
+    label = {"bold": True, "size": CAPTION_PT, "color": "muted"}
+    names = [[bs.Span("By:", **label)]] + [
+        [
+            bs.Span(name, bold=True, size=BODY_PT, color="ink"),
+            bs.Span(f"  ({number})", size=SMALL_PT, color="muted", free=True),
+        ]
+        for name, number in STUDENTS
+    ]
+    refill(by_hand, names, gap=6)
+    guide.left = Pt(612)
+    guide.width = Pt(W - 24 - 612)
+    paras = [[bs.Span("Under the guidance of:", **label)]]
+    paras.append([bs.Span(GUIDE[0], bold=True, size=BODY_PT, color="ink")])
+    paras += [[bs.Span(line, size=SMALL_PT, color="ink")] for line in GUIDE[1:]]
+    refill(guide, paras, gap=6)
+    for shape in (by_hand, guide):
+        for p in shape.text_frame.paragraphs:
+            p.alignment = PP_ALIGN.LEFT
     rec.drawn.append(
         "The enrolment numbers on this slide are why this deck never goes on the website."
     )
 
 
 def contents_slide(d: Deck) -> None:
-    d.keep(
+    rec = d.keep(
         1,
         10,
         "The talk follows the college's order: why the problem matters, what we did, the data, "
         "how we did it, what we found, and what it means; the live demo comes just before "
         "questions.",
     )
+    body = next(s for s in rec.slide.placeholders if s.placeholder_format.idx == 1)
+    items = [p.text.strip() for p in body.text_frame.paragraphs if p.text.strip()]
+    d.bullets((CL, CT + 6, 520, 380), items, size=LEAD_PT, gap=14, color="navy")
 
 
 def background_slide(d: Deck) -> None:
@@ -733,28 +909,29 @@ def background_slide(d: Deck) -> None:
         reuse=2,
     )
     d.bullets(
-        (LEFT - 6, TOP + 10, 368, 320),
+        (CL, CT + 44, 300, 300),
         [
             "**Stroke** often leaves one hand too weak to grip",
             "A **robotic sixth finger**, worn on that wrist, grips against the palm",
             "Aim: the patient **imagines** moving it, and it moves",
         ],
-        size=22,
-        gap=16,
+        size=LEAD_PT,
+        gap=20,
     )
-    pw, ph = 172.0, 192.0
-    x0 = RIGHT - 2 * pw - 8
-    _, y, _, h = d.picture("hand-rest", (x0, TOP + 14, pw, ph))
-    d.picture("hand-finger", (x0 + pw + 8, TOP + 14, pw, ph))
-    d.text((x0, y + h + 8, pw, 22), "at rest", size=18, align="c", color="muted")
-    d.text((x0 + pw + 8, y + h + 8, pw, 22), "bent to grip", size=18, align="c", color="muted")
+    cw, gap = 190.0, 16.0
+    x0 = CR - 2 * cw - gap
+    for i, (key, label) in enumerate([("hand-rest", "at rest"), ("hand-finger", "bent to grip")]):
+        x = x0 + i * (cw + gap)
+        _, (_, cy, _, ch) = d.framed(key, (x, CT + 14, cw, 330), pad=12, below=30)
+        d.text((x, cy + ch - 32, cw, 22), label, size=SMALL_PT, align="c", color="muted")
+    d.line(CL, 462, CR, 462, color="line", lw=0.75)
     d.text(
-        (LEFT, 470, BODY_W, 44),
+        (CL, 472, CW, 44),
         [
             "BCI therapy after stroke: Cervera et al., 2018. Extra robotic fingers: "
             "Prattichizzo et al., 2021; Kieliba et al., 2021."
         ],
-        size=16,
+        size=CAPTION_PT,
         color="muted",
     )
 
@@ -770,33 +947,27 @@ def bci_slide(d: Deck) -> None:
         "area; it does not read thoughts.",
     )
     rec.settings.append(WINDOW)
-    x, y, w, _ = d.picture("system", (LEFT, TOP, BODY_W, 290))
+    (x, y, w, _), (cx0, cy, cw0, ch) = d.framed(
+        "system", (CL, CT - 4, CW, 312), pad=12, below=40, wide=True
+    )
     crop = FIGS["system"].crop or (0, 0, 0, 0)
     k = w / (crop[2] - crop[0])
     # The drawing's own numbers print small; larger ones are laid over them.
     centres = [(461, 382), (741, 434), (1039, 489), (1609.5, 593), (1820.5, 631)]
-    for i, (cx, cy) in enumerate(centres, start=1):
-        px, py = x + (cx - crop[0]) * k, y + (cy - crop[1]) * k
-        d.box(px - 14, py - 14, 28, 28, fill="white", line="dark", lw=1.25, oval=True)
-        d.text(
-            (px - 14, py - 13, 28, 26),
-            [[bs.Span(str(i), bold=True, free=True)]],
-            size=18,
-            align="c",
-            anchor="m",
-            color="dark",
-        )
+    for i, (cx, cyy) in enumerate(centres, start=1):
+        d.badge(x + (cx - crop[0]) * k, y + (cyy - crop[1]) * k, str(i), r=13)
     names = ["EEG cap", "Amplifier", "<<4 s>> of signal", "Model", "Robotic finger"]
-    cw = BODY_W / len(names)
+    colw = (cw0 - 16) / len(names)
     for i, name in enumerate(names, start=1):
-        spans = [bs.Span(f"{i} ", bold=True, free=True, color="dark"), *d.rich(name)]
-        d.text((LEFT + (i - 1) * cw, 416, cw, 24), [spans], size=18, align="c")
-    d.text(
-        (LEFT, 458, BODY_W, 56),
+        spans = [bs.Span(f"{i}  ", bold=True, free=True, color="blue"), *d.rich(name)]
+        d.text(
+            (cx0 + 8 + (i - 1) * colw, cy + ch - 34, colw, 24), [spans], size=SMALL_PT, align="c"
+        )
+    d.band(
+        (CL, cy + ch + 14, CW, 516 - cy - ch - 14),
         "It spots a trained pattern: imagining a movement weakens the **mu rhythm** over the "
         "motor area. It does not read thoughts.",
-        size=20,
-        align="c",
+        size=BODY_PT,
     )
 
 
@@ -812,42 +983,70 @@ def problem_slide(d: Deck) -> None:
         "leakage, measure the calibration a new patient needs with and without other patients' "
         "data, and ask whether the sixth finger can be a command of its own.",
     )
-    half = (BODY_W - 30) / 2
-    d.text((LEFT, TOP, half, 30), "Problem statement", size=22, bold=True, color="dark")
+    gap = 20.0
+    half = (CW - gap) / 2
+    top, height = CT - 2, 306.0
+    d.box(CL, top, half, height)
+    d.box(CL, top, half, 4, fill="red", line=None, radius=0)
+    d.text(
+        (CL + 18, top + 16, half - 36, 28),
+        "Problem statement",
+        size=LEAD_PT,
+        bold=True,
+        color="navy",
+    )
+    d.text(
+        (CL + 18, top + 52, half - 36, 46),
+        "{rqOnePublishedGroupBCspLda:int}–{rqOnePublishedGroupTCspLda:int}%",
+        size=STAT_PT,
+        bold=True,
+        color="red",
+    )
+    d.text(
+        (CL + 18, top + 100, half - 36, 24),
+        "Published, hand vs sixth finger",
+        size=SMALL_PT,
+        color="muted",
+    )
     d.bullets(
-        (LEFT - 6, TOP + 34, half + 6, 250),
+        (CL + 18, top + 146, half - 36, 150),
         [
-            "Published: **{rqOnePublishedGroupBCspLda:int}–{rqOnePublishedGroupTCspLda:int}%**, "
-            "hand vs sixth finger",
             "But its filters also saw the **test trials**",
             "Every user must first **calibrate**: effort for a patient",
         ],
-        size=20,
+        size=SMALL_PT + 1,
         gap=12,
+        mark="red",
     )
-    x2 = LEFT + half + 30
-    d.text((x2, TOP, half, 30), "Objectives", size=22, bold=True, color="dark")
-    d.bullets(
-        (x2 - 6, TOP + 34, half + 6, 250),
+    x2 = CL + half + gap
+    d.box(x2, top, half, height)
+    d.box(x2, top, half, 4, fill="blue", line=None, radius=0)
+    d.text((x2 + 18, top + 16, half - 36, 28), "Objectives", size=LEAD_PT, bold=True, color="navy")
+    objectives = [
+        "Re-test the dataset **leakage-free**",
+        "Measure calibration, with and without **other patients**",
+        "Test the sixth finger as a **command of its own**",
+        "Build a **demonstrator** on held-out data",
+    ]
+    y = top + 58
+    for i, item in enumerate(objectives, start=1):
+        paras = d._paras([item], False)
+        need = d.height(paras, half - 82, SMALL_PT + 1, 0)
+        d.badge(x2 + 30, y + 11, str(i), r=11, fill="blue")
+        d.text((x2 + 52, y, half - 70, need + 2), paras, size=SMALL_PT + 1)
+        y += max(need, 24) + 14
+    d.band(
+        (CL, 440, CW, 72),
         [
-            "Re-test the dataset **leakage-free**",
-            "Measure calibration, with and without **other patients**",
-            "Test the sixth finger as a **command of its own**",
-            "Build a **demonstrator** on held-out data",
+            [
+                *d.rich("Significance  ", bold=True, color="navy"),
+                *d.rich(
+                    "Shorter set-up for rehabilitation BCIs, and an honest baseline for everyone "
+                    "who uses this public dataset."
+                ),
+            ]
         ],
-        size=20,
-        gap=12,
-    )
-    d.line(LEFT, 398, RIGHT, 398, color="muted", lw=0.75)
-    d.text(
-        (LEFT, 410, BODY_W, 100),
-        [
-            [*d.rich("Significance", bold=True, color="dark")],
-            "Shorter set-up for rehabilitation BCIs, and an honest baseline for everyone who "
-            "uses this public dataset.",
-        ],
-        size=20,
-        gap=4,
+        size=BODY_PT,
     )
 
 
@@ -874,34 +1073,43 @@ def flowchart_slide(d: Deck) -> None:
         ("Follow-ups", "switch, other days: exploratory", True),
         ("Demonstrator", "held-out replay in the browser", False),
     ]
-    gap = 24.0
-    bw = (BODY_W - 3 * gap) / 4
-    bh = 112.0
-    rows = [TOP + 14, TOP + 14 + bh + 56]
+    gap = 28.0
+    bw = (CW - 3 * gap) / 4
+    bh = 128.0
+    rows = [CT + 8, CT + bh + 60]
     places = []
     for i in range(8):
         row = i // 4
         col = i % 4 if row == 0 else 3 - i % 4
-        places.append((LEFT + col * (bw + gap), rows[row]))
+        places.append((CL + col * (bw + gap), rows[row]))
     for i, ((name, what, dashed), (x, y)) in enumerate(zip(stages, places, strict=True)):
-        d.box(x, y, bw, bh, fill="white", line="dark", lw=1.5, dash=dashed)
-        number = bs.Span(f"{i + 1}  ", bold=True, free=True, color="title")
-        head = [number, *d.rich(name, bold=True, color="dark")]
-        d.text((x + 8, y + 10, bw - 16, 26), [head], size=19)
-        d.text((x + 8, y + 40, bw - 16, bh - 48), what, size=18)
+        d.box(x, y, bw, bh, line="muted" if dashed else "navy", lw=1.25, dash=dashed)
+        # The stage number sits on the card's top edge, leaving the name the full width.
+        d.badge(x + 26, y, str(i + 1), r=12, fill="muted" if dashed else "navy")
+        d.text((x + 14, y + 22, bw - 26, 26), name, size=SMALL_PT + 1, bold=True, color="navy")
+        d.text((x + 14, y + 54, bw - 26, bh - 60), what, size=17)
     for i in range(7):
         (x1, y1), (x2, y2) = places[i], places[i + 1]
         if y1 == y2:
             if x2 > x1:
-                d.line(x1 + bw + 3, y1 + bh / 2, x2 - 3, y2 + bh / 2, arrow=True)
+                d.line(x1 + bw + 4, y1 + bh / 2, x2 - 4, y2 + bh / 2, arrow=True)
             else:
-                d.line(x1 - 3, y1 + bh / 2, x2 + bw + 3, y2 + bh / 2, arrow=True)
+                d.line(x1 - 4, y1 + bh / 2, x2 + bw + 4, y2 + bh / 2, arrow=True)
         else:
-            d.line(x1 + bw / 2, y1 + bh + 3, x2 + bw / 2, y2 - 3, arrow=True)
+            d.line(x1 + bw / 2, y1 + bh + 4, x2 + bw / 2, y2 - 4, arrow=True)
+    ly = 474.0
+    d.box(CL, ly + 3, 28, 16, line="navy", lw=1.25, radius=3)
     d.text(
-        (LEFT, 476, BODY_W, 44),
-        "Solid: pre-registered tests and the system. Dashed: exploratory, run after the results.",
-        size=18,
+        (CL + 38, ly, 330, 24),
+        "Solid: pre-registered tests and the system.",
+        size=CAPTION_PT,
+        color="muted",
+    )
+    d.box(CL + 360, ly + 3, 28, 16, line="muted", lw=1.25, dash=True, radius=3)
+    d.text(
+        (CL + 398, ly, CW - 398, 24),
+        "Dashed: exploratory, run after the results.",
+        size=CAPTION_PT,
         color="muted",
     )
 
@@ -919,28 +1127,25 @@ def methodology_slide(d: Deck) -> None:
         reuse=None,
     )
     d.drop_body()
-    x, _, w, _ = d.picture("leak", (LEFT, TOP, 560, 342), align="l", valign="t")
-    rx = x + w + 22
-    d.text(
-        (rx, TOP + 10, RIGHT - rx, 330),
-        [
-            [*d.rich("Leakage-free", bold=True, color="dark")],
-            "every step learns from training trials only",
-            [*d.rich("Learn", bold=True, color="dark")],
-            "on runs 1–2",
-            [*d.rich("Test", bold=True, color="dark")],
-            "on runs 3–4, never seen",
-            [*d.rich("Pre-registered", bold=True, color="dark")],
-            "tests fixed before they ran",
-        ],
-        size=18,
-        gap=4,
-    )
-    d.text(
-        (LEFT, 470, BODY_W, 48),
-        "The two differ only in what the first step learns from.",
-        size=18,
-        color="muted",
+    _, (cx, cy, cw, _) = d.framed("leak", (CL, CT - 6, 584, 352), pad=6)
+    rx = cx + cw + 18
+    rw = CR - rx
+    items = [
+        ("Leakage-free", "every step learns from training trials only"),
+        ("Learn", "on runs 1–2"),
+        ("Test", "on runs 3–4, never seen"),
+        ("Pre-registered", "tests fixed before they ran"),
+    ]
+    y = cy + 4
+    for i, (head, what) in enumerate(items):
+        if i:
+            d.line(rx, y - 8, CR, y - 8, color="line", lw=0.75)
+        paras = [d.rich(head, bold=True, color="blue"), d.rich(what)]
+        need = d.height(paras, rw, 17, 2)
+        d.text((rx, y, rw, need + 2), paras, size=17, gap=2)
+        y += need + 18
+    d.band(
+        (CL, 476, CW, 40), "The two differ only in what the first step learns from.", size=SMALL_PT
     )
 
 
@@ -958,54 +1163,74 @@ def dataset_slide(d: Deck) -> None:
         reuse=4,
     )
     rec.settings.append(DESIGN)
-    half = 396.0
+    left = 392.0
     d.bullets(
-        (LEFT - 6, TOP, half + 6, 238),
+        (CL, CT + 2, left, 232),
         [
             "**Wang et al., 2026**, on figshare, CC BY 4.0",
             "**{nSubjects} stroke patients**; we recorded no one",
             "<<40>> EEG channels at {nSamplingRate} Hz, preprocessed",
             "Imagine: grasp with the **hand**, or flex the **sixth finger**",
         ],
-        size=20,
-        gap=10,
+        size=SMALL_PT + 1,
+        gap=12,
     )
-    x2 = LEFT + half + 24
-    bw = RIGHT - x2
-    d.box(x2, TOP + 2, bw, 226, fill="white", line="muted", lw=1, radius=10)
+    x2 = CL + left + 22
+    bw = CR - x2
+    top, bh = CT - 2, 228.0
+    d.box(x2, top, bw, bh)
+    d.box(x2, top, bw, 4, fill="red", line=None, radius=0)
     d.text(
-        (x2 + 14, TOP + 12, bw - 28, 210),
+        (x2 + 16, top + 14, bw - 32, 24),
+        "Problems we found",
+        size=SMALL_PT + 1,
+        bold=True,
+        color="red",
+    )
+    d.text(
+        (x2 + 16, top + 44, bw - 32, 118),
         [
-            [*d.rich("Problems we found", bold=True, color="dark")],
             "A follow-up session copied from another",
             "sub-21 and sub-22 share one recording",
             "One run with no imagery",
-            [*d.rich("Kept: **{nRunsKept} runs**, **{nPre} patients** before therapy")],
         ],
-        size=18,
-        gap=8,
+        size=17,
+        gap=6,
     )
-    # The session design as the page's session.png draws it, in the template's colours.
-    y0 = 372.0
+    d.line(x2 + 16, top + 168, x2 + bw - 16, top + 168, color="line", lw=0.75)
+    d.text(
+        (x2 + 16, top + 176, bw - 32, 44),
+        "Kept: **{nRunsKept} runs**, **{nPre} patients** before therapy",
+        size=17,
+        nums="blue",
+    )
+    # The session design as the page's session.png draws it, in the deck's colours.
+    y0 = 364.0
     sessions = ["Before therapy", "After two weeks", "A month later"]
-    sw = (BODY_W - 2 * 40) / 3
+    sgap = 44.0
+    sw = (CW - 2 * sgap) / 3
     for i, name in enumerate(sessions):
-        x = LEFT + i * (sw + 40)
-        d.box(x, y0, sw, 58, fill="pale", line=None, radius=8)
+        x = CL + i * (sw + sgap)
+        d.box(x, y0, sw, 60, fill="navy", line=None, radius=8)
         d.text(
-            (x + 8, y0 + 6, sw - 16, 46),
-            [[*d.rich(f"Session <<{i + 1}>>", bold=True, color="dark")], name],
-            size=18,
+            (x + 8, y0 + 7, sw - 16, 46),
+            [
+                [*d.rich(f"Session <<{i + 1}>>", bold=True, color="white")],
+                [*d.rich(name, color="white")],
+            ],
+            size=17,
             align="c",
+            color="white",
         )
         if i:
-            d.line(x - 36, y0 + 29, x - 4, y0 + 29, arrow=True)
+            d.line(x - sgap + 6, y0 + 30, x - 6, y0 + 30, arrow=True)
     d.text(
-        (LEFT, y0 + 72, BODY_W, 60),
+        (CL, y0 + 76, CW, 46),
         "Each session: <<4>> runs of <<20>> trials. Rest under a cross, then a picture cue: "
         "imagine for <<6 s>>.",
-        size=18,
+        size=SMALL_PT,
         align="c",
+        color="muted",
     )
 
 
@@ -1022,30 +1247,46 @@ def algorithms_slide(d: Deck) -> None:
         reuse=5,
     )
     rec.settings.append(CENTRAL)
-    d.bullets(
-        (LEFT - 6, TOP - 4, BODY_W + 6, 262),
-        [
-            "**CSP+LDA**: spatial filters, then a straight-line boundary",
-            "**TS+LR**: Riemannian tangent space and logistic regression, patient only",
-            "**Re-centred transfer**: TS+LR with the other patients' data too",
-            "**EEGNet**: compact neural network, from scratch or pre-trained",
-            "**Move-or-rest switch**: TS+LR on <<14>> central channels (exploratory)",
-        ],
-        size=20,
-        gap=8,
-    )
+    d.drop_body()
+    methods = [
+        ("CSP+LDA", "spatial filters, then a straight-line boundary"),
+        ("TS+LR", "Riemannian tangent space and logistic regression, patient only"),
+        ("Re-centred transfer", "TS+LR with the other patients' data too"),
+        ("EEGNet", "compact neural network, from scratch or pre-trained"),
+        ("Move-or-rest switch", "TS+LR on <<14>> central channels (exploratory)"),
+    ]
+    name_w = 196.0
+    y = CT - 4
+    for i, (name, what) in enumerate(methods):
+        paras = d._paras([what], False)
+        need = max(d.height(paras, CW - name_w - 8, SMALL_PT + 1, 0), 23)
+        if i:
+            d.line(CL, y - 7, CR, y - 7, color="line", lw=0.75)
+        d.text((CL, y, name_w, need + 2), name, size=SMALL_PT + 1, bold=True, color="navy")
+        d.text((CL + name_w, y, CW - name_w, need + 2), paras, size=SMALL_PT + 1)
+        y += need + 14
+    y += 8
+    d.box(CL, y, CW, 516 - y)
     d.text(
-        (LEFT, 330, BODY_W, 26),
-        "**EEGNet in the demo**: {demoParameters} learned numbers, {demoModelKb} KB, runs in "
-        "the browser",
-        size=18,
-        color="dark",
+        (CL + 16, y + 12, CW - 32, 34),
+        [
+            [
+                *d.rich("EEGNet in the demo   ", bold=True, color="navy"),
+                *d.rich("{demoParameters}", bold=True, color="blue", size=26),
+                *d.rich(" learned numbers   "),
+                *d.rich("{demoModelKb} KB", bold=True, color="blue", size=26),
+                *d.rich("   runs in the browser"),
+            ]
+        ],
+        size=SMALL_PT,
     )
-    x, y, w, h = d.picture("model", (LEFT, 366, BODY_W, 96), valign="t")
+    x, py, w, h = d.picture("model", (CL + 16, y + 50, CW - 32, 516 - y - 86), valign="t")
     steps = ["Signal in", "Rhythms", "Sensors", "Combine", "Rest, hand, finger"]
-    cw = w / len(steps)
+    colw = w / len(steps)
     for i, name in enumerate(steps):
-        d.text((x + i * cw, y + h + 6, cw, 22), name, size=16, align="c", color="muted")
+        d.text(
+            (x + i * colw, py + h + 4, colw, 22), name, size=CAPTION_PT, align="c", color="muted"
+        )
 
 
 def implementation_slide(d: Deck) -> None:
@@ -1070,33 +1311,57 @@ def implementation_slide(d: Deck) -> None:
         ("Browser demo", "React, ONNX Runtime Web; FastAPI on Render"),
     ]
     gap = 26.0
-    bw = (BODY_W - 3 * gap) / 4
-    bh = 104.0
+    bw = (CW - 3 * gap) / 4
+    bh = 110.0
+    top = CT - 4
     for i, (name, what) in enumerate(blocks):
-        x = LEFT + i * (bw + gap)
-        d.box(x, TOP + 4, bw, bh, fill="white", line="dark", lw=1.5)
-        d.text((x + 8, TOP + 12, bw - 16, 24), name, size=20, bold=True, color="dark", align="c")
-        d.text((x + 8, TOP + 40, bw - 16, bh - 44), what, size=16, align="c")
+        x = CL + i * (bw + gap)
+        d.box(x, top, bw, bh, line="navy", lw=1.25)
+        d.box(x, top, bw, 34, fill="navy", line=None, radius=6)
+        d.box(x, top + 26, bw, 8, fill="navy", line=None, radius=0)
+        d.text(
+            (x + 6, top + 6, bw - 12, 24), name, size=SMALL_PT, bold=True, color="white", align="c"
+        )
+        d.text((x + 8, top + 42, bw - 16, bh - 46), what, size=CAPTION_PT, align="c")
         if i:
-            d.line(x - gap + 3, TOP + 4 + bh / 2, x - 3, TOP + 4 + bh / 2, arrow=True)
+            d.line(x - gap + 4, top + bh / 2 + 10, x - 4, top + bh / 2 + 10, arrow=True)
     d.text(
-        (LEFT, TOP + 116, BODY_W, 24),
+        (CL, top + bh + 10, CW, 24),
         "Hardware: a laptop ({demoInferenceMachine}) and Kaggle for long runs; no headset or "
         "finger built.",
-        size=18,
+        size=SMALL_PT,
         color="muted",
         align="c",
     )
     cols = [
-        ("path-cap", "Cap and amplifier: needed"),
-        ("path-practice", "Page, server, model: built"),
-        ("path-therapy", "Board, motor, finger: needed"),
+        ("path-cap", "Cap and amplifier: needed", False),
+        ("path-practice", "Page, server, model: built", True),
+        ("path-therapy", "Board, motor, finger: needed", False),
     ]
-    cw = BODY_W / 3
-    for i, (key, label) in enumerate(cols):
-        x = LEFT + i * cw
-        d.picture(key, (x + 12, 262, cw - 24, 196), valign="b")
-        d.text((x + 6, 466, cw - 12, 50), label, size=18, align="c", bold=i == 1)
+    cgap = 16.0
+    colw = (CW - 2 * cgap) / 3
+    ytop = 264.0
+    for i, (key, label, built) in enumerate(cols):
+        x = CL + i * (colw + cgap)
+        d.box(
+            x,
+            ytop,
+            colw,
+            516 - ytop,
+            line="blue" if built else "muted",
+            lw=1.75 if built else 1,
+            dash=not built,
+        )
+        d.picture(key, (x + 14, ytop + 12, colw - 28, 516 - ytop - 70), valign="b")
+        d.text(
+            (x + 6, 516 - 52, colw - 12, 44),
+            label,
+            size=SMALL_PT - 1,
+            align="c",
+            anchor="m",
+            bold=built,
+            color="blue" if built else "ink",
+        )
 
 
 def leak_result_slide(d: Deck) -> None:
@@ -1113,43 +1378,66 @@ def leak_result_slide(d: Deck) -> None:
         reuse=6,
     )
     d.drop_body()
-    x, y, w, h = d.picture("leak-slope", (LEFT, TOP, 480, 284), align="l", valign="t")
+    (x, y, w, h), (cx, cy, cw, ch) = d.framed("leak-slope", (CL, CT - 6, 484, 340), pad=6, below=44)
     k = w / 365
     d.text(
-        (x, y + h + 4, 150 * k, 44),
-        [[*d.rich("Published way", bold=True)], "test trials used"],
-        size=16,
+        (x, y + h + 2, 150 * k, 40),
+        [[*d.rich("Published way", bold=True, color="red")], "test trials used"],
+        size=CAPTION_PT,
         align="c",
     )
     d.text(
-        (x + w - 170 * k, y + h + 4, 150 * k, 44),
-        [[*d.rich("Leakage-free", bold=True)], "kept apart"],
-        size=16,
+        (x + w - 170 * k, y + h + 2, 150 * k, 40),
+        [[*d.rich("Leakage-free", bold=True, color="blue")], "kept apart"],
+        size=CAPTION_PT,
         align="c",
     )
-    rx = x + w + 24
-    rw = RIGHT - rx
+    rx = cx + cw + 20
+    rw = CR - rx
     rows = [
         (
-            "{rqOneCspLdaReplicaPaperReplicaMean}% → {rqOneCspLdaReplicaCvLeakfreeMean}%",
+            "{rqOneCspLdaReplicaPaperReplicaMean}%",
+            "{rqOneCspLdaReplicaCvLeakfreeMean}%",
             "the authors' recipe, rebuilt",
         ),
         (
-            "{rqOneCspLdaPaperReplicaMean}% → {rqOneCspLdaCvLeakfreeMean}%",
+            "{rqOneCspLdaPaperReplicaMean}%",
+            "{rqOneCspLdaCvLeakfreeMean}%",
             "standard CSP+LDA, pre-registered H1",
         ),
-        ("{rqOneHOnePositive} of {rqOneHOneN}", "patients lower, p = {rqOneHOneP}"),
     ]
-    for i, (big, small) in enumerate(rows):
-        yy = TOP + 6 + i * 104
-        d.text((rx, yy, rw, 32), big, size=26, bold=True, color="title")
-        d.text((rx, yy + 34, rw, 56), small, size=18)
+    yy = cy + 2
+    for before, after, what in rows:
+        d.text(
+            (rx, yy, rw, 36),
+            [
+                [
+                    *d.rich(before, bold=True, color="red"),
+                    bs.Span(" → ", bold=True, color="navy"),
+                    *d.rich(after, bold=True),
+                ]
+            ],
+            size=28,
+            bold=True,
+            color="blue",
+        )
+        d.text((rx, yy + 38, rw, 44), what, size=SMALL_PT - 1, color="muted")
+        yy += 98
     d.text(
-        (LEFT, 476, BODY_W, 44),
+        (rx, yy, rw, 36), "{rqOneHOnePositive} of {rqOneHOneN}", size=28, bold=True, color="blue"
+    )
+    d.text(
+        (rx, yy + 38, rw, 44),
+        ["patients lower,", "p = {rqOneHOneP}"],
+        size=SMALL_PT - 1,
+        color="muted",
+    )
+    d.band(
+        (CL, cy + ch + 12, CW, 516 - cy - ch - 12),
         "Published: {rqOnePublishedGroupBCspLda:int}–{rqOnePublishedGroupTCspLda:int}%. "
         "Leakage-free, hand and sixth finger are only weakly separable.",
-        size=18,
-        color="dark",
+        size=SMALL_PT,
+        nums=None,
     )
 
 
@@ -1167,13 +1455,14 @@ def comparison_slide(d: Deck) -> None:
         "hand are hard to separate in anyone.",
     )
     d.drop_body()
-    cols = [LEFT, LEFT + 384, LEFT + 560]
-    widths = [376, 168, RIGHT - cols[2]]
+    widths = [372.0, 166.0, CW - 372 - 166]
+    cols = [CL, CL + widths[0], CL + widths[0] + widths[1]]
     heads = ["Study and data", "With the leak", "Leakage-free"]
-    y = TOP
+    rh = 40.0
+    y = CT - 4
+    d.box(CL, y, CW, rh, fill="navy", line=None, radius=4)
     for c, wdt, head in zip(cols, widths, heads, strict=True):
-        d.text((c, y, wdt, 26), head, size=20, bold=True, color="dark", align="l")
-    d.line(LEFT, y + 30, RIGHT, y + 30, color="dark", lw=1.25)
+        d.text((c + 14, y + 9, wdt - 20, 24), head, size=SMALL_PT, bold=True, color="white")
     rows = [
         (
             "Wang et al., 2026: published",
@@ -1183,43 +1472,55 @@ def comparison_slide(d: Deck) -> None:
         (
             "Their recipe, rebuilt by us",
             "{rqOneCspLdaReplicaPaperReplicaMean}%",
-            "**{rqOneCspLdaReplicaCvLeakfreeMean}%**",
+            "{rqOneCspLdaReplicaCvLeakfreeMean}%",
         ),
         (
             "Standard CSP+LDA, ours ({rqOneHOneN} patients)",
             "{rqOneCspLdaPaperReplicaMean}%",
-            "**{rqOneCspLdaCvLeakfreeMean}%**",
+            "{rqOneCspLdaCvLeakfreeMean}%",
         ),
         (
             "BNCI 2014-001, healthy ({rqOneBnciHOneBN})",
             "{rqOneBnciPaperReplicaMean}%",
-            "**{rqOneBnciCvLeakfreeMean}%**",
+            "{rqOneBnciCvLeakfreeMean}%",
         ),
         (
             "Cho 2017, healthy ({rqOneChoHOneBN})",
             "{rqOneChoPaperReplicaMean}%",
-            "**{rqOneChoCvLeakfreeMean}%**",
+            "{rqOneChoCvLeakfreeMean}%",
         ),
     ]
-    y += 38
-    for label, leaky, clean in rows:
-        for c, wdt, cell in zip(cols, widths, (label, leaky, clean), strict=True):
-            d.text((c, y, wdt, 26), cell, size=20)
-        d.line(LEFT, y + 32, RIGHT, y + 32, color="muted", lw=0.5)
-        y += 40
+    y += rh
+    for i, (label, leaky, clean) in enumerate(rows):
+        d.box(CL, y, CW, rh, fill="white" if i % 2 == 0 else "pale", line=None, radius=0)
+        d.text((cols[0] + 14, y + 7, widths[0] - 20, 24), label, size=SMALL_PT + 1)
+        d.text((cols[1] + 14, y + 7, widths[1] - 20, 24), leaky, size=SMALL_PT + 1, color="red")
+        if clean == "not reported":
+            d.text(
+                (cols[2] + 14, y + 7, widths[2] - 20, 24), clean, size=SMALL_PT + 1, color="muted"
+            )
+        else:
+            d.text(
+                (cols[2] + 14, y + 7, widths[2] - 20, 24),
+                clean,
+                size=SMALL_PT + 1,
+                bold=True,
+                color="blue",
+            )
+        y += rh
+    d.line(CL, y, CR, y, color="navy", lw=1)
     d.text(
-        (LEFT, y + 14, BODY_W, 30),
+        (CL, y + 8, CW, 24),
         "Hand vs sixth finger for the stroke rows; left vs right hand for the healthy ones.",
-        size=16,
+        size=CAPTION_PT,
         color="muted",
     )
-    y += 58
-    d.box(LEFT, y, BODY_W, 74, fill="white", line="muted", lw=1, radius=10)
-    d.text(
-        (LEFT + 14, y + 8, BODY_W - 28, 60),
+    by = y + 46
+    d.band(
+        (CL, by, CW, 72),
         [
             [
-                *d.rich("Healthy benchmark, exploratory:", bold=True, color="dark"),
+                *d.rich("Healthy benchmark, exploratory:", bold=True, color="navy"),
                 *d.rich(
                     " BCI Competition 2020 Track 4 (Jeong et al., 2022), {exThreeBenchPeople} "
                     "people, two grasps of one hand a week apart: "
@@ -1227,7 +1528,7 @@ def comparison_slide(d: Deck) -> None:
                 ),
             ]
         ],
-        size=18,
+        size=SMALL_PT,
     )
 
 
@@ -1247,29 +1548,42 @@ def calibration_slide(d: Deck) -> None:
         "{rqFourLaterPostRecentredKFiveMean}%.",
     )
     d.drop_body()
-    x, _, w, _ = d.picture("setup", (LEFT, TOP, 566, 316), align="l", valign="t")
-    rx = x + w + 18
-    rw = RIGHT - rx
+    _, (cx, cy, cw, ch) = d.framed("setup", (CL, CT - 6, 584, 330), pad=6)
+    rx = cx + cw + 16
+    rw = CR - rx
     d.text(
-        (rx, TOP + 6, rw, 34), "{rqTwoRestAhSfRctTslrKOneMean}%", size=30, bold=True, color="title"
+        (rx, cy + 2, rw, 44),
+        "{rqTwoRestAhSfRctTslrKOneMean}%",
+        size=STAT_PT,
+        bold=True,
+        color="blue",
     )
-    d.text((rx, TOP + 42, rw, 66), "with other patients, after {rqTwoMinutesKOne:sec} s", size=18)
+    d.text((rx, cy + 48, rw, 66), "with other patients, after {rqTwoMinutesKOne:sec} s", size=17)
     d.text(
-        (rx, TOP + 120, rw, 34), "{rqTwoRestAhSfTsLrKOneMean}%", size=30, bold=True, color="muted"
+        (rx, cy + 128, rw, 44),
+        "{rqTwoRestAhSfTsLrKOneMean}%",
+        size=STAT_PT,
+        bold=True,
+        color="muted",
     )
-    d.text((rx, TOP + 156, rw, 66), "from scratch, same practice", size=18)
-    d.text((rx, TOP + 234, rw, 66), "Guessing: one in three", size=18, color="muted")
+    d.text((rx, cy + 174, rw, 66), "from scratch, same practice", size=17)
+    d.line(rx, cy + 254, CR, cy + 254, color="line", lw=0.75)
+    d.text((rx, cy + 264, rw, 44), "Guessing: one in three", size=17, color="muted")
+    ny = cy + ch + 10
+    half = (CW - 20) / 2
     d.text(
-        (LEFT, 438, BODY_W, 84),
-        [
-            "**One transfer configuration** (H2a, p = {rqTwoHTwoAP}). With all "
-            "{rqTwoMinutesKAll} min, from scratch ends {rqTwoRestAhSfTsLrMinusRctTslrKAllDiff} "
-            "points higher: **not tested**.",
-            "Another day (exploratory): unchanged {rqFourLaterPostUnchangedMean}%; five new "
-            "trials of each movement, {rqFourLaterPostRecentredKFiveMean}%.",
-        ],
-        size=18,
-        gap=6,
+        (CL, ny, half, 516 - ny),
+        "**One transfer configuration** (H2a, p = {rqTwoHTwoAP}). With all "
+        "{rqTwoMinutesKAll} min, from scratch ends {rqTwoRestAhSfTsLrMinusRctTslrKAllDiff} "
+        "points higher: **not tested**.",
+        size=CAPTION_PT,
+    )
+    d.text(
+        (CL + half + 20, ny, half, 516 - ny),
+        "**Another day (exploratory)**: unchanged {rqFourLaterPostUnchangedMean}%; five new "
+        "trials of each movement, {rqFourLaterPostRecentredKFiveMean}%.",
+        size=CAPTION_PT,
+        nums="blue",
     )
 
 
@@ -1292,31 +1606,38 @@ def switch_slide(d: Deck) -> None:
     )
     d.drop_body()
     rec.settings += [CENTRAL, REPLAY]
-    x, _, w, _ = d.picture("switch-patients", (LEFT, TOP, 548, 314), align="l", valign="t")
-    rx = x + w + 18
-    rw = RIGHT - rx
+    _, (cx, cy, cw, ch) = d.framed("switch-patients", (CL, CT - 6, 570, 326), pad=6)
+    rx = cx + cw + 16
+    rw = CR - rx
+    d.box(rx, cy + 2, 112, 26, fill="cream", line="gold", lw=1, radius=13)
     d.text(
-        (rx, TOP + 4, rw, 300),
-        [
-            [*d.rich("Exploratory", bold=True, color="title")],
-            "Fires on **{exFourTsLrCentralFiresAhMean}%** of hand windows too",
-            "Continuous: **{exFiveFingerFingerOnMean}%** of periods, "
-            "{exFiveFingerFalsePerMinMean} false a minute",
-            "No finger driven",
-        ],
-        size=18,
-        gap=10,
+        (rx, cy + 5, 112, 20), "Exploratory", size=CAPTION_PT, bold=True, color="navy", align="c"
     )
     d.text(
-        (LEFT, 438, BODY_W, 84),
-        [
-            "**No distinct sixth-finger command** (H3, H3c inconclusive): a move-or-rest switch.",
-            "Visual cues: finger vs rest best centrally ({rqFourCueSfRestCentralMean} vs "
-            "{rqFourCueSfRestParietoOccipitalMean}%); hand vs finger best occipitally "
-            "({rqFourCueAhSfParietoOccipitalMean} vs {rqFourCueAhSfCentralMean}%).",
-        ],
-        size=18,
-        gap=6,
+        (rx, cy + 40, rw, 40), "{exFourTsLrCentralFiresAhMean}%", size=30, bold=True, color="red"
+    )
+    d.text((rx, cy + 80, rw, 60), "of hand windows fire it too", size=17)
+    d.text((rx, cy + 146, rw, 40), "{exFiveFingerFingerOnMean}%", size=30, bold=True, color="blue")
+    d.text(
+        (rx, cy + 186, rw, 84),
+        "of periods caught, continuous; {exFiveFingerFalsePerMinMean} false a minute",
+        size=17,
+    )
+    d.line(rx, cy + 278, CR, cy + 278, color="line", lw=0.75)
+    d.text((rx, cy + 288, rw, 24), "No finger driven", size=17, color="muted")
+    ny = cy + ch + 10
+    half = (CW - 20) / 2
+    d.band(
+        (CL, ny, half, 516 - ny),
+        "**No distinct sixth-finger command** (H3, H3c inconclusive): a move-or-rest switch.",
+        size=CAPTION_PT,
+    )
+    d.text(
+        (CL + half + 20, ny + 4, half, 516 - ny - 4),
+        "Visual cues: finger vs rest best centrally ({rqFourCueSfRestCentralMean} vs "
+        "{rqFourCueSfRestParietoOccipitalMean}%); hand vs finger best occipitally "
+        "({rqFourCueAhSfParietoOccipitalMean} vs {rqFourCueAhSfCentralMean}%).",
+        size=CAPTION_PT,
     )
 
 
@@ -1331,27 +1652,40 @@ def conclusion_slide(d: Deck) -> None:
         "learning as the patient practises.",
         reuse=7,
     )
-    d.box(LEFT, TOP, BODY_W, 168, fill="white", line="title", lw=1.5, radius=12)
+    d.drop_body()
+    top, bh = CT - 2, 176.0
+    d.box(CL, top, CW, bh)
+    d.box(CL, top, 6, bh, fill="blue", line=None, radius=0)
     d.text(
-        (LEFT + 18, TOP + 12, BODY_W - 36, 148),
+        (CL + 26, top + 14, CW - 46, bh - 28),
         "Leakage-free, hand against sixth finger scores {rqOneCspLdaReplicaCvLeakfreeMean}–"
         "{rqOneCspLdaCvLeakfreeMean}%, not the published {rqOnePublishedGroupBCspLda:int}%; "
         "one transfer configuration lifts a new patient from {rqTwoRestAhSfTsLrKOneMean}% to "
         "{rqTwoRestAhSfRctTslrKOneMean}% after one trial of each movement, then stays flat; and "
         "the sixth finger is, so far, a **move-or-rest switch**, not a command of its own.",
-        size=22,
+        size=LEAD_PT,
         anchor="m",
+        nums="blue",
     )
-    d.text((LEFT, TOP + 188, BODY_W, 30), "Future work", size=22, bold=True, color="dark")
-    d.bullets(
-        (LEFT - 6, TOP + 224, BODY_W + 6, 170),
-        [
-            "**Closed loop**: the switch drives a real finger, with patients",
-            "**Transfer that keeps learning**, e.g. a weight that grows with practice",
-        ],
-        size=20,
-        gap=10,
-    )
+    fy = top + bh + 28
+    d.text((CL, fy, CW, 30), "Future work", size=LEAD_PT, bold=True, color="navy")
+    future = [
+        ("Closed loop", "the switch drives a real finger, with patients"),
+        ("Transfer that keeps learning", "e.g. a weight that grows with practice"),
+    ]
+    gap = 20.0
+    fw = (CW - gap) / 2
+    cy = fy + 40
+    for i, (head, what) in enumerate(future):
+        x = CL + i * (fw + gap)
+        d.box(x, cy, fw, 96)
+        d.badge(x + 30, cy + 30, str(i + 1), r=13, fill="blue")
+        d.text(
+            (x + 56, cy + 14, fw - 72, 76),
+            [d.rich(head, bold=True, color="navy"), d.rich(what)],
+            size=BODY_PT - 1,
+            gap=4,
+        )
 
 
 def demo_slide(d: Deck) -> None:
@@ -1367,26 +1701,29 @@ def demo_slide(d: Deck) -> None:
         "(~/Movies/sixth-finger-bci-demo-backup.mp4, also on the USB stick).",
         part="demo",
     )
-    d.drop_body()
     rec.settings += [WINDOW, REPLAY]
-    d.text((LEFT, TOP + 10, 470, 40), SITE + "/live", size=30, bold=True, color="title")
-    d.text(
-        (LEFT, TOP + 70, 470, 250),
+    lw = 470.0
+    d.box(CL, CT + 2, lw, 54, fill="navy", line=None, radius=8)
+    d.text((CL + 18, CT + 14, lw - 36, 32), SITE + "/live", size=26, bold=True, color="white")
+    d.bullets(
+        (CL, CT + 86, lw, 230),
         [
             "Patient **{demoSubject}**, runs the model never saw",
             "Left: the cue. Middle: the EEG. Right: the model's reading",
             "Real held-out predictions, at real speed",
         ],
-        size=20,
-        gap=14,
+        size=BODY_PT,
+        gap=16,
     )
+    d.framed("hand-finger", (CR - 210, CT + 2, 210, 394), pad=14, align="r", valign="t")
+    d.line(CL, 452, CR, 452, color="line", lw=0.75)
     d.text(
-        (LEFT, 430, 470, 60),
+        (CL, 462, CW, 44),
         f"If it does not load: {SITE_COPY}/live, or the recorded video",
-        size=18,
+        size=SMALL_PT - 1,
         color="muted",
+        anchor="b",
     )
-    d.picture("hand-finger", (RIGHT - 240, TOP, 240, 360))
 
 
 def questions_slide(d: Deck) -> None:
@@ -1408,8 +1745,11 @@ def thanks_slide(d: Deck) -> None:
     )
     t = rec.slide.shapes.title
     tx = t.left / 12700 + 7.2
-    d.text((tx, 336, RIGHT - tx, 40), SITE, size=26, bold=True, color="dark")
-    d.text((tx, 380, RIGHT - tx, 30), " · ".join(name for name, _ in STUDENTS), size=18)
+    d.box(tx, 326, 64, 3.5, fill="gold", line=None, radius=0)
+    d.text((tx, 342, CR - tx, 34), SITE, size=26, bold=True, color="blue")
+    d.text(
+        (tx, 384, CR - tx, 26), "   ·   ".join(n for n, _ in STUDENTS), size=SMALL_PT, color="ink"
+    )
     rec.drawn.append(f"The same page is also at {SITE_COPY}.")
 
 
@@ -1488,15 +1828,14 @@ def reorder(d: Deck) -> None:
 
 
 def export_pdf(pptx: Path) -> Path:
-    """A PDF beside the deck through LibreOffice, with the template's fonts in a private profile."""
+    """A PDF beside the deck through LibreOffice, with the deck's fonts in a private profile."""
     with tempfile.TemporaryDirectory() as tmp:
         profile = Path(tmp) / "profile"
         fonts = profile / "user" / "fonts"
         fonts.mkdir(parents=True)
-        for ttf in SUPPLEMENTAL.glob("*.ttf"):
-            shutil.copy(ttf, fonts)
-        for ttf in (Path.home() / "Library" / "Fonts").glob("Inter-*.ttf"):
-            shutil.copy(ttf, fonts)
+        for family in ("Arial", "Georgia", "Wingdings 3"):
+            for ttf in SUPPLEMENTAL.glob(f"{family}*.ttf"):
+                shutil.copy(ttf, fonts)
         subprocess.run(
             [
                 str(SOFFICE),
@@ -1516,15 +1855,15 @@ def export_pdf(pptx: Path) -> Path:
 
 
 def check_pdf_fonts(pdf: Path) -> list[str]:
-    """Every font in the PDF must be embedded and be one the template names."""
+    """Every font in the PDF must be embedded and be one the deck names."""
     out = subprocess.run(["pdffonts", str(pdf)], check=True, capture_output=True, text=True)
     problems = []
     for line in out.stdout.splitlines()[2:]:
         name = line.split()[0].split("+")[-1]
         flags = re.search(r"\s(yes|no)\s+(yes|no)\s+(yes|no)\s+\d+\s+\d+\s*$", line)
         embedded = flags.group(1) if flags else "no"
-        if not name.startswith(("TimesNewRoman", "Wingdings3")):
-            problems.append(f"PDF font {name} is not one of the template's")
+        if not name.startswith(PDF_FONTS):
+            problems.append(f"PDF font {name} is not one of the deck's")
         if embedded != "yes":
             problems.append(f"PDF font {name} is not embedded")
     return problems
@@ -1541,6 +1880,9 @@ def main() -> int:
     for make in TALK:
         make(d)
     reorder(d)
+    d.retype()
+    for rec in d.records[1:]:
+        d.number_slide(rec)
     d.notes()
 
     problems = d.check_text() + d.check_shapes() + d.check_figures()
@@ -1568,7 +1910,7 @@ def main() -> int:
         if bad:
             print("\n".join(bad), file=sys.stderr)
             return 1
-        print(f"wrote {pdf.relative_to(ROOT)}, fonts embedded: Times New Roman, Wingdings 3")
+        print(f"wrote {pdf.relative_to(ROOT)}, fonts embedded: Georgia, Arial, Wingdings 3")
         if args.previews:
             if PREVIEWS.exists():
                 shutil.rmtree(PREVIEWS)
