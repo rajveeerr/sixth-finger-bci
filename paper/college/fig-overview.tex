@@ -1,0 +1,33 @@
+% The study at a glance: the data, the framework every result rests on, and the questions,
+% each tagged with its contribution and section. Solid outline: pre-registered; dashed:
+% exploratory.
+\begin{tikzpicture}[x=1mm, y=1mm, font=\footnotesize,
+  box/.style={draw, rounded corners=3pt, align=center, line width=0.7pt, inner sep=3pt,
+    minimum height=15mm, text width=#1}, box/.default=36mm,
+  flow/.style={-{Stealth[length=2mm]}, line width=0.8pt, draw=black!75},
+  tag/.style={font=\scriptsize, text=black!75}]
+  \node[box=30mm, draw=rblue, fill=rblue!8] (data) at (19,0)
+    {\textbf{Public EEG}\\\nSubjects{} stroke patients,\\three sessions};
+  \node[box=30mm, draw=rblue, fill=rblue!8] (audit) at (63,0)
+    {\textbf{Integrity audit}\\copied and mislabelled\\sessions removed};
+  \node[box=52mm, draw=rgreen, fill=rgreen!10] (frame) at (122,0)
+    {\textbf{Leakage-free framework} (C1)\\every fitted step sees training data\\only; test runs never fit or choose};
+  \draw[flow] (data) -- (audit);
+  \draw[flow] (audit) -- (frame);
+  \node[box] (q1) at (21,-27)
+    {\textbf{RQ1: the leak}\\how much did fitting CSP\\before the split add?\\[1pt]
+     \textcolor{black!70}{C1 \,$\cdot$\, Sec.~\ref{sec:leak}}};
+  \node[box] (q2) at (66,-27)
+    {\textbf{RQ2, RQ3: calibration}\\how many trials, with or without\\others? a command of its own?\\[1pt]
+     \textcolor{black!70}{C2, C3 \,$\cdot$\, Secs.~\ref{sec:newuser}, \ref{sec:newcommand}}};
+  \node[box, dashed] (q3) at (111,-27)
+    {\textbf{RQ4 and the ablations}\\continuous use, later days;\\which parts mattered?\\[1pt]
+     \textcolor{black!70}{C3, C4 \,$\cdot$\, Secs.~\ref{sec:later}, \ref{sec:ablation}}};
+  \node[box, draw=rorange, fill=rorange!12] (demo) at (156,-27)
+    {\textbf{Demonstrator}\\held-out EEG, a decoder\\and a virtual sixth finger\\[1pt]
+     \textcolor{black!70}{C5 \,$\cdot$\, Sec.~\ref{sec:system}}};
+  \draw[line width=0.8pt, draw=black!75] (frame.south) -- (122,-12) -- (21,-12);
+  \draw[line width=0.8pt, draw=black!75] (122,-12) -- (156,-12);
+  \foreach \q/\x in {q1/21, q2/66, q3/111, demo/156}
+    \draw[flow] (\x,-12) -- (\q.north);
+\end{tikzpicture}

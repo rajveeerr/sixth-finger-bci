@@ -4,64 +4,69 @@
 \IEEEPARstart{A}{} brain--computer interface (BCI) reads activity from the brain and turns it
 into an instruction for a machine, without passing through the nerves and muscles that
 normally carry a movement~\cite{wolpaw2002}. The most common non-invasive form records the
-electroencephalogram (EEG) from the scalp. In a motor-imagery (MI) BCI the user only
-imagines a movement. Imagining a movement weakens the mu and beta rhythms over the motor
-cortex, an effect called event-related desynchronisation
-(ERD)~\cite{pfurtscheller1999,pfurtscheller2001}, and a decoder is trained to recognise
-that change. Two lines of research use such interfaces. In stroke rehabilitation the BCI
-closes the loop between a patient's intention and a movement made by a device, and
+electroencephalogram (EEG) from the scalp. In a motor-imagery (MI) BCI the user only imagines
+a movement, which weakens the mu and beta rhythms over the motor cortex, an effect called
+event-related desynchronisation (ERD)~\cite{pfurtscheller1999,pfurtscheller2001}; a decoder
+learns to recognise that change. Such interfaces serve two lines of research. In stroke
+rehabilitation the BCI links a patient's intention to a movement made by a device, and
 controlled trials suggest that this aids recovery of the arm~\cite{cervera2018,biasiucci2018}.
 In motor augmentation, healthy people learn to operate an extra robotic digit worn on the
-hand~\cite{kieliba2021,eden2022}.
+hand~\cite{kieliba2021,eden2022}. Wang et al.\ joined the two: they asked healthy
+volunteers~\cite{wang2024jbhi} and then stroke patients~\cite{wang2024tnsre} to imagine flexing
+a robotic sixth finger strapped to the wrist, and released the recordings of \nSubjects{}
+patients over three sessions~\cite{wang2026dataset}, so that others can now study the paradigm.
 
-Wang et al.\ brought the two lines together. They asked healthy
-volunteers~\cite{wang2024jbhi} and later stroke patients~\cite{wang2024tnsre} to imagine
-flexing a robotic sixth finger strapped to the wrist, and they released a dataset of
-\nSubjects{} patients who imagined either this sixth finger or a grasp of the affected hand
-over three sessions~\cite{wang2026dataset}. Because the dataset is public, the paradigm can
-now be studied by groups who did not record it, and that is what we do here.
+Every MI-BCI is calibrated before use: the user performs labelled trials from which the
+decoder learns that person's pattern~\cite{lotte2015}. For a stroke patient each minute of
+calibration is effort taken from therapy, and the step is usually repeated every day because
+the EEG drifts. Reusing other people's recordings, transfer learning, shortens calibration for
+healthy users who imagine familiar movements~\cite{zanini2018,he2020,wu2022review}. Whether it
+does so for stroke patients learning a command that nobody has ever performed has not been
+tested.
+Such a test also needs an evaluation that does not leak. The dataset paper reports
+\rqOnePublishedGroupBCspLda\,\% and \rqOnePublishedGroupTCspLda\,\% for telling imagined hand
+from imagined sixth-finger movements before therapy in its two therapy
+groups~\cite{wang2026dataset}, but its released
+script fits the common spatial pattern (CSP) filters on all trials of a session before
+splitting them for cross-validation, a known cause of optimistic
+estimates~\cite{kapoor2023,brookshire2024}.
 
-Every MI-BCI needs a calibration step before it can be used: the user performs a series of
-labelled trials from which the decoder learns that person's pattern~\cite{lotte2015}. For
-a stroke patient, each minute spent on calibration is effort taken away from therapy, and
-the step is usually repeated every day because the EEG drifts. Transfer learning reuses
-recordings of other people and is known to shorten calibration for healthy users who
-imagine familiar movements~\cite{zanini2018,he2020,wu2022review}. Whether it helps when the
-users are stroke patients and the command is one that no person has ever performed, a sixth
-finger, has not been tested.
-
-A study of calibration first needs an evaluation that does not leak. The dataset paper
-reports accuracies of \rqOnePublishedGroupBCspLda\,\% and \rqOnePublishedGroupTCspLda\,\%
-for telling imagined hand from imagined sixth-finger movements before therapy, in its two
-therapy groups~\cite{wang2026dataset}. Its released analysis script fits the common spatial
-pattern (CSP) filters on all the trials of a session and only afterwards splits the trials
-for cross-validation. Letting test trials shape a supervised step in this way is a known
-cause of optimistic estimates~\cite{kapoor2023,brookshire2024}. We therefore re-evaluated
-the dataset with every fitted step kept inside the training data, and every later result
-in this paper rests on that evaluation.
-
-The study asks four research questions (RQs). RQ1 measures how much the published protocol
-inflates accuracy on these recordings, and whether the same code inflates accuracy on two
-healthy datasets. RQ2 asks how much calibration a new patient needs before a decoder can
-tell rest, the affected hand and the sixth finger apart, and whether other patients' data
-reduce it. RQ3 asks the same when the patient's hand trials already exist and only the
-sixth finger has to be added. RQ4 gathers exploratory questions: continuous use of the
-decoder, the side of the lesion, and use on later days. The hypotheses for RQ1 to RQ3 were
-written down and frozen before the main study. The contributions are:
+We therefore re-evaluated the dataset with every fitted step kept inside the training data, and
+on that footing asked four research questions (RQs), the first three under a plan frozen before
+the main study (Fig.~\ref{fig:overview}). RQ1 measures how much the published protocol inflates
+accuracy. RQ2 asks how much calibration a new patient needs before a decoder can tell rest, the
+affected hand and the sixth finger apart, and whether other patients' data reduce it. RQ3 asks
+the same when the patient's hand trials already exist and only the sixth finger is new. RQ4
+gathers exploratory questions: continuous use, the side of the lesion and later days. In one
+sentence, our answer is this: once the evaluation is free of the leak, borrowing other patients'
+EEG gives a stroke patient a working start after one trial of each movement, but in the
+configuration we tested it then stops improving, and what is decoded is imagined movement
+against rest rather than a sixth-finger command of its own. The contributions are:
 \begin{enumerate}
-  \item a benchmark of this sixth-finger stroke dataset that keeps every fitted step away from
-        the test data, preceded by an audit that uncovered duplicated recordings;
-  \item what we believe is the first study of how much calibration a supernumerary, novel
-        motor command needs in stroke patients, with hypotheses fixed in advance for two
-        cases: a new user, and a new command added once the hand trials exist;
-  \item Riemannian and deep transfer compared in this population, with analyses specific to
-        stroke (mirroring the lesioned hemisphere, later sessions) kept exploratory;
-  \item an ablation study that collects every component comparison the project had run,
-        each tied to its results file and labelled as pre-registered or exploratory; and
-  \item a demonstrator that streams held-out recordings through a decoder, on a server or in
-        the browser, and animates a virtual hand wearing a sixth finger.
+  \item[C1] a leakage-free evaluation of this dataset, preceded by an audit that found
+        duplicated recordings, with the published protocol's inflation measured on it and on
+        two healthy datasets (Sections~\ref{sec:audit}, \ref{sec:protocols} and~\ref{sec:leak});
+  \item[C2] a pre-registered study of how much calibration a novel, supernumerary motor command
+        needs in stroke patients, for a new user and for a command added to existing hand
+        trials, with and without transfer (Sections~\ref{sec:scenarios}, \ref{sec:newuser}
+        and~\ref{sec:newcommand});
+  \item[C3] a planned test of whether the sixth finger is a command of its own, against a
+        decoder that never saw it, with a check for the picture shown on screen and a
+        continuous replay (Sections~\ref{sec:newcommand}, \ref{sec:later}
+        and~\ref{sec:abl-channels});
+  \item[C4] an ablation study that sets every component comparison side by side, each tied to
+        its results file and labelled pre-registered or exploratory
+        (Section~\ref{sec:ablation}); and
+  \item[C5] a demonstrator that streams held-out recordings through a decoder, on a server or
+        in the browser, to a virtual hand wearing a sixth finger (Section~\ref{sec:system}).
 \end{enumerate}
 
-Sections~\ref{sec:lit} to~\ref{sec:conclusion} cover, in turn, the earlier work, the
-methodology, the architecture, the pre-registered experiments, the ablation study, the
-discussion with its limitations and future scope, and the conclusion.
+\begin{figure}[!t]
+  \centering
+  \input{fig-overview}
+  \caption{Every question in this paper rests on one leakage-free framework. The public
+  recordings are audited, every fitted step is confined to training data, and only then are the
+  questions answered; each box names its contribution (C1--C5) and section. Solid outline:
+  pre-registered questions; dashed: exploratory.}
+  \label{fig:overview}
+\end{figure}

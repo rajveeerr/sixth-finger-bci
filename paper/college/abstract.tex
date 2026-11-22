@@ -1,25 +1,23 @@
-A brain--computer interface (BCI) has to be calibrated on every new user, and the cost is
-higher still when the command has no natural counterpart, as with a robotic sixth finger.
-We re-analysed public electroencephalography (EEG) recordings of \nSubjects{} stroke patients
-who imagined grasping with the affected hand or flexing a sixth finger, and asked how much
-calibration a decoder needs and whether recordings of other patients shorten it. The
-dataset's own script fits its spatial filters on every trial before cross-validation: our
-rebuild of that recipe scored \rqOneCspLdaReplicaPaperReplicaMean\,\% on hand against sixth
-finger, and \rqOneCspLdaReplicaCvLeakfreeMean\,\% once each step was fitted on training
-trials only. In pre-registered tests on \rqTwoHTwoAN{} patients, one re-centred Riemannian
-transfer configuration, in which a single window of the patient counts no more than one of the thousands
-contributed by other patients, reached \rqTwoRestAhSfRctTslrKOneMean\,\% on three classes after
-a single trial of each movement, against \rqTwoRestAhSfTsLrKOneMean\,\% for the same
-classifier trained from scratch on those four windows, with a larger area under the
-learning curve ($p = \rqTwoHTwoAP$). It then stayed near \rqTwoRestAhSfRctTslrKAllMean\,\%,
-and once every trial was used the patient-only decoder finished
-\rqTwoRestAhSfTsLrMinusRctTslrKAllDiff{} points ahead, a gap we did not test. When the sixth finger was added as a new command, the Riemannian pair gave no clear gain before
-therapy (the test was supported after therapy, so it did not replicate), and a decoder never
-shown a sixth-finger trial detected one at least as well, so we claim no distinct
-sixth-finger command. In exploratory
-analyses, a decoder of sixth finger against rest scored \exFourTsLrCentralMean\,\% per
-window but also fired on \exFourTsLrCentralFiresAhMean\,\% of hand-imagery windows, and in a
-continuous replay it caught \exFiveFingerFingerOnMean\,\% of sixth-finger periods with
-\exFiveFingerFalsePerMinMean{} false activations a minute. An ablation study gathers the
-component comparisons the project had already run, each labelled pre-registered or
-exploratory, and shows which choices mattered. All evaluation was offline.
+A brain--computer interface (BCI) must be calibrated on every new user, and a command with no
+natural counterpart, such as a robotic sixth finger, may need more. We re-analysed public
+electroencephalography (EEG) recordings of \nSubjects{} stroke patients who imagined grasping
+with the affected hand or flexing a sixth finger, and asked whether other patients' recordings shorten
+calibration. The dataset's script fits its spatial filters
+on every trial before cross-validation: our rebuild of it scored
+\rqOneCspLdaReplicaPaperReplicaMean\,\% on hand against sixth finger, and
+\rqOneCspLdaReplicaCvLeakfreeMean\,\% with every step fitted on training trials only. Under that
+leakage-free evaluation, in pre-registered tests on \rqTwoHTwoAN{} patients, one re-centred
+Riemannian transfer configuration, weighting each of the patient's windows like one of the
+thousands from other patients, reached \rqTwoRestAhSfRctTslrKOneMean\,\% on three classes
+after one trial of each movement, against \rqTwoRestAhSfTsLrKOneMean\,\% without transfer
+($p = \rqTwoHTwoAP$ for the area under the learning curve). It then stayed near
+\rqTwoRestAhSfRctTslrKAllMean\,\%, and with every trial the patient-only decoder ended
+\rqTwoRestAhSfTsLrMinusRctTslrKAllDiff{} points ahead, untested. For the sixth finger added as a
+new command, transfer showed no clear gain before therapy (supported after it, so not
+replicated), and a decoder never shown a sixth-finger trial detected one at least as well, so we
+claim no distinct command. What the data support is imagined movement against rest: an
+exploratory switch scored \exFourTsLrCentralMean\,\% per window but fired on
+\exFourTsLrCentralFiresAhMean\,\% of hand-imagery windows, and replayed continuously caught
+\exFiveFingerFingerOnMean\,\% of sixth-finger periods at \exFiveFingerFalsePerMinMean{} false
+activations a minute. An ablation study and a demonstrator complete the work; all evaluation was
+offline.

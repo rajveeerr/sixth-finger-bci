@@ -1,15 +1,14 @@
 \section{Conclusion}
 \label{sec:conclusion}
-With leakage kept out of every fitted step, a single re-centred transfer configuration let
-stroke patients start quickly on a sixth-finger BCI: after one trial of each movement,
-three-class accuracy was \rqTwoRestAhSfRctTslrKOneMean\,\% with transfer against
-\rqTwoRestAhSfTsLrKOneMean\,\% without it, after which the transfer curve barely moved. Given
-the whole pool (\rqTwoMinutesKAll\,min nominal, \rqTwoMinutesRecordedKAll\,min as recorded),
-the decoder trained on the patient alone came out numerically, though not significantly,
-ahead. The data did not show a sixth-finger command of its own. What they do support offline
-is imagined movement against rest, a possible ``move now'' switch; in a continuous replay it
-caught \exFiveFingerFingerOnMean\,\% of sixth-finger periods with
-\exFiveFingerFalsePerMinMean{} false activations a minute. The ablations, mostly exploratory,
-suggest that re-centring, pre-training, the choice of channels and the continuous gate shaped
-these results, while crops, mirroring and healthy pre-training did not. Testing the switch in
-closed loop is the next step.
+With leakage kept out of every fitted step, a single re-centred transfer configuration let stroke
+patients start quickly on a sixth-finger BCI: after one trial of each movement, three-class
+accuracy was \rqTwoRestAhSfRctTslrKOneMean\,\% with transfer against
+\rqTwoRestAhSfTsLrKOneMean\,\% without it, after which the transfer curve barely moved, and with
+the whole pool (\rqTwoMinutesKAll\,min nominal, \rqTwoMinutesRecordedKAll\,min as recorded) the
+decoder trained on the patient alone came out numerically, though not significantly, ahead. The
+data did not show a sixth-finger command of its own. What they support offline is imagined
+movement against rest, a possible ``move now'' switch, which in a continuous replay caught
+\exFiveFingerFingerOnMean\,\% of sixth-finger periods with \exFiveFingerFalsePerMinMean{} false
+activations a minute. The ablations, mostly exploratory, suggest that re-centring at small
+budgets, the choice of channels and the continuous gate shaped these results most, while crops,
+mirroring and healthy grasp imagery did not help. Testing the switch in closed loop is the next step.

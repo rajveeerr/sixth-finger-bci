@@ -1,0 +1,56 @@
+% The architecture in three layers: the decoding pipeline, the evaluation framework around every
+% fit, and the deployed system. Solid: built; dashed: what a physical system would still need.
+\begin{tikzpicture}[x=1mm, y=1mm, font=\footnotesize,
+  box/.style={draw, rounded corners=2pt, line width=0.7pt, align=center, inner sep=2.5pt,
+    minimum height=12mm, text width=#1}, box/.default=30mm,
+  need/.style={box=#1, dashed, draw=rgrey, text=black!80}, need/.default=24mm,
+  flow/.style={-{Stealth[length=2mm]}, line width=0.8pt, draw=black!75},
+  dflow/.style={-{Stealth[length=2mm]}, line width=0.8pt, dashed, draw=rgrey},
+  lane/.style={font=\footnotesize\bfseries, anchor=west},
+  lbl/.style={font=\scriptsize, text=black!75, align=center}]
+  % Layer 1: decoding pipeline.
+  \node[lane] at (0,59) {1\enspace Decoding pipeline (Sec.~\ref{sec:pipeline})};
+  \node[box=25mm, draw=rblue, fill=rblue!8] (win) at (15,46)
+    {4\,s window:\\40 channels\\$\times$ 1000 samples};
+  \node[box=58mm, draw=rblue, fill=rblue!8] (dec) at (70,46)
+    {\textbf{one decoder}, fitted per patient\\CSP+LDA \;$\cdot$\; TS+LR \;$\cdot$\; MDM\\
+     RCT-TS+LR (other patients, re-centred)\\EEGNet, from scratch or pre-trained};
+  \node[box=26mm, draw=rblue, fill=rblue!8] (prob) at (124,46)
+    {probabilities of\\rest, hand and\\sixth finger};
+  \node[box=22mm] (res) at (164,46) {results files,\\scored on held-\\out runs};
+  \draw[flow] (win) -- (dec);
+  \draw[flow] (dec) -- (prob);
+  \draw[flow] (prob) -- (res);
+  % Layer 2: evaluation framework.
+  \node[lane] at (0,31) {2\enspace Evaluation framework (Sec.~\ref{sec:framework})};
+  \node[box=64mm, draw=rgreen, fill=rgreen!10] (guard) at (104,22)
+    {\textbf{leakage guard} before every fit:\\no test trial in training; no window of the\\
+     target or its linked partner among sources};
+  \node[box=24mm, draw=rgreen, fill=rgreen!10] (prov) at (164,22)
+    {numbers in the\\paper written\\by a script};
+  \coordinate (ax) at (90,0);
+  \draw[flow] (guard.north -| ax) -- node[lbl, right] {else stop} (dec.south -| ax);
+  \draw[flow] (res) -- (prov);
+  % Layer 3: deployed system.
+  \node[lane] at (0,8) {3\enspace Deployed system (Sec.~\ref{sec:system})};
+  \node[box=30mm, draw=rorange, fill=rorange!12] (bundle) at (18,-9)
+    {demo bundle: ONNX\\model, held-out trials,\\checksums};
+  \node[box=30mm, draw=rorange, fill=rorange!12] (server) at (56,-9)
+    {streaming server:\\EEG every 80\,ms and\\a decision per window};
+  \node[box=34mm, draw=rorange, fill=rorange!12] (web) at (97,-9)
+    {web page: EEG, decision,\\3-D hand; the model runs\\in the browser if offline};
+  \node[box=19mm, draw=rorange, fill=rorange!12] (gate) at (137,-9)
+    {move-or-rest\\gate, Eq.~\eqref{eq:gate}};
+  \node[box=23mm, minimum height=9mm] (hand) at (167,-2) {virtual sixth\\finger on screen};
+  \node[need=23mm, minimum height=9mm] (motor) at (167,-16) {bridge, finger\\board, motor};
+  \node[need=30mm, minimum height=9mm] (cap) at (56,-29) {EEG cap and amplifier};
+  \draw[flow] (bundle) -- (server);
+  \draw[flow] (server) -- (web);
+  \draw[flow] (web) -- (gate);
+  \draw[flow] (gate.east) -- (hand.west);
+  \draw[dflow] (gate.east) -- (motor.west);
+  \draw[dflow] (cap) -- node[lbl, right] {live EEG, not built} (server);
+  \coordinate (ex) at (58,0);
+  \draw[flow] (dec.south -| ex) -- node[lbl, left, pos=0.4] {export one\\decoder} (58,3) -- (18,3)
+    -- (bundle.north);
+\end{tikzpicture}

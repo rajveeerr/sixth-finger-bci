@@ -1,0 +1,48 @@
+% The four ways a session's trials were split. Each strip is one session, 20 cells of four trials,
+% runs 1-4 left to right. Rows: what the spatial filters are fitted on, what the classifier is
+% fitted on, what is scored. One cross-validation fold and one leave-one-run-out fold are shown.
+\newcommand{\protocolstrip}[4]{% x, y, list of fit cells, colour of the other cells
+  \foreach \i in {1,...,20} {
+    \def\fillc{white}
+    \foreach \j in {#3} { \ifnum\i=\j \xdef\fillc{#4}\fi }
+    \draw[black!55, line width=0.3pt, fill=\fillc] ({#1+(\i-1)*1.7},#2) rectangle ++(1.7,3);
+  }
+  \foreach \b in {5,10,15} \draw[black, line width=0.9pt] ({#1+\b*1.7},#2-0.6) -- ++(0,4.2);
+  \draw[black, line width=0.5pt] (#1,#2) rectangle ++(34,3);
+}
+\begin{tikzpicture}[x=1mm, y=1mm, font=\footnotesize,
+  note/.style={font=\scriptsize, text=black!75, align=center, text width=36mm}]
+  \foreach \lab/\y in {{filters fitted on}/9, {classifier fitted on}/3, {scored on}/-3}
+    \node[anchor=east, font=\scriptsize] at (19,\y+1.5) {\lab};
+  % (a) published protocol.
+  \node[font=\footnotesize\bfseries, anchor=south] at (37,17) {(a) Dataset's script};
+  \protocolstrip{20}{9}{1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20}{rblue!45}
+  \foreach \c in {3,14} \draw[rred, line width=1.1pt, fill=rred!70] ({20+(\c-1)*1.7},9) rectangle ++(1.7,3);
+  \protocolstrip{20}{3}{1,2,4,5,6,7,8,9,10,11,12,13,15,16,17,18,19,20}{rblue!45}
+  \protocolstrip{20}{-3}{3,14}{rorange}
+  \node[note, anchor=north] at (37,-5) {filters fitted on every trial, then\\
+    10-fold CV of the classifier only:\\\textcolor{rred}{test trials shape the filters}};
+  % (b) leakage-free CV.
+  \node[font=\footnotesize\bfseries, anchor=south] at (77,17) {(b) Leakage-free CV};
+  \protocolstrip{60}{9}{1,2,4,5,6,7,8,9,10,11,12,13,15,16,17,18,19,20}{rblue!45}
+  \protocolstrip{60}{3}{1,2,4,5,6,7,8,9,10,11,12,13,15,16,17,18,19,20}{rblue!45}
+  \protocolstrip{60}{-3}{3,14}{rorange}
+  \node[note, anchor=north] at (77,-5) {the same folds; every step\\fitted inside the training
+    folds};
+  % (c) leave one run out.
+  \node[font=\footnotesize\bfseries, anchor=south] at (117,17) {(c) Leave one run out};
+  \protocolstrip{100}{9}{1,2,3,4,5,6,7,8,9,10,11,12,13,14,15}{rblue!45}
+  \protocolstrip{100}{3}{1,2,3,4,5,6,7,8,9,10,11,12,13,14,15}{rblue!45}
+  \protocolstrip{100}{-3}{16,17,18,19,20}{rorange}
+  \node[note, anchor=north] at (117,-5) {three runs train, the fourth\\tests; each run in turn};
+  % (d) chronological.
+  \node[font=\footnotesize\bfseries, anchor=south] at (157,17) {(d) Chronological};
+  \protocolstrip{140}{9}{1,2,3,4,5,6,7,8,9,10}{rblue!45}
+  \protocolstrip{140}{3}{1,2,3,4,5,6,7,8,9,10}{rblue!45}
+  \protocolstrip{140}{-3}{11,12,13,14,15,16,17,18,19,20}{rorange}
+  \node[note, anchor=north] at (157,-5) {runs 1--2 train, runs 3--4 test:\\
+    \textbf{every result after RQ1}};
+  \foreach \x in {20,60,100,140}
+    \foreach \r in {1,...,4}
+      \node[font=\scriptsize, text=black!70, anchor=south, inner sep=0.5pt] at ({\x+(\r-0.5)*8.5},12.6) {run \r};
+\end{tikzpicture}

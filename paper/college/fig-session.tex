@@ -1,0 +1,41 @@
+% Three sessions, one session's four runs, and one trial with the two windows the decoders read.
+% Trial phases at the article's nominal timing, 10 mm per second.
+\begin{tikzpicture}[x=1mm, y=1mm, font=\footnotesize,
+  sess/.style={draw, rounded corners=2pt, line width=0.7pt, align=center, minimum height=9mm,
+    text width=26mm, fill=black!4},
+  run/.style={draw, line width=0.6pt, minimum height=7mm, minimum width=30mm, align=center},
+  phase/.style={draw, line width=0.6pt, minimum height=8mm, align=center, inner sep=1pt},
+  flow/.style={-{Stealth[length=2mm]}, line width=0.8pt, draw=black!75},
+  note/.style={font=\scriptsize, text=black!75, align=center}]
+  % Sessions over time.
+  \node[font=\footnotesize\bfseries, anchor=west] at (0,51) {Three sessions per patient};
+  \node[sess, draw=black, fill=rblue!8] (pre) at (18,37) {pre-therapy\\\scriptsize confirmatory tests};
+  \node[sess] (post) at (96,37) {post-therapy\\\scriptsize replication};
+  \node[sess] (fol) at (152,37) {one month later\\\scriptsize later-day analyses};
+  \draw[flow] (pre) -- node[note, above=0.5mm] {two weeks: sixth-finger BCI training
+    ($n = \nPostGroupB$)\\or conventional therapy ($n = \nPostGroupT$)} (post);
+  \draw[flow] (post) -- node[note, above=0.5mm] {one month} (fol);
+  % One session: four runs.
+  \node[font=\footnotesize\bfseries, anchor=west] at (0,23) {One session: four runs of 20 trials,
+    ten of each movement in random order};
+  \foreach \r/\c/\t in {0/rblue/run 1, 1/rblue/run 2, 2/rorange/run 3, 3/rorange/run 4}
+    \node[run, draw=\c, fill=\c!15] (r\r) at (\r*33+17,15) {\t};
+  \draw[decorate, decoration={brace, amplitude=3pt, mirror}] (2,10.5) -- (65,10.5)
+    node[midway, below=2.5pt, note, text width=62mm] {calibration pool: the decoder learns from $k$ trials drawn here};
+  \draw[decorate, decoration={brace, amplitude=3pt, mirror}] (68,10.5) -- (131,10.5)
+    node[midway, below=2.5pt, note, text width=62mm] {test runs of the target: scored, never fitted on};
+  % One trial.
+  \node[font=\footnotesize\bfseries, anchor=west] at (0,-5) {One trial (nominal 14\,s; recorded
+    median \rqTwoTrialSecondsRecorded\,s)};
+  \node[phase, minimum width=70mm, fill=black!5] (rest) at (35,-14)
+    {rest, fixation cross\\\scriptsize 7\,s};
+  \node[phase, minimum width=10mm, fill=black!12] (prep) at (75,-14) {circle\\\scriptsize 1\,s};
+  \node[phase, minimum width=60mm, fill=rgreen!12, draw=rgreen] (mi) at (110,-14)
+    {imagine the hand grasp or the sixth finger,\\\scriptsize a picture on screen, 6\,s};
+  \draw[line width=1.4pt, draw=rblue] (10,-20.5) -- (50,-20.5);
+  \draw[line width=1.4pt, draw=rblue] (90,-20.5) -- (130,-20.5);
+  \node[note, below] at (30,-21) {rest window: 1--5\,s after the rest marker};
+  \node[note, below] at (110,-21) {imagery window: 1--5\,s after the picture};
+  \node[note, anchor=west, text width=34mm, align=left] at (143,-14)
+    {each window is 40 channels $\times$ 4\,s, the input of every decoder};
+\end{tikzpicture}

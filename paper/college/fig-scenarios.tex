@@ -1,0 +1,53 @@
+% What a decoder learns from at budget k (here k = 3) in runs 1-2 of the target patient.
+% Each cell is one trial: its imagery window on top, the rest window before it below.
+\newcommand{\trialrow}[4]{% x, y, drawn cells, colour of a drawn imagery window
+  \foreach \i in {1,...,20} {
+    \def\on{0}
+    \foreach \j in {#3} { \ifnum\i=\j \xdef\on{1}\fi }
+    \ifnum\on=1
+      \draw[black!55, line width=0.3pt, fill=#4] ({#1+(\i-1)*1.7},{#2+1.6}) rectangle ++(1.7,1.6);
+      \draw[black!55, line width=0.3pt, fill=black!35] ({#1+(\i-1)*1.7},#2) rectangle ++(1.7,1.6);
+    \else
+      \draw[black!30, line width=0.3pt, fill=white] ({#1+(\i-1)*1.7},#2) rectangle ++(1.7,3.2);
+    \fi
+  }
+  \draw[black, line width=0.5pt] (#1,#2) rectangle ++(34,3.2);
+  \draw[black, line width=0.9pt] ({#1+17},{#2-0.5}) -- ++(0,4.2);
+}
+\begin{tikzpicture}[x=1mm, y=1mm, font=\footnotesize,
+  note/.style={font=\scriptsize, text=black!75, align=center, text width=37mm},
+  box/.style={draw, rounded corners=2pt, line width=0.7pt, align=center, inner sep=3pt},
+  flow/.style={-{Stealth[length=2mm]}, line width=0.8pt, draw=black!75},
+  dflow/.style={-{Stealth[length=2mm]}, line width=0.8pt, dashed, draw=rgrey}]
+  \node[anchor=east, font=\scriptsize] at (19,7.6) {hand trials};
+  \node[anchor=east, font=\scriptsize] at (19,1.6) {finger trials};
+  \foreach \x/\t/\n in {20/{(a) S1, new user}/{three classes: $k$ of each\\movement and their rest}, 60/{(b) S2, new command}/{three classes: every hand trial\\plus $k$ new finger trials},
+      100/{(c) S1 and S2}/{finger vs rest: only the $k$ new\\finger trials, no hand trial}, 140/{(d) Own-hand control}/{hand and rest only, no finger\\trial (H3c); finger vs rest}} {
+    \node[font=\footnotesize\bfseries, anchor=south] at (\x+17,12.6) {\t};
+    \node[note, anchor=north] at (\x+17,-2) {\n};
+  }
+  \trialrow{20}{6}{2,9,16}{rblue!60}
+  \trialrow{20}{0}{4,12,18}{rgreen!70}
+  \trialrow{60}{6}{1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20}{rblue!60}
+  \trialrow{60}{0}{4,12,18}{rgreen!70}
+  \trialrow{100}{6}{0}{rblue!60}
+  \trialrow{100}{0}{4,12,18}{rgreen!70}
+  \trialrow{140}{6}{1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20}{rblue!60}
+  \trialrow{140}{0}{0}{rgreen!70}
+  \foreach \x in {20,60,100,140} {
+    \node[font=\scriptsize, text=black!70, anchor=south, inner sep=0.5pt] at (\x+8.5,9.3) {run 1};
+    \node[font=\scriptsize, text=black!70, anchor=south, inner sep=0.5pt] at (\x+25.5,9.3) {run 2};
+  }
+  % Legend and what happens next.
+  \node[box, draw=rblue, fill=rblue!8, anchor=west] (src) at (2,-19)
+    {other patients' windows, aligned\\\scriptsize transfer decoders only; never the linked partner};
+  \node[box, draw=rgreen, fill=rgreen!10] (dec) at (100,-19) {decoder\\\scriptsize fitted on the shaded windows};
+  \node[box] (score) at (150,-19) {balanced accuracy\\\scriptsize on the target's runs 3--4};
+  \draw[dflow] (src) -- node[font=\scriptsize, above, text=black!75] {transfer} (dec);
+  \draw[flow] (dec) -- (score);
+  \foreach \c/\t/\x in {rblue!60/hand imagery/2, rgreen!70/finger imagery/34, black!35/rest window/68}
+    \draw[black!55, line width=0.3pt, fill=\c] (\x,-30) rectangle ++(2.5,2.2);
+  \foreach \t/\x in {hand imagery window/5.5, finger imagery window/37.5, rest window before the trial/71.5}
+    \node[anchor=west, font=\scriptsize] at (\x,-28.9) {\t};
+  \node[anchor=west, font=\scriptsize, text=black!75] at (112,-28.9) {shaded: drawn, $k = 3$; white: not used};
+\end{tikzpicture}
