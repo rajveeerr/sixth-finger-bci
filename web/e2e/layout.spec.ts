@@ -1,5 +1,8 @@
 import { expect, test } from "@playwright/test";
 
+// Twice the pixels, so the demo captures stay sharp at the width they are printed in the report.
+test.use({ deviceScaleFactor: 2 });
+
 for (const { width, height, name } of [
   { width: 1366, height: 768, name: "projector" },
   { width: 1024, height: 768, name: "old projector" },
@@ -21,7 +24,9 @@ for (const { width, height, name } of [
     // The demo itself, for the report (docs/figures/demo_projector.png and demo_phone.png).
     await page.locator("#demo").scrollIntoViewIfNeeded();
     await page.evaluate(() => document.querySelector("#demo")!.scrollIntoView({ block: "start" }));
-    await page.waitForTimeout(600);
+    // A reading of a movement, so the capture shows the finger bent and the guess beside it.
+    await expect(page.getByTestId("prediction")).toHaveAttribute("data-label", "move", { timeout: 20_000 });
+    await page.waitForTimeout(300);
     if (width >= 1024) await page.screenshot({ path: `test-results/demo-${name.replace(/ /g, "-")}.png` });
     else await page.locator(".demo").screenshot({ path: `test-results/demo-${name.replace(/ /g, "-")}.png` });
   });
