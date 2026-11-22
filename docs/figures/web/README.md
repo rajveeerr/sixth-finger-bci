@@ -69,6 +69,12 @@ Size is the file in CSS px (1 px = 0.75 pt in the PDF); the PNG is three times t
 
 The dials' SVG is the dial alone; their two-line reading is in the PDF and PNG.
 
+The report (12 pt body, 5.77 in text width) uses its own cuts of the five wide figures, laid out
+narrower so that their words stay at 8 pt or more across the text width: `system-report`,
+`session-report`, `model-report`, `elsewhere-report` and `path-report` (pdf, png). They are the
+same drawings; `system-report` enlarges the numbered pins and `path-report` wraps the arrows'
+words so the two labels keep apart.
+
 ## Document variants
 
 The page's look never changes. The exporter adds its own stylesheet

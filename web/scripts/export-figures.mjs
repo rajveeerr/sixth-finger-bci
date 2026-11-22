@@ -9,7 +9,8 @@
 //   npm run figures -- --no-build      reuse the last build
 //
 // It also checks the smallest text of each figure where it will be printed: at least 7 pt at the
-// paper's column (3.5 in) or full width (7.16 in), and at least 24 px on a 1920 px slide.
+// paper's column (3.5 in) or full width (7.16 in), at least 8 pt across the report's text width
+// (5.77 in, 12 pt body) for the report's own cuts, and at least 24 px on a 1920 px slide.
 
 import { spawnSync } from "node:child_process";
 import { copyFileSync, createReadStream, existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
@@ -40,9 +41,11 @@ const DOC_CSS = [
 
 const SCALE = 3;
 const MIN_PT = 7;
+// The report is set in 12 pt, so its figures keep their text at 8 pt or more.
+const MIN_REPORT_PT = 8;
 const MIN_SLIDE_PX = 24;
 // IEEE two-column: one column and the full text width, in points.
-const PAPER_PT = { column: 3.5 * 72, full: 7.16 * 72 };
+const PAPER_PT = { column: 3.5 * 72, full: 7.16 * 72, report: 5.77 * 72 };
 // The box a figure may fill on a 1920 x 1080 slide under its title, alone or beside text.
 const SLIDE_BOX = { full: [1760, 860], half: [860, 860] };
 
@@ -162,6 +165,13 @@ const FIGURES = [
     slide: "half",
     before: (page) => page.locator("#use .follow:has(.hbars) .toggle [role=radio]").nth(1).click(),
   },
+  // The report's text width is narrower than the paper's two columns, so its wide figures are
+  // laid out narrower: the drawings shrink to fit and the words keep their size.
+  { name: "system-report", find: "#what figure.plate-chain", width: 560, paper: "report" },
+  { name: "session-report", find: "#data figure.plate-session", width: 600, paper: "report" },
+  { name: "model-report", find: "#demo figure.plate-mdraw", width: 540, paper: "report" },
+  { name: "elsewhere-report", find: "#published figure.plate-elsewhere", width: 560, paper: "report" },
+  { name: "path-report", find: "#use figure.journey", width: 760, paper: "report" },
   ...["published", "command", "use"].map((q) => ({
     name: `dial-${q}`,
     find: `#${q} .q-dial`,
@@ -536,8 +546,9 @@ function legibility(fig, { size, text }) {
   let ok = true;
   if (fig.paper && Number.isFinite(text.px)) {
     const pt = (text.px * PAPER_PT[fig.paper]) / size.w;
-    if (pt < MIN_PT) ok = false;
-    notes.push(`${pt.toFixed(1)} pt at the paper's ${fig.paper} width`);
+    const report = fig.paper === "report";
+    if (pt < (report ? MIN_REPORT_PT : MIN_PT)) ok = false;
+    notes.push(`${pt.toFixed(1)} pt at the ${report ? "report's" : `paper's ${fig.paper}`} width`);
   }
   if (fig.slide && Number.isFinite(text.px)) {
     const [bw, bh] = SLIDE_BOX[fig.slide];

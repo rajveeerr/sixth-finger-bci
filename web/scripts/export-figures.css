@@ -86,22 +86,22 @@ html.doc body {
 /* The patient's path for a document: the drawings, what each step is and which parts are
    built, the arrows between them; the sentences go to the caption and the lanes to their own
    figure, and the labels grow so they still read at 7 pt across a page. */
-html[data-figure="path"] .jy-text,
-html[data-figure="path"] .jy-note,
-html[data-figure="path"] .jy-lanes,
-html[data-figure="path"] .jy-lane,
-html[data-figure="path"] .jy-track {
+html:is([data-figure="path"], [data-figure="path-report"]) .jy-text,
+html:is([data-figure="path"], [data-figure="path-report"]) .jy-note,
+html:is([data-figure="path"], [data-figure="path-report"]) .jy-lanes,
+html:is([data-figure="path"], [data-figure="path-report"]) .jy-lane,
+html:is([data-figure="path"], [data-figure="path-report"]) .jy-track {
   display: none !important;
 }
-html[data-figure="path"] .jy-visit > h3 {
+html:is([data-figure="path"], [data-figure="path-report"]) .jy-visit > h3 {
   font-size: 17px;
 }
-html[data-figure="path"] .jy-name {
+html:is([data-figure="path"], [data-figure="path-report"]) .jy-name {
   font-size: 18px;
 }
-html[data-figure="path"] .jy-parts,
-html[data-figure="path"] .jy-link,
-html[data-figure="path"] .jy .built-key {
+html:is([data-figure="path"], [data-figure="path-report"]) .jy-parts,
+html:is([data-figure="path"], [data-figure="path-report"]) .jy-link,
+html:is([data-figure="path"], [data-figure="path-report"]) .jy .built-key {
   font-size: 15px;
 }
 
@@ -150,4 +150,19 @@ html[data-figure="trial"] .sees-labels {
   grid-template-columns: repeat(3, auto);
   justify-content: space-between;
   font-size: 13.5px;
+}
+
+/* The bench in the report: the drawing is laid out narrower, so its numbered pins grow to stay
+   legible at 8 pt. */
+html[data-figure="system-report"] .part-pin circle {
+  r: 18px;
+}
+html[data-figure="system-report"] .part-pin text {
+  font-size: 19px;
+  transform: translateY(2px);
+}
+
+/* The path in the report is laid out narrower, so the two arrows' words wrap to keep apart. */
+html[data-figure="path-report"] .jy-link {
+  width: min(100%, 148px);
 }
