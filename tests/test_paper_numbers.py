@@ -186,7 +186,7 @@ def test_review_numbers_are_the_summaries_values(nums):
     assert nums.entries["rqOneCspLdaCvLeakfreeNBelowChance"].plain == below
 
 
-def test_demo_timing_and_weights_are_the_files_values(nums):
+def test_demo_timing_and_weights_are_the_files_values(module, nums):
     import json
 
     def read(name):
@@ -198,6 +198,11 @@ def test_demo_timing_and_weights_are_the_files_values(nums):
     assert nums.entries["demoInferenceN"].plain == str(timing["n"])
     assert nums.entries["demoInferenceMachine"].plain == timing["machine"]["cpu"]
     assert nums.entries["dlEegnetWeights"].plain == str(weights["study_model"]["trainable"])
+    per_layer = weights["study_model"]["per_layer"]
+    names = module.EEGNET_LAYERS.values()
+    layers = [nums.entries["dlEegnetWeights" + name].plain for name in names]
+    assert layers == [str(per_layer[layer]) for layer in module.EEGNET_LAYERS]
+    assert sum(per_layer.values()) == weights["study_model"]["trainable"]
     assert weights["deployed_onnx"]["numbers"] == int(nums.entries["demoParameters"].plain)
 
 

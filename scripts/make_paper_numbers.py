@@ -60,6 +60,17 @@ import pandas as pd
 
 from sixthfinger.paths import get_paths
 
+# EEGNet's layers as braindecode names them, and the macro suffix of each.
+EEGNET_LAYERS = {
+    "conv_temporal": "ConvTemporal",
+    "bnorm_temporal": "BnormTemporal",
+    "conv_spatial": "ConvSpatial",
+    "bnorm_1": "BnormOne",
+    "conv_separable_depth": "ConvSeparableDepth",
+    "conv_separable_point": "ConvSeparablePoint",
+    "bnorm_2": "BnormTwo",
+    "final_layer.conv_classifier": "Classifier",
+}
 TBD = r"\newcommand{\TBD}[1]{\textcolor{red}{\textbf{TBD(#1)}}}"
 TOPICS = {
     "n": "Dataset counts",
@@ -770,6 +781,9 @@ def deep(nums: Numbers) -> None:
     weights = nums.json(src)["study_model"]
     what = "EEGNet as the study builds it (40 channels, 3 classes, 4 s): trainable weights"
     nums.add("dlEegnetWeights", integer(weights["trainable"]), src, what)
+    for layer, name in EEGNET_LAYERS.items():
+        what = f"EEGNet as the study builds it: trainable weights of {layer}"
+        nums.add("dlEegnetWeights" + name, integer(weights["per_layer"][layer]), src, what)
 
     src = "summary/dl_zeroshot_table.csv"
     for _, row in nums.csv(src).iterrows():
@@ -2093,7 +2107,7 @@ def build(root: Path) -> Numbers:
 
 def tex_sources(root: Path) -> list[Path]:
     sources = [root / "paper" / "main.tex", root / "report" / "main.tex"]
-    for folder in ("paper/sections", "report/chapters", "report/frontmatter"):
+    for folder in ("paper/sections", "paper/college", "report/chapters", "report/frontmatter"):
         sources += sorted((root / folder).glob("*.tex"))
     return sources
 

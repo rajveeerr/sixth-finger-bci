@@ -8,7 +8,7 @@ and rows with a short meaning belong to the last full one. Sources are under
 largest of the cells named, (count) is counted from audit rows. The naming scheme is
 in the script's docstring.
 
-5332 macros. Not generated yet, printed as TBD: `\repoURL` (P15), `\repoTag` (P15), `\codeDOI` (P15).
+5340 macros. Not generated yet, printed as TBD: `\repoURL` (P15), `\repoTag` (P15), `\codeDOI` (P15).
 
 ## Dataset counts (`\n`)
 
@@ -1511,6 +1511,14 @@ in the script's docstring.
 | Macro | Value | Meaning |
 |---|---|---|
 | `\dlEegnetWeights` | 3235 | EEGNet as the study builds it (40 channels, 3 classes, 4 s): trainable weights |
+| `\dlEegnetWeightsConvTemporal` | 512 | EEGNet as the study builds it: trainable weights of conv_temporal |
+| `\dlEegnetWeightsBnormTemporal` | 16 | EEGNet as the study builds it: trainable weights of bnorm_temporal |
+| `\dlEegnetWeightsConvSpatial` | 640 | EEGNet as the study builds it: trainable weights of conv_spatial |
+| `\dlEegnetWeightsBnormOne` | 32 | EEGNet as the study builds it: trainable weights of bnorm_1 |
+| `\dlEegnetWeightsConvSeparableDepth` | 256 | EEGNet as the study builds it: trainable weights of conv_separable_depth |
+| `\dlEegnetWeightsConvSeparablePoint` | 256 | EEGNet as the study builds it: trainable weights of conv_separable_point |
+| `\dlEegnetWeightsBnormTwo` | 32 | EEGNet as the study builds it: trainable weights of bnorm_2 |
+| `\dlEegnetWeightsClassifier` | 1491 | EEGNet as the study builds it: trainable weights of final_layer.conv_classifier |
 
 `summary/dl_zeroshot_table.csv`
 
