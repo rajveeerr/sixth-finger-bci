@@ -1,0 +1,29 @@
+% The demonstrator's parts as deployed (Sections 3.7 and 3.11): one bundle, three ways to
+% decode it, and the page's order of choice.
+\begin{tikzpicture}[x=1mm, y=1mm, font=\small,
+  box/.style={draw, rounded corners=3pt, align=center, minimum height=13mm, text width=32mm,
+    line width=0.7pt},
+  research/.style={box, draw=rblue, fill=rblue!8},
+  live/.style={box, draw=rorange, fill=rorange!12},
+  flow/.style={-{Stealth[length=2.2mm]}, line width=0.8pt, draw=black!75},
+  lbl/.style={font=\footnotesize, text=black!70}]
+  \node[research] (data) at (-48,0) {Public EEG dataset\\\footnotesize on figshare,\\CC BY 4.0};
+  \node[research] (pipe) at (0,0) {Research pipeline\\\footnotesize MNE, scikit-learn,\\pyRiemann and\\braindecode};
+  \node[research] (res) at (48,0) {Results\\\footnotesize tables, figures\\and the report's\\numbers};
+  \node[research] (bundle) at (0,-29) {Demo bundle\\\footnotesize ONNX model,\\held-out trials and\\stored answers};
+  \node[live] (server) at (-52,-59) {Streaming server\\\footnotesize FastAPI and\\ONNX Runtime,\\on Render};
+  \node[live] (page) at (0,-59) {Web page\\\footnotesize React and\\ONNX Runtime\\Web, on Vercel};
+  \node[live] (fn) at (52,-59) {Decode function\\\footnotesize one window\\per request,\\on Vercel};
+  \draw[flow] (data) -- (pipe);
+  \draw[flow] (pipe) -- (res);
+  \draw[flow] (pipe) -- node[lbl, right] {export} (bundle);
+  \draw[flow] (bundle) -- (page);
+  \draw[flow] (bundle.west) -| (server.north);
+  \draw[flow] (bundle.east) -| (fn.north);
+  \draw[flow, draw=rblue] (server) -- node[lbl, above] {decisions} (page);
+  \draw[flow, draw=rblue] (fn) -- node[lbl, above] {decisions} (page);
+  \node[align=center, font=\footnotesize, text width=128mm] at (0,-80)
+    {The page asks a streaming server if one is set, otherwise the site's decode function; if
+     neither answers it runs the same model in the browser, and last it replays the answers
+     stored in the bundle. A badge names the one in use.};
+\end{tikzpicture}

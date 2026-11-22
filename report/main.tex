@@ -22,11 +22,13 @@
 \usepackage{qrcode}
 \usepackage{titlesec}
 \usepackage{tikz}
-\usetikzlibrary{arrows.meta,positioning,calc}
+\usetikzlibrary{arrows.meta,positioning,calc,decorations.pathreplacing}
+\usepackage{rotating}
 % Okabe-Ito colours, as in paper/figures/tikz/style.tex.
 \definecolor{rblue}{HTML}{0072B2}
 \definecolor{rorange}{HTML}{E69F00}
 \definecolor{rgreen}{HTML}{009E73}
+\definecolor{rred}{HTML}{D55E00}
 % Chapter heading style is not set by GGSIPU; 14 pt bold uppercase is the common local style.
 % Sections are 12 pt bold, so that no heading is larger than its chapter's.
 \titleformat{\chapter}[display]{\normalfont\fontsize{14}{17}\selectfont\bfseries\centering}{\MakeUppercase{\chaptertitlename}\ \thechapter}{6pt}{\MakeUppercase}
@@ -38,7 +40,7 @@
 \setcounter{tocdepth}{1}
 \setlist{itemsep=0.15em,topsep=0.4em,parsep=0pt}
 \lstset{basicstyle=\ttfamily\footnotesize, frame=single, breaklines=true, columns=fullflexible,
-  language=Python, numbers=left, numberstyle=\tiny\color{gray}, keywordstyle=\bfseries,
+  language=Python, numbers=left, numberstyle=\scriptsize\color{gray}, keywordstyle=\bfseries,
   commentstyle=\itshape\color{gray}, showstringspaces=false}
 \graphicspath{{../paper/figures/}{../docs/figures/}{figures/}}
 \onehalfspacing

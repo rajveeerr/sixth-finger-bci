@@ -50,9 +50,8 @@ points: \code{setup-v1}, \code{prereg-v1} and \code{prereg-rq5-v1} (plans frozen
 results) and \code{results-v1}; \code{demo-v1} and \code{submission-v1} will follow. Their dates
 are git's own, not those of an independent registry (Appendix~\ref{app:prereg}). No result in
 this report is typed by hand: a script writes each one as a LaTeX macro from the results
-summaries. Classical methods give identical numbers on a re-run; networks trained on a GPU can
-differ slightly. The classical work ran on an Apple M1 laptop with 8\,GB of memory, and every
-EEGNet of the main study on a free Kaggle \dlPretrainDevice{} GPU.
+summaries. Classical methods give identical numbers on a re-run; networks trained on a GPU
+(Section~\ref{sec:tools}) can differ slightly.
 
 % ---------------------------------------------------------------------------------------
 \chapter{Full Results Tables}\label{app:tables}
@@ -500,10 +499,21 @@ On a laptop with the repository, \code{npm -{}-prefix web run build} followed by
 decodes in the browser with no outside connection. \code{make demo} starts the local streaming
 server and the page together.
 
-\begin{figure}[!htbp]
+\begin{figure}[p]
 \centering
-\includegraphics[height=0.3\textheight]{demo_phone.png}
-\caption[The demonstrator on a phone]{The demonstrator on a phone (390 pixels wide): the same three steps,
-stacked.}
+\begin{minipage}[t]{0.48\textwidth}
+\centering
+\fbox{\includegraphics[width=0.96\linewidth, trim=0 1642 0 0, clip]{demo_phone.png}}\\[6pt]
+{\small (a) Steps 1 and 2: the instruction and the brain signal}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.48\textwidth}
+\centering
+\fbox{\includegraphics[width=0.96\linewidth, trim=0 0 0 1660, clip]{demo_phone.png}}\\[6pt]
+{\small (b) Step 3 and the controls, further down}
+\end{minipage}
+\vspace{8pt}
+\caption[The demonstrator on a phone]{The demonstrator on a phone (390 pixels wide), captured
+from the built site at the same moment as Figure~\ref{fig:screen}: the same three steps,
+stacked, shown here as the top and the bottom of one screen that scrolls.}
 \label{fig:app-phone}
 \end{figure}

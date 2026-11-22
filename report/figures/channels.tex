@@ -1,0 +1,30 @@
+% The 40 analysis electrodes seen from above, nose up, with the two groups compared in
+% Section 4.6 (src/sixthfinger/data/channels.py: CENTRAL_14, PARIETO_OCCIPITAL_5). Positions
+% from the template montage (scripts/make_montage_figure.py), spread where two discs would touch.
+\begin{tikzpicture}[x=0.105mm, y=-0.105mm,
+  ch/.style={circle, draw=black!70, line width=0.5pt, minimum size=8.6mm, inner sep=0pt,
+    font=\fontsize{8}{9}\selectfont, fill=black!6},
+  central/.style={ch, fill=rblue, text=white, draw=rblue!70!black},
+  posterior/.style={ch, fill=rorange, draw=rorange!70!black}]
+  \draw[line width=0.9pt] (541,568) circle (450);
+  \draw[line width=0.9pt] (493,122) -- (541,62) -- (589,122);
+  \draw[line width=0.9pt] (93,508) -- (62,525) -- (62,612) -- (93,630);
+  \draw[line width=0.9pt] (989,508) -- (1020,525) -- (1020,612) -- (989,630);
+  \foreach \n/\x/\y in {AF3/398/242, AF4/689/245, F5/247/349, F3/347/362, F1/446/372,
+      Fz/541/373, F2/642/369, F4/740/358, F6/840/349, FC5/208/486, FC3/325/486, FC1/436/487,
+      FCz/541/487, FC2/650/485, FC4/761/484, FC6/875/484, P5/300/838, P3/398/790,
+      Pz/541/770, P4/688/788, P6/785/836}
+    \node[ch] at (\x,\y) {\n};
+  \foreach \n/\x/\y in {C5/215/623, C3/329/604, C1/438/595, Cz/541/592, C2/649/594,
+      C4/758/602, C6/870/617, CP5/251/737, CP3/351/707, CP1/448/690, CPz/541/686,
+      CP2/641/690, CP4/738/704, CP6/836/730}
+    \node[central] at (\x,\y) {\n};
+  \foreach \n/\x/\y in {PO5/365/925, PO3/455/880, POz/541/872, PO4/627/880, PO6/717/925}
+    \node[posterior] at (\x,\y) {\n};
+  \node[central, minimum size=4mm] at (40,1110) {};
+  \node[anchor=west, font=\small] at (75,1110) {the 14 central electrodes};
+  \node[posterior, minimum size=4mm] at (40,1175) {};
+  \node[anchor=west, font=\small] at (75,1175) {the 5 over the visual cortex};
+  \node[ch, minimum size=4mm] at (640,1110) {};
+  \node[anchor=west, font=\small] at (675,1110) {the other 21};
+\end{tikzpicture}

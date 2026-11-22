@@ -31,7 +31,7 @@ patients~\cite{wang2024tnsre}.
 \begin{figure}[tbp]
   \centering
   \includegraphics[width=0.6\textwidth]{eda_erd_timecourse.pdf}\\[6pt]
-  \includegraphics[width=0.66\textwidth]{web/rhythm-measured.pdf}
+  \includegraphics[width=0.72\textwidth]{web/rhythm-measured.pdf}
   \caption[The brain signal is there]{The brain signal is there. Top: change in mu-rhythm power at C3 after the
   imagery cue (time 0), hand (AH) and sixth finger (SF), mean $\pm$ standard error over
   \nPre{} patients; the grey band is the window the models read. Bottom: the fall in each
@@ -142,7 +142,7 @@ one public dataset~\cite{mumtaz2016data} and by \rqFiveModmaBpLrInflation{} to
 
 \begin{figure}[tbp]
   \centering
-  \includegraphics[width=\textwidth]{web/elsewhere.pdf}
+  \includegraphics[width=\textwidth]{web/elsewhere-report.pdf}
   \caption[The same mistake in other data]{The same mistake in other data. For each dataset the grey ring is the leaky
   score and the black dot the leakage-free one. Top: imagined movement, these patients and two
   healthy datasets. Bottom: depression detection from resting EEG (RQ5), where the leak is
@@ -178,12 +178,13 @@ reminder that single-patient differences of a few points are noise.
 
 \begin{figure}[tbp]
   \centering
-  \includegraphics[width=0.9\textwidth]{dl_baselines.pdf}
-  \caption[EEGNet against the classical decoders]{EEGNet trained on each patient alone, CSP+LDA and TS+LR (leave one run out),
-  and the pre-trained EEGNet with no labelled trial (zero-shot, tested on runs 3 and 4),
-  for the three tasks. Boxes show the middle half of the patients, dots are patients, the
-  grey line is guessing. The networks help a little on the imagery tasks; on the switch
-  all methods are alike.}
+  \includegraphics[width=0.7\textwidth]{paper_networks.pdf}
+  \caption[EEGNet against the classical decoders]{The network helps a little on the two
+  imagery tasks; on the switch all four are alike. EEGNet trained on each patient alone,
+  CSP+LDA and TS+LR, all leaving one run out, and EEGNet trained on the other patients only
+  and given no labelled trial of the patient (zero-shot, tested on runs 3 and 4);
+  pre-therapy session, $n = \nPre$. Grey dots are patients, black the mean with its
+  95\,\% CI; the dashed line is chance.}
   \label{fig:dl}
 \end{figure}
 
@@ -526,10 +527,7 @@ them too~\cite{kapoor2023,varoquaux2017}. The pattern in Table~\ref{tab:rqone} i
 signature of this: the more an early step learned from labels, the larger the gap, and
 steps that never saw a label showed none. This is a common, subtle pitfall, not a sign of
 bad faith. The authors released their data and code, and that openness is what made this
-check possible. We did not reproduce the published value itself: our rebuild of the
-authors' recipe scored higher with the leak. Leakage-free cross-validation can fall below
-chance when there is little signal, so we also gave the run-wise splits, and the
-inflation held against all three. For anyone using the dataset, the lesson is simple: fit
+check possible. For anyone using the dataset, the lesson is simple: fit
 every step that sees labels inside the training data, split by run or session, and report
 the leakage-free score next to any comparison with the published one.
 
@@ -567,12 +565,11 @@ weakness of our models. The rhythm fell almost equally for both imagery types (a
 observation made before the pre-registration, which declared that it would not be tested
 again), and healthy people could not tell two grasps of one hand apart across days
 either. For a wearable sixth finger, a reliable ``move now'' switch may be enough: the
-finger has one job, to close the grip. The switch found here is only a candidate. Played
-continuously it caught \pct{\exFiveFingerFingerOnMean} of the sixth-finger periods, with
-\exFiveFingerFalsePerMinMean{} false switch-ons per minute of rest and about
-\exFiveFingerLatencyMean{} seconds into a 6-second period, it also switched on for hand
-imagery, and it was never tested with a patient in the loop or used to drive a finger.
-A closed-loop study must show whether a patient can use it.
+finger has one job, to close the grip. The switch found here is only a candidate: played
+continuously it caught \pct{\exFiveFingerFingerOnMean} of the sixth-finger periods
+(Section~\ref{sec:res-explore}), it also switched on for hand imagery, and it never drove a
+finger with a patient in the loop. A closed-loop study must show whether a patient can use
+it.
 
 \section{Limitations}\label{sec:limits}
 
@@ -585,7 +582,8 @@ A closed-loop study must show whether a patient can use it.
   alike in both groups.
   \item \textbf{Offline only.} Calibration was simulated on recorded runs, with no feedback
   to the patient. The continuous replay is closer to real use but is not a closed-loop
-  test, and the robotic finger was worn but never driven by a model.
+  test, and the robotic finger was worn but never driven by a model. The demonstrator
+  replays recorded EEG and moves a drawn hand.
   \item \textbf{Weak baselines at small budgets.} A model trained from scratch has four
   windows at one trial of each movement, and in the new-command scenario its classes are
   unbalanced and carry no class weights, as pre-registered. A regularised or
@@ -601,21 +599,15 @@ A closed-loop study must show whether a patient can use it.
   them agree. The other patients' windows used in that choice included their test runs.
   \item \textbf{A git-dated plan.} The pre-registration was frozen in a git tag, whose
   dates are git's own, not with an independent registry.
-  \item \textbf{The published number is not reproduced exactly.} The replica overshoots it;
-  we reproduce the direction of the leak, not the value.
-  \item \textbf{Exploratory parts.} The follow-ups were added after the planned results;
-  their many comparisons are uncorrected, and they guide future work rather than prove
-  anything.
-  \item \textbf{No hardware.} The demonstrator replays recorded EEG and moves a drawn hand.
+  \item \textbf{The published number is not reproduced exactly}, only the direction of the
+  leak (Section~\ref{sec:res-leak}).
+  \item \textbf{Exploratory parts.} The follow-ups came after the planned results and are
+  uncorrected; they guide future work rather than prove anything.
 \end{itemize}
 
 \section{Chapter Summary}
-The published protocol inflates accuracy through a leak; evaluated without leakage, hand and sixth finger
-are only weakly separable, while imagery against rest is read well. With the one
-configuration we tested, learning from other patients gave a new patient a fast start
-almost at once and then stayed nearly flat; with the whole practice pool a patient's own
-model ended numerically, not significantly, higher. Offline, the sixth finger can be read
-as a candidate ``move now'' switch against rest, not as a command distinct from the hand,
-and played continuously that switch caught fewer than half of the sixth-finger periods.
-The demonstrator shows the trained model at work on a real patient's recording. The last
-chapter draws these threads together.
+The published accuracy came from a leak: without it, hand and sixth finger are only weakly
+separable, while imagery against rest is read well. One transfer configuration gave a new
+patient a fast start, then stayed nearly flat. Offline, the sixth finger is a candidate
+``move now'' switch, not a distinct command, and the demonstrator shows the trained model
+at work on a real recording.

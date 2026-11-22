@@ -46,7 +46,7 @@ the person sees the result.
 
 \begin{figure}[tbp]
   \centering
-  \includegraphics[width=0.72\textwidth]{external/bci-diagram-krol.png}
+  \includegraphics[width=0.9\textwidth]{external/bci-diagram-krol.png}
   \caption[The loop of every BCI]{The loop of every BCI. Follow the arrows: the brain signal is measured, its
   features are extracted and classified, the command acts on a device, and the user sees
   the outcome and adjusts. Image: Laurens R.\ Krol, Wikimedia Commons, CC0.}
@@ -82,7 +82,7 @@ could not hold alone~\cite{prattichizzo2021,tong2021}.
 
 \begin{figure}[tbp]
   \centering
-  \includegraphics[width=0.42\textwidth]{fig-sixth-finger-concept.pdf}
+  \input{figures/sixth-finger}
   \caption[The robotic sixth finger worn on the affected wrist]{The robotic sixth finger worn on the affected wrist (schematic drawn for this
   report). It bends toward the palm and closes the grip together with the patient's own
   fingers.}
@@ -105,7 +105,7 @@ the sixth finger, and part 5 is the finger that the decision would move.
 
 \begin{figure}[tbp]
   \centering
-  \includegraphics[width=\textwidth]{web/system.pdf}
+  \includegraphics[width=\textwidth]{web/system-report.pdf}
   \caption[The system on one bench]{The system on one bench: (1) EEG cap, (2) amplifier, (3) the four-second piece
   of signal the model reads, (4) the model, with one lamp for each answer, (5) the robotic
   finger. This project built and tested the part from the recorded signal to the model's
@@ -228,15 +228,14 @@ The project makes four contributions. Their evidence is in Chapter~\ref{ch:resul
   mistake also inflated two public datasets of healthy people, by \rqOneBnciHOneBDiff{}
   and \rqOneChoHOneBDiff{} percentage points.
   \item \textbf{A pre-registered calibration study, the main research contribution.} For a
-  new patient, a model that had first learned from the other patients, in one
-  configuration that weighs each of the patient's windows like one of the others'
-  thousands, reached \pct{\rqTwoRestAhSfRctTslrKOneMean} on three choices (rest, hand,
-  sixth finger) after one practice trial of each, about \rqTwoMinutesKOne{} minutes of
-  practice. The same model trained from scratch scored \pct{\rqTwoRestAhSfTsLrKOneMean} from
-  those four windows and needed about \rqTwoMinutesKTen{} minutes (nominal;
-  \rqTwoMinutesRecordedKTen{} as recorded) to catch up. This configuration therefore gives
-  a fast start, but it then stays nearly flat, and with the whole practice set the model
-  trained from scratch ended numerically higher (\pct{\rqTwoRestAhSfTsLrKAllMean} against
+  new patient, a model that first learned from the other patients (in one configuration,
+  which weighs each of the patient's windows like one of the others' thousands) reached
+  \pct{\rqTwoRestAhSfRctTslrKOneMean} on three choices (rest, hand, sixth finger) after one
+  practice trial of each movement, about \rqTwoMinutesKOne{} minutes. Trained from scratch,
+  the same model scored \pct{\rqTwoRestAhSfTsLrKOneMean} and needed about
+  \rqTwoMinutesKTen{} minutes (\rqTwoMinutesRecordedKTen{} as recorded) to catch up. The
+  transfer model then stayed nearly flat, and with the whole practice set the model trained
+  from scratch ended numerically higher (\pct{\rqTwoRestAhSfTsLrKAllMean} against
   \pct{\rqTwoRestAhSfRctTslrKAllMean}), a difference that was not tested.
   \item \textbf{What the sixth finger can and cannot be.} As a candidate ``move now''
   switch against rest, it was recognised \pct{\exFourTsLrCentralMean} of the time, window
@@ -271,7 +270,6 @@ and its deviations, code listings and a user guide to the demonstrator.
 
 \section{Chapter Summary}
 A sixth finger could help a weak hand grip, if brain signals can tell it when to move.
-Testing that idea on a public recording raised two practical questions, whether the
-published accuracy holds without leakage and how much practice a new patient needs, and
-one methodological one, how to test such a system without leakage. The next chapter reviews what earlier work says
-about each of them.
+Testing that idea on a public recording raised three questions: does the published
+accuracy hold without leakage, how much practice does a new patient need, and can the
+sixth finger be a command of its own? The next chapter reviews what earlier work says.

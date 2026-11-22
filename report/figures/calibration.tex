@@ -1,0 +1,33 @@
+% The simulated calibration of Section 3.5.2: practice drawn from runs 1 and 2, the test always
+% runs 3 and 4, and the two scenarios with the budgets the study used.
+\begin{tikzpicture}[x=17mm, y=9mm, font=\small,
+  box/.style={draw, rounded corners=3pt, align=center, minimum height=12mm, line width=0.7pt},
+  flow/.style={-{Stealth[length=2.2mm]}, line width=0.8pt, draw=black!75},
+  dflow/.style={-{Stealth[length=2.2mm]}, line width=0.8pt, dashed, draw=black!55},
+  lbl/.style={font=\footnotesize, text=black!70}]
+  \node[font=\small\bfseries, anchor=west] at (-0.05,3.15) {One patient's session};
+  \foreach \r/\c/\t in {0/rblue/run 1, 1/rblue/run 2, 2/black/run 3, 3/black/run 4} {
+    \draw[fill=\c!12, draw=\c!80, line width=0.6pt] (\r*2,1.6) rectangle (\r*2+1.85,2.55);
+    \node at (\r*2+0.925,2.075) {\t};
+  }
+  \draw[decorate, decoration={brace, amplitude=5pt, mirror}, line width=0.6pt] (0,1.45) -- (3.85,1.45)
+    node[midway, below=7pt, align=center] (pool)
+    {practice: $k$ trials of each movement,\\drawn ten times at random and once in order};
+  \draw[decorate, decoration={brace, amplitude=5pt, mirror}, line width=0.6pt] (4,1.45) -- (7.85,1.45)
+    node[midway, below=7pt, align=center] (test)
+    {test: never used to fit, align\\or choose a setting};
+  \node[box, draw=rgreen, fill=rgreen!10, minimum width=36mm] (train) at (1.925,-2.0)
+    {train the decoder};
+  \node[box, minimum width=36mm] (eval) at (5.925,-2.0) {score it\\\footnotesize balanced accuracy};
+  \node[box, draw=black!55, dashed, minimum width=36mm] (src) at (1.925,-4.1)
+    {other patients\\\footnotesize transfer methods only};
+  \draw[flow] (pool.south) -- (train.north);
+  \draw[dflow] (src) -- (train);
+  \draw[flow] (train) -- node[lbl, above] {decoder} (eval);
+  \draw[flow] (test.south) -- (eval.north);
+  \node[anchor=north west, align=left, text width=135mm] at (0,-5.35)
+    {\textbf{S1, a new patient} (RQ2): $k$ hand and $k$ sixth-finger trials, with their rest windows.\\
+     \textbf{S2, a new command} (RQ3): all hand trials of runs 1 and 2, and $k$ sixth-finger trials.\\
+     $k$ = 0, 1, 2, 3, 5, 10 or all; at $k = 0$ only transfer methods run, aligned on the
+     unlabelled rest windows of runs 1 and 2.};
+\end{tikzpicture}

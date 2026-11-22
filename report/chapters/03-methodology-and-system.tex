@@ -18,16 +18,6 @@ reaches a screen. Figure~\ref{fig:approach} shows the whole approach in eight st
   \label{fig:approach}
 \end{figure}
 
-\begin{enumerate}
-  \item \textbf{Public recording}: download the data and check every file's checksum.
-  \item \textbf{Integrity audit}: find broken files and duplicates; fix the exclusions first.
-  \item \textbf{Four-second pieces}: cut one window per rest period and imagined movement.
-  \item \textbf{Signal check}: confirm that the mu rhythm falls during imagery.
-  \item \textbf{Leakage-free framework}: automatic leak checks, and an analysis plan frozen in advance.
-  \item \textbf{Studies}: the published method (RQ1), calibration (RQ2, RQ3), exploration (RQ4).
-  \item \textbf{Statistics}: paired per patient, with confidence intervals and corrections.
-  \item \textbf{Outputs}: the demonstrator and website, and every reported number from the results files.
-\end{enumerate}
 
 \section{Dataset and Integrity Audit}\label{sec:data}
 
@@ -78,7 +68,7 @@ model learns from the first two runs of a session and is tested on the last two.
 
 \begin{figure}[tbp]
   \centering
-  \includegraphics[width=\textwidth]{web/session.pdf}
+  \includegraphics[width=\textwidth]{web/session-report.pdf}
   \caption[Trials, runs and sessions]{Trials, runs and sessions. Each square is one trial. In the calibration study,
   runs 1 and 2 (filled) are the practice a patient gives, and runs 3 and 4 (empty) are the
   test the model never learns from. The three sessions are before therapy, after it, and a
@@ -100,11 +90,12 @@ point.
 
 \begin{figure}[tbp]
   \centering
-  \includegraphics[width=0.6\textwidth]{montage_40.pdf}
-  \caption[The 40 electrodes used in every analysis]{The 40 electrodes used in every analysis, seen from above with the nose at the
-  top. The blue ones lie over the strip of cortex that controls movement; C3 sits over the
-  left hand area and C4 over the right. The five at the back (PO3 to PO6 and POz) lie over
-  the visual cortex, which matters for the check in Section~\ref{sec:res-explore}.}
+  \input{figures/channels}
+  \caption[The 40 electrodes used in every analysis]{The 40 electrodes used in every analysis,
+  seen from above with the nose at the top. Blue: the 14 central electrodes, over the strip of
+  cortex that controls movement, with C3 over the left hand area and C4 over the right.
+  Orange: the five at the back, over the visual cortex. Section~\ref{sec:res-explore}
+  compares the two groups.}
   \label{fig:montage}
 \end{figure}
 
@@ -264,7 +255,7 @@ patient's data, repeated with three random seeds.
 
 \begin{figure}[tbp]
   \centering
-  \includegraphics[width=\textwidth]{web/model.pdf}
+  \includegraphics[width=\textwidth]{web/model-report.pdf}
   \caption[EEGNet, the network in the demonstrator, as five stations]{EEGNet, the network in the demonstrator, as five stations. In: 4\,s from 40
   sensors. Step 1 finds rhythms in time; step 2 finds which sensors matter; step 3
   combines short summaries of the 4\,s; step 4 decides between rest, hand and sixth
@@ -353,17 +344,19 @@ al.~\cite{cho2017}, loaded through MOABB~\cite{jayaram2018moabb}.
 
 \begin{figure}[tbp]
   \centering
-  \includegraphics[width=0.8\textwidth]{fig-leakage-schematic.pdf}
-  \caption[The leak]{The leak. Left: the dataset's script fits the CSP filters on all
-  trials of a session, the test trials included, and only then splits the trials into
-  folds. Right: in the leakage-free protocol every step that learns from labels is fitted
-  on the training folds only. Nothing else differs.}
+  \includegraphics[width=0.72\textwidth]{web/leak.pdf}
+  \caption[The leak]{The leak, on one round of ten-fold cross-validation: 20 trials, two
+  of them held out for the test. The paper's way: the first step, CSP, learns from all 20
+  trials, the two test trials included, and only the classifier is then trained on the
+  other 18. Leakage-free: every step learns from the 18 learning trials only. Nothing else
+  differs. The scores are those of Section~\ref{sec:res-leak}.}
   \label{fig:leak}
 \end{figure}
 
 \subsection{The calibration study}
 RQ2 and RQ3 simulate a new patient. Practice trials are drawn from runs 1 and 2 of the
-patient's session, and the model is always tested on runs 3 and 4 (Figure~\ref{fig:session}).
+patient's session, and the model is always tested on runs 3 and 4
+(Figures~\ref{fig:session} and~\ref{fig:calibdesign}).
 The amount of practice, $k$, is the number of trials of each imagined movement: 0, 1, 2,
 3, 5, 10, or the whole pool of runs 1 and 2. Practice minutes in this report use the
 dataset article's nominal 14 seconds per trial: one trial of each movement is about
@@ -374,6 +367,16 @@ minutes. For every patient and budget we drew ten random sets of
 practice trials (five for the networks) plus the chronological first trials, and averaged
 the scores. All methods saw the same draws, so every comparison is paired. Two scenarios
 were studied:
+\begin{figure}[!tbp]
+  \centering
+  \input{figures/calibration}
+  \caption[The calibration study]{The calibration study, for one patient and one amount of
+  practice $k$. The practice comes from runs 1 and 2 and the test is always runs 3 and 4.
+  Methods trained from scratch learn from the practice alone; transfer methods also learn
+  from the other patients. Every draw is scored, and the scores are averaged per patient.}
+  \label{fig:calibdesign}
+\end{figure}
+
 \begin{itemize}
   \item \textbf{S1, a new patient}: $k$ trials of the hand and $k$ of the sixth finger,
   with their rest periods (RQ2).
@@ -464,17 +467,16 @@ The second half of the project turns a trained decoder into something people can
 The system has four parts (Figure~\ref{fig:arch}). The research pipeline trains and
 evaluates decoders. An export step converts the chosen decoder to ONNX, an open format
 that many programs can run, and packs it with the held-out recording of one patient into a
-\emph{demo bundle}. A server streams the recording and the decoder's answers. A web page
-draws the signal, the decision and the hand. Server and page read the same bundle, so they
-always show the same trials and the same model.
+\emph{demo bundle}. A server, or a small function on the website, decodes the recording. A
+web page draws the signal, the decision and the hand. All of them read the same bundle, so
+they always show the same trials and the same model.
 
 \begin{figure}[tbp]
   \centering
-  \includegraphics[width=0.85\textwidth]{fig-system-architecture.pdf}
-  \caption[Architecture of the demonstrator]{Architecture of the demonstrator. Read top to bottom: the research pipeline
-  exports one model and one patient's held-out trials as a bundle; the inference server
-  streams them to the web page, and the page can run the same model itself when the
-  server cannot be reached.}
+  \input{figures/architecture}
+  \caption[Architecture of the demonstrator]{Architecture of the demonstrator, as deployed.
+  Blue: the research side, which exports one model and one patient's held-out trials as a
+  bundle. Orange: the three programs that can decode that bundle for the web page.}
   \label{fig:arch}
 \end{figure}
 
@@ -497,16 +499,20 @@ model reads: \emph{Move} or \emph{Rest}, how sure it is, and whether that matche
 instruction. A drawn hand wearing the robotic finger carries it out: on \emph{Move} the
 sixth finger bends toward the palm, and on \emph{Rest} it stays straight.
 
-\begin{figure}[tbp]
+\begin{sidewaysfigure}
   \centering
-  \includegraphics[width=\textwidth]{demo_projector.png}
-  \caption[The demonstrator at projector size]{The demonstrator at projector size (1366 by 768 pixels):
-  the instruction the patient saw (left), three channels of the recorded EEG with the
-  window being read (middle), and the model's move-or-rest reading with the hand (right).
-  Below them, the playback controls and the choice between reading per trial and reading
-  continuously (Appendix~\ref{app:guide}).}
+  \includegraphics[width=\textheight, trim=150 111 150 253, clip]{demo_projector.png}
+  \vspace{10pt}
+  \caption[The demonstrator at projector size]{The demonstrator at projector size (1366 by
+  768 pixels), captured from the built site. Left: the instruction on the patient's screen,
+  here the rest that starts the next trial. Middle: three of the 40 channels of the recorded
+  EEG; the orange frame is the imagery window the model has just read, marked ``Move'' and
+  right. Right: the model's reading, how sure it is, its guess of hand or finger with that
+  guess's measured accuracy, and the drawn hand with the sixth finger bent. Below: the
+  playback controls and the choice between reading per trial and reading continuously
+  (Appendix~\ref{app:guide}).}
   \label{fig:screen}
-\end{figure}
+\end{sidewaysfigure}
 
 The model itself still decides between rest, hand and sixth finger. The page adds the
 chances of the two movements together and calls the window \emph{Move} when that sum
@@ -532,8 +538,8 @@ web page has an identical copy of this code, and both are tested against the sam
 
 \subsection{When something fails}
 A live demonstration must not depend on one server being awake. The page chooses its
-source of decisions by itself. It first tries the server. If
-the server does not answer within 2 seconds, the page loads the same ONNX model into the
+source of decisions by itself. It first tries the server (on the live site, the decode
+function). If the server does not answer within 2 seconds, the page loads the same ONNX model into the
 browser with ONNX Runtime Web and decodes the bundled trials itself. If even that fails,
 it replays the answers stored in the bundle. When a sleeping server wakes up, the page
 moves back to it, and the viewer can also choose ``On the server'' or ``In this browser''
@@ -553,7 +559,7 @@ parts this project built.
 
 \begin{figure}[tbp]
   \centering
-  \includegraphics[width=\textwidth]{web/path.pdf}
+  \includegraphics[width=\textwidth]{web/path-report.pdf}
   \caption[How a patient would use it, and which parts are built]{How a patient would use it, and which parts are built. Solid outlines are
   built in this project (the page and its model, and the model server); dashed outlines
   are what a real system still needs (a live cap and amplifier, a bridge program, and the
@@ -608,11 +614,9 @@ pytest, Vitest and Playwright, and the reports are written in LaTeX. Exact versi
 locked in the repository.
 
 Development ran on an Apple M1 laptop; the networks were trained on free Kaggle cloud
-sessions with a \dlPretrainDevice{} graphics card. Every result row
-records the git commit that produced it, a hash of its settings and a hash of the data
-manifest, and runs resume safely after an interruption. Every number in this report is a
+sessions with a \dlPretrainDevice{} graphics card. Every number in this report is a
 LaTeX macro written by a script from the results files, so the text cannot drift from
-the results.
+the results (Appendix~\ref{app:repro}).
 
 Testing ran at four levels. Python unit tests on synthetic data cover every stage from
 windowing to the leak checks, statistics and export. Server tests check that the stream
@@ -626,15 +630,12 @@ them on every push.
 
 The web page is a static site on Vercel at \url{\siteURL}; the demonstrator alone is at \code{/live}. A streaming server for the same bundle runs on Render, a small
 function on the same site can decide one window per request, and the browser decodes by
-itself whenever neither answers. The browser uses the WebAssembly-only build of ONNX
-Runtime Web, half the size of the default build. The code is kept in a private
+itself whenever neither answers. The code is kept in a private
 repository and is available from the authors on request. Appendix~\ref{app:guide} is a
 user guide with the site's link as a QR code.
 
 \section{Chapter Summary}
-The data were checked before use, and the doubtful recordings were excluded before any
-result existed. Every model was tested on data it had never seen, with checks that stop
-the code if a test trial leaks into training, and the plan was frozen in a git tag before
-the main experiments. The same trained model runs on a server, in a browser or from stored
-answers, and moves a drawn hand that stands in for the physical finger. The next chapter
-reports what these tests found.
+The data were checked, and doubtful recordings excluded, before any result existed. Every
+model was tested on data it had never seen, under checks that stop the code if a test trial
+leaks into training, and the plan was frozen before the main experiments. The next chapter
+reports what the tests found.
