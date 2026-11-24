@@ -1,8 +1,10 @@
-% B.Tech minor project report (MSIT, GGSIPU). Page size, margins, font, spacing and page
-% numbering follow GGSIPU's published thesis format (ipu.ac.in/usct/thesis.php). MSIT has
-% no published format; ask the department to confirm before printing (P14).
+% B.Tech minor project report (MSIT, GGSIPU), laid out by MSIT's project report guidelines:
+% A4; margins 1 in, 1 in and 1.5 in on the left; Times 12 pt at 1.5 line spacing, justified;
+% page numbers at the bottom centre, roman on the front pages and arabic from Chapter 1;
+% the front pages in the order and wording of MSIT's front-pages template.
 \documentclass[12pt,a4paper,oneside]{report}
-\usepackage[a4paper,left=1.5in,right=1in,top=1in,bottom=1in]{geometry}
+% The bottom margin is measured to the lowest descender of the last line, not its baseline.
+\usepackage[a4paper,left=1.5in,right=1in,top=1in,bottom=1.05in]{geometry}
 \usepackage[T1]{fontenc}
 \usepackage{mathptmx}
 \usepackage{setspace}
@@ -13,7 +15,7 @@
 \usepackage{amsmath}
 \usepackage{xcolor}
 \usepackage{float}
-\usepackage[font={small,stretch=1.05},labelfont=bf,labelsep=period]{caption}
+\usepackage[font={normalsize,stretch=1.05},labelfont=bf,labelsep=period]{caption}
 \captionsetup[lstlisting]{justification=raggedright,singlelinecheck=false}
 \usepackage{enumitem}
 \usepackage[hidelinks]{hyperref}
@@ -21,6 +23,7 @@
 \usepackage{listings}
 \usepackage{qrcode}
 \usepackage{titlesec}
+\usepackage{titletoc}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,positioning,calc,decorations.pathreplacing}
 \usepackage{rotating}
@@ -29,21 +32,55 @@
 \definecolor{rorange}{HTML}{E69F00}
 \definecolor{rgreen}{HTML}{009E73}
 \definecolor{rred}{HTML}{D55E00}
-% Chapter heading style is not set by GGSIPU; 14 pt bold uppercase is the common local style.
-% Sections are 12 pt bold, so that no heading is larger than its chapter's.
-\titleformat{\chapter}[display]{\normalfont\fontsize{14}{17}\selectfont\bfseries\centering}{\MakeUppercase{\chaptertitlename}\ \thechapter}{6pt}{\MakeUppercase}
-\titlespacing*{\chapter}{0pt}{0pt}{18pt}
-\titleformat{\section}{\normalfont\fontsize{12}{15}\selectfont\bfseries}{\thesection}{0.8em}{}
+% Chapters open as in MSIT's sample report: "CHAPTER 1" over the title in capitals, centred.
+% The front pages' headings are centred capitals at 16 pt, as in the front-pages template.
+\titleformat{\chapter}[display]{\normalfont\bfseries\centering}{\fontsize{26}{31}\selectfont\MakeUppercase{\chaptertitlename}\ \thechapter}{10pt}{\fontsize{16}{20}\selectfont\MakeUppercase}
+\titleformat{name=\chapter,numberless}[block]{\normalfont\bfseries\centering\fontsize{16}{20}\selectfont}{}{0pt}{\MakeUppercase}
+\titlespacing*{\chapter}{0pt}{-34pt}{24pt}
+\titlespacing*{name=\chapter,numberless}{0pt}{-28pt}{18pt}
+\titleformat{\section}{\normalfont\fontsize{14}{17}\selectfont\bfseries}{\thesection}{0.8em}{}
 \titleformat{\subsection}{\normalfont\normalsize\bfseries\itshape}{\thesubsection}{0.8em}{}
 \titlespacing*{\section}{0pt}{14pt}{6pt}
 \titlespacing*{\subsection}{0pt}{10pt}{4pt}
+% The contents as in the sample report: front pages and chapters in bold capitals with
+% dotted leaders, sections indented under them.
+\titlecontents{chapter}[0pt]{\addvspace{10pt}\bfseries}{\MakeUppercase{\chaptertitlename}~\thecontentslabel\ \MakeUppercase}{\MakeUppercase}{\titlerule*[0.45pc]{.}\contentspage}
+\titlecontents{section}[3.6em]{}{\contentslabel{2.4em}}{}{\titlerule*[0.45pc]{.}\contentspage}
+% The lists of figures and tables as in the template: the number, the title, the page.
+\titlecontents{figure}[1in]{\addvspace{2pt}}{\contentslabel[Fig~\thecontentslabel]{1in}}{}{\hfill\contentspage}
+\titlecontents{table}[1in]{\addvspace{2pt}}{\contentslabel[Table~\thecontentslabel]{1in}}{}{\hfill\contentspage}
+\makeatletter
+\newcommand{\listpage}[2]{\clearpage\phantomsection\addcontentsline{toc}{chapter}{#1}%
+  {\noindent\normalfont\bfseries\fontsize{16}{20}\selectfont\MakeUppercase{#1}\hfill PAGE NO.\par}%
+  \vspace{24pt}\@starttoc{#2}}
+\makeatother
+% A page of floats only starts at the top, like any other page.
+\makeatletter\setlength{\@fptop}{0pt}\makeatother
+\renewcommand{\listoffigures}{\listpage{List of Figures}{lof}}
+\renewcommand{\listoftables}{\listpage{List of Tables}{lot}}
 \setcounter{tocdepth}{1}
 \setlist{itemsep=0.15em,topsep=0.4em,parsep=0pt}
+% The line numbers and the frame stay inside the margins.
 \lstset{basicstyle=\ttfamily\footnotesize, frame=single, breaklines=true, columns=fullflexible,
+  xleftmargin=24pt, xrightmargin=4pt, framexleftmargin=0pt,
   language=Python, numbers=left, numberstyle=\scriptsize\color{gray}, keywordstyle=\bfseries,
   commentstyle=\itshape\color{gray}, showstringspaces=false}
 \graphicspath{{../paper/figures/}{../docs/figures/}{figures/}}
-\onehalfspacing
+% "1.5 lines" as Word sets it for 12 pt Times, 20.7 pt from baseline to baseline, which is
+% what MSIT's template and sample report measure; LaTeX's \onehalfspacing gives only 18 pt.
+\setstretch{1.43}
+% Lets a justified line with a long file name stretch a little rather than run into the margin.
+\setlength{\emergencystretch}{1.5em}
+
+% The head of department, named on the certificate and in the acknowledgement.
+\newcommand{\HODName}{Dr.\ Upma Singh}
+% The students, by name only. The printed copy adds each enrolment number from
+% frontmatter/ids.local.tex, which is kept out of the repository; public.tex and a fresh
+% clone print names only.
+\newcommand{\StudentOne}{Rajveer Singh}
+\newcommand{\StudentTwo}{Vivek Yadav}
+\newcommand{\StudentThree}{Ansh Dahiya}
+\IfFileExists{frontmatter/ids.local.tex}{\ifdefined\PublicEdition\else\input{frontmatter/ids.local.tex}\fi}{}
 
 \input{../paper/generated/numbers}
 % numbers.tex defines \TBD while any placeholder is left; this keeps the report building either way.
@@ -57,22 +94,18 @@
 \newcommand{\code}[1]{\texttt{#1}}
 
 \begin{document}
-\pagenumbering{alph}
-\input{frontmatter/cover}
+% The cover is page i, unnumbered; the declaration is page ii.
 \pagenumbering{roman}
-% GGSIPU: these pages are counted but carry no printed number.
-\input{frontmatter/declaration}\thispagestyle{empty}
-\input{frontmatter/certificate}\thispagestyle{empty}
-\input{frontmatter/acknowledgement}\thispagestyle{empty}
-% GGSIPU order: contents and lists, then the abstract.
-% The contents and lists are single-spaced so that they stay short.
-\begin{singlespace}
-\tableofcontents
-\listoffigures
-\listoftables
-\end{singlespace}
+\input{frontmatter/cover}
+\setcounter{page}{2}
+\input{frontmatter/declaration}
+\input{frontmatter/certificate}
+\input{frontmatter/acknowledgement}
 \input{frontmatter/abstract}
 \input{frontmatter/abbreviations}
+\listoffigures
+\listoftables
+\tableofcontents
 
 \clearpage
 \pagenumbering{arabic}
@@ -82,17 +115,17 @@
 \input{chapters/04-results-and-discussion}
 \input{chapters/05-conclusion}
 
-% GGSIPU calls this list References; it is single-spaced like the lists above.
+% References in the guidelines' format (msit.bst), in the order they are first cited.
+% The bibliography's links were last checked on 2 October 2026.
+\newcommand{\BibAccessed}{Oct.~2, 2026}
 \renewcommand{\bibname}{References}
 \clearpage
 \phantomsection
 \addcontentsline{toc}{chapter}{References}
-\begin{singlespace}
-\footnotesize
-\bibliographystyle{IEEEtran}
+\bibliographystyle{msit}
 \bibliography{../paper/references}
-\end{singlespace}
 
 \appendix
+\addtocontents{toc}{\protect\renewcommand{\protect\chaptertitlename}{\protect\appendixname}}
 \input{chapters/appendices}
 \end{document}

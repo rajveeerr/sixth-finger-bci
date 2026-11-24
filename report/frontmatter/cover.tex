@@ -1,48 +1,35 @@
-% The cover: centred and in one ink, so that it can also be stamped in gold on the black
-% hardbound case. The logo, the title, the degree, the people, the department and the date.
+% The cover, laid out as on MSIT's front-pages template: centred and in one ink, so that it
+% can also be stamped in gold on the black hardbound case.
 \begin{titlepage}
 \centering
-\includegraphics[width=2.9cm]{msit-logo.jpg}\par
-\vspace{1.0cm}
-{\large\scshape A Minor Project Report\par}
-\vspace{0.8cm}
-{\fontsize{18}{26}\selectfont\bfseries EEG-BASED ADAPTIVE\\
+\setstretch{1}
+\vspace*{4pt}
+{\fontsize{22}{29}\selectfont\bfseries EEG-BASED ADAPTIVE\\
 BRAIN--COMPUTER INTERFACE FOR\\
 NOVEL ARTIFICIAL LIMB CONTROL\par}
-\vspace{0.8cm}
-\rule{0.3\textwidth}{0.5pt}\par
-\vspace{0.8cm}
-{\itshape Submitted in partial fulfilment of the degree of\par}
-\vspace{0.2cm}
-{\large\bfseries Bachelor of Technology\par}
-\vspace{0.1cm}
-{Electronics and Communication Engineering\\
+\vspace{0.9cm}
+{\fontsize{16}{21}\selectfont A Minor Project Report submitted in partial fulfilment of the\\
+requirement for the award of degree of\par}
+\vspace{0.55cm}
+{\fontsize{14}{20}\selectfont Bachelor of Technology\\
+In\\
+Electronics and Communication Engineering\\
 (Artificial Intelligence and Machine Learning)\par}
+\vspace{0.55cm}
+{\fontsize{14}{20}\selectfont Under the Supervision of\\
+\textbf{Dr.\ Suman Lata}\\
+(Asst.\ Professor)\par}
+\vspace{0.55cm}
+{\fontsize{14}{20}\selectfont By\\
+\StudentOne\\
+\StudentTwo\\
+\StudentThree\par}
 \vfill
-{\small\scshape Submitted by\par}
-\vspace{0.15cm}
-% Roll and enrolment numbers stay out of the repository and off the public site: the printed
-% copy reads them from ids.local.tex (not committed); public.tex and a fresh clone print names only.
-\IfFileExists{frontmatter/ids.local.tex}{\ifdefined\PublicEdition\else\def\WithIds{}\fi}{}
-\ifdefined\WithIds
-\input{frontmatter/ids.local.tex}
-\else
-\begin{tabular}{c}
-Rajveer Singh \\
-Vivek Yadav \\
-Ansh Dahiya \\
-\end{tabular}
-\fi
-\par
-\vspace{0.6cm}
-{\small\scshape Under the guidance of\par}
-\vspace{0.15cm}
-{Dr.\ Suman Lata\\
-Assistant Professor\par}
+\includegraphics[width=2.6cm]{msit-logo.jpg}\par
 \vfill
-{Department of Electronics and Communication Engineering\\
-\textbf{Maharaja Surajmal Institute of Technology}\\
-New Delhi\par}
-\vspace{0.5cm}
-{October 2026\par}
+{\fontsize{15}{19}\selectfont\bfseries MAHARAJA SURAJMAL INSTITUTE OF TECHNOLOGY\par}
+\vspace{0.2cm}
+{\fontsize{14}{18}\selectfont C-4, Janakpuri, New Delhi-58\\
+Affiliated to Guru Gobind Singh Indraprastha University, Delhi\\
+November, 2026\par}
 \end{titlepage}

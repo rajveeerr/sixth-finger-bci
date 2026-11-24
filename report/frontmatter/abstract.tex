@@ -6,7 +6,7 @@ help it grip, but it must move when the wearer wants it to. This project asked w
 brain signals recorded by an EEG cap can give that command when the patient imagines
 moving the finger, and how much practice a new patient must provide before a model can
 read them. We used a public recording of \nSubjects{} stroke patients who imagined moving
-either the affected hand or the sixth finger.
+either the affected hand or the sixth finger.\looseness=-1
 
 An integrity audit first found recordings that appear twice in the release, and these
 were excluded. The dataset paper reports about \pct{\rqOnePublishedGroupBCspLda} for
@@ -15,7 +15,7 @@ trials. Our rebuild of the authors' recipe scored \pct{\rqOneCspLdaReplicaPaperR
 that way and \pct{\rqOneCspLdaReplicaCvLeakfreeMean} once every step learned from the
 training trials only, where guessing scores 50\,\%; a standard method fell from
 \pct{\rqOneCspLdaPaperReplicaMean} to \pct{\rqOneCspLdaCvLeakfreeMean}. The same mistake
-inflated two public datasets of healthy people as well.
+inflated two public datasets of healthy people as well.\looseness=-1
 
 In a calibration study planned and frozen in advance, one transfer configuration, in
 which each of the new patient's windows counted as much as one of the other patients'
@@ -35,12 +35,11 @@ exploratory follow-ups, a switch for the sixth finger against rest was right
 \pct{\exFourTsLrCentralFiresAhMean} of imagined hand movements, and played continuously it
 caught only \pct{\exFiveFingerFingerOnMean} of the sixth-finger periods, with
 \exFiveFingerFalsePerMinMean{} false switch-ons per minute of rest. Everything was tested
-offline on recordings.
+offline on recordings.\looseness=-1
 
 Finally, we built a demonstrator and website in which the trained model reads a real
 patient's held-out recording in the browser and moves a drawn hand with a robotic sixth
-finger. It runs at \url{\siteURL}.
+finger. It runs at \url{\siteURL}.\looseness=-1
 
-\vspace{0.5em}
 \noindent\textbf{Keywords:} brain--computer interface, EEG, motor imagery, stroke,
 supernumerary finger, calibration, transfer learning, data leakage.

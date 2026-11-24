@@ -19,12 +19,25 @@ al.\ published them under the CC~BY~4.0 licence. Table~\ref{tab:repro-commands} 
 steps, run from the top folder of the repository; its runbook (\code{docs/RUNBOOK.md}) says
 what each one should print.
 
+
+Four things keep the numbers the same on a re-run. \textbf{Seeds} for folds, draws, training
+and the bootstrap are fixed in the settings files (Appendix~\ref{app:hyper}). \textbf{The window
+cache} has a manifest (channels, sampling rate, window, exclusions, code version, a checksum per
+file) that every later step checks before it runs. \textbf{Every result row} stores the git commit
+that made it and hashes of its settings and of the data manifest. \textbf{Git tags} mark fixed
+points: \code{setup-v1}, \code{prereg-v1} and \code{prereg-rq5-v1} (plans frozen before the main
+results) and \code{results-v1}; \code{demo-v1} and \code{submission-v1} will follow. Their dates
+are git's own, not those of an independent registry (Appendix~\ref{app:prereg}). No result in
+this report is typed by hand: a script writes each one as a LaTeX macro from the results
+summaries. Classical methods give identical numbers on a re-run; networks trained on a GPU
+(Section~\ref{sec:tools}) can differ slightly.
+
 \begin{table}[!htbp]
 \centering
 \caption{The steps that rebuild the study, with the runbook's time estimates.}
 \label{tab:repro-commands}
 \footnotesize
-\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{4.4cm}>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}p{2.2cm}}
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{4.6cm}>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}p{2.3cm}@{}}
 \toprule
 Command & What it does & Time \\
 \midrule
@@ -40,18 +53,6 @@ Command & What it does & Time \\
 \bottomrule
 \end{tabularx}
 \end{table}
-
-Four things keep the numbers the same on a re-run. \textbf{Seeds} for folds, draws, training
-and the bootstrap are fixed in the settings files (Appendix~\ref{app:hyper}). \textbf{The window
-cache} has a manifest (channels, sampling rate, window, exclusions, code version, a checksum per
-file) that every later step checks before it runs. \textbf{Every result row} stores the git commit
-that made it and hashes of its settings and of the data manifest. \textbf{Git tags} mark fixed
-points: \code{setup-v1}, \code{prereg-v1} and \code{prereg-rq5-v1} (plans frozen before the main
-results) and \code{results-v1}; \code{demo-v1} and \code{submission-v1} will follow. Their dates
-are git's own, not those of an independent registry (Appendix~\ref{app:prereg}). No result in
-this report is typed by hand: a script writes each one as a LaTeX macro from the results
-summaries. Classical methods give identical numbers on a re-run; networks trained on a GPU
-(Section~\ref{sec:tools}) can differ slightly.
 
 % ---------------------------------------------------------------------------------------
 \chapter{Full Results Tables}\label{app:tables}
@@ -205,7 +206,7 @@ This appendix lists every setting of every model. All of them were fixed in the
 pre-registration before the main results, except the transfer settings, which were chosen once,
 by a rule written in advance, on two development patients (\code{sub-01} and \code{sub-03}) and
 never on their test runs; the other patients served as sources as in the main study, their
-test runs included. The settings live in \code{configs/models/} and \code{configs/protocol.yaml}.
+test runs included. The settings live in \code{configs/\allowbreak models/} and \code{configs/\allowbreak protocol.yaml}.
 
 \begin{table}[!htbp]
 \centering
