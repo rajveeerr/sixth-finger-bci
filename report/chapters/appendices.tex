@@ -1,4 +1,4 @@
-% Appendices A to F (project-report-guide.md §2). Sources: docs/RUNBOOK.md, configs/,
+% Appendices A to D (project-report-guide.md §2). Sources: docs/RUNBOOK.md, configs/,
 % the pre-registration and its deviation log
 % and web/src. Numbers only from ../paper/generated/numbers.tex.
 % Let the appendices' large tables share a page with text instead of standing alone.
@@ -10,8 +10,6 @@
 % ---------------------------------------------------------------------------------------
 \chapter{Reproducibility}\label{app:repro}
 
-This appendix says how to run the whole study again, from an empty folder to the PDFs.
-
 The code, the settings, the results summaries, the frozen pre-registration, its deviation log
 and this report are kept in one private repository, available from the authors on request. The
 EEG data are public: they are downloaded from figshare~\cite{wang2026figshare}, where Wang et
@@ -19,17 +17,12 @@ al.\ published them under the CC~BY~4.0 licence. Table~\ref{tab:repro-commands} 
 steps, run from the top folder of the repository; its runbook (\code{docs/RUNBOOK.md}) says
 what each one should print.
 
-
-Four things keep the numbers the same on a re-run. \textbf{Seeds} for folds, draws, training
-and the bootstrap are fixed in the settings files (Appendix~\ref{app:hyper}). \textbf{The window
-cache} has a manifest (channels, sampling rate, window, exclusions, code version, a checksum per
-file) that every later step checks before it runs. \textbf{Every result row} stores the git commit
-that made it and hashes of its settings and of the data manifest. \textbf{Git tags} mark fixed
+Four things keep the numbers the same on a re-run: \textbf{seeds} fixed in the settings files
+(Appendix~\ref{app:hyper}); \textbf{the window cache's manifest} (Section~\ref{sec:prep});
+\textbf{every result row}, which stores the git commit
+that made it and hashes of its settings and of the data manifest; and \textbf{git tags} at fixed
 points: \code{setup-v1}, \code{prereg-v1} and \code{prereg-rq5-v1} (plans frozen before the main
-results) and \code{results-v1}; \code{demo-v1} and \code{submission-v1} will follow. Their dates
-are git's own, not those of an independent registry (Appendix~\ref{app:prereg}). No result in
-this report is typed by hand: a script writes each one as a LaTeX macro from the results
-summaries. Classical methods give identical numbers on a re-run; networks trained on a GPU
+results) and \code{results-v1}; \code{demo-v1} and \code{submission-v1} will follow. Classical methods give identical numbers on a re-run; networks trained on a GPU
 (Section~\ref{sec:tools}) can differ slightly.
 
 \begin{table}[!htbp]
@@ -37,7 +30,7 @@ summaries. Classical methods give identical numbers on a re-run; networks traine
 \caption{The steps that rebuild the study, with the runbook's time estimates.}
 \label{tab:repro-commands}
 \footnotesize
-\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{4.6cm}>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}p{2.3cm}@{}}
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{5.9cm}>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}p{1.9cm}@{}}
 \toprule
 Command & What it does & Time \\
 \midrule
@@ -57,22 +50,13 @@ Command & What it does & Time \\
 % ---------------------------------------------------------------------------------------
 \chapter{Full Results Tables}\label{app:tables}
 
-This appendix holds the tables that are too large for Chapter~4. All values are balanced
-accuracy in percent, the mean over patients. Chance is 50\,\% for two classes and 33.3\,\% for
-three.
-
-\section{The re-benchmark on the session after therapy}
-
-Table~\ref{tab:app-rq1-post} repeats the main re-benchmark for the session recorded after
-therapy (\code{post}). The pattern is the same as before therapy: the published way of testing
-(\emph{replica}) scores far above the three leakage-free ways.
+These are the tables too large for Chapter~4, in balanced accuracy (\%), the mean over
+patients; chance is 50\,\% for two classes and 33.3\,\% for three. Table~\ref{tab:app-rq1-post}
+repeats the re-benchmark after therapy (\code{post}), with the same pattern as before it.
 
 \begin{table}[!htbp]
 \centering
-\caption[Hand versus sixth finger, \code{post} session, all \nPost{} patients]{Hand versus sixth finger, \code{post} session, all \nPost{} patients. Replica: the
-filters are fitted on all trials before the test split, as in the published code. CV leak-free:
-the same folds with everything fitted inside them. Leave-run-out: one run held out at a time.
-Chronological: learn on runs 1 and 2, test on runs 3 and 4.}
+\caption[Hand versus sixth finger, \code{post} session, all \nPost{} patients]{Hand versus sixth finger, \code{post} session, all \nPost{} patients, under the four ways of testing of Section~\ref{sec:protocol} (replica: the paper's way).}
 \label{tab:app-rq1-post}
 \small
 \begin{tabular}{lcccc}
@@ -89,11 +73,7 @@ TS+LR & \rqOnePostTsLrPaperReplicaMean & \rqOnePostTsLrCvLeakfreeMean & \rqOnePo
 \end{tabular}
 \end{table}
 
-\section{The other two tasks}
-
-Table~\ref{tab:app-context} gives the five classical methods on the three-class task and on
-sixth finger versus rest, before therapy, under the two run-wise protocols. Telling imagery from
-rest is easy; adding the choice between hand and finger brings the score far down.
+Table~\ref{tab:app-context} gives the other two tasks before therapy.
 
 \begin{table}[!htbp]
 \centering
@@ -115,19 +95,12 @@ TS+LR & \rqOneRestAhSfTsLrLoroMean & \rqOneRestAhSfTsLrChronoMean & \rqOneSfRest
 \end{tabular}
 \end{table}
 
-\section{Calibration curves, every method}
-
-Tables~\ref{tab:app-s1} and~\ref{tab:app-s2} give every point of the calibration curves of
-Chapter~4. The column is the budget $k$: the number of practice trials per class the patient
-gives. A dash marks a method that cannot be trained at that budget. Methods that learn only
-from the patient need at least one trial of every class, and CSP needs at least two. At $k = 0$
-only the transfer methods run; they use the patient's rest recording without labels.
+Tables~\ref{tab:app-s1} and~\ref{tab:app-s2} give every point of the calibration curves. A
+dash marks a method that cannot be trained at that budget $k$ (CSP needs two trials per class).
 
 \begin{table}[!htbp]
 \centering
-\caption[Scenario S1, a new patient, \code{pre} session, \nPre{} patients, tested on runs 3 and 4]{Scenario S1, a new patient, \code{pre} session, \nPre{} patients, tested on runs 3 and
-4. The patient gives $k$ hand and $k$ sixth-finger trials with their rest periods. The second
-row is the labelled practice time.}
+\caption[Scenario S1, a new patient, \code{pre} session, \nPre{} patients, tested on runs 3 and 4]{Scenario S1, a new patient, \code{pre} session, \nPre{} patients, tested on runs 3 and 4.}
 \label{tab:app-s1}
 \footnotesize
 \setlength{\tabcolsep}{4.5pt}
@@ -161,11 +134,7 @@ EEGNet, pre-trained & \rqTwoSfRestEegnetEaFtKZeroMean & \rqTwoSfRestEegnetEaFtKO
 
 \begin{table}[!htbp]
 \centering
-\caption[Scenario S2, a new command, \code{pre} session, \nPre{} patients]{Scenario S2, a new command, \code{pre} session, \nPre{}
-patients. The patient has already given every hand trial of runs 1 and 2 and adds $k$
-sixth-finger trials. The three-class models use the hand trials; the sixth-finger-or-rest
-models, as pre-registered, use only the new sixth-finger trials and their rest windows. The
-own-hand control never sees a sixth-finger trial, so it has one value for every $k$.}
+\caption[Scenario S2, a new command, \code{pre} session, \nPre{} patients]{Scenario S2, a new command, \code{pre} session, \nPre{} patients (Section~\ref{sec:protocol}). The own-hand control never sees a sixth-finger trial, so it has one value for every $k$.}
 \label{tab:app-s2}
 \footnotesize
 \setlength{\tabcolsep}{4.5pt}
@@ -231,13 +200,6 @@ Re-centred TS+LR & the same re-centring, then TS+LR; the patient's windows weigh
 \end{tabularx}
 \end{table}
 
-The target weight says how much one of the new patient's windows counts against one window of
-another patient. On the development patients the three candidate weights for re-centred TS+LR
-scored between \pct{\rqTwoHparamRctTslrMeanMin} and \pct{\rqTwoHparamRctTslrMeanMax}, all near
-the 33.3\,\% of guessing, so the choice made little difference there. The highest-scoring
-weight, one, is also the least adaptive: each of the new patient's windows then counts as much
-as one of the other patients' thousands of windows.
-
 \begin{table}[!htbp]
 \centering
 \caption{The neural networks (braindecode 1.8.1 on PyTorch).}
@@ -286,19 +248,10 @@ every change made to the plan after it was frozen.
 
 \section{The hypotheses}
 
-A pre-registration is a plan written and frozen before the data are analysed. It fixes the
-questions, the methods and the tests, so that the results cannot steer the analysis. Ours was
-frozen in the project's git repository under the tag \code{prereg-v1}, on a commit dated
-3 October 2026; the tag itself was made on 8 October. These are git's own dates, written by
-whoever makes the commit and the tag: the plan was not registered with an independent registry,
-and it is available, with its deviation log, from the authors on request. The separate
-depression study was frozen as \code{prereg-rq5-v1} before any of its data were downloaded. Table~\ref{tab:app-hypotheses}
-lists the hypotheses. ``Supported'' means the test passed its pre-set bar. ``Contrary'' is
-possible only for a two-sided test whose effect is significant in the other direction.
-``Inconclusive'' means neither, which is not evidence that the opposite is true; a one-sided
-test whose effect points the other way is inconclusive. $W$ is the sum of positive ranks for a
-one-sided test and the smaller rank sum for a two-sided one, and $r$ the rank-biserial
-correlation.
+The plan was frozen under the git tag \code{prereg-v1} before the main experiments
+(Section~\ref{sec:protocol}); the separate depression study was frozen as \code{prereg-rq5-v1}
+before any of its data were downloaded. Table~\ref{tab:app-hypotheses} lists the hypotheses;
+the outcome categories and the statistics are defined in Section~\ref{sec:stats}.
 
 \begin{table}[!htbp]
 \centering
@@ -331,8 +284,8 @@ with sub-21 and sub-22 averaged into one value. H3 did not replicate: its outcom
 
 Some details only became clear once the code met the data. Every such change went into a
 deviation log with its date and reason, and with what results were known at the time. The log
-has \nDeviations{} dated entries; Tables~\ref{tab:app-deviations} and~\ref{tab:app-deviations-2}
-list every one, in our own words. Most clarify a rule before any calibration result. Before the confirmatory results the
+has \nDeviations{} dated entries; Table~\ref{tab:app-deviations}
+lists every one, in our own words. Most clarify a rule before any calibration result. Before the confirmatory results the
 networks were re-run, after we found that they had skipped the last incomplete batch of each
 epoch. After them, the planned electrode-count study was dropped, a sanity check whose premise
 proved wrong was recorded as failed, and the analyses marked post hoc were added. The full text
@@ -341,180 +294,27 @@ a confirmatory outcome.
 
 \begin{table}[!htbp]
 \centering
-\caption{Every deviation from the pre-registration, in order, one line each: up to the calibration study.}
+\caption{Every deviation from the pre-registration, in order; entries decided on the same day with the same results known share a row.}
 \label{tab:app-deviations}
 \footnotesize
-\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{1.65cm}>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}p{4.1cm}}
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{1.65cm}>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}p{3.6cm}}
 \toprule
-Date & Entry & Known when decided \\
+Date & Entries & Known when decided \\
 \midrule
 2026-10-09 & RQ1b to run on BNCI2014\_001 alone, for lack of disk space (superseded the same day) & before any public data or RQ1b result \\
-2026-10-09 & Input of the rebuilt authors' recipe: windows whose wider span crosses a cut are dropped & before any RQ1 result \\
-2026-10-09 & FBCSP's feature selection gets a fixed random seed (a clarification) & before any RQ1 result \\
-2026-10-09 & Cho2017 run as pre-registered; the row above is superseded & before any Cho2017 data \\
+2026-10-09 & Input of the rebuilt authors' recipe: windows whose wider span crosses a cut are dropped; FBCSP's feature selection gets a fixed random seed (a clarification) & before any RQ1 result \\
+2026-10-09 & Cho2017 run as pre-registered; the first entry above is superseded & before any Cho2017 data \\
 2026-10-10 & Rebuilt recipe: a fold where unregularised CSP has no solution is recorded as missing & during RQ1; H1 unaffected \\
-2026-10-11 & $k = \text{all}$ takes every trial of the pool & before any calibration result \\
-2026-10-11 & The fine-tuned EEGNet keeps its three-output network for every task & before any calibration result \\
-2026-10-11 & Choosing the transfer values: what ``no runs 3--4 are touched'' means, and the tie order & before any calibration result \\
-2026-10-11 & The target's reference for re-centring and alignment is the draw's unlabelled set & before any calibration result \\
-2026-10-11 & Re-centred methods computed with our own re-centring (same operations as pyRiemann) & before any calibration result \\
-2026-10-11 & Scope of the post-therapy replication and of the chronological draw & before any calibration result \\
-2026-10-11 & Secondary EEGNet pair: the tests of H2a, H2b and H3 on the pre-therapy session & before any calibration result \\
-2026-10-11 & $k^*$, trials saved and their units & before any calibration result \\
-2026-10-11 & Descriptive summaries outside the pairs & before any calibration result \\
-2026-10-11 & The no-signal check with permuted labels & before any calibration result \\
-2026-10-11 & When the compute contingency for EEGNet triggers & before any calibration result \\
-2026-10-11 & A sanity check of the calibration study against the benchmark & before any calibration result \\
-2026-10-11 & Disclosure of the results already known before the calibration study & before any calibration result \\
-\bottomrule
-\end{tabularx}
-\end{table}
-
-\begin{table}[!htbp]
-\centering
-\caption{Every deviation from the pre-registration, continued: from the calibration study on.}
-\label{tab:app-deviations-2}
-\footnotesize
-\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{1.65cm}>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}p{4.1cm}}
-\toprule
-Date & Entry & Known when decided \\
-\midrule
+2026-10-11 & $k = \text{all}$ takes every trial of the pool; the fine-tuned EEGNet keeps its three-output network for every task; choosing the transfer values: what ``no runs 3--4 are touched'' means, and the tie order; the target's reference for re-centring and alignment is the draw's unlabelled set; re-centred methods computed with our own re-centring (same operations as pyRiemann); scope of the post-therapy replication and of the chronological draw; secondary EEGNet pair: the tests of H2a, H2b and H3 on the pre-therapy session; $k^*$, trials saved and their units; descriptive summaries outside the pairs; the no-signal check with permuted labels; when the compute contingency for EEGNet triggers; a sanity check of the calibration study against the benchmark; disclosure of the results already known before the calibration study & before any calibration result \\
 2026-10-11 & ``Exact $p$'' means the numeric $p$-value & after RQ1 results; no category changes \\
 2026-10-11 & The log is also copied into the pre-registration (bookkeeping) & after the tag \\
-2026-10-12 & Draws below all pick only trials that kept both windows & before any calibration result \\
-2026-10-12 & EEGNet baselines and pre-training re-run: the last incomplete batch had been skipped & before any calibration result \\
-2026-10-12 & The configuration hash ignores settings left at their default & before any calibration result \\
+2026-10-12 & Draws below all pick only trials that kept both windows; EEGNet baselines and pre-training re-run: the last incomplete batch had been skipped; the configuration hash ignores settings left at their default & before any calibration result \\
 2026-10-12 & Compute contingency not triggered & before the full EEGNet runs \\
 2026-10-12 & The sanity check of 2026-10-11 failed as defined; its premise was wrong & after the calibration results; no confirmatory value changes \\
 2026-10-12 & Exploratory study reduced: no electrode-count study; mirroring with classical methods only & after the calibration results, before any exploratory result \\
 2026-10-12 & Two descriptive analyses added, labelled post hoc: the channel-group check and replay details & after the calibration results \\
 2026-10-12 & The demonstrator's patient: breaking a tie in the rule & before the demonstrator's bundle \\
-2026-10-23 & Exploratory: more data per decision for hand against sixth finger & after every confirmatory result \\
-2026-10-23 & Exploratory: the raw recordings for hand against sixth finger & after every confirmatory result \\
-2026-10-23 & Exploratory: pre-training with healthy grasp imagery & after every confirmatory result \\
-2026-10-23 & Exploratory: the sixth finger as its own command (the switch) & after every confirmatory result \\
-2026-10-23 & Exploratory: the switch played as if live & after every confirmatory result \\
+2026-10-23 & Exploratory: more data per decision for hand against sixth finger; the raw recordings for hand against sixth finger; pre-training with healthy grasp imagery; the sixth finger as its own command (the switch); the switch played as if live & after every confirmatory result \\
 \bottomrule
 \end{tabularx}
 \end{table}
-
-\section{Follow-ups added after the results}\label{app:prereg-followups}
-
-Five exploratory analyses were added on 2026-10-23, after every confirmatory result was known
-(Chapter~4). None was pre-registered, and each had its settings fixed before it was run. The
-fourth, the sixth finger as a switch, reuses a configuration that the post hoc channel check had
-already scored on runs 3 and 4 on 2026-10-12, so its test score was known before its candidates
-were listed. They change no confirmatory outcome and are labelled exploratory wherever they
-appear.
-
-% ---------------------------------------------------------------------------------------
-\chapter{Selected Code Listings}\label{app:code}
-
-This appendix shows two more pieces of the code that carry the study's safeguards.
-Chapter~3 already shows the leakage guard, Euclidean alignment and the command gate.
-
-Listing~\ref{lst:calib} draws the practice trials for one patient, one budget and one random
-draw. The rest window of each chosen trial comes with it. The unlabelled windows that alignment
-may use are exactly the labelled ones, so alignment never sees a window the labels did not.
-
-\begin{singlespace}
-\lstinputlisting[linerange={32-40,51-75},caption={Drawing the calibration trials (\code{src/sixthfinger/evaluation/calibration.py}, lines 32--40 and 51--75; the docstring is left out).},label=lst:calib]{../src/sixthfinger/evaluation/calibration.py}
-\end{singlespace}
-
-Listing~\ref{lst:rct} fits the re-centred transfer decoder. Each source patient's covariance
-matrices were already moved to a common centre. The new patient is moved with a reference built
-from the unlabelled set only, never from test windows, and the patient's labelled windows get
-the chosen target weight.
-
-\begin{singlespace}
-\lstinputlisting[firstline=101,lastline=121,caption={Fitting re-centred transfer (\code{src/sixthfinger/models/transfer.py}, lines 101--121).},label=lst:rct]{../src/sixthfinger/models/transfer.py}
-\end{singlespace}
-
-% ---------------------------------------------------------------------------------------
-\chapter{Demonstrator User Guide}\label{app:guide}
-
-This appendix explains how to open the demonstrator and what each part of its screen means.
-
-\section{Opening it}
-
-\noindent\begin{minipage}[c]{0.70\textwidth}
-The project page is online at \url{https://sixth-finger-bci.vercel.app}. The demonstrator alone,
-for presenting on a projector, is at \url{https://sixth-finger-bci.vercel.app/live}. The code in
-Figure~\ref{fig:app-qr} opens the page on a phone. Nothing needs to be installed; any recent browser works, on a computer or a phone.
-\end{minipage}\hfill
-\begin{minipage}[c]{0.25\textwidth}
-\centering
-\qrcode[height=2.6cm]{https://sixth-finger-bci.vercel.app}
-\captionof{figure}{Scan to open the project page.}
-\label{fig:app-qr}
-\end{minipage}
-
-\section{What it plays}
-
-The demonstrator replays the last two runs of patient \demoSubject{}: \demoTrials{} whole trials
-that the model never trained on, at their real speed. The model is an EEGNet trained on that
-patient's first two runs. It reads each 4\,s window and says whether the patient was imagining a
-movement or resting. On these held-out windows it was right \pct{\demoMoveRestAcc} of the time
-for move or rest (balanced accuracy). When it reads a movement it also guesses which one, hand
-or sixth finger; that guess is right \pct{\demoHandFingerAcc} of the time, where guessing gets
-50\,\%. The EEG is a recording, replayed; no headset is connected. The hand is a drawing; no
-physical finger moves. The demonstrator does not read thoughts, and it is not a medical device.
-
-\section{The screen, left to right}
-
-\begin{enumerate}
-\item \textbf{The patient is told.} The instruction on the patient's screen at that moment:
-      rest, get ready, or imagine moving the hand or the sixth finger.
-\item \textbf{Their brain signal.} Three of the 40 sensors, over the part of the brain that moves
-      the hands, drawn as the signal arrives.
-\item \textbf{The model reads.} ``Move'' or ``Rest'', marked right or wrong against the
-      instruction; how sure the model is; its guess of hand or finger; and a drawn hand whose
-      robotic sixth finger bends when the model reads a movement. Below it are the running
-      score, where the decision was made and how long it took.
-\end{enumerate}
-
-A badge above the screen names where the model is running: ``Model running on the server'',
-``Model running in this browser'' or ``Showing stored decisions''. The page chooses by itself.
-It uses the server if one answers; otherwise it runs the same model inside the browser; if even
-that fails, it replays the decisions the same model made earlier, and the badge says so.
-
-\section{The controls}
-
-\begin{itemize}
-\item \textbf{Space} pauses and resumes. The \textbf{left} and \textbf{right arrow} keys go to
-      the previous or the next trial. The speed buttons play at 1$\times$, 2$\times$ or 4$\times$.
-\item \textbf{Per trial} reads the 4\,s after each instruction, as the study tests the model.
-      \textbf{Continuous} reads every half second without knowing when instructions come, as a
-      real device would; the finger then follows the command gate of Appendix~\ref{app:hyper}.
-\item When a server is available, \textbf{On the server} and \textbf{In this browser} choose
-      where the model runs.
-\item Keys \textbf{1}, \textbf{2} and \textbf{3} pose the hand directly (rest, hand closed, sixth
-      finger bent) to check the drawing. A banner then says that this is a manual test and not
-      decoded EEG; \textbf{Esc} returns to the recording.
-\end{itemize}
-
-\section{Running it without the internet}
-
-On a laptop with the repository, \code{npm -{}-prefix web run build} followed by
-\code{npm -{}-prefix web run preview} serves the page at \url{http://localhost:4173}. It then
-decodes in the browser with no outside connection. \code{make demo} starts the local streaming
-server and the page together.
-
-\begin{figure}[p]
-\centering
-\begin{minipage}[t]{0.48\textwidth}
-\centering
-\fbox{\includegraphics[width=0.96\linewidth, trim=0 1642 0 0, clip]{demo_phone.png}}\\[6pt]
-{\small (a) Steps 1 and 2: the instruction and the brain signal}
-\end{minipage}\hfill
-\begin{minipage}[t]{0.48\textwidth}
-\centering
-\fbox{\includegraphics[width=0.96\linewidth, trim=0 0 0 1660, clip]{demo_phone.png}}\\[6pt]
-{\small (b) Step 3 and the controls, further down}
-\end{minipage}
-\vspace{8pt}
-\caption[The demonstrator on a phone]{The demonstrator on a phone (390 pixels wide), captured
-from the built site at the same moment as Figure~\ref{fig:screen}: the same three steps,
-stacked, shown here as the top and the bottom of one screen that scrolls.}
-\label{fig:app-phone}
-\end{figure}

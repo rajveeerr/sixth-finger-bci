@@ -1,11 +1,9 @@
 \chapter{Research Methodology and System Design}\label{ch:method}
 % Sources: report-material 04, 05, 06, 07 and research/from-demo-to-real-limb.md, rewritten.
 
-This chapter explains how the study was done and how the demonstrator was built. It
-answers, in order, the questions an examiner would ask about the method: where the data
-came from and whether it can be trusted, how it was cut into examples, which models were
-used, how test data were kept out of every fit, how the results were judged, and how the trained model
-reaches a screen. Figure~\ref{fig:approach} shows the whole approach in eight stages.
+This chapter explains how the study was done and how the demonstrator was built:
+the data and its audit, the models, how test data were kept out of every fit, how the
+results were judged, and how the trained model reaches a screen. Figure~\ref{fig:approach} shows the whole approach in eight stages.
 
 \begin{figure}[tbp]
   \centering
@@ -229,29 +227,13 @@ Appendix~\ref{app:hyper}.
   \end{tabularx}
 \end{table}
 
-Three ideas lie behind these decoders. The first is the \emph{spatial filter}. Each
-electrode picks up a blur of many brain sources. Common spatial patterns (CSP) find
-weighted sums of the electrodes whose power differs most between two classes; the
-logarithm of that power is then a short, telling feature. CSP learns from the labels, so
-it must only ever see training data. Linear discriminant analysis (LDA) then draws a
-straight boundary between the classes. Shrinkage keeps both steps stable when there are
-few trials~\cite{ledoit2004}.
-
-The second idea is the \emph{covariance matrix}. For each window, a 40-by-40 table records
-how strongly every pair of electrodes varies together. These tables lie on a curved
-surface, so ordinary averages and distances distort them. Riemannian methods use
-distances that respect the curve~\cite{barachant2012,congedo2017}. MDM picks the class
-whose average table is nearest. TS+LR flattens the tables around their average into an
-ordinary list of numbers (the \emph{tangent space}) and fits a logistic regression.
-
-The third idea is the \emph{neural network}. EEGNet~\cite{lawhern2018} reads the raw
-window and learns its own filters in four stages (Figure~\ref{fig:model}): filters in
-time that pick out rhythms, filters across electrodes that weigh where the rhythm is, a
-step that combines short summaries of the window, and a final layer that scores each
-class. It has only a few thousand weights, which suits small EEG datasets. We used the
-braindecode version~\cite{braindecode} with its default sizes and trained it with one
-fixed recipe, the AdamW optimiser~\cite{loshchilov2019adamw} for 150 passes over the
-patient's data, repeated with three random seeds.
+The methods themselves are described in Section~\ref{sec:lit-decoding}. Two points matter
+here. CSP and the authors' recipe learn from the labels, so they must only ever see training
+data; the covariance methods (MDM, TS+LR) never use a label before the classifier. EEGNet
+reads the raw window and learns its own filters in four stages (Figure~\ref{fig:model}).
+We used the braindecode version~\cite{braindecode} with its default sizes and trained it
+with one fixed recipe, the AdamW optimiser~\cite{loshchilov2019adamw} for 150 passes over
+the patient's data, repeated with three random seeds.
 
 \begin{figure}[tbp]
   \centering
@@ -297,13 +279,11 @@ one person with windows $X_i$ (channels by samples), the reference matrix is the
 \end{equation}
 where $T$ is the number of samples. After this, the person's average covariance is the
 identity. Because it works on the windows themselves, any decoder can use it, including a
-network. Listing~\ref{lst:ea} shows our code. One detail mattered: in some sessions the
+network. One detail mattered: in some sessions the
 authors' cleaning removed a direction of the signal entirely, so the smallest
 eigenvalues of $R$ are almost zero. We raise them to a small floor before taking the
 inverse square root; without the floor the result was numerically wrong.
 
-\lstinputlisting[firstline=13,lastline=27,caption={Euclidean alignment: the reference matrix
-(\code{src/sixthfinger/preprocessing/alignment.py}).},label=lst:ea,float=tbp]{../src/sixthfinger/preprocessing/alignment.py}
 
 \textbf{Pre-trained EEGNet.} For each of the \dlPretrainModels{} patients we trained one
 EEGNet on all the other patients (\dlPretrainSourcesMin{} or \dlPretrainSourcesMax{} of
@@ -510,7 +490,7 @@ sixth finger bends toward the palm, and on \emph{Rest} it stays straight.
   right. Right: the model's reading, how sure it is, its guess of hand or finger with that
   guess's measured accuracy, and the drawn hand with the sixth finger bent. Below: the
   playback controls and the choice between reading per trial and reading continuously
-  (Appendix~\ref{app:guide}).}
+  (Section~\ref{sec:deploy}).}
   \label{fig:screen}
 \end{sidewaysfigure}
 
@@ -521,20 +501,17 @@ beats rest, because the results show that movement against rest is what the EEG 
 model's measured accuracy for that guess beside it. The model can read once per trial, on
 exactly the two windows it was trained on (``Per trial''), or every half second over the
 newest 4 seconds without knowing when instructions come (``Continuous''), as a real device
-would. Below the demonstrator, the page explains the project as the questions an examiner
-would ask, each answered by one figure whose numbers are written from the results files;
-a test fails if the page and the results disagree. Every screen says that the EEG is a
+would. Below it, the page explains the project in figures whose numbers are written from
+the results files. Every screen says that the EEG is a
 recording and that this is not a medical device.
 
 \subsection{Stable commands from a noisy stream}
 In continuous mode the model's answers flicker. A \emph{command gate} turns them into
-stable commands (Listing~\ref{lst:gate}). It smooths the chances over time, switches the
+stable commands. It smooths the chances over time, switches the
 finger on only when the smoothed chance of a movement stays above 0.6 for two readings in
 a row, and switches it off when that chance falls below 0.45. Rest is the default. The
 web page has an identical copy of this code, and both are tested against the same inputs.
 
-\lstinputlisting[firstline=34,lastline=51,caption={The command gate's update step
-(\code{server/app/gate.py}).},label=lst:gate,float=tbp]{../server/app/gate.py}
 
 \subsection{When something fails}
 A live demonstration must not depend on one server being awake. The page chooses its
@@ -543,18 +520,16 @@ function). If the server does not answer within 2 seconds, the page loads the sa
 browser with ONNX Runtime Web and decodes the bundled trials itself. If even that fails,
 it replays the answers stored in the bundle. When a sleeping server wakes up, the page
 moves back to it, and the viewer can also choose ``On the server'' or ``In this browser''
-by hand. A badge always says which source is active. In the browser, the trials are streamed with the same messages and timing as from
-the server, so the screen behaves the same either way, and the browser's outputs equal
-the stored ones to within $10^{-4}$.
+by hand. A badge always says which source is active. In the browser, the trials are
+streamed with the same messages and timing as from the server, so the screen behaves the
+same either way.
 
 
 \section{From Demonstrator to a Physical Limb}\label{sec:limb}
 
-The demonstrator replaces only the last two steps of a brain-controlled finger. The
-intention (recorded stroke patients), the EEG (their real recordings, replayed at
-original speed), the signal processing, the trained decoder and the command are the same
-parts a physical system would use. Only the motor controller and the finger are drawn on
-screen. Figure~\ref{fig:path} follows a patient through a real system and marks which
+The demonstrator replaces only the last two steps of a brain-controlled finger: the
+intention, the recorded EEG, the processing, the decoder and the command are the parts a
+physical system would use, and only the motor controller and the finger are drawn. Figure~\ref{fig:path} follows a patient through a real system and marks which
 parts this project built.
 
 \begin{figure}[tbp]
@@ -573,48 +548,20 @@ from a cap and amplifier instead of the bundle, in the same chunks the server al
 sends. Second, filters that use only past samples, since a live system cannot look
 ahead. Third, safety: joint limits, a speed limit, an emergency stop, and rest as the
 default whenever messages stop. Fourth, calibration for each user, which is the subject
-of this study. Table~\ref{tab:layers} sums up the layers.
-
-\begin{table}[tbp]
-  \centering
-  \caption{The layers of a brain-controlled finger, and what this project does with each.}
-  \label{tab:layers}
-  \small
-  \begin{tabularx}{\textwidth}{@{}l>{\raggedright\arraybackslash}p{3.4cm}>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}X@{}}
-    \toprule
-    & Layer & In this project & In a physical system \\
-    \midrule
-    1 & Intention & real: recorded stroke patients & the user, live \\
-    2 & Recording & real data, replayed at original speed & cap and amplifier, streaming live \\
-    3 & Processing & real: the same code, 4\,s windows & the same, with causal filters \\
-    4 & Decoder & real: the trained model (ONNX) & the same model, calibrated per user \\
-    5 & Command & real: IDLE, HAND\_GRASP, SIXTH\_FINGER\_FLEX, with the gate & identical \\
-    6 & Controller & simulated: spring-damped animation & microcontroller with limits and an emergency stop \\
-    7 & Finger & simulated: a drawn hand and sixth finger & motor- or tendon-driven robotic finger \\
-    8 & Feedback & visual, not closed-loop & sight and touch, closed loop \\
-    \bottomrule
-  \end{tabularx}
-\end{table}
+of this study.
 
 \section{Tools, Implementation and Testing}\label{sec:tools}
 
-The research code is a Python package with one module for each stage: download and
-audit, loading and windowing, evaluation (splits, calibration draws, leak checks,
-metrics, statistics and the experiment runner), models, and export. Settings live in
-YAML files that are validated when they are loaded, and a command-line tool runs each
-stage.
-The research code uses MNE-Python~\cite{gramfort2013} for EEG,
+The research code is a Python package with one module for each stage, settings in
+validated YAML files and a command-line tool that runs each stage. It uses MNE-Python~\cite{gramfort2013} for EEG,
 scikit-learn~\cite{pedregosa2011} for the CSP pipelines and classifiers,
 pyRiemann~\cite{pyriemann} for the covariance methods and re-centring,
 PyTorch~\cite{paszke2019} with braindecode~\cite{braindecode} for EEGNet, and
 MOABB~\cite{jayaram2018moabb} for the healthy-subject datasets. The model is exported with
 ONNX and run with ONNX Runtime, in Python on the server and in WebAssembly in the browser.
 The server uses FastAPI; the page uses React and draws its figures and the hand itself. Tests use
-pytest, Vitest and Playwright, and the reports are written in LaTeX. Exact versions are
-locked in the repository.
-
-Development ran on an Apple M1 laptop; the networks were trained on free Kaggle cloud
-sessions with a \dlPretrainDevice{} graphics card. Every number in this report is a
+pytest, Vitest and Playwright. The networks were trained on free Kaggle cloud sessions
+with a \dlPretrainDevice{} graphics card. Every number in this report is a
 LaTeX macro written by a script from the results files, so the text cannot drift from
 the results (Appendix~\ref{app:repro}).
 
@@ -622,20 +569,17 @@ Testing ran at four levels. Python unit tests on synthetic data cover every stag
 windowing to the leak checks, statistics and export. Server tests check that the stream
 is in order and that its answers equal the stored ones. Web unit tests check the command
 gate against the server's test vectors and the in-browser model against Python. Browser
-tests load the built page in Chromium, Firefox and WebKit, at widths from 320 to 1920
-pixels, with the server down and with the network cut. A continuous-integration job runs
-them on every push.
+tests load the built page in three browser engines (Section~\ref{sec:res-demo}). A
+continuous-integration job runs them on every push.
 
-\section{Deployment}\label{sec:deploy}
+\section{Deployment and Use}\label{sec:deploy}
 
-The web page is a static site on Vercel at \url{\siteURL}; the demonstrator alone is at \code{/live}. A streaming server for the same bundle runs on Render, a small
-function on the same site can decide one window per request, and the browser decodes by
-itself whenever neither answers. The code is kept in a private
-repository and is available from the authors on request. Appendix~\ref{app:guide} is a
-user guide with the site's link as a QR code.
-
-\section{Chapter Summary}
-The data were checked, and doubtful recordings excluded, before any result existed. Every
-model was tested on data it had never seen, under checks that stop the code if a test trial
-leaks into training, and the plan was frozen before the main experiments. The next chapter
-reports what the tests found.
+The web page is a static site on Vercel at \url{\siteURL} (Figure~\ref{fig:qr}); the
+demonstrator alone, for a projector, is at \code{/live}. A streaming server for the same
+bundle runs on Render, with the fallbacks of Section~\ref{sec:demo-design}. Nothing needs
+to be installed.
+\textbf{Space} pauses, the arrow keys step between trials, and the speed buttons play at
+1$\times$, 2$\times$ or 4$\times$; \textbf{Per trial} and \textbf{Continuous} choose how the
+model reads, and \textbf{On the server} and \textbf{In this browser} where it runs. Keys
+\textbf{1} to \textbf{3} pose the hand directly to check the drawing, under a banner saying
+that this is a manual test and not decoded EEG. The code is kept in a private repository and is available from the authors on request.
